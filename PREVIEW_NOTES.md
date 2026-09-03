@@ -39,7 +39,18 @@ Bu çalışma mevcut Apps Script Kampüs yayınına dokunmadan ayrı bir uygulam
 
 ## Doğrulama notu
 
-İşlem üretimi ve puanlamanın 6 kontrolüne 7 öğretim kontrolü eklendi. 57 görevde tüm adımların hedefe ulaşması, 0–999 için 15.000 boncuk hareketinde diğer basamakların korunması, tamamlayıcı tekniklerin kapsamı, alternatif doğru yollar ve kayıt doğrulaması sınanır. Kullanıcı bu turda tarayıcı testi istemediğinden görsel/etkileşimli tarayıcı QA yapılmadı. WebMCP ayar okuma ve hazırlama araçları korunur; destekleyen bir doğrulama bağlamı bulunmadığından canlı kayıt/sözleşme kontrolü doğrulanmış sayılmaz.
+İşlem üretimi ve puanlamanın 6 kontrolüne 7 öğretim ve 3 gezinme regresyon kontrolü eklendi. 57 görevde tüm adımların hedefe ulaşması, 0–999 için 15.000 boncuk hareketinde diğer basamakların korunması, tamamlayıcı tekniklerin kapsamı, alternatif doğru yollar ve kayıt doğrulaması sınanır.
+
+Kullanıcı onaylı tarayıcı testinde ilk dersin doğru/yanlış adımları, alternatif doğru yöntem, ipucu ve klavye kullanımı sınandı. 4/5 doğru, 3/5 ipucusuz doğru ve 3/5 örnek yol eşleşmesi eğitimci incelemesinde ayrı göründü. Bu bir pilot test kaydıdır; gerçek öğrenci değerlendirmesi değildir.
+
+## Sayfa geçişi düzeltmesi — 3 Eylül 2026
+
+- Yayındaki sürümde `next/link` istemci geçişi ve ön yükleme yolunda `TypeError: ... is not a function` gözlendi; doğrudan aynı adreslerin açılması çalışıyordu. Kesin paketleme kök nedeni doğrulanmış sayılmaz.
+- Sayfalar arası bağlantılar standart `a href` ile tam belge geçişine alındı. Ders seçimi, tema, içerik, bağımlılıklar, veri anahtarları ve Apps Script Kampüs değiştirilmedi. Sorgu parametreleri korundu.
+- Aktif stüdyo seansına `beforeunload` koruması eklendi; dersin mevcut koruması korundu. Yerel tarayıcıda aktif seanstan ayrılma denemesi sayfayı terk etmedi; tarayıcının yerel uyarı kutusunun görünümü ayrıca doğrulanamadı.
+- Yerel gerçek tıklama testi: merkez → öğrenme yolu → merkez → eğitimci → deneme programı → stüdyo → seans sonucu → eğitimci raporu. Program ayarları taşındı, 1/1 deneme sonucu aynı sekmedeki raporda korundu. Kullanıcının açık dersi değiştirilmeden ayrı test sekmesi kullanıldı.
+- WebMCP `configure_exercise` tek soruluk denemeyi hazırlamak için yerel tarayıcıda çalıştırıldı ve görünen ayarlarla doğrulandı. Bu, merkezi öğrenci kaydı veya tam WebMCP sözleşme testi değildir.
+- Tarayıcı testleri masaüstü kapsamındadır; tüm cihazlar/işletim sistemleri için doğrulama iddiası yoktur. Deneme kayıtları hâlâ sekme-yereldir.
 
 ## Yöntem kaynakları
 

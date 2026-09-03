@@ -1,7 +1,6 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import Link from 'next/link';
 import { ArrowLeft, ArrowRight, AudioLines, CheckCircle2, ChevronRight, CircleHelp, Maximize2, Moon, Pause, Play, RotateCcw, Settings2, Sun, Target, Volume2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -71,6 +70,17 @@ export default function Studio() {
     return () => document.removeEventListener('visibilitychange', onVisibility);
   }, [phase]);
 
+  // Cross-page links use document navigation; protect unfinished session work.
+  useEffect(() => {
+    if (!active) return;
+    const warn = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = '';
+    };
+    window.addEventListener('beforeunload', warn);
+    return () => window.removeEventListener('beforeunload', warn);
+  }, [active]);
+
   const advance = useCallback(() => {
     if (!current) return;
     if (term + 1 < current.sequence.length) setTerm(v => v+1);
@@ -126,7 +136,7 @@ export default function Studio() {
   const result = score(attempts);
 
   return <div className="min-h-screen bg-background">
-    <header className="border-b border-border bg-white px-5 md:px-9"><div className="mx-auto flex h-20 max-w-[1400px] items-center justify-between gap-4"><Link href="/" className="flex items-center gap-3"><span className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#182739] text-xs font-black text-[#d8eeac]">CZA</span><span className="text-sm font-semibold">Egzersiz stüdyosu</span></Link><div className="flex items-center gap-5"><span className="hidden text-[11px] text-muted-foreground sm:block">Örnek çalışma · gerçek öğrenci kaydı yok</span><Link href="/" className="flex items-center gap-2 text-xs font-semibold text-primary"><ArrowLeft size={15} /> Merkezim</Link></div></div></header>
+    <header className="border-b border-border bg-white px-5 md:px-9"><div className="mx-auto flex h-20 max-w-[1400px] items-center justify-between gap-4"><a href="/" className="flex items-center gap-3"><span className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#182739] text-xs font-black text-[#d8eeac]">CZA</span><span className="text-sm font-semibold">Egzersiz stüdyosu</span></a><div className="flex items-center gap-5"><span className="hidden text-[11px] text-muted-foreground sm:block">Örnek çalışma · gerçek öğrenci kaydı yok</span><a href="/" className="flex items-center gap-2 text-xs font-semibold text-primary"><ArrowLeft size={15} /> Merkezim</a></div></div></header>
     <main className="mx-auto max-w-[1480px] px-5 py-7 md:px-9">
       <div className="mb-6 flex flex-wrap items-end justify-between gap-4"><div><p className="eyebrow mb-2 text-primary">Odaklan · uygula · gelişimini gör</p><h1 className="text-3xl font-semibold tracking-tight">Kendi ritminde, doğru teknikle.</h1></div><Button variant="outline" className="h-10 lg:hidden" onClick={() => setSettingsOpen(v=>!v)}><Settings2 /> Çalışma ayarları</Button></div>
       {info && <div role="status" className="mb-5 rounded-lg border border-[#dfd5bd] bg-[#fbf6e9] px-4 py-3 text-xs leading-5 text-[#786337]">{info}</div>}
@@ -148,7 +158,7 @@ export default function Studio() {
                 <p className="mt-4 text-[11px] opacity-50">Doğru cevaplar seansın sonunda açılacak.</p>
               </form>}
               {phase === 'feedback' && <div className="text-center"><CheckCircle2 size={48} className="mx-auto mb-5 text-[#80aa94]" /><h2 className="text-2xl font-semibold">Yanıtın alındı.</h2><p className="mt-3 text-sm opacity-60">Sonuçları birlikte seans sonunda inceleyeceğiz.</p><Button className="mt-7 h-11 px-6" onClick={nextQuestion}>Sonraki soru <ArrowRight /></Button></div>}
-              {phase === 'finished' && <div className="w-full max-w-xl text-center"><p className="eyebrow text-[#6a9e82]">Seans tamamlandı</p><h2 className="mt-3 text-3xl font-semibold tracking-tight">Her çalışma yeni bir ipucu.</h2><div className="my-7 grid grid-cols-3 divide-x divide-border/30"><div><p className="text-3xl font-semibold">{result.correct}/{result.total}</p><p className="mt-2 text-xs opacity-60">Doğru yanıt</p></div><div><p className="text-3xl font-semibold">%{result.accuracy}</p><p className="mt-2 text-xs opacity-60">Bu seans doğruluğu</p></div><div><p className="text-3xl font-semibold">{Math.round(attempts.reduce((s,a)=>s+a.elapsedMs,0)/Math.max(1,attempts.length)/1000)} sn</p><p className="mt-2 text-xs opacity-60">Ort. yanıt süresi</p></div></div><p className="text-sm leading-6 opacity-65">{result.accuracy >= 80 ? 'Bu ayarlarda iyi bir temel oluşturdun. Hızı artırmadan önce birkaç tutarlı seans daha tamamla.' : 'Hızını azaltıp aynı basamakta tekrar çalışabilirsin. Yanlışların, bir sonraki çalışmanın yönünü gösterir.'}</p><div className="mt-6 flex justify-center gap-3"><Button className="h-10 px-4" onClick={reset}><RotateCcw /> Yeni seans</Button><Link href="/educator" className="inline-flex items-center gap-2 rounded-lg border border-border px-4 text-xs">Eğitimci görünümü <ArrowRight size={14}/></Link></div><p className="mt-5 text-[11px] opacity-55">{saved ? 'Deneme sonucu yalnızca bu sekmenin oturumuna kaydedildi.' : 'Tarayıcı kaydına izin vermedi. Sonuç bu ekranda görünür; merkezi sisteme gönderilmedi.'}</p></div>}
+              {phase === 'finished' && <div className="w-full max-w-xl text-center"><p className="eyebrow text-[#6a9e82]">Seans tamamlandı</p><h2 className="mt-3 text-3xl font-semibold tracking-tight">Her çalışma yeni bir ipucu.</h2><div className="my-7 grid grid-cols-3 divide-x divide-border/30"><div><p className="text-3xl font-semibold">{result.correct}/{result.total}</p><p className="mt-2 text-xs opacity-60">Doğru yanıt</p></div><div><p className="text-3xl font-semibold">%{result.accuracy}</p><p className="mt-2 text-xs opacity-60">Bu seans doğruluğu</p></div><div><p className="text-3xl font-semibold">{Math.round(attempts.reduce((s,a)=>s+a.elapsedMs,0)/Math.max(1,attempts.length)/1000)} sn</p><p className="mt-2 text-xs opacity-60">Ort. yanıt süresi</p></div></div><p className="text-sm leading-6 opacity-65">{result.accuracy >= 80 ? 'Bu ayarlarda iyi bir temel oluşturdun. Hızı artırmadan önce birkaç tutarlı seans daha tamamla.' : 'Hızını azaltıp aynı basamakta tekrar çalışabilirsin. Yanlışların, bir sonraki çalışmanın yönünü gösterir.'}</p><div className="mt-6 flex justify-center gap-3"><Button className="h-10 px-4" onClick={reset}><RotateCcw /> Yeni seans</Button><a href="/educator" className="inline-flex items-center gap-2 rounded-lg border border-border px-4 text-xs">Eğitimci görünümü <ArrowRight size={14}/></a></div><p className="mt-5 text-[11px] opacity-55">{saved ? 'Deneme sonucu yalnızca bu sekmenin oturumuna kaydedildi.' : 'Tarayıcı kaydına izin vermedi. Sonuç bu ekranda görünür; merkezi sisteme gönderilmedi.'}</p></div>}
             </div>
             {active && <div className={`border-t px-6 py-4 ${darkStage ? 'border-white/10' : 'border-border'}`}><div className="mb-3 flex items-center justify-between"><span className="text-xs opacity-60">{attempts.length} / {runConfig.rounds} yanıt</span><div className="flex gap-2">{['countdown','sequence'].includes(phase) && <Button variant="ghost" size="sm" onClick={()=>setPaused(v=>!v)}>{paused ? <Play /> : <Pause />}{paused ? 'Sürdür' : 'Duraklat'}</Button>}<Button variant="ghost" size="sm" className="text-xs opacity-60" onClick={reset}>Seansı bırak</Button></div></div><Progress value={attempts.length/runConfig.rounds*100} aria-label="Seans ilerlemesi" /><p className="mt-3 text-[10px] opacity-45">Seansı bırakırsan tamamlanmamış yanıtlar kaydedilmez.</p></div>}
           </div>

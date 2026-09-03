@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
 import { ArrowRight, AudioLines, BookOpenCheck, BrainCircuit, ChartNoAxesCombined, Check, ChevronRight, Clock3, Flame, Hand, LayoutDashboard, Menu, Play, Sparkles, Target, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -31,14 +30,14 @@ export default function Home() {
         </div>
         <p className="eyebrow mb-3 px-4 text-[#7e91a5]">Çalışma alanım</p>
         <nav className="space-y-1" aria-label="Ana menü">
-          <Link href="/" className="academy-nav active"><LayoutDashboard size={18} /> Çalışma merkezim</Link>
-          <Link href="/studio" className="academy-nav"><BrainCircuit size={18} /> Egzersiz stüdyosu</Link>
-          <Link href="/learn" className="academy-nav"><BookOpenCheck size={18} /> Öğrenme yolum</Link>
+          <a href="/" className="academy-nav active"><LayoutDashboard size={18} /> Çalışma merkezim</a>
+          <a href="/studio" className="academy-nav"><BrainCircuit size={18} /> Egzersiz stüdyosu</a>
+          <a href="/learn" className="academy-nav"><BookOpenCheck size={18} /> Öğrenme yolum</a>
           <a href="#development" className="academy-nav" onClick={() => setMenu(false)}><ChartNoAxesCombined size={18} /> Gelişimim</a>
         </nav>
         <div className="mt-10 border-t border-white/10 pt-6">
           <p className="eyebrow mb-3 px-4 text-[#7e91a5]">Eğitimci alanı</p>
-          <Link href="/educator" className="academy-nav"><Target size={18} /> Kontrol merkezi <ArrowRight size={14} className="ml-auto" /></Link>
+          <a href="/educator" className="academy-nav"><Target size={18} /> Kontrol merkezi <ArrowRight size={14} className="ml-auto" /></a>
         </div>
         <div className="mt-auto pt-10">
           <div className="rounded-xl border border-[#3b4d60] p-4">
@@ -72,7 +71,7 @@ export default function Home() {
                 <h2 id="today-title" className="max-w-[380px] text-[29px] font-semibold leading-[1.2] tracking-[-.035em] text-[#21493f]">Sayıları boncuklarla tanı.<br />Bir adım daha ileri.</h2>
                 <p className="mt-4 max-w-[350px] text-sm leading-6 text-[#55766b]">Boncukları tanı, basamakları yerleştir. Doğrudan işlemlerden 5 ve 10 tamamlamalarına adım adım ilerle.</p>
                 <div className="mt-5 flex flex-wrap gap-4 text-xs font-medium text-[#44675b]"><span className="flex items-center gap-1.5"><Clock3 size={15} /> Kendi ritminde</span><span className="flex items-center gap-1.5"><Target size={15} /> 8 ders</span><span className="flex items-center gap-1.5"><BookOpenCheck size={15} /> Rehberli öğretim</span></div>
-                <Link href="/learn" className="mt-7 inline-flex h-11 items-center gap-3 rounded-lg bg-[#226f60] px-5 text-sm font-semibold text-white transition-colors hover:bg-[#195749]">Öğrenme yolunu aç <Play size={15} fill="currentColor" /></Link>
+                <a href="/learn" className="mt-7 inline-flex h-11 items-center gap-3 rounded-lg bg-[#226f60] px-5 text-sm font-semibold text-white transition-colors hover:bg-[#195749]">Öğrenme yolunu aç <Play size={15} fill="currentColor" /></a>
               </div>
               <div className="mx-auto w-fit text-center">
                 <div className="abacus" role="group" aria-label="Etkileşimli soroban önizlemesi">
@@ -102,14 +101,14 @@ export default function Home() {
         </div>
 
         <section id="learning-path" className="mt-9 scroll-mt-6">
-          <div className="mb-4 flex items-center justify-between"><div><h2 className="text-lg font-semibold tracking-tight">Beceri atölyelerim</h2><p className="mt-1 text-xs text-muted-foreground">Her atölye, kendi gelişim basamaklarınla ilerler.</p></div><Link href="/studio" className="flex items-center gap-1 text-xs font-semibold text-primary">Stüdyoyu aç <ChevronRight size={14} /></Link></div>
+          <div className="mb-4 flex items-center justify-between"><div><h2 className="text-lg font-semibold tracking-tight">Beceri atölyelerim</h2><p className="mt-1 text-xs text-muted-foreground">Her atölye, kendi gelişim basamaklarınla ilerler.</p></div><a href="/studio" className="flex items-center gap-1 text-xs font-semibold text-primary">Stüdyoyu aç <ChevronRight size={14} /></a></div>
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            {modules.map(module => <Link href={module.href} key={module.title} className="group rounded-xl border border-border bg-white p-5 transition-transform hover:-translate-y-1 hover:shadow-md">
+            {modules.map(module => <a href={module.href} key={module.title} className="group rounded-xl border border-border bg-white p-5 transition-transform hover:-translate-y-1 hover:shadow-md">
               <div className="mb-5 flex items-center justify-between"><span className="flex h-11 w-11 items-center justify-center rounded-xl" style={{ background: module.color, color: module.ink }}><module.icon size={23} strokeWidth={1.7} /></span><ChevronRight size={16} className="text-muted-foreground group-hover:text-primary" /></div>
               <h3 className="text-[15px] font-semibold">{module.title}</h3><p className="mt-1.5 text-xs text-muted-foreground">{module.detail}</p>
               <div className="mb-2 mt-5 flex justify-between text-[10px] font-medium"><span style={{ color: module.ink }}>{module.level}</span><span className="text-muted-foreground">{module.progress ? `%${module.progress}` : 'Keşfet'}</span></div>
               <div className="h-1 overflow-hidden rounded-full bg-muted"><div className="h-full rounded-full" style={{ width: `${Math.max(module.progress, 4)}%`, background: module.ink }} /></div>
-            </Link>)}
+            </a>)}
           </div>
         </section>
 
