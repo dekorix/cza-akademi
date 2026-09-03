@@ -140,6 +140,15 @@ body {
 :fullscreen { overflow-y: auto; }
 .abacus-rod:focus-visible { outline: 3px solid #166e65; outline-offset: 6px; border-radius: 4px; }
 .focus-number { font-variant-numeric: tabular-nums; letter-spacing: -.05em; }
+.lesson-abacus .abacus { gap: 16px; padding: 20px 16px; }
+.lesson-abacus .abacus:after { top: 91px; height: 8px; }
+.lesson-abacus .abacus-rod { width: 48px; gap: 10px; min-height: 285px; }
+.lesson-abacus .abacus-bead { width: 48px; height: 32px; flex-shrink: 0; }
+.lesson-abacus .abacus-bead.upper { margin-bottom: 55px; }
+.lesson-abacus .abacus-bead.upper.engaged { transform: translateY(39px); }
+.lesson-abacus .abacus-bead.lower.engaged { transform: translateY(-18px); }
+.lesson-abacus .hint-bead { outline: 3px solid #284b73; outline-offset: 4px; }
+.lesson-abacus .abacus-bead:focus-visible { outline: 3px dashed #111827; outline-offset: 5px; }
 @media (prefers-reduced-motion: reduce) { *, *:before, *:after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }
 
 @layer base {

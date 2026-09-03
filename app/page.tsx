@@ -9,7 +9,7 @@ import { Progress } from '@/components/ui/progress';
 
 const modules = [
   { title: 'Parmak tekniği', detail: 'İçerik ve hareket modeli hazırlanacak', icon: Hand, color: '#f8eee3', ink: '#a56730', level: 'Geliştirme planında', progress: 0, href: '/educator' },
-  { title: 'Soroban', detail: 'Gör, dokun, hesapla', icon: BrainCircuit, color: '#e8f3ee', ink: '#23796e', level: 'Seviye 2', progress: 64, href: '/studio?mode=soroban' },
+  { title: 'Soroban öğretimi', detail: 'Anla, birlikte yap, kendin dene', icon: BrainCircuit, color: '#e8f3ee', ink: '#23796e', level: '8 derslik temel rota', progress: 0, href: '/learn' },
   { title: 'Flash Anzan', detail: 'Zihnindeki abaküsü çalıştır', icon: Sparkles, color: '#eeedf9', ink: '#7765aa', level: 'Seviye 1', progress: 32, href: '/studio?mode=flash' },
   { title: 'Sesli Anzan', detail: 'Dinle, canlandır, hesapla', icon: AudioLines, color: '#eef1f4', ink: '#6c7b8d', level: 'Sıradaki adım', progress: 0, href: '/studio?mode=audio' },
 ];
@@ -33,7 +33,7 @@ export default function Home() {
         <nav className="space-y-1" aria-label="Ana menü">
           <Link href="/" className="academy-nav active"><LayoutDashboard size={18} /> Çalışma merkezim</Link>
           <Link href="/studio" className="academy-nav"><BrainCircuit size={18} /> Egzersiz stüdyosu</Link>
-          <a href="#learning-path" className="academy-nav" onClick={() => setMenu(false)}><BookOpenCheck size={18} /> Öğrenme yolum</a>
+          <Link href="/learn" className="academy-nav"><BookOpenCheck size={18} /> Öğrenme yolum</Link>
           <a href="#development" className="academy-nav" onClick={() => setMenu(false)}><ChartNoAxesCombined size={18} /> Gelişimim</a>
         </nav>
         <div className="mt-10 border-t border-white/10 pt-6">
@@ -66,13 +66,13 @@ export default function Home() {
 
         <div className="grid gap-5 xl:grid-cols-[1fr_300px]">
           <section className="relative overflow-hidden rounded-2xl bg-[#e4eee8] p-6 md:p-8" aria-labelledby="today-title">
-            <div className="flex flex-wrap items-center gap-2"><span className="eyebrow rounded-md bg-white/70 px-2.5 py-1.5 text-[#387568]">Bugünün ana çalışması</span><span className="text-xs text-[#58796b]">Eğitimcin tarafından hazırlandı</span></div>
+            <div className="flex flex-wrap items-center gap-2"><span className="eyebrow rounded-md bg-white/70 px-2.5 py-1.5 text-[#387568]">Soroban temel öğretim</span><span className="text-xs text-[#58796b]">Rehberli öğretim pilotu</span></div>
             <div className="mt-7 grid items-center gap-6 md:grid-cols-[1fr_270px]">
               <div>
                 <h2 id="today-title" className="max-w-[380px] text-[29px] font-semibold leading-[1.2] tracking-[-.035em] text-[#21493f]">Sayıları boncuklarla tanı.<br />Bir adım daha ileri.</h2>
-                <p className="mt-4 max-w-[350px] text-sm leading-6 text-[#55766b]">Sorobandaki örüntüyü oku, sayıyı yaz. Kısa bir seansla dikkatini ve sayı temsilini çalıştır.</p>
-                <div className="mt-5 flex flex-wrap gap-4 text-xs font-medium text-[#44675b]"><span className="flex items-center gap-1.5"><Clock3 size={15} /> Kendi ritminde</span><span className="flex items-center gap-1.5"><Target size={15} /> 5 soru</span><span className="flex items-center gap-1.5"><BookOpenCheck size={15} /> Okuma</span></div>
-                <Link href="/studio?mode=soroban" className="mt-7 inline-flex h-11 items-center gap-3 rounded-lg bg-[#226f60] px-5 text-sm font-semibold text-white transition-colors hover:bg-[#195749]">Çalışmaya başla <Play size={15} fill="currentColor" /></Link>
+                <p className="mt-4 max-w-[350px] text-sm leading-6 text-[#55766b]">Boncukları tanı, basamakları yerleştir. Doğrudan işlemlerden 5 ve 10 tamamlamalarına adım adım ilerle.</p>
+                <div className="mt-5 flex flex-wrap gap-4 text-xs font-medium text-[#44675b]"><span className="flex items-center gap-1.5"><Clock3 size={15} /> Kendi ritminde</span><span className="flex items-center gap-1.5"><Target size={15} /> 8 ders</span><span className="flex items-center gap-1.5"><BookOpenCheck size={15} /> Rehberli öğretim</span></div>
+                <Link href="/learn" className="mt-7 inline-flex h-11 items-center gap-3 rounded-lg bg-[#226f60] px-5 text-sm font-semibold text-white transition-colors hover:bg-[#195749]">Öğrenme yolunu aç <Play size={15} fill="currentColor" /></Link>
               </div>
               <div className="mx-auto w-fit text-center">
                 <div className="abacus" role="group" aria-label="Etkileşimli soroban önizlemesi">
