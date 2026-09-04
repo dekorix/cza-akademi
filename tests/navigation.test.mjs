@@ -39,6 +39,7 @@ test('educator handoff carries the selected username but never a PIN', () => {
   assert.doesNotMatch(educator, /[?&]pin=/i);
   assert.match(paritmetik, /params\.get\('username'\)/);
   assert.match(paritmetik, /params\.get\('from'\) === 'educator'/);
+  assert.match(paritmetik, /source: 'free_practice'/);
 });
 
 test('unfinished teaching and exercise sessions guard document navigation', () => {

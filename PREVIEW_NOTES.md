@@ -5,7 +5,7 @@ Bu çalışma mevcut Apps Script Kampüs yayınına dokunmadan ayrı bir uygulam
 ## Çalışan ilk kapsam
 
 - Öğrenci çalışma merkezi ve örnek günlük rota.
-- `/paritmetik`: Learning Core üzerinde çalışan tek bağlı öğrenci test girişi; eğitmen ekranından seçilen hesabın kullanıcı adını aktarır, PIN’i URL’ye veya kaynak koda taşımaz.
+- `/paritmetik`: Learning Core üzerinde çalışan tek bağlı öğrenci test girişi; eğitmen ekranından seçilen hesabın kullanıcı adını aktarır, PIN’i URL’ye veya kaynak koda taşımaz. Serbest çalışma oturumu Learning Core sözleşmesindeki `free_practice` kaynağıyla açılır.
 - Soroban okuma ve etkileşimli Soroban yazma.
 - `/learn`: 8 derslik Soroban Temel Öğretim V1. Boncuklar/sıfırlama, basamaklar, doğrudan toplama/çıkarma, basit 5 ve 10 tamamlamaları.
 - 17 rehberli örnek + 40 bağımsız deneme; özgün ders açıklamaları ve yasal boncuk hareketleriyle tanımlı çözüm yolları.

@@ -65,7 +65,7 @@ export default function ParitmetikPage() {
     try {
       const result = await core('start', {
         moduleCode: selectedMode === 'read' ? 'finger_read' : 'finger_press',
-        source: 'academy',
+        source: 'free_practice',
         clientSessionId: crypto.randomUUID(),
         recipeId: null,
         settings: { engine: 'strict-v06', handMode: 'two', pressMode: 'semi' },
