@@ -35,6 +35,7 @@ export default function ParitmetikPage() {
   const [student, setStudent] = useState<Student | null>(null);
   const [username, setUsername] = useState('');
   const [pin, setPin] = useState('');
+  const [educatorHandoff, setEducatorHandoff] = useState(false);
   const [loginError, setLoginError] = useState('');
   const [mode, setMode] = useState<Mode>('read');
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -80,13 +81,22 @@ export default function ParitmetikPage() {
   }, [newQuestion]);
 
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const comesFromEducator = params.get('from') === 'educator';
+    const selectedUsername = params.get('username') || '';
     core('me')
       .then(async (data) => {
         setStudent((data.student || data.user || data) as Student);
         await startSession('read');
       })
       .catch(() => setStudent(null))
-      .finally(() => setLoading(false));
+      .finally(() => {
+        if (comesFromEducator) {
+          setEducatorHandoff(true);
+          setUsername(selectedUsername);
+        }
+        setLoading(false);
+      });
   }, [startSession]);
 
   async function changeMode(selectedMode: Mode) {
@@ -251,10 +261,11 @@ export default function ParitmetikPage() {
     return (
       <main className="paritmetik-login grid min-h-screen place-items-center px-5 py-10">
         <section className="w-full max-w-md rounded-3xl border border-border bg-white p-7 shadow-xl md:p-9">
-          <a href="/" className="mb-8 inline-flex items-center gap-2 text-sm font-semibold text-muted-foreground"><ArrowLeft size={16} /> Akademiye dön</a>
+          <div className="mb-8 flex flex-wrap items-center justify-between gap-3"><a href="/" className="inline-flex items-center gap-2 text-sm font-semibold text-muted-foreground"><ArrowLeft size={16} /> Akademiye dön</a>{educatorHandoff && <a href="/educator" className="text-sm font-semibold text-primary">Eğitmen ekranı</a>}</div>
           <div className="mb-6 flex items-center gap-3"><span className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#d8eeac] font-black text-[#1c3d32]">CZA</span><div><p className="font-semibold">Egzersiz Akademisi</p><p className="text-xs text-muted-foreground">Learning Core bağlantısı</p></div></div>
           <h1 className="text-3xl font-semibold tracking-tight">Çalışmanı aç</h1>
           <p className="mt-2 text-sm leading-6 text-muted-foreground">CZA öğrenci kullanıcı adın ve PIN’inle devam et.</p>
+          {educatorHandoff && <div className="mt-5 rounded-xl border border-[#b9daca] bg-[#edf8f2] p-4 text-sm leading-6 text-[#345f52]"><strong>Eğitmen ekranından Zeynep hesabı seçildi.</strong><p>Kullanıcı adı hazır. Geçici test PIN’ini girerek öğrenci çalışmasını aç.</p></div>}
           <form className="mt-7 space-y-4" onSubmit={login}>
             <div><label htmlFor="username" className="mb-2 block text-sm font-semibold">Kullanıcı adı</label><Input id="username" autoComplete="username" value={username} onChange={(event) => setUsername(event.target.value)} required className="h-12" /></div>
             <div><label htmlFor="pin" className="mb-2 block text-sm font-semibold">PIN</label><Input id="pin" type="password" inputMode="numeric" autoComplete="current-password" minLength={4} maxLength={6} pattern="[0-9]*" value={pin} onChange={(event) => setPin(event.target.value.replace(/\D/g, ''))} required className="h-12 text-lg tracking-[.3em]" /></div>

@@ -5,6 +5,7 @@ Bu çalışma mevcut Apps Script Kampüs yayınına dokunmadan ayrı bir uygulam
 ## Çalışan ilk kapsam
 
 - Öğrenci çalışma merkezi ve örnek günlük rota.
+- `/paritmetik`: Learning Core üzerinde çalışan tek bağlı öğrenci test girişi; eğitmen ekranından seçilen hesabın kullanıcı adını aktarır, PIN’i URL’ye veya kaynak koda taşımaz.
 - Soroban okuma ve etkileşimli Soroban yazma.
 - `/learn`: 8 derslik Soroban Temel Öğretim V1. Boncuklar/sıfırlama, basamaklar, doğrudan toplama/çıkarma, basit 5 ve 10 tamamlamaları.
 - 17 rehberli örnek + 40 bağımsız deneme; özgün ders açıklamaları ve yasal boncuk hareketleriyle tanımlı çözüm yolları.
@@ -19,7 +20,7 @@ Bu çalışma mevcut Apps Script Kampüs yayınına dokunmadan ayrı bir uygulam
 
 ## Sınırlar
 
-- Gerçek hesap girişi, rol yetkileri, öğrenci eşleştirmesi ve merkezi kalıcı kayıt yoktur.
+- Bir öğrenci test hesabında kullanıcı adı/PIN doğrulaması, sunucu oturumu ve Paritmetik kayıt akışı çalışır. Genel öğrenci oluşturma, eğitimci kimliği, rol yetkileri ve veli erişimi henüz yoktur.
 - Örnek öğrenci, gelişim, seri ve rota verileri açıkça senaryodur. Deneme seansları bu örnek öğrencilere atanmaz.
 - Deneme programı ve sonuçlar yalnızca sessionStorage içinde, bu tarayıcı sekmesinin oturumunda tutulur; sekme kapanınca kaybolabilir. Gerçek öğrenci verisi girilmemelidir.
 - Cevap anahtarı istemcide oluşur; bu pilot güvenli sınav sistemi değildir. Merkezi değerlendirmede üretim/puanlama sunucuya taşınmalıdır.
