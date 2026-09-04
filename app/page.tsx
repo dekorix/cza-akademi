@@ -7,7 +7,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 
 const modules = [
-  { title: 'Parmak tekniği', detail: 'İçerik ve hareket modeli hazırlanacak', icon: Hand, color: '#f8eee3', ink: '#a56730', level: 'Geliştirme planında', progress: 0, href: '/educator' },
+  { title: 'Parmak tekniği', detail: 'Oku, parmaklarınla göster ve anında geri bildirim al', icon: Hand, color: '#f8eee3', ink: '#a56730', level: 'Learning Core bağlı', progress: 1, href: '/paritmetik' },
   { title: 'Soroban öğretimi', detail: 'Anla, birlikte yap, kendin dene', icon: BrainCircuit, color: '#e8f3ee', ink: '#23796e', level: '8 derslik temel rota', progress: 0, href: '/learn' },
   { title: 'Flash Anzan', detail: 'Zihnindeki abaküsü çalıştır', icon: Sparkles, color: '#eeedf9', ink: '#7765aa', level: 'Seviye 1', progress: 32, href: '/studio?mode=flash' },
   { title: 'Sesli Anzan', detail: 'Dinle, canlandır, hesapla', icon: AudioLines, color: '#eef1f4', ink: '#6c7b8d', level: 'Sıradaki adım', progress: 0, href: '/studio?mode=audio' },
@@ -32,6 +32,7 @@ export default function Home() {
         <nav className="space-y-1" aria-label="Ana menü">
           <a href="/" className="academy-nav active"><LayoutDashboard size={18} /> Çalışma merkezim</a>
           <a href="/studio" className="academy-nav"><BrainCircuit size={18} /> Egzersiz stüdyosu</a>
+          <a href="/paritmetik" className="academy-nav"><Hand size={18} /> Paritmetik</a>
           <a href="/learn" className="academy-nav"><BookOpenCheck size={18} /> Öğrenme yolum</a>
           <a href="#development" className="academy-nav" onClick={() => setMenu(false)}><ChartNoAxesCombined size={18} /> Gelişimim</a>
         </nav>
@@ -53,7 +54,7 @@ export default function Home() {
         <div className="flex items-center gap-5">
           <span className="hidden items-center gap-1.5 text-sm font-semibold text-[#b06d3f] sm:flex"><Flame size={18} /> 4 günlük seri</span>
           <div className="h-7 w-px bg-border" />
-          <div className="flex items-center gap-3"><span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#f1ddc6] font-semibold text-[#875a38]">E</span><div className="hidden sm:block"><p className="text-sm font-semibold">Elif</p><p className="text-[11px] text-muted-foreground">Örnek öğrenci · Seviye 2</p></div></div>
+          <a href="/paritmetik" className="flex items-center gap-3 rounded-xl px-2 py-1 transition-colors hover:bg-secondary"><span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#f1ddc6] font-semibold text-[#875a38]">C</span><div className="hidden sm:block"><p className="text-sm font-semibold">CZA öğrenci girişi</p><p className="text-[11px] text-muted-foreground">Learning Core ile devam et</p></div></a>
         </div>
       </header>
 
