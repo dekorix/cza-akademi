@@ -139,7 +139,7 @@ body {
 .abacus-bead:focus-visible { outline: 3px solid #213e32; outline-offset: 3px; }
 :fullscreen { overflow-y: auto; }
 .abacus-rod:focus-visible { outline: 3px solid #166e65; outline-offset: 6px; border-radius: 4px; }
-.focus-number { font-variant-numeric: tabular-nums; letter-spacing: -.05em; }
+.focus-number { font-variant-numeric: lining-nums tabular-nums; letter-spacing: .01em; }
 .lesson-abacus .abacus { gap: 16px; padding: 20px 16px; }
 .lesson-abacus .abacus:after { top: 91px; height: 8px; }
 .lesson-abacus .abacus-rod { width: 48px; gap: 10px; min-height: 285px; }
