@@ -136,14 +136,17 @@ body {
 .academy-nav:hover { background: #22374b; color: white; }
 .academy-nav.active { background: #304e58; color: #e1fff4; }
 .eyebrow { font-size: 14px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
-.abacus { position: relative; display: flex; justify-content: center; gap: 17px; padding: 15px 23px; border: 9px solid #c69a66; border-radius: 8px; background: #f8f2e7; box-shadow: 0 14px 28px #152e3c12; }
-.abacus:after { content: ''; position: absolute; left: 0; right: 0; top: 57px; height: 7px; background: #b58959; pointer-events: none; }
-.abacus-rod { position: relative; display: flex; flex-direction: column; align-items: center; gap: 6px; width: 31px; min-height: 190px; padding: 0; cursor: pointer; background: transparent; border: 0; }
-.abacus-rod:before { content: ''; position: absolute; top: 0; bottom: 0; width: 3px; background: #c5ab8d; }
-.abacus-bead { position: relative; display: block; width: 30px; height: 21px; border-radius: 45% 45%; background: #258e84; box-shadow: inset 0 -3px 0 #17796f; transition: transform .18s; }
-.abacus-bead.upper { margin-bottom: 40px; background: #e69c62; box-shadow: inset 0 -3px 0 #ca7c48; }
+.abacus { position: relative; display: flex; justify-content: center; gap: 17px; padding: 20px 24px; border: 10px solid transparent; border-radius: 13px; background: linear-gradient(#fbf7ee,#f5ecdc) padding-box, linear-gradient(145deg,#e0b276,#a87540 55%,#d09a5f) border-box; box-shadow: inset 0 0 0 2px #fff8e9, inset 0 -4px 12px #8b5a2b26, 0 18px 32px #152e3c25, 0 4px 0 #8b5a2b; }
+.abacus:after { content: ''; position: absolute; left: 0; right: 0; top: 62px; height: 9px; background: linear-gradient(#d5a267,#9b673b 48%,#e1b47b); border-top: 2px solid #f6d29c; border-bottom: 2px solid #85532e; pointer-events: none; box-shadow: 0 2px 5px #5b391f44; }
+.abacus-rod { position: relative; display: flex; flex-direction: column; align-items: center; gap: 7px; width: 31px; min-height: 190px; padding: 0; cursor: pointer; background: transparent; border: 0; }
+.abacus-rod:before { content: ''; position: absolute; top: -2px; bottom: -2px; width: 4px; border-radius: 3px; background: linear-gradient(90deg,#a4784f,#f0d2a3 45%,#8e623f); box-shadow: 1px 0 2px #69401f55; }
+.abacus-bead { position: relative; z-index: 1; display: block; width: 34px; height: 24px; border: 1px solid #18786e; border-radius: 50%; background: radial-gradient(ellipse at 34% 26%,#78c8bb 0 12%,#2d9b8e 35%,#147267 82%); box-shadow: inset 0 3px 4px #bff2e455, inset 0 -4px 4px #0b544b88, 0 3px 4px #183c3b38; transition: transform .18s, filter .18s; }
+.abacus-bead.upper { margin-bottom: 40px; border-color: #bf6e2b; background: radial-gradient(ellipse at 34% 24%,#ffd194 0 10%,#ef9f58 38%,#c56c2b 84%); box-shadow: inset 0 3px 4px #fff0cf88, inset 0 -4px 4px #9c4a1e88, 0 3px 4px #633a2444; }
 .abacus-bead.upper.engaged { transform: translateY(15px); }
 .abacus-bead.lower.engaged { transform: translateY(-17px); }
+.abacus-bead:enabled { cursor: pointer; }
+.abacus-bead:enabled:hover { filter: brightness(1.08) saturate(1.08); }
+.abacus-bead:active { filter: brightness(.96); }
 .abacus-bead:focus-visible { outline: 3px solid #213e32; outline-offset: 3px; }
 :fullscreen { overflow-y: auto; }
 .abacus-rod:focus-visible { outline: 3px solid #166e65; outline-offset: 6px; border-radius: 4px; }
