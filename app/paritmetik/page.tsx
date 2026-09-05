@@ -31,6 +31,23 @@ function friendlyError(error: unknown) {
   return 'Learning Core’a şu anda ulaşılamıyor. Biraz sonra yeniden dene.';
 }
 
+function StudyPerformance({ stats }: { stats: { total: number; correct: number; wrong: number } }) {
+  const accuracy = stats.total ? Math.round(stats.correct / stats.total * 100) : 0;
+  return <section aria-label="Çalışma Performansı" className="mx-auto mt-5 max-w-xl overflow-hidden rounded-2xl border border-teal-200 bg-teal-50 text-slate-900">
+    <h2 className="bg-teal-700 px-4 py-3 text-center text-lg font-bold text-white">Çalışma Performansı</h2>
+    <div className="p-4" aria-live="polite" aria-atomic="true">
+      <dl className="grid grid-cols-3 gap-2 text-center">
+        <div><dt className="text-sm">Soru Sayısı</dt><dd className="mt-1 text-3xl font-bold tabular-nums">{stats.total}</dd></div>
+        <div><dt className="text-sm">Doğru Sayısı</dt><dd className="mt-1 text-3xl font-bold tabular-nums text-teal-800">{stats.correct}</dd></div>
+        <div><dt className="text-sm">Yanlış Sayısı</dt><dd className="mt-1 text-3xl font-bold tabular-nums text-amber-800">{stats.wrong}</dd></div>
+      </dl>
+      <p className="mb-2 mt-4 text-center text-lg font-bold">Başarı Oranı: %{accuracy}</p>
+      <div role="progressbar" aria-label="Başarı oranı" aria-valuemin={0} aria-valuemax={100} aria-valuenow={accuracy} className="h-5 overflow-hidden rounded-full border border-teal-200 bg-white"><div className="h-full rounded-full bg-teal-600" style={{ width: accuracy + '%' }} /></div>
+      <p className="mt-2 text-center text-sm text-slate-600">Bu çalışmada tamamladığın soruların özeti.</p>
+    </div>
+  </section>;
+}
+
 export default function ParitmetikPage() {
   const [loading, setLoading] = useState(true);
   const [student, setStudent] = useState<Student | null>(null);
@@ -406,9 +423,9 @@ export default function ParitmetikPage() {
           )}
 
           </fieldset>
-          {feedback && <output className={`mx-auto mt-5 block max-w-xl rounded-xl p-4 text-sm ${feedback.correct ? 'bg-emerald-50 text-emerald-900' : 'bg-amber-50 text-amber-900'}`}><strong>{feedback.correct ? 'Doğru' : 'Yanlış'}</strong><p className="mt-1">{feedback.message}</p><p className="mt-2 font-semibold">Doğru cevap: {handMode === 'two' ? String(target).padStart(2, '0') : target}</p>{mode === 'press' && <p className="mt-3">Yanıtını doğru gösterimle karşılaştır.</p>}{mode === 'press' && <div className="mt-4 grid grid-cols-2 gap-3 rounded-2xl bg-white/70 p-3"><figure className="m-0 text-center"><figcaption className="mb-1 text-sm font-semibold">Doğru Gösterim</figcaption><div className="grid grid-cols-2">{handMode !== 'right' && <FingerHand side="left" pattern={visiblePattern.left} />}{handMode !== 'left' && <FingerHand side="right" pattern={visiblePattern.right} />}</div></figure><figure className="m-0 text-center"><figcaption className="mb-1 text-sm font-semibold">Senin Gösterimin</figcaption><div className="grid grid-cols-2">{handMode !== 'right' && <FingerHand side="left" pattern={left} />}{handMode !== 'left' && <FingerHand side="right" pattern={right} />}</div></figure></div>}{mode === 'read' && <div className="mt-4 grid grid-cols-2 gap-3 rounded-2xl bg-white/70 p-3 text-center"><div><p className="text-xs font-semibold">Doğru cevap</p><p className="mt-1 text-2xl font-bold">{target}</p></div><div><p className="text-xs font-semibold">Girilen cevap</p><p className="mt-1 text-2xl font-bold">{answer || '—'}</p></div></div>}{transitionMs > 0 ? <div><p className="mt-2 text-xs">{sync !== 'ready' ? 'Yeni soru kayıt tamamlandıktan sonra açılacak.' : paused ? 'İnceleme süresi durduruldu.' : `${Math.ceil(remaining / 1000)} saniye sonra yeni soru açılacak.`}</p><Button onClick={() => setPaused(value => !value)}>{paused ? 'Otomatik geçişi sürdür' : 'Daha uzun incele'}</Button></div> : <Button size="sm" className="mt-3" onClick={newQuestion}>Devam</Button>}</output>}
+          {feedback && <output className={`mx-auto mt-5 block max-w-xl rounded-xl p-4 text-sm ${feedback.correct ? 'bg-emerald-50 text-emerald-900' : 'bg-amber-50 text-amber-900'}`}><strong>{feedback.correct ? 'Doğru' : 'Yanlış'}</strong><p className="mt-1">{feedback.message}</p><p className="mt-2 font-semibold">Doğru cevap: {handMode === 'two' ? String(target).padStart(2, '0') : target}</p>{mode === 'press' && <p className="mt-3">Yanıtını doğru gösterimle karşılaştır.</p>}{mode === 'press' && <div className="mt-4 grid grid-cols-2 gap-3 rounded-2xl bg-white/70 p-3"><figure className="m-0 text-center"><figcaption className="mb-1 text-sm font-semibold">Doğru Gösterim</figcaption><div className="grid grid-cols-2">{handMode !== 'right' && <FingerHand side="left" pattern={visiblePattern.left} />}{handMode !== 'left' && <FingerHand side="right" pattern={visiblePattern.right} />}</div></figure><figure className="m-0 text-center"><figcaption className="mb-1 text-sm font-semibold">Senin Gösterimin</figcaption><div className="grid grid-cols-2">{handMode !== 'right' && <FingerHand side="left" pattern={left} />}{handMode !== 'left' && <FingerHand side="right" pattern={right} />}</div></figure></div>}{mode === 'read' && <div className="mt-4 grid grid-cols-2 gap-3 rounded-2xl bg-white/70 p-3 text-center"><div><p className="text-xs font-semibold">Doğru cevap</p><p className="mt-1 text-2xl font-bold">{target}</p></div><div><p className="text-xs font-semibold">Girilen cevap</p><p className="mt-1 text-2xl font-bold">{answer || '—'}</p></div></div>}<StudyPerformance stats={stats} />{transitionMs > 0 ? <div><p className="mt-2 text-xs">{sync !== 'ready' ? 'Yeni soru kayıt tamamlandıktan sonra açılacak.' : paused ? 'İnceleme süresi durduruldu.' : `${Math.ceil(remaining / 1000)} saniye sonra yeni soru açılacak.`}</p><Button onClick={() => setPaused(value => !value)}>{paused ? 'Otomatik geçişi sürdür' : 'Daha uzun incele'}</Button></div> : <Button size="sm" className="mt-3" onClick={newQuestion}>Devam</Button>}</output>}
 
-          <div className="mx-auto mt-6 grid max-w-xl grid-cols-4 gap-3 border-t border-border pt-5 text-center"><div><p className="text-2xl font-semibold">{stats.total}</p><p className="text-xs text-muted-foreground">Soru</p></div><div><p className="text-2xl font-semibold text-primary">{stats.correct}</p><p className="text-xs text-muted-foreground">Doğru</p></div><div><p className="text-2xl font-semibold text-[#a66c32]">{stats.wrong}</p><p className="text-xs text-muted-foreground">Yanlış</p></div><div><p className="text-2xl font-semibold">%{stats.total ? Math.round(stats.correct / stats.total * 100) : 0}</p><p className="text-xs text-muted-foreground">Başarı</p></div></div>
+          {!feedback && <StudyPerformance stats={stats} />}
         </section>
         <aside className="mt-5 flex items-start gap-3 rounded-2xl bg-[#e4eee8] p-5 text-sm leading-6 text-[#345f52]"><Hand className="mt-0.5 shrink-0" size={20} /><p>İşaret, orta, yüzük ve serçe parmakları sırayla kullan. Bir parmağı atladığında Learning Core bunu <strong>F01</strong> olarak işaretler ve çalışma kaydına ekler.</p></aside>
       </main>
