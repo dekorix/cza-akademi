@@ -9,6 +9,7 @@ import { digitPattern, emptyHand, numberPattern, readHand, readHands, transition
 
 type Mode = 'read' | 'press';
 type HandMode = 'left' | 'right' | 'two';
+type WorkMode = 'free' | 'semi' | 'performance';
 type Student = { name?: string; fullName?: string; grade?: string; className?: string; username?: string };
 
 async function core(action: string, values: Record<string, unknown> = {}) {
@@ -58,9 +59,12 @@ export default function ParitmetikPage() {
   const [mode, setMode] = useState<Mode>('read');
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [pressMode, setPressMode] = useState<PressMode>('semi');
+  const [workMode, setWorkMode] = useState<WorkMode>('semi');
   const [handMode, setHandMode] = useState<HandMode>('two');
   const handModeRef = useRef<HandMode>('two');
   const [transitionMs, setTransitionMs] = useState(6000);
+  const [questionLimit, setQuestionLimit] = useState(10);
+  const [stimulusMs, setStimulusMs] = useState(2500);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [sessionEnded, setSessionEnded] = useState(false);
   const [ruleHint, setRuleHint] = useState('');
@@ -86,6 +90,12 @@ export default function ParitmetikPage() {
   const [saveError, setSaveError] = useState('');
   const [paused, setPaused] = useState(false);
   const [remaining, setRemaining] = useState(0);
+  const [activeSeconds, setActiveSeconds] = useState(0);
+  const [stimulusVisible, setStimulusVisible] = useState(true);
+  const sessionStartedAt = useRef<number | null>(null);
+  const lastActiveAt = useRef<number | null>(null);
+  const settingsRef = useRef({ handMode, pressMode, workMode, questionLimit, stimulusMs, transitionMs });
+  settingsRef.current = { handMode, pressMode, workMode, questionLimit, stimulusMs, transitionMs };
 
   async function flushInteractions() {
     if (flushing.current) return flushing.current;
@@ -106,6 +116,7 @@ export default function ParitmetikPage() {
     questionIndex.current += 1;
     setSaveError('');
     setPaused(false);
+    setStimulusVisible(true);
     if (nextTimer.current) clearTimeout(nextTimer.current);
     setTarget(Math.floor(Math.random() * (handModeRef.current === 'two' ? 100 : 10)));
     setLeft(emptyHand());
@@ -117,6 +128,28 @@ export default function ParitmetikPage() {
     questionStarted.current = performance.now();
     firstAction.current = null;
   }, []);
+
+  useEffect(() => {
+    if (!sessionId || sessionEnded) return;
+    const timer = window.setInterval(() => {
+      if (document.hidden || paused || settingsOpen) {
+        lastActiveAt.current = performance.now();
+        return;
+      }
+      const now = performance.now();
+      if (lastActiveAt.current === null) lastActiveAt.current = now;
+      const delta = Math.max(0, now - lastActiveAt.current);
+      lastActiveAt.current = now;
+      setActiveSeconds(value => value + delta / 1000);
+    }, 250);
+    return () => window.clearInterval(timer);
+  }, [sessionId, sessionEnded, paused, settingsOpen]);
+
+  useEffect(() => {
+    if (!sessionId || mode !== 'read' || workMode !== 'performance' || stimulusMs <= 0 || feedback) return;
+    const timer = window.setTimeout(() => setStimulusVisible(false), stimulusMs);
+    return () => window.clearTimeout(timer);
+  }, [sessionId, mode, workMode, stimulusMs, feedback, questionId.current]);
 
   useEffect(() => {
     if (!feedback || sync !== 'ready' || transitionMs === 0 || paused || settingsOpen) return;
@@ -131,8 +164,8 @@ export default function ParitmetikPage() {
   }, [feedback, sync, transitionMs, paused, settingsOpen]);
 
   useEffect(() => {
-    if (sessionId && !sessionEnded && feedback && remaining === 0 && transitionMs > 0 && sync === 'ready' && !settingsOpen && !paused) newQuestion();
-  }, [sessionId, sessionEnded, feedback, remaining, transitionMs, sync, settingsOpen, paused, newQuestion]);
+    if (sessionId && !sessionEnded && feedback && remaining === 0 && transitionMs > 0 && sync === 'ready' && !settingsOpen && !paused && !(questionLimit > 0 && stats.total >= questionLimit)) newQuestion();
+  }, [sessionId, sessionEnded, feedback, remaining, transitionMs, sync, settingsOpen, paused, questionLimit, stats.total, newQuestion]);
 
   useEffect(() => {
     const warn = (event: BeforeUnloadEvent) => {
@@ -150,9 +183,12 @@ export default function ParitmetikPage() {
         source: 'free_practice',
         clientSessionId: crypto.randomUUID(),
         recipeId: null,
-        settings: { engine: 'cza-handengine-v13', handMode: 'two', pressMode: 'semi' },
+        settings: { engine: 'cza-handengine-v13', ...settingsRef.current },
       });
       setSessionId(String(result.sessionId));
+      sessionStartedAt.current = performance.now();
+      lastActiveAt.current = performance.now();
+      setActiveSeconds(0);
       setMode(selectedMode);
       setSync('ready');
       newQuestion();
@@ -185,8 +221,9 @@ export default function ParitmetikPage() {
     if (selectedMode === mode && sessionId) return;
     if (busy.current || pendingAttempt.current) return;
     if (sessionId) {
-      try { await flushInteractions(); await core('finish', { sessionId }); } catch { setSaveError('Çalışma kaydedilemedi. Mod değiştirmeden önce kaydı yeniden dene.'); setSync('error'); return; }
+      try { await flushInteractions(); await core('finish', { sessionId, activeDurationMs: Math.round(activeSeconds * 1000), questionCount: stats.total }); } catch { setSaveError('Çalışma kaydedilemedi. Mod değiştirmeden önce kaydı yeniden dene.'); setSync('error'); return; }
       setSessionId(null);
+      setActiveSeconds(0);
     }
     await startSession(selectedMode);
   }
@@ -203,9 +240,10 @@ export default function ParitmetikPage() {
     setSync('saving');
     try {
       await flushInteractions();
-      await core('finish', { sessionId });
+      await core('finish', { sessionId, activeDurationMs: Math.round(activeSeconds * 1000), questionCount: stats.total });
       setSessionEnded(true);
       setSessionId(null);
+      setActiveSeconds(0);
       setSync('ready');
     } catch { setSync('error'); setSaveError('Çalışma kapatılamadı. Bitir düğmesiyle yeniden dene.'); }
     finally { busy.current = false; }
@@ -230,11 +268,12 @@ export default function ParitmetikPage() {
   async function logout() {
     if (busy.current || pendingAttempt.current) return;
     if (sessionId) {
-      try { await flushInteractions(); await core('finish', { sessionId }); } catch { setSync('error'); setSaveError('Kayıt tamamlanamadığı için çıkış yapılmadı.'); return; }
+      try { await flushInteractions(); await core('finish', { sessionId, activeDurationMs: Math.round(activeSeconds * 1000), questionCount: stats.total }); } catch { setSync('error'); setSaveError('Kayıt tamamlanamadığı için çıkış yapılmadı.'); return; }
     }
     try { await core('logout'); } catch { /* Çerez sunucu yanıtında yine temizlenir. */ }
     setStudent(null);
     setSessionId(null);
+    setActiveSeconds(0);
     setStats({ total: 0, correct: 0, wrong: 0 });
   }
 
@@ -352,7 +391,9 @@ export default function ParitmetikPage() {
       await flushInteractions();
       await core('attempt', { sessionId, payload: pendingAttempt.current });
       pendingAttempt.current = null;
+      const nextTotal = stats.total + 1;
       setStats(current => ({ total: current.total + 1, correct: current.correct + (correct ? 1 : 0), wrong: current.wrong + (correct ? 0 : 1) }));
+      if (questionLimit > 0 && nextTotal >= questionLimit) window.setTimeout(() => void finishStudy(), 250);
       setSync('ready');
     } catch {
       setSync('error');
@@ -399,6 +440,7 @@ export default function ParitmetikPage() {
     <div className="min-h-screen bg-background">
       <header className="bg-[#182739] px-5 text-white md:px-9"><div className="mx-auto flex min-h-20 max-w-[1280px] items-center justify-between gap-4 py-3"><div className="flex items-center gap-3"><span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#d8eeac] text-sm font-black text-[#182739]">CZA</span><div><p className="text-sm font-semibold">Paritmetik stüdyosu</p><p className="text-xs text-[#aebdcd]">{displayName}{grade ? ` · ${grade}` : ''}</p></div></div><div className="flex items-center gap-2"><span className={`hidden items-center gap-2 text-xs sm:flex ${sync === 'error' ? 'text-amber-200' : 'text-[#cfe8dc]'}`}>{sync === 'error' ? <WifiOff size={15} /> : <Wifi size={15} />}{sync === 'saving' ? 'Kaydediliyor…' : sync === 'error' ? 'Senkron bekliyor' : 'Neon senkron aktif'}</span><Button variant="ghost" className="text-white hover:bg-white/10 hover:text-white" onClick={logout}><LogOut /> Çıkış</Button></div></div></header>
       <main className="mx-auto max-w-[1280px] px-5 py-7 md:px-9">
+        <section className="mb-5 grid gap-3 rounded-2xl border border-border bg-white p-4 text-sm shadow-sm md:grid-cols-4" aria-label="Çalışma planı"><label className="font-semibold">Çalışma modu<select className="mt-1 w-full rounded-lg border p-2" value={workMode} onChange={(event) => { const value = event.target.value as WorkMode; setWorkMode(value); setPressMode(value === 'free' ? 'free' : 'semi'); setTransitionMs(value === 'performance' ? 4000 : 0); }}><option value="free">Serbest</option><option value="semi">Yarı kurallı</option><option value="performance">Performans</option></select></label><label className="font-semibold">Soru sayısı<select className="mt-1 w-full rounded-lg border p-2" value={questionLimit} onChange={(event) => setQuestionLimit(Number(event.target.value))}><option value="0">Sınırsız</option><option value="5">5</option><option value="10">10</option><option value="15">15</option><option value="20">20</option></select></label><label className="font-semibold">El görünme süresi<select className="mt-1 w-full rounded-lg border p-2" value={stimulusMs} onChange={(event) => setStimulusMs(Number(event.target.value))}><option value="1500">1,5 sn</option><option value="2500">2,5 sn</option><option value="4000">4 sn</option><option value="6000">6 sn</option></select></label><div className="flex items-end font-semibold">Çalışma süresi: {Math.floor(activeSeconds / 60).toString().padStart(2, '0')}:{Math.floor(activeSeconds % 60).toString().padStart(2, '0')}</div></section>
         <div className="mb-5 flex flex-wrap items-center justify-between gap-3"><a href="/" className="inline-flex items-center gap-2 text-sm font-semibold text-muted-foreground"><ArrowLeft size={16} /> Çalışma merkezim</a><div className="flex flex-wrap items-center gap-2"><Button variant="outline" onClick={() => setSettingsOpen(true)}><Settings /> Ayarlar</Button><Button variant="outline" onClick={newQuestion}>Devam</Button><Button variant="outline" onClick={finishStudy}>Bitir</Button><div className="flex rounded-xl border border-border bg-white p-1"><button className={`rounded-lg px-4 py-2 text-sm font-semibold ${mode === 'read' ? 'bg-primary text-white' : 'text-muted-foreground'}`} onClick={() => changeMode('read')}>Parmak Okuma</button><button className={`rounded-lg px-4 py-2 text-sm font-semibold ${mode === 'press' ? 'bg-primary text-white' : 'text-muted-foreground'}`} onClick={() => changeMode('press')}>Parmak Basma</button></div></div></div>
 
         {settingsOpen && <div className="fixed inset-0 z-50 grid place-items-center bg-[#102034]/45 p-4" role="dialog" aria-modal="true" aria-label="Paritmetik ayarları"><section className="w-full max-w-lg rounded-3xl bg-white p-6 shadow-2xl"><div className="flex items-center justify-between"><h2 className="text-2xl font-semibold">Paritmetik Ayarları</h2><button className="rounded-lg px-3 py-2 text-sm font-semibold" onClick={() => setSettingsOpen(false)}>Kapat</button></div><fieldset className="mt-5 rounded-2xl border p-4"><legend className="px-2 font-semibold">Soru tipi</legend>{([['right','Sağ el çalışması'],['left','Sol el çalışması'],['two','İki el çalışması']] as const).map(([value,label]) => <label key={value} className="mr-5 inline-flex items-center gap-2 py-2"><input type="radio" name="handMode" checked={handMode === value} onChange={() => changeHandMode(value)} />{label}</label>)}</fieldset>{mode === 'press' && <fieldset className="mt-4 rounded-2xl border p-4"><legend className="px-2 font-semibold">Parmak basma modu</legend>{([['free','Serbest'],['guided','Kurallı'],['semi','Yarı Kurallı']] as const).map(([value,label]) => <label key={value} className="mr-5 inline-flex items-center gap-2 py-2"><input type="radio" name="settingsPressMode" checked={pressMode === value} onChange={() => { if (!submitted.current && !busy.current) setPressMode(value); }} />{label}</label>)}</fieldset>}<fieldset className="mt-4 rounded-2xl border p-4"><legend className="px-2 font-semibold">Soru geçiş hızı</legend><select className="w-full rounded-xl border p-3" value={transitionMs} onChange={(event) => setTransitionMs(Number(event.target.value))}><option value="0">Süre kısıtlaması yok</option><option value="3000">3 saniye</option><option value="6000">6 saniye</option><option value="10000">10 saniye</option><option value="15000">15 saniye</option></select></fieldset><Button className="mt-5 w-full" onClick={() => { setSettingsOpen(false); newQuestion(); }}>Tamam</Button></section></div>}
@@ -412,8 +454,8 @@ export default function ParitmetikPage() {
           {mode === 'read' && <div className="mb-3 focus-number min-h-14 text-center text-5xl font-bold text-[#173f75]">{answer || '—'}</div>}
 
           <div className={`mx-auto grid max-w-[760px] items-end gap-2 md:gap-8 ${handMode === 'two' ? 'grid-cols-2' : 'grid-cols-1'}`}>
-            {handMode !== 'right' && <div><p className="mb-1 text-center text-xs font-semibold text-muted-foreground">{handMode === 'two' ? 'ONLAR' : 'SOL EL'}</p><FingerHand side="left" pattern={mode === 'read' ? visiblePattern.left : left} interactive={mode === 'press'} rejectedFinger={rejected?.side === 'left' ? rejected.finger : null} onFinger={(finger) => touch('left', finger)} /></div>}
-            {handMode !== 'left' && <div><p className="mb-1 text-center text-xs font-semibold text-muted-foreground">{handMode === 'two' ? 'BİRLER' : 'SAĞ EL'}</p><FingerHand side="right" pattern={mode === 'read' ? visiblePattern.right : right} interactive={mode === 'press'} rejectedFinger={rejected?.side === 'right' ? rejected.finger : null} onFinger={(finger) => touch('right', finger)} /></div>}
+            {handMode !== 'right' && <div><p className="mb-1 text-center text-xs font-semibold text-muted-foreground">{handMode === 'two' ? 'ONLAR' : 'SOL EL'}</p><FingerHand side="left" pattern={mode === 'read' && stimulusVisible ? visiblePattern.left : left} interactive={mode === 'press'} rejectedFinger={rejected?.side === 'left' ? rejected.finger : null} onFinger={(finger) => touch('left', finger)} /></div>}
+            {handMode !== 'left' && <div><p className="mb-1 text-center text-xs font-semibold text-muted-foreground">{handMode === 'two' ? 'BİRLER' : 'SAĞ EL'}</p><FingerHand side="right" pattern={mode === 'read' && stimulusVisible ? visiblePattern.right : right} interactive={mode === 'press'} rejectedFinger={rejected?.side === 'right' ? rejected.finger : null} onFinger={(finger) => touch('right', finger)} /></div>}
           </div>
 
           {mode === 'read' ? (
