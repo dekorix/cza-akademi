@@ -166,6 +166,10 @@ body {
 .exact-hand { max-width: 385px; margin-inline: auto; filter: none; }
 .exact-active { pointer-events: none; transition: opacity .12s, transform .16s ease-out; transform-box: fill-box; transform-origin: center; }
 .exact-active.pressing { transform: translateY(3px) scale(.985); }
+.arithmetic-key { min-height: 52px; border: 1px solid #cbd5e1; border-radius: 12px; background: linear-gradient(#fff,#eef2f6); color: #173f75; font-size: 1.35rem; font-weight: 800; box-shadow: 0 4px 0 #b8c4cf, 0 6px 10px #17334d18; transition: transform 100ms, box-shadow 100ms, filter 100ms; }
+.arithmetic-key:hover { filter: brightness(1.02); }
+.arithmetic-key:active { transform: translateY(3px); box-shadow: 0 1px 0 #9eabb7, 0 2px 4px #17334d20; filter: brightness(.96); }
+.arithmetic-key:focus-visible { outline: 3px solid #1b7f72; outline-offset: 3px; }
 .hand-hit { cursor: pointer; fill: transparent; stroke: transparent; stroke-width: 0; outline: none !important; box-shadow: none !important; }
 .hand-hit:focus, .hand-hit:focus-visible { stroke: transparent !important; stroke-width: 0; outline: none !important; box-shadow: none !important; }
 .hand-hit.rejected { stroke: #db940c; stroke-width: 3; stroke-dasharray: 7 5; }

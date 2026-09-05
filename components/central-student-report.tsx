@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
 type Report = {student:{campusCode:string;name:string};summary:{total:number;correct:number;wrong:number;accuracy:number;rejectedTouches?:number};modules:{module_code:string;total:number;correct:number}[];recent:{module_code:string;target_number:number|null;student_numeric_answer:number|null;is_correct:boolean;error_type:string|null;error_detail:string|null;total_response_time_ms:number|null;created_at:string;metadata?:{sequence?:number[]}}[]};
-const labels:Record<string,string>={flash_anzan:'Flash Anzan',audio_anzan:'Sesli Anzan',soroban_read:'Soroban Okuma',soroban_write:'Soroban Yazma',finger_read:'Parmak Okuma',finger_press:'Parmak Basma'};
+const labels:Record<string,string>={flash_anzan:'Flash Anzan',audio_anzan:'Sesli Anzan',soroban_read:'Soroban Okuma',soroban_write:'Soroban Yazma',finger_read:'Parmak Okuma',finger_press:'Parmak Basma',addition_subtraction:'Toplama / Çıkarma'};
 function message(code:string){if(code==='educator_session_required'||code==='educator_session_invalid')return 'Eğitimci Kampüsü oturumu geçersiz veya süresi dolmuş.';if(code==='student_mapping_missing'||code==='student_not_found')return 'Bu öğrenci kodu merkezi kayıtta eşleştirilemedi.';if(code==='campus_unavailable')return 'Eğitimci Kampüsü doğrulamasına ulaşılamıyor.';return 'Merkezi rapor şu anda açılamadı.';}
 
 export function CentralStudentReport(){
