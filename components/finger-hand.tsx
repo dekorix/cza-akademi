@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import type { FingerName, HandPattern } from '@/lib/finger-engine';
 
 const regions: Record<FingerName, string> = {
@@ -21,7 +21,8 @@ export function FingerHand({ side, pattern, interactive, rejectedFinger, onFinge
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const fingers: FingerName[] = ['index', 'middle', 'ring', 'little', 'thumb'];
   const sideLabel = side === 'left' ? 'Sol el, onlar basamağı' : 'Sağ el, birler basamağı';
-  const id = `exact-${side}`;
+  const id = `exact-${useId().replace(/:/g, '')}-${side}`;
+  useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
   function press(finger: FingerName) {
     if (!interactive) return;
     if (timer.current) clearTimeout(timer.current);
@@ -32,10 +33,11 @@ export function FingerHand({ side, pattern, interactive, rejectedFinger, onFinge
   return (
     <svg className="finger-hand exact-hand" viewBox="35 390 385 630" aria-label={sideLabel}>
       <defs>
+        <clipPath id={`${id}-frame`}><rect x="35" y="390" width="385" height="630" /></clipPath>
         <clipPath id={`${id}-nails`}><path d={nails} /></clipPath>
         {fingers.map((finger) => <linearGradient key={finger} id={`${id}-wash-${finger}`} x1="0%" y1="0%" x2="0%" y2="100%"><stop stopColor="#ff2419" stopOpacity=".92" /><stop offset=".25" stopColor="#ff2419" stopOpacity=".85" /><stop offset=".8" stopColor="#ff2419" stopOpacity="0" /><stop offset="1" stopColor="#ff2419" stopOpacity="0" /></linearGradient>)}
       </defs>
-      <g transform={side === 'right' ? 'translate(455 0) scale(-1 1)' : undefined}>
+      <g clipPath={`url(#${id}-frame)`} transform={side === 'right' ? 'translate(455 0) scale(-1 1)' : undefined}>
         <image data-exact-asset="true" href="/assets/approved-reference.png" x="0" y="0" width="864" height="1536" />
         {fingers.map((finger) => <path key={`overlay-${finger}`} data-overlay={`${side}-${finger}`} className={`exact-active ${pressing === finger ? 'pressing' : ''}`} d={regions[finger]} fill={`url(#${id}-wash-${finger})`} style={{ opacity: pattern[finger] ? 1 : 0, mixBlendMode: 'multiply' }} />)}
         {Object.values(pattern).some(Boolean) && <image href="/assets/approved-reference.png" x="0" y="0" width="864" height="1536" clipPath={`url(#${id}-nails)`} pointerEvents="none" />}
