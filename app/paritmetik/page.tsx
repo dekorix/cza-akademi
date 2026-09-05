@@ -58,7 +58,7 @@ export default function ParitmetikPage() {
   const questionStarted = useRef(0);
   const firstAction = useRef<number | null>(null);
   const sequence = useRef(0);
-  const nextTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const nextTimer = useRef<number | null>(null);
 
   const newQuestion = useCallback(() => {
     if (nextTimer.current) clearTimeout(nextTimer.current);
