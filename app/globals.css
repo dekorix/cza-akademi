@@ -5,6 +5,11 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
+  --text-xs: 1rem;
+  --text-xs--line-height: 1.5;
+  --text-sm: 1.125rem;
+  --text-sm--line-height: 1.55;
+  --font-weight-semibold: 650;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: 'Segoe UI', 'Inter', Arial, sans-serif;
@@ -50,6 +55,9 @@
 
 body {
   font-family: var(--font-sans);
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -65,7 +73,7 @@ body {
   --secondary: oklch(0.94 0.029 180);
   --secondary-foreground: oklch(0.36 0.068 180);
   --muted: oklch(0.945 0.008 250);
-  --muted-foreground: oklch(0.52 0.025 255);
+  --muted-foreground: oklch(0.43 0.025 255);
   --accent: oklch(0.94 0.029 180);
   --accent-foreground: oklch(0.205 0 0);
   --destructive: oklch(0.577 0.245 27.325);
@@ -124,10 +132,10 @@ body {
 
 .academy-shell { min-height: 100vh; }
 .academy-sidebar { background: #182739; color: #b8c6d4; }
-.academy-nav { display: flex; align-items: center; gap: 12px; padding: 13px 15px; border-radius: 9px; font-size: 14px; transition: background .18s; }
+.academy-nav { display: flex; align-items: center; gap: 12px; padding: 13px 15px; border-radius: 9px; font-size: 16px; font-weight: 650; transition: background .18s; }
 .academy-nav:hover { background: #22374b; color: white; }
 .academy-nav.active { background: #304e58; color: #e1fff4; }
-.eyebrow { font-size: 10px; font-weight: 700; letter-spacing: .15em; text-transform: uppercase; }
+.eyebrow { font-size: 14px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
 .abacus { position: relative; display: flex; justify-content: center; gap: 17px; padding: 15px 23px; border: 9px solid #c69a66; border-radius: 8px; background: #f8f2e7; box-shadow: 0 14px 28px #152e3c12; }
 .abacus:after { content: ''; position: absolute; left: 0; right: 0; top: 57px; height: 7px; background: #b58959; pointer-events: none; }
 .abacus-rod { position: relative; display: flex; flex-direction: column; align-items: center; gap: 6px; width: 31px; min-height: 190px; padding: 0; cursor: pointer; background: transparent; border: 0; }
@@ -175,3 +183,7 @@ body {
     @apply font-sans;
   }
 }
+
+/* Readable supporting copy without shrinking the main exercise numbers. */
+.text-\[10px\], .text-\[11px\], .text-\[12px\], .text-\[13px\] { font-size: 1rem; line-height: 1.5; font-weight: 600; }
+[data-slot="button"] { min-height: 44px; height: auto; padding-block: 0.625rem; white-space: normal; }
