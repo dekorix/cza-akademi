@@ -132,7 +132,7 @@ export default function ArithmeticPage() {
     try {
       if (!student) throw new Error('session_required');
       const generated = Array.from({ length: settings.questionCount }, () => generateArithmeticQuestion(settings));
-      const response = await core('start', { moduleCode: 'addition_subtraction', source: 'free_practice', clientSessionId: crypto.randomUUID(), recipeId: null, settings: { engine: 'cza-arithmetic-v1', ...settings } });
+      const response = await core('start', { moduleCode: 'arithmetic', source: 'free_practice', clientSessionId: crypto.randomUUID(), recipeId: null, settings: { engine: 'cza-arithmetic-v1', ...settings } });
       setSessionId(String(response.sessionId));
       setQuestions(generated);
       setResults([]);
@@ -189,7 +189,7 @@ export default function ArithmeticPage() {
       errorDetail: source === 'timeout' ? 'Süre doldu.' : correct ? 'Doğru cevap' : 'Girilen cevap işlem sonucuyla eşleşmedi.',
       stimulusDurationMs: settings.transitionSeconds * 1000, responseLatencyMs: elapsedMs, totalResponseTimeMs: elapsedMs,
       learningMode: 'practice', difficultyLevel: current.metadata.difficultyScore, attemptNumber: 1,
-      metadata: { engine: 'cza-arithmetic-v1', module: 'addition_subtraction', operationMode: settings.operationMode, sequence: [current.initialValue, ...current.steps.map(step => step.operator === '+' ? step.operand : -step.operand)], question: current, status: result.status, toolUsed: result.tool, sorobanValue, fingerValue: readHands(left,right).valid ? readHands(left,right).value : null },
+      metadata: { engine: 'cza-arithmetic-v1', module: 'arithmetic', operationMode: settings.operationMode, sequence: [current.initialValue, ...current.steps.map(step => step.operator === '+' ? step.operand : -step.operand)], question: current, status: result.status, toolUsed: result.tool, sorobanValue, fingerValue: readHands(left,right).valid ? readHands(left,right).value : null },
     };
     try {
       try { await flushInteractions(); } catch { /* Sabit kimlikli olaylar bellekte beklemeyi sürdürür. */ }

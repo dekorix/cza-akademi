@@ -22,12 +22,12 @@ function readCookie(request: Request, name: string) {
   return pair ? decodeURIComponent(pair.slice(name.length + 1)) : '';
 }
 
-function sessionCookie(value: string, maxAge: number) {
+function sessionCookie(value: string, maxAge: number, secure: boolean) {
   return [
     `${COOKIE_NAME}=${encodeURIComponent(value)}`,
     'Path=/api/core',
     'HttpOnly',
-    'Secure',
+    ...(secure ? ['Secure'] : []),
     'SameSite=Lax',
     `Max-Age=${maxAge}`,
   ].join('; ');
@@ -43,6 +43,7 @@ function json(body: unknown, status = 200, headers?: HeadersInit) {
 }
 
 export async function POST(request: Request) {
+  const secureCookie = new URL(request.url).protocol === 'https:';
   const origin = request.headers.get('origin');
   if (origin && origin !== new URL(request.url).origin) {
     return json({ ok: false, error: 'request_origin_rejected' }, 403);
@@ -89,17 +90,17 @@ export async function POST(request: Request) {
       if (!token) return json({ ok: false, error: 'session_not_created' }, 502);
       const safeResult = { ...result };
       delete safeResult.sessionToken;
-      return json(safeResult, 200, { 'set-cookie': sessionCookie(token, 60 * 60 * 8) });
+      return json(safeResult, 200, { 'set-cookie': sessionCookie(token, 60 * 60 * 8, secureCookie) });
     }
 
     if (action === 'logout') {
-      return json(result, 200, { 'set-cookie': sessionCookie('', 0) });
+      return json(result, 200, { 'set-cookie': sessionCookie('', 0, secureCookie) });
     }
 
     return json(result);
   } catch {
     if (action === 'logout') {
-      return json({ ok: true }, 200, { 'set-cookie': sessionCookie('', 0) });
+      return json({ ok: true }, 200, { 'set-cookie': sessionCookie('', 0, secureCookie) });
     }
     return json({ ok: false, error: 'core_unavailable' }, 502);
   }
