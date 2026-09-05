@@ -151,17 +151,15 @@ body {
 .lesson-abacus .abacus-bead:focus-visible { outline: 3px dashed #111827; outline-offset: 5px; }
 .paritmetik-login { background: radial-gradient(circle at 20% 10%, #dceee3 0, transparent 34%), linear-gradient(145deg, #f8f5ed, #eef4f0); }
 .paritmetik-stage { background-image: linear-gradient(180deg, #fff 0%, #fcfdfc 70%, #f4f8f5 100%); }
-.finger-hand { display: block; width: 100%; max-height: 330px; overflow: visible; }
-.finger-palm, .finger-passive { fill: #f1dfd3; stroke: #4b5158; stroke-width: 2.3; }
-.finger-active { stroke: #a22f2f; stroke-width: 2.3; filter: drop-shadow(0 4px 7px rgb(196 71 62 / .18)); }
-.finger-nail { fill: #fff8f4; stroke: #8b7b76; stroke-width: 1.5; pointer-events: none; }
-.finger-hit { cursor: pointer; transform-box: fill-box; transform-origin: center; }
-.finger-hit:hover path:first-of-type { filter: brightness(.98) drop-shadow(0 3px 6px rgb(24 39 57 / .12)); }
-.finger-hit:active { transform: translateY(3px); }
-.finger-hit:focus-visible { outline: none; }
-.finger-hit:focus-visible path:first-of-type { stroke: #174a78; stroke-width: 4; }
+.finger-hand { display: block; width: 100%; max-height: 430px; overflow: hidden; }
+.exact-hand { max-width: 385px; margin-inline: auto; filter: none; }
+.exact-active { pointer-events: none; transition: opacity .12s, transform .16s ease-out; transform-box: fill-box; transform-origin: center; }
+.exact-active.pressing { transform: translateY(3px) scale(.985); }
+.hand-hit { cursor: pointer; fill: transparent; stroke: transparent; stroke-width: 0; outline: none !important; box-shadow: none !important; }
+.hand-hit:focus, .hand-hit:focus-visible { stroke: transparent !important; stroke-width: 0; outline: none !important; box-shadow: none !important; }
+.hand-hit.rejected { stroke: #db940c; stroke-width: 3; stroke-dasharray: 7 5; }
 @media (max-width: 640px) {
-  .finger-hand { max-height: 245px; }
+  .finger-hand { max-height: 330px; }
   .paritmetik-stage { border-radius: 1.25rem; }
 }
 @media (prefers-reduced-motion: reduce) { *, *:before, *:after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }

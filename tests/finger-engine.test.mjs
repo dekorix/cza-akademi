@@ -32,3 +32,24 @@ test('işaret parmağını atlayan desen F01 üretir', () => {
   assert.equal(result.valid, false);
   assert.equal(result.code, 'F01');
 });
+
+test('yarı kurallı yanlış dokunuşu reddeder ve eli değiştirmez', () => {
+  const hand = engine.emptyHand();
+  const result = engine.transitionFinger(hand, 'middle', 'semi');
+  assert.equal(result.rejected, true);
+  assert.equal(result.evaluation.code, 'F01');
+  assert.deepEqual(result.state, hand);
+});
+
+test('kurallı mod seçilen parmağa kadar otomatik tamamlar', () => {
+  const result = engine.transitionFinger(engine.emptyHand(), 'ring', 'guided');
+  assert.equal(result.rejected, false);
+  assert.deepEqual(result.state, { thumb: false, index: true, middle: true, ring: true, little: false });
+});
+
+test('serbest mod geçersiz deseni kurmaya izin verir', () => {
+  const result = engine.transitionFinger(engine.emptyHand(), 'middle', 'free');
+  assert.equal(result.rejected, false);
+  assert.equal(result.evaluation.valid, false);
+  assert.equal(result.state.middle, true);
+});
