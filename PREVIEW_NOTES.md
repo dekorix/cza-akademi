@@ -1,4 +1,4 @@
-# CZA Egzersiz Akademisi — ayrı pilot
+# CZA Egzersiz Akademisi — merkezi kayıtlı pilot
 
 Bu çalışma mevcut Apps Script Kampüs yayınına dokunmadan ayrı bir uygulama olarak hazırlanmıştır.
 
@@ -14,15 +14,20 @@ Bu çalışma mevcut Apps Script Kampüs yayınına dokunmadan ayrı bir uygulam
 - Eğitimci “Ders incelemesi”: sekme-yerel ders filtresi, soru ve ham hareket incelemesi, CSV.
 - Flash Anzan ve cihazın Türkçe konuşma desteğiyle Sesli Anzan.
 - Basamak, soru, terim, işlem türü, gösterim süresi, adımlı mod ve tek basamaklı rakam havuzu.
-- Egzersiz stüdyosunda seans sonunda soru bazında geri bildirim; seans sırasında doğru cevap gösterilmez. Yeni öğretim yolu farklıdır: rehberli örneklerde anlık, bağımsız sorularda yanıt gönderildikten sonra geri bildirim verilir.
-- Eğitimci deneme programı, filtrelenebilir sekme-yerel sonuçlar ve CSV indirme.
+- Flash Anzan ayarları: toplama/çıkarma/karışık işlem, bağımsız 1–9 havuzları, işlem sayısı, minimum/maksimum hane, maksimum değer, ilk sayıyı sınır içinde üretme, 0 = süresiz/manuel akış, 0,1–8 saniye gösterim, görsel sayı aç/kapa, rakam boyutu ve zemin/yazı rengi.
+- Flash akışı 3–2–1 geri sayım kullanır; sayı dizisi tek tek görünür, görsel gösterim süresi cevap süresinden ayrı ölçülür, cevap sonrası doğru cevap–girilen cevap karşılaştırması gösterilir ve sonraki soru otomatik açılır. Son ekranda soru, doğru, yanlış ve başarı oranı görünür.
+- Öğrenci Kampüsü kullanıcı adı/PIN girişi; Flash Anzan, Sesli Anzan ve Soroban stüdyosu için merkezi Neon seansı.
+- Her soruda işlem dizisi, verilen/doğru cevap, doğruluk, hata türü, gösterim ve cevap süresi kaydı.
+- “Bitir ve kaydet” ile o ana kadar gönderilmiş tüm cevapların korunması ve merkezi seansın kapatılması.
+- Eğitimci Kampüsü oturum doğrulamasıyla öğrenci kodu 582946 için toplam/doğru/yanlış/başarı, mod dağılımı, hata ve son soru kayıtları.
+- Eğitimci deneme programı, ayrıca filtrelenebilir cihaz içi yedek sonuçlar ve CSV indirme.
 - Atölye yol haritasında çalışan pilot ile henüz geliştirilmemiş alanların ayrılması.
 
 ## Sınırlar
 
-- Bir öğrenci test hesabında kullanıcı adı/PIN doğrulaması, sunucu oturumu ve Paritmetik kayıt akışı çalışır. Genel öğrenci oluşturma, eğitimci kimliği, rol yetkileri ve veli erişimi henüz yoktur.
+- Bir öğrenci test hesabında kullanıcı adı/PIN doğrulaması ile Paritmetik, Flash Anzan, Sesli Anzan ve iki Soroban stüdyo modunun merkezi kaydı çalışır. Öğretim dersleri (`/learn`) hâlâ cihaz içi pilot kaydı kullanır; genel öğrenci oluşturma ve veli erişimi henüz yoktur.
 - Örnek öğrenci, gelişim, seri ve rota verileri açıkça senaryodur. Deneme seansları bu örnek öğrencilere atanmaz.
-- Deneme programı ve sonuçlar yalnızca sessionStorage içinde, bu tarayıcı sekmesinin oturumunda tutulur; sekme kapanınca kaybolabilir. Gerçek öğrenci verisi girilmemelidir.
+- Deneme programı ve kısa süreli rapor yedeği sessionStorage içinde tutulur; öğrenci stüdyosundaki asıl soru ve seans kayıtları Neon’dadır.
 - Cevap anahtarı istemcide oluşur; bu pilot güvenli sınav sistemi değildir. Merkezi değerlendirmede üretim/puanlama sunucuya taşınmalıdır.
 - Temel öğretim pilotu yalnızca tek basamaklı doğrudan/5 tamamlamaları ve basit tek onluk geçişi içerir. İç içe 5–10 tamamlamaları, çoklu elde/bozma, geniş yaş/seviye varyasyonları henüz yoktur. Rastgele stüdyo soruları teknik-odaklı ustalık kanıtı değildir.
 - Ders kayıtları ayrı sessionStorage anahtarında en son 40 tamamlanmış çalışmayla sınırlıdır. Yarım kalan dersler kaydedilmez; ders değiştirmede ve sekme kapanışında uyarı vardır. Kalıcı öğrenci portfolyosu değildir.
@@ -33,8 +38,8 @@ Bu çalışma mevcut Apps Script Kampüs yayınına dokunmadan ayrı bir uygulam
 ## Bir sonraki uygulama fazı
 
 1. Sekiz pilot dersin yöntem ve yaş/seviye kapsamını eğitimciyle kabul testine al; fiziksel parmak gösterimleri için özgün video ekle. Pilotun basit tek onluk örneklerinden sonra iç içe tamamlamalar ve çoklu aktarma tasarlanacak.
-2. Kampüs ile tekil öğrenci kimliği ve güvenli rol sözleşmesini tasarla.
-3. Merkezi seans, reçete, atama, erişim süresi ve denetim kaydını kur.
+2. Öğretim derslerini ve eğitimci reçete atamasını mevcut merkezi öğrenci/seans sözleşmesine geçir.
+3. Eğitimci Kampüsü arayüzünde oturum anahtarını otomatik aktararak elle giriş adımını kaldır.
 4. Öğretmen kontrollü seviye geçişini ve tekrar politikasını doğrula.
 5. Veli özeti ve paket erişimini ayrı yetkilendirilmiş akış olarak ekle.
 
@@ -51,7 +56,8 @@ Kullanıcı onaylı tarayıcı testinde ilk dersin doğru/yanlış adımları, a
 - Aktif stüdyo seansına `beforeunload` koruması eklendi; dersin mevcut koruması korundu. Yerel tarayıcıda aktif seanstan ayrılma denemesi sayfayı terk etmedi; tarayıcının yerel uyarı kutusunun görünümü ayrıca doğrulanamadı.
 - Yerel gerçek tıklama testi: merkez → öğrenme yolu → merkez → eğitimci → deneme programı → stüdyo → seans sonucu → eğitimci raporu. Program ayarları taşındı, 1/1 deneme sonucu aynı sekmedeki raporda korundu. Kullanıcının açık dersi değiştirilmeden ayrı test sekmesi kullanıldı.
 - WebMCP `configure_exercise` tek soruluk denemeyi hazırlamak için yerel tarayıcıda çalıştırıldı ve görünen ayarlarla doğrulandı. Bu, merkezi öğrenci kaydı veya tam WebMCP sözleşme testi değildir.
-- Tarayıcı testleri masaüstü kapsamındadır; tüm cihazlar/işletim sistemleri için doğrulama iddiası yoktur. Deneme kayıtları hâlâ sekme-yereldir.
+- Flash Anzan yerel tarayıcıda doğrulandı: 3 soru ve adım adım ayarları, 3–2–1 geri sayım, dört sayılık manuel dizi, sayısal klavye, doğru ve yanlış karşılaştırma, 1,7 saniye sonra otomatik sonraki soru ve %33 performans özeti gözlendi. Tarayıcı konsolunda hata kaydı oluşmadı.
+- Tarayıcı testleri masaüstü kapsamındadır; tüm cihazlar/işletim sistemleri için doğrulama iddiası yoktur. Flash Anzan için gerçek giriş → seans → soru → bitiş zinciri Neon’da doğrulandı.
 
 ## Yöntem kaynakları
 

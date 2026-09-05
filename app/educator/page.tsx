@@ -10,6 +10,7 @@ import { ExerciseSettings } from '@/components/exercise-settings';
 import { createQuestion, defaultConfig, modeLabels, score, type ExerciseConfig, type SessionResult } from '@/lib/exercise-engine';
 import { readDemoResults, saveDemoProgram } from '@/lib/demo-session';
 import { TeachingReports } from '@/components/teaching-reports';
+import { CentralStudentReport } from '@/components/central-student-report';
 
 type Tab = 'students' | 'program' | 'reports' | 'modules' | 'teaching';
 const students = [
@@ -60,6 +61,7 @@ export default function Educator() {
   return <div className="min-h-screen bg-background">
     <header className="bg-[#182739] px-5 text-white md:px-9"><div className="mx-auto flex h-20 max-w-[1360px] items-center justify-between gap-4"><div className="flex items-center gap-3"><span className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#d8eeac] text-xs font-black text-[#182739]">CZA</span><div><p className="text-sm font-semibold">Eğitimci kontrol merkezi</p><p className="text-[10px] text-[#9db0c3]">EGZERSİZ AKADEMİSİ</p></div></div><a href="/" className="flex items-center gap-2 text-xs text-[#cfdfec]"><ArrowLeft size={15}/> Öğrenci görünümü</a></div></header>
     <main className="mx-auto max-w-[1432px] px-5 py-8 md:px-9">
+      {tab==='reports' && <div className="mb-5"><CentralStudentReport/></div>}
       <div className="mb-7 flex flex-wrap items-end justify-between gap-4"><div><p className="eyebrow mb-2 text-primary">Öğretimin kontrolü sende</p><h1 className="text-3xl font-semibold tracking-tight">Çalışmayı planla. Süreci görünür kıl.</h1><p className="mt-2 text-sm text-muted-foreground">Öğrenci, çalışma reçetesi ve sonuçlar aynı eğitimci akışında.</p></div><span className="rounded-lg border border-[#b9daca] bg-[#edf8f2] px-3 py-2 text-xs font-semibold text-[#276151]">1 bağlı test hesabı</span></div>
       <div className="mb-7 grid gap-4 sm:grid-cols-3">{[{label:'Bağlı test girişi',value:'1',caption:'Zeynep Çelik · Learning Core',icon:Users},{label:'Bu sekmedeki deneme',value:String(results.length),caption:'Yalnızca tamamlanan pilot seansları',icon:ClipboardList},{label:'Çalışan pilot motor',value:'4',caption:'Soroban okuma / yazma, Flash / sesli Anzan',icon:Target}].map(m=><div key={m.label} className="flex items-center gap-4 rounded-xl border border-border bg-white p-5"><span className="flex h-11 w-11 items-center justify-center rounded-xl bg-secondary text-primary"><m.icon size={21}/></span><div><p className="text-xs text-muted-foreground">{m.label}</p><p className="mt-1 text-2xl font-semibold">{m.value}</p><p className="mt-1 text-[10px] text-muted-foreground">{m.caption}</p></div></div>)}</div>
       <section className="mb-7 flex flex-col gap-5 rounded-2xl border border-[#b9daca] bg-[#edf8f2] p-5 sm:flex-row sm:items-center sm:justify-between" aria-labelledby="connected-student-title">
