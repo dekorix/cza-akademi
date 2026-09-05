@@ -30,7 +30,7 @@ export function FingerHand({ side, pattern, interactive, rejectedFinger, onFinge
     timer.current = setTimeout(() => setPressing(null), 160);
   }
   return (
-    <svg className="finger-hand exact-hand" viewBox="35 390 385 630" role="group" aria-label={sideLabel}>
+    <svg className="finger-hand exact-hand" viewBox="35 390 385 630" aria-label={sideLabel}>
       <defs>
         <clipPath id={`${id}-nails`}><path d={nails} /></clipPath>
         {fingers.map((finger) => <linearGradient key={finger} id={`${id}-wash-${finger}`} x1="0%" y1="0%" x2="0%" y2="100%"><stop stopColor="#ff2419" stopOpacity=".92" /><stop offset=".25" stopColor="#ff2419" stopOpacity=".85" /><stop offset=".8" stopColor="#ff2419" stopOpacity="0" /><stop offset="1" stopColor="#ff2419" stopOpacity="0" /></linearGradient>)}
