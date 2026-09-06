@@ -47,6 +47,10 @@ test('stimulus timing starts in the committed stimulus phase and motion has an a
   assert.match(styles,/prefers-reduced-motion: reduce/);
   assert.match(styles,/launch-reduced-fade/);
   assert.match(styles,/data-focus-mode/);
+  for(const direction of ['up','right','left','zoom']) assert.match(launch,new RegExp(`direction: '${direction}'`));
+  assert.match(styles,/launch-scene-right/);
+  assert.match(styles,/launch-scene-left/);
+  assert.match(styles,/launch-scene-zoom/);
 });
 
 test('human duration labels and progression advice stay pedagogically cautious',()=>{
