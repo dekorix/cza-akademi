@@ -152,6 +152,16 @@ body {
 :fullscreen { overflow-y: auto; }
 .abacus-rod:focus-visible { outline: 3px solid #166e65; outline-offset: 6px; border-radius: 4px; }
 .focus-number { font-variant-numeric: lining-nums tabular-nums; letter-spacing: .01em; }
+.launch-sequence { animation: launch-stage-in 220ms ease-out both; }
+.launch-scene { position: relative; isolation: isolate; animation: launch-scene-in 560ms cubic-bezier(.2,.8,.2,1) both; }
+.launch-scene:before, .launch-scene:after { content: ''; position: absolute; inset: 18px; z-index: -1; border: 3px solid currentColor; border-radius: 999px; opacity: .18; animation: launch-ring 740ms ease-out both; }
+.launch-scene:after { inset: 2px; opacity: .09; animation-delay: 90ms; }
+.launch-value { text-shadow: 0 5px 18px color-mix(in srgb, currentColor 20%, transparent); animation: launch-value-in 560ms cubic-bezier(.18,.85,.28,1) both; }
+main[data-focus-mode="true"] aside { pointer-events: none; opacity: .18; transition: opacity 180ms ease-out; }
+@keyframes launch-stage-in { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes launch-scene-in { from { opacity: 0; transform: translateY(9px) scale(.9); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@keyframes launch-value-in { 0% { opacity: 0; transform: translateY(12px) scale(.75); } 55% { opacity: 1; transform: translateY(0) scale(1.08); } 100% { transform: scale(1); } }
+@keyframes launch-ring { from { opacity: .3; transform: scale(.72); } to { opacity: 0; transform: scale(1.24); } }
 .lesson-abacus .abacus { gap: 16px; padding: 20px 16px; }
 .lesson-abacus .abacus:after { top: 91px; height: 8px; }
 .lesson-abacus .abacus-rod { width: 48px; gap: 10px; min-height: 285px; }
@@ -184,7 +194,8 @@ body {
   .finger-hand { max-height: 330px; }
   .paritmetik-stage { border-radius: 1.25rem; }
 }
-@media (prefers-reduced-motion: reduce) { *, *:before, *:after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }
+@media (prefers-reduced-motion: reduce) { *, *:before, *:after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } .launch-sequence, .launch-scene, .launch-value { animation: launch-reduced-fade 120ms ease-out both !important; } }
+@keyframes launch-reduced-fade { from { opacity: 0; } to { opacity: 1; } }
 
 @layer base {
   * {

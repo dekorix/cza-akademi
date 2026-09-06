@@ -65,6 +65,8 @@ export default function Home() {
           <span className="rounded-lg border border-border bg-white px-3 py-2 text-xs text-muted-foreground">Örnek çalışma günü</span>
         </div>
 
+        <a href="/studio" className="group mb-7 flex min-h-36 flex-col justify-between gap-5 overflow-hidden rounded-2xl border border-[#77ad9c] bg-[linear-gradient(120deg,#174e46,#237d6c_55%,#315f86)] p-6 text-white shadow-[0_14px_34px_rgba(25,78,70,.22)] transition hover:-translate-y-0.5 hover:shadow-[0_18px_40px_rgba(25,78,70,.28)] sm:flex-row sm:items-center md:p-8"><div className="flex items-center gap-5"><span className="grid h-16 w-16 shrink-0 place-items-center rounded-2xl bg-white/15 ring-1 ring-white/25"><BrainCircuit size={34}/></span><div><p className="text-xs font-bold uppercase tracking-[.14em] text-[#cdebdc]">Bütün çalışmalar tek merkezde</p><h2 className="mt-2 text-2xl font-bold md:text-3xl">Egzersiz Stüdyosunu Aç</h2><p className="mt-2 max-w-2xl text-sm leading-6 text-[#e1f1eb]">Parmak, Soroban, Toplama–Çıkarma, Flash ve Sesli Anzan çalışmalarını seç; süreni ve seviyeni ayarla.</p></div></div><span className="inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-xl bg-[#f4d46c] px-6 font-bold text-[#263d39] shadow-sm transition group-hover:bg-[#ffe58a]">Stüdyoya gir <ArrowRight size={18}/></span></a>
+
         <div className="grid gap-5 xl:grid-cols-[1fr_300px]">
           <section className="relative overflow-hidden rounded-2xl bg-[#e4eee8] p-6 md:p-8" aria-labelledby="today-title">
             <div className="flex flex-wrap items-center gap-2"><span className="eyebrow rounded-md bg-white/70 px-2.5 py-1.5 text-[#387568]">Soroban temel öğretim</span><span className="text-xs text-[#58796b]">Rehberli öğretim pilotu</span></div>
@@ -103,11 +105,12 @@ export default function Home() {
         </div>
 
         <section id="learning-path" className="mt-9 scroll-mt-6">
-          <div className="mb-4 flex items-center justify-between"><div><h2 className="text-lg font-semibold tracking-tight">Beceri atölyelerim</h2><p className="mt-1 text-xs text-muted-foreground">Her atölye, kendi gelişim basamaklarınla ilerler.</p></div><a href="/studio" className="flex items-center gap-1 text-xs font-semibold text-primary">Stüdyoyu aç <ChevronRight size={14} /></a></div>
+          <div className="mb-4 flex items-center justify-between"><div><h2 className="text-lg font-semibold tracking-tight">Beceri atölyelerim</h2><p className="mt-1 text-xs text-muted-foreground">Her atölye, kendi gelişim basamaklarınla ilerler.</p></div></div>
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            {modules.map(module => <a href={module.href} key={module.title} className="group rounded-xl border border-border bg-white p-5 transition-transform hover:-translate-y-1 hover:shadow-md">
-              <div className="mb-5 flex items-center justify-between"><span className="flex h-11 w-11 items-center justify-center rounded-xl" style={{ background: module.color, color: module.ink }}><module.icon size={23} strokeWidth={1.7} /></span><ChevronRight size={16} className="text-muted-foreground group-hover:text-primary" /></div>
-              <h3 className="text-[15px] font-semibold">{module.title}</h3><p className="mt-1.5 text-xs text-muted-foreground">{module.detail}</p>
+            {modules.map(module => <a href={module.href} key={module.title} className="group relative overflow-hidden rounded-2xl border-2 p-5 shadow-sm transition-transform hover:-translate-y-1 hover:shadow-lg" style={{ borderColor: `${module.ink}45`, background: `linear-gradient(145deg, #ffffff 35%, ${module.color})` }}>
+              <span className="absolute inset-x-0 top-0 h-1.5" style={{ background: module.ink }} />
+              <div className="mb-5 flex items-center justify-between"><span className="flex h-12 w-12 items-center justify-center rounded-xl shadow-sm ring-1 ring-white" style={{ background: module.color, color: module.ink }}><module.icon size={25} strokeWidth={2} /></span><span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/80 shadow-sm transition-transform group-hover:translate-x-1" style={{ color: module.ink }}><ChevronRight size={18} /></span></div>
+              <h3 className="text-base font-bold" style={{ color: module.ink }}>{module.title}</h3><p className="mt-2 min-h-10 text-xs font-medium leading-5 text-[#52606d]">{module.detail}</p>
               <div className="mb-2 mt-5 flex justify-between text-[10px] font-medium"><span style={{ color: module.ink }}>{module.level}</span><span className="text-muted-foreground">{module.progress ? `%${module.progress}` : 'Keşfet'}</span></div>
               <div className="h-1 overflow-hidden rounded-full bg-muted"><div className="h-full rounded-full" style={{ width: `${Math.max(module.progress, 4)}%`, background: module.ink }} /></div>
             </a>)}

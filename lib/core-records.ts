@@ -1,6 +1,8 @@
 import type { Attempt, ExerciseConfig, ExerciseMode } from './exercise-engine';
+import { exerciseForMode } from './exercise-registry';
 
 export const moduleCodeByMode: Record<ExerciseMode, string> = {
+  'finger-read': 'finger_read',
   'soroban-read': 'soroban_read',
   'soroban-write': 'soroban_write',
   flash: 'flash_anzan',
@@ -8,27 +10,32 @@ export const moduleCodeByMode: Record<ExerciseMode, string> = {
 };
 
 export function trainingSettings(config: ExerciseConfig) {
+  const definition = exerciseForMode(config.mode);
   return {
     engine: 'cza-exercise-engine-v14',
     questionCount: config.rounds,
     difficultyLevel: config.maxDigits ?? config.digits,
-    stimulusDurationMs: Math.round(config.interval * 1000),
+    stimulusDurationMs: ['finger-read','soroban-read'].includes(config.mode) ? config.presentationDurationMs ?? 1000 : Math.round(config.interval * 1000),
+    answerDurationMs: config.answerDurationMs ?? 0,
+    exerciseType: definition?.id,
+    skills: definition?.skills ?? [],
     exercise: config,
   };
 }
 
 export function attemptPayload(attempt: Attempt, config: ExerciseConfig, questionIndex: number, ids: { attemptId: string; questionId: string }) {
+  const definition = exerciseForMode(config.mode);
   return {
     clientAttemptId: ids.attemptId,
     questionIndex,
     questionId: ids.questionId,
     targetNumber: attempt.expected,
     studentNumericAnswer: attempt.given,
-    patternValid: true,
+    patternValid: !attempt.timeout,
     isCorrect: attempt.correct,
-    errorType: attempt.correct ? 'OK' : 'A01',
-    errorDetail: attempt.correct ? 'Doğru cevap' : 'Girilen cevap beklenen sonuçla eşleşmedi.',
-    stimulusDurationMs: attempt.stimulusDurationMs ?? Math.round(config.interval * 1000),
+    errorType: attempt.correct ? 'OK' : attempt.timeout ? 'TIMEOUT' : 'RESPONSE_ERROR',
+    errorDetail: attempt.correct ? 'Doğru cevap' : attempt.timeout ? 'Cevap süresi doldu.' : 'Girilen cevap beklenen sonuçla eşleşmedi.',
+    stimulusDurationMs: attempt.stimulusDurationMs ?? (['finger-read','soroban-read'].includes(config.mode) ? config.presentationDurationMs ?? 1000 : Math.round(config.interval * 1000)),
     responseLatencyMs: attempt.responseLatencyMs ?? attempt.elapsedMs,
     totalResponseTimeMs: attempt.elapsedMs,
     learningMode: config.freePractice === false ? 'program' : 'free_practice',
@@ -37,10 +44,17 @@ export function attemptPayload(attempt: Attempt, config: ExerciseConfig, questio
     metadata: {
       engine: 'cza-exercise-engine-v14',
       exerciseMode: config.mode,
+      exerciseType: definition?.id,
+      skills: definition?.skills ?? [],
       operation: config.operation,
       sequence: attempt.sequence,
       expected: attempt.expected,
       given: attempt.given,
+      answerDurationLimitMs: attempt.answerDurationLimitMs ?? config.answerDurationMs ?? 0,
+      presentationStartedAt: attempt.presentationStartedAt,
+      presentationEndedAt: attempt.presentationEndedAt,
+      answerStartedAt: attempt.answerStartedAt,
+      answeredAt: attempt.answeredAt,
       config,
     },
   };
