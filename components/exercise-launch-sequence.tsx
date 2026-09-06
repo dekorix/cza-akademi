@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 
 type LaunchStep = 0 | 1 | 2 | 3;
 
@@ -31,9 +31,15 @@ export function ExerciseLaunchSequence({
   onComplete: () => void;
 }) {
   const [step, setStep] = useState<LaunchStep>(0);
+  const completion = useRef(onComplete);
+
+  useEffect(() => {
+    completion.current = onComplete;
+  }, [onComplete]);
+
   useEffect(() => {
     if (!countdownEnabled) {
-      const frame = requestAnimationFrame(onComplete);
+      const frame = requestAnimationFrame(() => completion.current());
       return () => cancelAnimationFrame(frame);
     }
     const startedAt = performance.now();
@@ -47,11 +53,11 @@ export function ExerciseLaunchSequence({
       }
       if (nextStep >= 4) {
         window.clearInterval(timer);
-        requestAnimationFrame(onComplete);
+        requestAnimationFrame(() => completion.current());
       }
     }, 40);
     return () => window.clearInterval(timer);
-  }, [countdownEnabled, onComplete, soundEnabled]);
+  }, [countdownEnabled, soundEnabled]);
 
   const visual = steps[step];
   return <div className="launch-sequence w-full max-w-xl text-center" data-exercise-type={exerciseType} style={{ '--launch-accent': accentToken } as React.CSSProperties}>

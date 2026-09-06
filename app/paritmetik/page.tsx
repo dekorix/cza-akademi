@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { ArrowLeft, CheckCircle2, Delete, Hand, LogOut, RefreshCw, Settings, Wifi, WifiOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { ExerciseLaunchSequence } from '@/components/exercise-launch-sequence';
 import { FingerHand } from '@/components/finger-hand';
 import { digitPattern, emptyHand, numberPattern, readHand, readHands, transitionFinger, type FingerName, type HandPattern, type PressMode } from '@/lib/finger-engine';
 
@@ -66,6 +67,7 @@ export default function ParitmetikPage() {
   const [questionLimit, setQuestionLimit] = useState(10);
   const [stimulusMs, setStimulusMs] = useState(2500);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [launching, setLaunching] = useState(false);
   const [sessionEnded, setSessionEnded] = useState(false);
   const [ruleHint, setRuleHint] = useState('');
   const [rejected, setRejected] = useState<{ side: 'left' | 'right'; finger: FingerName } | null>(null);
@@ -191,7 +193,7 @@ export default function ParitmetikPage() {
       setActiveSeconds(0);
       setMode(selectedMode);
       setSync('ready');
-      newQuestion();
+      setLaunching(true);
     } catch (error) {
       setSaveError(friendlyError(error));
       setSync('error');
@@ -440,6 +442,7 @@ export default function ParitmetikPage() {
     <div className="min-h-screen bg-background">
       <header className="bg-[#182739] px-5 text-white md:px-9"><div className="mx-auto flex min-h-20 max-w-[1280px] items-center justify-between gap-4 py-3"><div className="flex items-center gap-3"><span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#d8eeac] text-sm font-black text-[#182739]">CZA</span><div><p className="text-sm font-semibold">Paritmetik stüdyosu</p><p className="text-xs text-[#aebdcd]">{displayName}{grade ? ` · ${grade}` : ''}</p></div></div><div className="flex items-center gap-2"><span className={`hidden items-center gap-2 text-xs sm:flex ${sync === 'error' ? 'text-amber-200' : 'text-[#cfe8dc]'}`}>{sync === 'error' ? <WifiOff size={15} /> : <Wifi size={15} />}{sync === 'saving' ? 'Kaydediliyor…' : sync === 'error' ? 'Senkron bekliyor' : 'Neon senkron aktif'}</span><Button variant="ghost" className="text-white hover:bg-white/10 hover:text-white" onClick={logout}><LogOut /> Çıkış</Button></div></div></header>
       <main className="mx-auto max-w-[1280px] px-5 py-7 md:px-9">
+        {launching && <div className="fixed inset-0 z-40 grid place-items-center bg-[#f8f6ef]/95 p-5"><a href="/" className="fixed left-5 top-5 inline-flex min-h-11 items-center gap-2 rounded-xl border-2 border-[#b9d7c9] bg-[#edf7f1] px-4 text-sm font-bold text-[#205e50]"><ArrowLeft size={18}/> Çalışma merkezim</a><ExerciseLaunchSequence exerciseType={mode === 'read' ? 'finger-reading' : 'finger-pressing'} title={mode === 'read' ? 'Parmak Okuma' : 'Parmak Basma'} icon={<Hand size={18}/>} accentToken="#bd6c3c" instruction={mode === 'read' ? 'Parmakları hızlıca tanımaya hazırlan.' : 'Sayıyı doğru parmak tekniğiyle göster.'} onComplete={() => { setLaunching(false); newQuestion(); }}/></div>}
         <section className="mb-5 grid gap-3 rounded-2xl border border-border bg-white p-4 text-sm shadow-sm md:grid-cols-4" aria-label="Çalışma planı"><label className="font-semibold">Çalışma modu<select className="mt-1 w-full rounded-lg border p-2" value={workMode} onChange={(event) => { const value = event.target.value as WorkMode; setWorkMode(value); setPressMode(value === 'free' ? 'free' : 'semi'); setTransitionMs(value === 'performance' ? 4000 : 0); }}><option value="free">Serbest</option><option value="semi">Yarı kurallı</option><option value="performance">Performans</option></select></label><label className="font-semibold">Soru sayısı<select className="mt-1 w-full rounded-lg border p-2" value={questionLimit} onChange={(event) => setQuestionLimit(Number(event.target.value))}><option value="0">Sınırsız</option><option value="5">5</option><option value="10">10</option><option value="15">15</option><option value="20">20</option></select></label><label className="font-semibold">El görünme süresi<select className="mt-1 w-full rounded-lg border p-2" value={stimulusMs} onChange={(event) => setStimulusMs(Number(event.target.value))}><option value="1500">1,5 sn</option><option value="2500">2,5 sn</option><option value="4000">4 sn</option><option value="6000">6 sn</option></select></label><div className="flex items-end font-semibold">Çalışma süresi: {Math.floor(activeSeconds / 60).toString().padStart(2, '0')}:{Math.floor(activeSeconds % 60).toString().padStart(2, '0')}</div></section>
         <div className="mb-5 flex flex-wrap items-center justify-between gap-3"><a href="/" className="inline-flex min-h-11 items-center gap-2 rounded-xl border-2 border-[#b9d7c9] bg-[#edf7f1] px-4 text-sm font-bold text-[#205e50] shadow-sm transition hover:bg-[#dff0e7]"><ArrowLeft size={18} /> Çalışma merkezim</a><div className="flex flex-wrap items-center gap-2"><Button variant="outline" onClick={() => setSettingsOpen(true)}><Settings /> Ayarlar</Button><Button variant="outline" onClick={newQuestion}>Devam</Button><Button variant="outline" onClick={finishStudy}>Bitir</Button><div className="flex rounded-xl border border-border bg-white p-1"><button className={`rounded-lg px-4 py-2 text-sm font-semibold ${mode === 'read' ? 'bg-primary text-white' : 'text-muted-foreground'}`} onClick={() => changeMode('read')}>Parmak Okuma</button><button className={`rounded-lg px-4 py-2 text-sm font-semibold ${mode === 'press' ? 'bg-primary text-white' : 'text-muted-foreground'}`} onClick={() => changeMode('press')}>Parmak Basma</button></div></div></div>
 

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowLeft, CheckCircle2, Grid3X3, Hand, Loader2, RotateCcw, Settings2, Timer, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { ExerciseLaunchSequence } from '@/components/exercise-launch-sequence';
 import { FingerHand } from '@/components/finger-hand';
 import { Soroban } from '@/components/soroban';
 import { emptyHand, readHand, readHands, transitionFinger, type FingerName, type HandPattern } from '@/lib/finger-engine';
@@ -16,7 +17,7 @@ import {
   type ArithmeticSettings,
 } from '@/lib/arithmetic-engine';
 
-type Phase = 'settings' | 'instructions' | 'active' | 'results';
+type Phase = 'settings' | 'instructions' | 'launch' | 'active' | 'results';
 type Tool = 'soroban' | 'finger';
 type Result = {
   question: ArithmeticQuestion;
@@ -113,8 +114,7 @@ export default function ArithmeticPage() {
       setResults([]);
       setIndex(0);
       setActiveTool(settings.toolMode === 'finger' ? 'finger' : 'soroban');
-      setPhase('active');
-      window.setTimeout(resetWorkspace, 0);
+      setPhase('launch');
     } catch (cause) {
       if (cause instanceof Error && (cause.message === 'session_required' || cause.message === 'invalid_session')) {
         setStudent(null);
@@ -244,6 +244,8 @@ export default function ArithmeticPage() {
   }, [results]);
 
   if (authLoading) return <div className="grid min-h-screen place-items-center bg-[#fbf7ee]"><div className="flex items-center gap-3 font-semibold text-muted-foreground"><Loader2 className="animate-spin"/> Öğrenci oturumu kontrol ediliyor…</div></div>;
+
+  if (phase === 'launch' && student) return <main className="grid min-h-screen place-items-center bg-[#fbf7ee] p-5"><a href="/" className="fixed left-5 top-5 inline-flex min-h-11 items-center gap-2 rounded-xl border-2 border-[#b9d7c9] bg-[#edf7f1] px-4 font-bold text-[#205e50]"><ArrowLeft/> Çalışma merkezim</a><ExerciseLaunchSequence exerciseType="addition-subtraction" title="Toplama / Çıkarma" icon={<Grid3X3 size={18}/>} accentToken="#315f86" instruction="İşlemi dikkatlice takip et." onComplete={() => { setPhase('active'); resetWorkspace(); }}/></main>;
 
   if (!student) return <main className="min-h-screen bg-[#fbf7ee] px-5 py-12"><form onSubmit={login} className="mx-auto mt-[7vh] max-w-md rounded-3xl border bg-white p-8 shadow-lg"><Anchor href="/" className="inline-flex items-center gap-2 font-semibold text-muted-foreground"><ArrowLeft size={18}/> Çalışma merkezim</Anchor><p className="eyebrow mt-7 text-primary">ÇELİK ZİHİN AKADEMİSİ</p><h1 className="mt-3 text-3xl font-bold">Öğrenci girişi</h1><p className="mt-2 text-base leading-7 text-muted-foreground">Toplama ve çıkarma sonuçların kendi öğrenci kaydına işlensin.</p><label className="mt-7 block font-semibold" htmlFor="arithmetic-username">Kullanıcı adı</label><Input id="arithmetic-username" autoComplete="username" value={username} onChange={event => setUsername(event.target.value)} className="mt-2 h-12 text-lg"/><label className="mt-4 block font-semibold" htmlFor="arithmetic-pin">PIN</label><Input id="arithmetic-pin" type="password" inputMode="numeric" maxLength={6} autoComplete="current-password" value={pin} onChange={event => setPin(event.target.value.replace(/\D/g,''))} className="mt-2 h-12 text-lg"/>{loginError && <p role="alert" className="mt-4 rounded-xl bg-red-50 p-4 font-semibold text-red-800">{loginError}</p>}<Button type="submit" className="mt-6 h-12 w-full text-lg" disabled={!username.trim() || !pin.trim()}>Giriş yap</Button></form></main>;
 

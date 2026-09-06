@@ -5,6 +5,8 @@ import { durationLabel, progressionSuggestion, speedLabel } from '../lib/timed-s
 
 const registry = fs.readFileSync(new URL('../lib/exercise-registry.ts',import.meta.url),'utf8');
 const studio = fs.readFileSync(new URL('../app/studio/page.tsx',import.meta.url),'utf8');
+const arithmeticPage = fs.readFileSync(new URL('../app/arithmetic/page.tsx',import.meta.url),'utf8');
+const fingerPage = fs.readFileSync(new URL('../app/paritmetik/page.tsx',import.meta.url),'utf8');
 const launch = fs.readFileSync(new URL('../components/exercise-launch-sequence.tsx',import.meta.url),'utf8');
 const styles = fs.readFileSync(new URL('../app/globals.css',import.meta.url),'utf8');
 
@@ -33,6 +35,9 @@ test('all studio modes use one launch sequence and later questions use a short n
   for(const label of ["'3'","'2'","'1'","'BAŞLA!'"]) assert.match(launch,new RegExp(label.replace(/[!*]/g,'\\$&')));
   assert.match(studio,/function nextQuestion\(\).*setPhase\('prepare'\)/);
   assert.doesNotMatch(studio,/function nextQuestion\(\).*setPhase\([^\n]*'countdown'/);
+  assert.match(arithmeticPage,/ExerciseLaunchSequence/);
+  assert.match(fingerPage,/ExerciseLaunchSequence/);
+  assert.match(fingerPage,/setLaunching\(true\)/);
 });
 
 test('stimulus timing starts in the committed stimulus phase and motion has an accessible fallback',()=>{
