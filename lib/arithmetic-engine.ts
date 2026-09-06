@@ -14,6 +14,7 @@ export type ArithmeticSettings = {
   transitionSeconds: number;
   maxValue: number | null;
   firstNumberRespectMaxValue: boolean;
+  sorobanRodCount: 4 | 5 | 6 | 7;
   allowNegativeResults: boolean;
   toolMode: ArithmeticToolMode;
   inputMode: 'keypad' | 'keyboard' | 'both';
@@ -62,6 +63,7 @@ export const defaultArithmeticSettings: ArithmeticSettings = {
   transitionSeconds: 0,
   maxValue: 99,
   firstNumberRespectMaxValue: true,
+  sorobanRodCount: 5,
   allowNegativeResults: false,
   toolMode: 'both',
   inputMode: 'both',
@@ -115,6 +117,9 @@ export function validateArithmeticSettings(settings: ArithmeticSettings) {
   if (!Number.isFinite(settings.transitionSeconds) || settings.transitionSeconds < 0 || settings.transitionSeconds > 60) errors.push(issue('SPEED001','Süre geçersiz','Süreyi 0–60 saniye arasında seçin.','transitionSeconds','error'));
   const theoreticalMin = 10 ** (settings.minDigits - 1);
   if (settings.maxValue !== null && settings.maxValue < theoreticalMin) errors.push(issue('MAX001','Maksimum değer çok düşük',`En az ${settings.minDigits} haneli soru için maksimum değer ${theoreticalMin} veya daha büyük olmalıdır.`,'maxValue','error'));
+  if (![4,5,6,7].includes(settings.sorobanRodCount)) errors.push(issue('ROD001','Soroban basamak sayısı geçersiz','Soroban için 4, 5, 6 veya 7 basamak seçin.','sorobanRodCount','error'));
+  if (settings.maxDigits > settings.sorobanRodCount) errors.push(issue('ROD002','Hane sayısı sorobana sığmıyor',`Maksimum hane sayısını ${settings.sorobanRodCount} veya daha düşük seçin ya da daha geniş bir soroban kullanın.`,'maxDigits','error'));
+  if (settings.maxValue !== null && settings.maxValue >= 10 ** settings.sorobanRodCount) warnings.push(issue('ROD003','Maksimum değer sorobandan geniş','Üretilen sayıların sorobana sığması için maksimum değer soroban basamak sayısına göre sınırlandırılacak.','maxValue','warning'));
   if (settings.operationMode === 'mixed' && (!settings.additionDigits.length || !settings.subtractionDigits.length)) errors.push(issue('MIX001','Karışık çalışma hazır değil','Toplama ve çıkarma için ayrı ayrı en az bir rakam seçin.','operationMode','error'));
   if (settings.transitionSeconds > 0 && settings.transitionSeconds < 3) warnings.push(issue('SPEED002','Süre çok kısa','Yeni başlayan öğrenciler için en az 3 saniye daha dengeli olabilir.','transitionSeconds','warning'));
   if (settings.operationsPerQuestion > 10) warnings.push(issue('COUNT003','Uzun işlem zinciri','Uzun zincirlerde önce doğruluğu gözleyin; gerekirse işlem sayısını azaltın.','operationsPerQuestion','warning'));
@@ -124,7 +129,7 @@ export function validateArithmeticSettings(settings: ArithmeticSettings) {
 
 function range(settings: ArithmeticSettings) {
   const min = 10 ** (settings.minDigits - 1);
-  const digitMax = 10 ** settings.maxDigits - 1;
+  const digitMax = 10 ** Math.min(settings.maxDigits, settings.sorobanRodCount) - 1;
   return { min, max: Math.min(digitMax, settings.maxValue ?? digitMax) };
 }
 

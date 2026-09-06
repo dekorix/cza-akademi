@@ -44,4 +44,24 @@ test('geçersiz ayarlar açık hata kodları üretir', () => {
   assert.equal(engine.validateArithmeticSettings(settings({ minDigits: 3, maxDigits: 2 })).errors[0].code, 'DIG001');
   assert.ok(engine.validateArithmeticSettings(settings({ operationMode: 'addition', additionDigits: [] })).errors.some(issue => issue.code === 'ADD001'));
   assert.ok(engine.validateArithmeticSettings(settings({ operationMode: 'mixed', subtractionDigits: [] })).errors.some(issue => issue.code === 'MIX001'));
+  assert.ok(engine.validateArithmeticSettings(settings({ sorobanRodCount: 3 })).errors.some(issue => issue.code === 'ROD001'));
+  assert.ok(engine.validateArithmeticSettings(settings({ sorobanRodCount: 4, maxDigits: 5 })).errors.some(issue => issue.code === 'ROD002'));
+});
+
+test('soroban basamak sayısı üretim sınırına gerçekten katılır', () => {
+  const configured = settings({ sorobanRodCount: 4, minDigits: 4, maxDigits: 4, maxValue: 9999, operationsPerQuestion: 2 });
+  for (let seed = 1; seed <= 20; seed += 1) {
+    const question = engine.generateArithmeticQuestion(configured, engine.seededRandom(seed));
+    assert.ok(Math.abs(question.initialValue) <= 9999);
+    assert.ok(question.steps.every(step => Math.abs(step.resultAfterStep) <= 9999));
+  }
+});
+
+test('toplama çıkarma sayfası ortak kurallı parmak ve seçilen soroban basamağını kullanır', () => {
+  const page = readFileSync(new URL('../app/arithmetic/page.tsx', import.meta.url), 'utf8');
+  assert.match(page, /transitionFinger\(currentHand, fingerName, 'guided'\)/);
+  assert.match(page, /<FingerHand side="left"/);
+  assert.match(page, /<FingerHand side="right"/);
+  assert.match(page, /digits=\{settings\.sorobanRodCount\}/);
+  assert.match(page, /finger_rule_violation/);
 });

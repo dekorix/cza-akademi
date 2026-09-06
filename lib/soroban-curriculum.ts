@@ -8,11 +8,17 @@ export type Lesson = { id: LessonId; title: string; subtitle: string; goal: stri
 export type LessonAnswer = { taskId: string; given: number; correct: boolean; routeMatch: boolean; moves: BeadMove[]; hintUsed: boolean };
 export type LessonRecord = { id: string; lessonId: LessonId; at: string; answers: LessonAnswer[]; guidedCorrections: number };
 
-export const placeName = (place: number) => ({ 1: 'Birler', 10: 'Onlar', 100: 'Yüzler' }[place] || String(place));
+export const placeName = (place: number) => ({ 1: 'Birler', 10: 'Onlar', 100: 'Yüzler', 1000: 'Binler', 10000: 'On binler', 100000: 'Yüz binler', 1000000: 'Milyonlar' }[place] || String(place));
+
+function isSupportedPlace(place: number, digits: number) {
+  if (!Number.isInteger(place) || place < 1 || place >= 10 ** digits) return false;
+  const power = Math.log10(place);
+  return Number.isInteger(power) && power >= 0 && power < digits;
+}
 
 export function applyBeadAction(value: number, digits: number, action: BeadAction): number {
-  if (!Number.isInteger(digits) || digits < 1 || digits > 3 || !Number.isInteger(value) || value < 0 || value >= 10 ** digits ||
-      ![1,10,100].includes(action.place) || action.place >= 10 ** digits ||
+  if (!Number.isInteger(digits) || digits < 1 || digits > 7 || !Number.isInteger(value) || value < 0 || value >= 10 ** digits ||
+      !isSupportedPlace(action.place, digits) ||
       !['upper','lower'].includes(action.deck) || !Number.isInteger(action.bead) || action.bead < 0 ||
       action.bead > (action.deck === 'upper' ? 0 : 3)) throw new Error('Geçersiz soroban hareketi.');
   const digit = Math.floor(value / action.place) % 10;

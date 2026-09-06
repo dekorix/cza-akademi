@@ -7,6 +7,7 @@ export function Soroban({ value, digits, onChange, onMove, reveal = false, teach
   const columns = String(value).padStart(digits, '0').split('').map(Number);
   const editable = Boolean(onChange || onMove);
   function change(index: number, deck: BeadAction['deck'], bead: number) {
+    try { navigator.vibrate?.(10); } catch { /* Dokunma titreşimi her cihazda desteklenmeyebilir. */ }
     const action = {place:10 ** (digits-index-1),deck,bead};
     const after = applyBeadAction(value,digits,action);
     onMove?.({...action,before:value,after});

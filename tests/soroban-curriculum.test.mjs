@@ -38,6 +38,14 @@ test('every legal bead click preserves all other columns for 0..999',()=>{
   }
 });
 
+test('shared soroban movement supports every configured 4–7 rod layout',()=>{
+  for(const digits of [4,5,6,7]){
+    const highestPlace=10**(digits-1);
+    assert.equal(applyBeadAction(0,digits,{place:highestPlace,deck:'upper',bead:0}),5*highestPlace);
+    assert.equal(applyBeadAction(0,digits,{place:highestPlace,deck:'lower',bead:0}),highestPlace);
+  }
+});
+
 test('invalid bead states and direct/exchange boundaries are rejected',()=>{
   const valid={place:1,deck:'upper',bead:0};
   for(const value of [-1,1000,1.5,NaN,Infinity])assert.throws(()=>applyBeadAction(value,3,valid));

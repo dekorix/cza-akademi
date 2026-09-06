@@ -136,17 +136,18 @@ body {
 .academy-nav:hover { background: #22374b; color: white; }
 .academy-nav.active { background: #304e58; color: #e1fff4; }
 .eyebrow { font-size: 14px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
-.abacus { position: relative; display: flex; justify-content: center; gap: 17px; padding: 20px 24px; border: 10px solid transparent; border-radius: 13px; background: linear-gradient(#fbf7ee,#f5ecdc) padding-box, linear-gradient(145deg,#e0b276,#a87540 55%,#d09a5f) border-box; box-shadow: inset 0 0 0 2px #fff8e9, inset 0 -4px 12px #8b5a2b26, 0 18px 32px #152e3c25, 0 4px 0 #8b5a2b; }
-.abacus:after { content: ''; position: absolute; left: 0; right: 0; top: 62px; height: 9px; background: linear-gradient(#d5a267,#9b673b 48%,#e1b47b); border-top: 2px solid #f6d29c; border-bottom: 2px solid #85532e; pointer-events: none; box-shadow: 0 2px 5px #5b391f44; }
-.abacus-rod { position: relative; display: flex; flex-direction: column; align-items: center; gap: 7px; width: 31px; min-height: 190px; padding: 0; cursor: pointer; background: transparent; border: 0; }
+.abacus { position: relative; display: flex; max-width: 100%; justify-content: center; gap: 11px; padding: 22px 16px; border: 10px solid transparent; border-radius: 14px; background: linear-gradient(#fffaf1,#f4ead9) padding-box, linear-gradient(145deg,#e5b979,#9b6234 55%,#d9a363) border-box; box-shadow: inset 0 0 0 2px #fffdf5, inset 0 -5px 14px #75461f2b, 0 20px 34px #152e3c2b, 0 5px 0 #815127; }
+.abacus:after { content: ''; position: absolute; left: 0; right: 0; top: 73px; height: 10px; background: linear-gradient(#e0b176,#935c32 48%,#e7bd85); border-top: 2px solid #f8d9aa; border-bottom: 2px solid #744322; pointer-events: none; box-shadow: 0 3px 6px #4b2c194d; }
+.abacus-rod { position: relative; display: flex; flex-direction: column; align-items: center; gap: 8px; width: 37px; min-height: 230px; padding: 0; cursor: pointer; background: transparent; border: 0; }
 .abacus-rod:before { content: ''; position: absolute; top: -2px; bottom: -2px; width: 4px; border-radius: 3px; background: linear-gradient(90deg,#a4784f,#f0d2a3 45%,#8e623f); box-shadow: 1px 0 2px #69401f55; }
-.abacus-bead { position: relative; z-index: 1; display: block; width: 34px; height: 24px; border: 1px solid #18786e; border-radius: 50%; background: radial-gradient(ellipse at 34% 26%,#78c8bb 0 12%,#2d9b8e 35%,#147267 82%); box-shadow: inset 0 3px 4px #bff2e455, inset 0 -4px 4px #0b544b88, 0 3px 4px #183c3b38; transition: transform .18s, filter .18s; }
-.abacus-bead.upper { margin-bottom: 40px; border-color: #bf6e2b; background: radial-gradient(ellipse at 34% 24%,#ffd194 0 10%,#ef9f58 38%,#c56c2b 84%); box-shadow: inset 0 3px 4px #fff0cf88, inset 0 -4px 4px #9c4a1e88, 0 3px 4px #633a2444; }
-.abacus-bead.upper.engaged { transform: translateY(15px); }
-.abacus-bead.lower.engaged { transform: translateY(-17px); }
+.abacus-bead { position: relative; z-index: 1; display: block; width: 39px; height: 29px; flex-shrink: 0; border: 1px solid #7f312f; border-radius: 50%; background: radial-gradient(ellipse at 34% 24%,#ffc0ad 0 8%,#d9665d 34%,#9b3635 78%,#702528 100%); box-shadow: inset 0 4px 5px #ffe5dc99, inset 0 -5px 5px #571b2188, 0 5px 7px #35201f55; transition: transform 150ms cubic-bezier(.2,.8,.2,1), filter 150ms, background 150ms, border-color 150ms, box-shadow 150ms; }
+.abacus-bead.upper { margin-bottom: 46px; }
+.abacus-bead.engaged { border-color: #126b60; background: radial-gradient(ellipse at 34% 24%,#9ee9d4 0 10%,#28a28f 38%,#126b60 84%); box-shadow: inset 0 3px 4px #ddfff588, inset 0 -4px 4px #084c4788, 0 4px 8px #168b7970; }
+.abacus-bead.upper.engaged { transform: translateY(20px); }
+.abacus-bead.lower.engaged { transform: translateY(-20px); }
 .abacus-bead:enabled { cursor: pointer; }
 .abacus-bead:enabled:hover { filter: brightness(1.08) saturate(1.08); }
-.abacus-bead:active { filter: brightness(.96); }
+.abacus-bead:active { filter: brightness(.94); scale: .96; box-shadow: inset 0 2px 5px #3b1f2366, 0 1px 2px #35201f45; }
 .abacus-bead:focus-visible { outline: 3px solid #213e32; outline-offset: 3px; }
 :fullscreen { overflow-y: auto; }
 .abacus-rod:focus-visible { outline: 3px solid #166e65; outline-offset: 6px; border-radius: 4px; }
