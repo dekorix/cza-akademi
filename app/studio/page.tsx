@@ -20,6 +20,8 @@ import { core, coreStudent, friendlyCoreError, studentName, type CoreStudent } f
 import { attemptPayload, moduleCodeByMode, trainingSettings } from '@/lib/core-records';
 import { feedbackModeFor, isMeasuredMode, practiceModeLabels, shouldShowCountdown } from '@/lib/practice-mode';
 import { compareSorobanStates, serializeSorobanState } from '@/lib/soroban-comparison';
+import { AudioStimulusScheduler, preloadVoiceClips, voiceClipKey } from '@/lib/cza-voice-client';
+import { anzanThemes, type AnzanTheme } from '@/lib/anzan-engine';
 
 type Phase = 'ready' | 'countdown' | 'prepare' | 'stimulus' | 'sequence' | 'answer' | 'feedback' | 'finished';
 
@@ -47,9 +49,11 @@ export default function Studio() {
   const [saved, setSaved] = useState(false);
   const [feedbackAttempt, setFeedbackAttempt] = useState<Attempt | null>(null);
   const [reviewAttempt, setReviewAttempt] = useState<Attempt | null>(null);
+  const [reviewReplayIndex, setReviewReplayIndex] = useState(-1);
   const [retrying, setRetrying] = useState(false);
   const [darkStage, setDarkStage] = useState(false);
-  const [audioAvailable, setAudioAvailable] = useState(false);
+  const [audioPreparing, setAudioPreparing] = useState(false);
+  const [sequenceVisible, setSequenceVisible] = useState(true);
   const [settingsOpen, setSettingsOpen] = useState(true);
   const [answerRemainingMs, setAnswerRemainingMs] = useState(0);
   const responseStart = useRef(0);
@@ -60,12 +64,15 @@ export default function Studio() {
   const answerDeadline = useRef(0);
   const timeoutTriggered = useRef(false);
   const stageRef = useRef<HTMLDivElement>(null);
+  const voiceClips = useRef(new Map<string,string>());
+  const audioScheduler = useRef<AudioStimulusScheduler | null>(null);
   const active = !['ready','finished'].includes(phase);
   const current = questions[round];
   const mental = runConfig.mode === 'flash' || runConfig.mode === 'audio';
   const timedReading = runConfig.mode === 'finger-read' || runConfig.mode === 'soroban-read';
   const practiceMode = runConfig.practiceMode ?? 'free_practice';
   const measured = isMeasuredMode(practiceMode);
+  const anzanTheme = anzanThemes[(runConfig.backgroundToken ?? 'PAPER_BLACK') as AnzanTheme];
   const snapshot = useRef({ config, phase });
   snapshot.current = { config, phase };
 
@@ -74,7 +81,6 @@ export default function Studio() {
   }, []);
 
   useEffect(() => {
-    setAudioAvailable('speechSynthesis' in window && 'SpeechSynthesisUtterance' in window);
     const mode = new URLSearchParams(window.location.search).get('mode');
     if (mode === 'flash' || mode === 'audio') setConfig(c => ({...c, mode, digits: 1}));
     if (mode === 'fingers') setConfig(c => ({...c, mode: 'finger-read', digits: Math.min(2,c.digits), minDigits: 1, maxDigits: Math.min(2,c.digits)}));
@@ -116,7 +122,7 @@ export default function Studio() {
 
   const advance = useCallback(() => {
     if (!current) return;
-    if (term + 1 < current.sequence.length) setTerm(v => v+1);
+    if (term + 1 < current.sequence.length) { setSequenceVisible(false); setTerm(v => v+1); }
     else { setPhase('answer'); responseStart.current = performance.now(); answerStartedAt.current = new Date().toISOString(); }
   }, [current, term]);
 
@@ -151,19 +157,31 @@ export default function Studio() {
 
   useEffect(() => {
     if (phase !== 'sequence' || paused || !current) return;
-    let timeout: ReturnType<typeof setTimeout> | undefined;
+    let timeout: ReturnType<typeof setTimeout> | undefined, gapTimeout: ReturnType<typeof setTimeout> | undefined;
+    let cancelled=false;
+    presentationStartedAt.current ||= new Date().toISOString();
     if (runConfig.mode === 'audio') {
-      const number = current.sequence[term];
-      const speech = new SpeechSynthesisUtterance(term === 0 ? String(number) : `${number < 0 ? 'eksi' : 'artı'} ${Math.abs(number)}`);
-      speech.lang = 'tr-TR'; speech.rate = .85;
-      const turkish = speechSynthesis.getVoices().find(v => v.lang.startsWith('tr'));
-      if (turkish) speech.voice = turkish;
-      speech.onend = () => { if (runConfig.interval > 0) timeout = setTimeout(advance, runConfig.interval * 1000); };
-      speech.onerror = event => { if (!['interrupted','canceled'].includes(event.error)) { setError('Ses oynatılamadı. Cihazının sesini ve Türkçe konuşma desteğini kontrol et veya Flash Anzan seç.'); setPaused(true); } };
-      speechSynthesis.cancel(); speechSynthesis.speak(speech);
-    } else if (runConfig.interval > 0) timeout = setTimeout(advance, runConfig.interval * 1000);
-    return () => { clearTimeout(timeout); if (runConfig.mode === 'audio') speechSynthesis.cancel(); };
+      const language=runConfig.language??'tr-TR', profile=runConfig.voiceProfile??'CZA_STANDARD', rate=runConfig.speechRate??1;
+      const key=voiceClipKey(current.sequence[term],term,language,profile,rate), url=voiceClips.current.get(key);
+      if(!url) { setError('Premium ses dosyası hazır değil. Çalışmayı yeniden başlat.'); setPaused(true); return; }
+      audioScheduler.current ??= new AudioStimulusScheduler();
+      audioScheduler.current.play(url).then(()=>{ if(!cancelled) timeout=setTimeout(advance,runConfig.interStimulusGapMs??500); }).catch(()=>{ if(!cancelled){setError('Premium ses oynatılamadı.');setPaused(true);}});
+    } else if ((runConfig.interval > 0 || (runConfig.stimulusVisibleMs??0)>0)) {
+      setSequenceVisible(true);
+      if(runConfig.transitionSoundEnabled) { const context=new AudioContext(); const oscillator=context.createOscillator(), gain=context.createGain(); oscillator.frequency.value=620; gain.gain.setValueAtTime(.035,context.currentTime); gain.gain.exponentialRampToValueAtTime(.0001,context.currentTime+.045); oscillator.connect(gain).connect(context.destination); oscillator.start(); oscillator.stop(context.currentTime+.05); oscillator.onended=()=>void context.close(); }
+      const visibleMs=runConfig.stimulusVisibleMs??Math.round(runConfig.interval*1000);
+      timeout=setTimeout(()=>{ setSequenceVisible(false); gapTimeout=setTimeout(advance,runConfig.interStimulusGapMs??120); },visibleMs);
+    }
+    return () => { cancelled=true; clearTimeout(timeout); clearTimeout(gapTimeout); if (runConfig.mode === 'audio') audioScheduler.current?.cancel(); };
   }, [phase, paused, current, term, runConfig, advance]);
+
+  useEffect(()=>{
+    if(!reviewAttempt||reviewReplayIndex<0) return;
+    if(reviewReplayIndex>=reviewAttempt.sequence.length){setReviewReplayIndex(-1);return;}
+    if(runConfig.mode==='audio') { const language=runConfig.language??'tr-TR', profile=runConfig.voiceProfile??'CZA_STANDARD', rate=runConfig.speechRate??1; const url=voiceClips.current.get(voiceClipKey(reviewAttempt.sequence[reviewReplayIndex],reviewReplayIndex,language,profile,rate)); if(!url){setReviewReplayIndex(-1);return;} let cancelled=false; audioScheduler.current??=new AudioStimulusScheduler(); audioScheduler.current.play(url).then(()=>{if(!cancelled)setTimeout(()=>setReviewReplayIndex(value=>value+1),runConfig.interStimulusGapMs??500);}).catch(()=>{if(!cancelled)setReviewReplayIndex(-1);}); return()=>{cancelled=true;audioScheduler.current?.cancel();}; }
+    const timer=setTimeout(()=>setReviewReplayIndex(value=>value+1),Math.max(300,runConfig.stimulusVisibleMs??700));
+    return()=>clearTimeout(timer);
+  },[reviewAttempt,reviewReplayIndex,runConfig.stimulusVisibleMs]);
 
   async function login(event: React.SyntheticEvent<HTMLFormElement>) {
     event.preventDefault(); setLoginError(''); setAuthLoading(true);
@@ -180,15 +198,20 @@ export default function Studio() {
     try {
       if (!student) throw new Error('session_required');
       validateConfig(config);
-      if (config.mode === 'audio' && !audioAvailable) throw new Error('Bu tarayıcıda sesli çalışma desteklenmiyor. Flash Anzan kullanabilirsin.');
       const generated = Array.from({length:config.rounds}, () => createQuestion(config));
+      if(config.mode==='audio') {
+        setAudioPreparing(true);
+        try { voiceClips.current=await preloadVoiceClips(generated.flatMap(question=>question.sequence.map((term,index)=>({term,index}))),{language:config.language??'tr-TR',voiceProfile:config.voiceProfile??'CZA_STANDARD',speechRate:config.speechRate??1}); }
+        catch(e) { throw new Error(e instanceof Error&&e.message==='premium_voice_configuration_required'?'Premium Türkçe ses için sunucu API anahtarı ve Voice ID ayarlanmalıdır.':e instanceof Error?e.message:'Premium sesler hazırlanamadı.'); }
+        finally { setAudioPreparing(false); }
+      }
       setSync('saving');
       const selectedPracticeMode = config.practiceMode ?? 'free_practice';
       const central = await core('start', {moduleCode:moduleCodeByMode[config.mode],source:'free_practice',clientSessionId:crypto.randomUUID(),recipeId:null,settings:trainingSettings(config)});
       if (!central.sessionId) throw new Error('session_not_created');
       setSessionId(String(central.sessionId)); setSync('ready');
       const countdown = shouldShowCountdown({practiceMode:selectedPracticeMode,exerciseType:config.mode,timed:['finger-read','soroban-read','flash','audio'].includes(config.mode),assessmentMode:selectedPracticeMode==='assessment',countdownEnabled:config.countdownEnabled});
-      setQuestions(generated); setRunConfig({...defaultConfig,...config, practiceMode:selectedPracticeMode, feedbackMode:config.feedbackMode??feedbackModeFor(selectedPracticeMode), pool:[...config.pool], additionPool:[...(config.additionPool ?? config.pool)], subtractionPool:[...(config.subtractionPool ?? config.pool)]}); setRound(0); setTerm(0); setAttempts([]); setFeedbackAttempt(null); setReviewAttempt(null); setRetrying(false); setAnswer(''); setAbacusValue(0); setPaused(false); setError(''); setSaved(false); setAnswerRemainingMs(0); setPhase(countdown ? 'countdown' : (['finger-read','soroban-read'].includes(config.mode) && isMeasuredMode(selectedPracticeMode) ? 'stimulus' : ['flash','audio'].includes(config.mode) ? 'sequence' : 'answer')); if (!countdown && (!['finger-read','soroban-read'].includes(config.mode) || !isMeasuredMode(selectedPracticeMode)) && !['flash','audio'].includes(config.mode)) { responseStart.current = performance.now(); answerStartedAt.current = new Date().toISOString(); } setSettingsOpen(false); sessionStart.current = Date.now();
+      setQuestions(generated); setRunConfig({...defaultConfig,...config, practiceMode:selectedPracticeMode, feedbackMode:config.feedbackMode??feedbackModeFor(selectedPracticeMode), pool:[...config.pool], additionPool:[...(config.additionPool ?? config.pool)], subtractionPool:[...(config.subtractionPool ?? config.pool)]}); setRound(0); setTerm(0); setSequenceVisible(true); setAttempts([]); setFeedbackAttempt(null); setReviewAttempt(null); setRetrying(false); setAnswer(''); setAbacusValue(0); setPaused(false); setError(''); setSaved(false); setAnswerRemainingMs(0); setPhase(countdown ? 'countdown' : (['finger-read','soroban-read'].includes(config.mode) && isMeasuredMode(selectedPracticeMode) ? 'stimulus' : ['flash','audio'].includes(config.mode) ? 'sequence' : 'answer')); if (!countdown && (!['finger-read','soroban-read'].includes(config.mode) || !isMeasuredMode(selectedPracticeMode)) && !['flash','audio'].includes(config.mode)) { responseStart.current = performance.now(); answerStartedAt.current = new Date().toISOString(); } setSettingsOpen(false); sessionStart.current = Date.now();
     } catch (e) { setSync('error'); setError(e instanceof Error && !e.message.includes('_') ? e.message : friendlyCoreError(e)); }
   }
   async function submit(timedOut = false) {
@@ -199,7 +222,7 @@ export default function Studio() {
     const completedAt = Date.now();
     const elapsedMs = Math.max(0, Math.round(performance.now()-responseStart.current));
     const comparison = runConfig.mode.startsWith('soroban') ? compareSorobanStates(given, current.answer, runConfig.rods ?? 5) : null;
-    const attempt: Attempt = { sequence: current.sequence, expected: current.answer, given, correct: !timedOut && given === current.answer, timeout: timedOut, elapsedMs, responseLatencyMs: elapsedMs, stimulusDurationMs: timedReading && measured ? runConfig.presentationDurationMs ?? 1000 : 0, answerDurationLimitMs: measured ? runConfig.answerDurationMs ?? 0 : 0, presentationStartedAt: presentationStartedAt.current || undefined, presentationEndedAt: presentationEndedAt.current || undefined, answerStartedAt: answerStartedAt.current || undefined, answeredAt: new Date(completedAt).toISOString(), attemptType: retrying ? 'RETRY_AFTER_FEEDBACK' : 'PRIMARY', studentSorobanState: comparison ? serializeSorobanState(given,runConfig.rods??5) : undefined, targetSorobanState: comparison ? serializeSorobanState(current.answer,runConfig.rods??5) : undefined, differingRods: comparison?.differingRods };
+    const attempt: Attempt = { sequence: current.sequence, expected: current.answer, given, correct: !timedOut && given === current.answer, timeout: timedOut, elapsedMs, responseLatencyMs: elapsedMs, stimulusDurationMs: mental ? runConfig.stimulusVisibleMs ?? Math.round(runConfig.interval*1000) : timedReading && measured ? runConfig.presentationDurationMs ?? 1000 : 0, answerDurationLimitMs: measured ? runConfig.answerDurationMs ?? 0 : 0, presentationStartedAt: presentationStartedAt.current || undefined, presentationEndedAt: presentationEndedAt.current || undefined, answerStartedAt: answerStartedAt.current || undefined, answeredAt: new Date(completedAt).toISOString(), attemptType: retrying ? 'RETRY_AFTER_FEEDBACK' : 'PRIMARY', studentSorobanState: comparison ? serializeSorobanState(given,runConfig.rods??5) : undefined, targetSorobanState: comparison ? serializeSorobanState(current.answer,runConfig.rods??5) : undefined, differingRods: comparison?.differingRods, stimulusEventCount: mental?current.sequence.length:undefined, language:runConfig.mode==='audio'?runConfig.language:undefined, audioPace:runConfig.mode==='audio'?runConfig.interStimulusGapMs:undefined, showNumbers:runConfig.mode==='audio'?runConfig.showNumbersDuringAudio:undefined };
     setSavingAttempt(true); setSync('saving'); setError('');
     try {
       await core('attempt',{sessionId,payload:attemptPayload(attempt,runConfig,round+1,{attemptId:crypto.randomUUID(),questionId:`${moduleCodeByMode[runConfig.mode]}-${Date.now()}-${round+1}`})});
@@ -224,7 +247,7 @@ export default function Studio() {
     }, 100);
     return () => window.clearInterval(timer);
   }, [phase, timedReading, runConfig.answerDurationMs, savingAttempt]);
-  function nextQuestion() { setRound(v=>v+1); setTerm(0); setAnswer(''); setAbacusValue(0); setFeedbackAttempt(null); setAnswerRemainingMs(0); presentationStartedAt.current=''; presentationEndedAt.current=''; answerStartedAt.current=''; setPhase('prepare'); }
+  function nextQuestion() { setRound(v=>v+1); setTerm(0); setSequenceVisible(true); setAnswer(''); setAbacusValue(0); setFeedbackAttempt(null); setAnswerRemainingMs(0); presentationStartedAt.current=''; presentationEndedAt.current=''; answerStartedAt.current=''; setPhase('prepare'); }
   useEffect(() => {
     if (phase !== 'feedback') return;
     if (runConfig.mode.startsWith('soroban') && feedbackAttempt && !feedbackAttempt.correct) return;
@@ -242,7 +265,7 @@ export default function Studio() {
     try { setSync('saving'); await core('finish',{sessionId}); setSync('ready'); setPhase('finished'); setPaused(false); setError(''); }
     catch (e) { setSync('error'); setError(`${friendlyCoreError(e)} Çalışma kapatılmadı; tekrar dene.`); }
   }
-  function reset() { setSessionId(null); setPhase('ready'); setPaused(false); setError(''); setAttempts([]); setFeedbackAttempt(null); setSettingsOpen(true); }
+  function reset() { setSessionId(null); setPhase('ready'); setPaused(false); setError(''); setAttempts([]); setFeedbackAttempt(null); setReviewAttempt(null); setReviewReplayIndex(-1); setSettingsOpen(true); }
   function retryQuestion() { setAnswer(''); setAbacusValue(0); setFeedbackAttempt(null); setRetrying(true); setAnswerRemainingMs(0); openQuestion(); }
   function addAnswerDigit(digit: number) { setAnswer(value => `${value}${digit}`.slice(0, 8)); }
   const result = score(attempts);
@@ -260,14 +283,21 @@ export default function Studio() {
       <div className="grid items-start gap-6 lg:grid-cols-[310px_1fr]">
         <aside className={`rounded-xl border border-border bg-white p-6 ${settingsOpen ? '' : 'hidden lg:block'}`}><div className="mb-6 flex items-center gap-2"><Settings2 size={17} className="text-primary" /><h2 className="font-semibold">Çalışma reçetesi</h2></div><ExerciseSettings config={config} onChange={setConfig} disabled={active} /><div className="mt-5 rounded-lg bg-secondary/60 p-3 text-[11px] leading-5 text-[#437369]">Her cevap merkezi öğrenci kaydına işlenir. Doğru cevap, girilen cevap, işlem dizisi, süre ve çalışma ayarları eğitimci raporunda birlikte tutulur.</div></aside>
         <div className="space-y-5">
-          <div ref={stageRef} style={active && (runConfig.mode === 'flash' || runConfig.mode === 'audio') ? { backgroundColor: runConfig.backgroundColor ?? '#ffffff', color: runConfig.textColor ?? '#111827' } : undefined} className={`overflow-hidden rounded-2xl border ${darkStage ? 'border-[#273c51] bg-[#182739] text-white' : 'border-border bg-white'}`}>
+          <div ref={stageRef} style={active && (runConfig.mode === 'flash' || runConfig.mode === 'audio') ? { backgroundColor: anzanTheme.background, color: anzanTheme.foreground } : undefined} className={`overflow-hidden rounded-2xl border ${active&&mental?'anzan-focus-stage ':''}${darkStage ? 'border-[#273c51] bg-[#182739] text-white' : 'border-border bg-white'}`}>
             <div className={`flex items-center justify-between gap-3 border-b px-5 py-4 ${darkStage ? 'border-white/10' : 'border-border'}`}><div className="flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-[#91baa5]" /><span className="text-xs font-semibold">{modeLabels[active || phase === 'finished' ? runConfig.mode : config.mode]}</span></div><div className="flex gap-1"><Button variant="ghost" size="icon" aria-label={darkStage ? 'Açık çalışma alanı' : 'Koyu çalışma alanı'} onClick={()=>setDarkStage(v=>!v)}>{darkStage ? <Sun /> : <Moon />}</Button><Button variant="ghost" size="icon" aria-label="Tam ekran" onClick={() => { if (stageRef.current?.requestFullscreen) void stageRef.current.requestFullscreen().catch(()=>setError('Tam ekran bu ortamda desteklenmiyor.')); else setError('Tam ekran bu ortamda desteklenmiyor.'); }}><Maximize2 /></Button></div></div>
             <div className="flex min-h-[430px] flex-col items-center justify-center px-5 py-9 md:min-h-[475px]">
-              {phase === 'ready' && <div className="max-w-lg text-center"><div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-[#e8f3ee] text-primary"><Target size={32} strokeWidth={1.5} /></div><h2 className="text-2xl font-semibold tracking-tight">Zihnine çalışma alanı aç.</h2><p className={`mx-auto mt-3 max-w-md text-sm leading-7 ${darkStage ? 'text-[#b6c6d7]' : 'text-muted-foreground'}`}>{config.mode === 'finger-read' ? 'Ekrandaki gerçekçi parmak desenine dikkatlice bak.' : config.mode === 'soroban-read' ? 'Abaküsteki boncukları oku ve sayıyı yaz. Üst boncuk 5, çubuğa yakın her alt boncuk 1 değerindedir.' : config.mode === 'soroban-write' ? 'Verilen sayıyı sorobanda oluştur. Boncukları çubuğa yaklaştırmak ve uzaklaştırmak için dokun.' : config.mode === 'audio' ? 'Sayıları dinle, işlemleri zihninde yap. Cihazının sesini aç; ilk sayıdan sonra artı veya eksi komutunu izle.' : 'Sayılar sırayla ekrana gelecek. İşlemleri zihninde takip et ve son sayının ardından sonucu yaz.'}</p><div className="mb-7 mt-6 flex flex-wrap justify-center gap-3 text-xs opacity-70"><span className="rounded-full bg-[#e6f5ee] px-3 py-1 font-bold text-[#176e5e]">{practiceModeLabels[config.practiceMode??'free_practice']}</span><span>{config.rounds} soru</span><span>{config.digits} basamak</span><span>{['finger-read','soroban-read'].includes(config.mode) && isMeasuredMode(config.practiceMode??'free_practice') ? durationLabel(config.presentationDurationMs ?? 1000) : 'Süre baskısı yok'}</span></div><Button className="h-12 px-7" onClick={start}><Play size={16} fill="currentColor" /> Çalışmaya başla</Button>{config.mode === 'audio' && <p className="mt-4 text-[11px] opacity-60">Ses, cihazın konuşma desteğine bağlıdır; profesyonel ses kayıtları henüz eklenmedi.</p>}</div>}
+              {phase === 'ready' && <div className="max-w-lg text-center">
+                <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-[#e8f3ee] text-primary"><Target size={32} strokeWidth={1.5}/></div>
+                <h2 className="text-2xl font-semibold tracking-tight">Zihnine çalışma alanı aç.</h2>
+                <p className={`mx-auto mt-3 max-w-md text-sm leading-7 ${darkStage?'text-[#b6c6d7]':'text-muted-foreground'}`}>{config.mode==='finger-read'?'Ekrandaki gerçekçi parmak desenine dikkatlice bak.':config.mode==='soroban-read'?'Abaküsteki boncukları oku ve sayıyı yaz. Üst boncuk 5, çubuğa yakın her alt boncuk 1 değerindedir.':config.mode==='soroban-write'?'Verilen sayıyı sorobanda oluştur. Boncukları çubuğa yaklaştırmak ve uzaklaştırmak için dokun.':config.mode==='audio'?'Sayıları dinle ve işlemleri zihninde yap. Bütün premium sesler başlamadan önce hazırlanır.':'Sayılar sırayla ekrana gelecek. İşlemleri zihninde takip et ve son sayının ardından sonucu yaz.'}</p>
+                <div className="mb-7 mt-6 flex flex-wrap justify-center gap-3 text-xs opacity-70"><span className="rounded-full bg-[#e6f5ee] px-3 py-1 font-bold text-[#176e5e]">{practiceModeLabels[config.practiceMode??'free_practice']}</span><span>{config.rounds} soru</span><span>{config.minDigits??config.digits}–{config.maxDigits??config.digits} basamak</span><span>{mental&&isMeasuredMode(config.practiceMode??'free_practice')?config.mode==='audio'?`${config.interStimulusGapMs??500} ms ses boşluğu`:`${config.stimulusVisibleMs??1000} ms gösterim`:['finger-read','soroban-read'].includes(config.mode)&&isMeasuredMode(config.practiceMode??'free_practice')?durationLabel(config.presentationDurationMs??1000):'Süre baskısı yok'}</span></div>
+                <Button className="h-12 px-7" disabled={audioPreparing} onClick={start}>{audioPreparing?<><Loader2 className="animate-spin"/> Sesler hazırlanıyor</>:<><Play size={16} fill="currentColor"/> {config.practiceMode==='performance'?'Performans çalışmasını başlat':'Çalışmaya başla'}</>}</Button>
+                {config.mode==='audio'&&<p className="mt-4 text-[11px] opacity-60">Premium Türkçe ses kütüphanesi sunucuda hazırlanır; API anahtarı tarayıcıya gönderilmez.</p>}
+              </div>}
               {phase === 'countdown' && <ExerciseLaunchSequence exerciseType={runConfig.mode} title={modeLabels[runConfig.mode]} icon={runConfig.mode === 'audio' ? <AudioLines size={18}/> : <Target size={18}/>} accentToken={runConfig.mode.startsWith('finger') ? '#bd6c3c' : runConfig.mode.startsWith('soroban') ? '#16836e' : runConfig.mode === 'flash' ? '#7865b7' : '#315f86'} instruction={runConfig.mode === 'finger-read' ? 'Parmakları hızlıca tanımaya hazırlan.' : runConfig.mode === 'soroban-read' ? 'Görüntüye dikkatlice bak.' : runConfig.mode === 'soroban-write' ? 'Gösterilen sayıyı sorobanda kur.' : runConfig.mode === 'flash' ? 'Sayıları sırayla zihninde tut.' : 'Dinlemeye ve zihninde hesaplamaya hazırlan.'} countdownEnabled onComplete={openQuestion} />}
               {phase === 'prepare' && <div className="launch-sequence text-center"><span className="mx-auto block h-3 w-3 animate-pulse rounded-full bg-[#4f9b85]"/><p className="mt-4 text-base font-semibold opacity-65">Yeni soru hazırlanıyor…</p></div>}
               {phase === 'stimulus' && current && <div className="w-full text-center" aria-label="Zamanlı görsel uyaran"><p className="mb-5 text-sm font-semibold opacity-65">Dikkatlice bak</p>{runConfig.mode === 'finger-read' ? <div className={`mx-auto grid max-w-[760px] items-end gap-4 ${runConfig.digits === 1 ? 'grid-cols-1' : 'grid-cols-2'}`}>{runConfig.digits === 2 && <FingerHand side="left" pattern={numberPattern(current.answer).left}/>}<FingerHand side="right" pattern={numberPattern(current.answer).right}/></div> : <Soroban value={current.answer} digits={runConfig.rods ?? 5}/>}<p className="mt-5 text-xs opacity-55">{durationLabel(runConfig.presentationDurationMs ?? 1000)} sonra görüntü kapanır.</p></div>}
-              {phase === 'sequence' && current && <div className="text-center"><p className="mb-6 text-xs opacity-60">{paused ? 'Duraklatıldı · sürdürünce aynı sayı tekrar gösterilir' : `${term+1}. sayı / ${current.sequence.length}`}</p>{runConfig.mode === 'audio' || runConfig.showNumbers === false ? <div className="flex h-[150px] items-center justify-center">{runConfig.mode === 'audio' ? <AudioLines size={100} strokeWidth={1.2} className="text-[#89b8a1]" /> : <span className="text-sm opacity-55">Sayı gizli · zihninden takip et</span>}</div> : <ExerciseNumberDisplay value={paused ? 'Ⅱ' : Math.abs(current.sequence[term])} operator={!paused && term > 0 ? (current.sequence[term] > 0 ? '+' : '−') : ''} size="hero" className="mx-auto min-h-[150px] w-fit" />}<p className="mt-5 text-xs opacity-60">{runConfig.mode === 'audio' ? 'Dinle ve zihninde hesapla.' : runConfig.showNumbers === false ? 'Sayıyı zihninde canlandır.' : 'İşlem işaretini takip et.'}</p>{runConfig.interval === 0 && !paused && <Button className="mt-7 h-10 px-5" onClick={advance}>{term+1 < current.sequence.length ? 'Sonraki sayı' : 'Cevaba geç'} <ChevronRight /></Button>}</div>}
+              {phase === 'sequence' && current && <div className="anzan-stimulus-screen w-full text-center"><span className="sr-only">{term+1}. sayı, toplam {current.sequence.length}</span>{paused?<ExerciseNumberDisplay value="Ⅱ" size="hero" className="mx-auto"/>:runConfig.mode==='audio'&&!runConfig.showNumbersDuringAudio?<div className="flex min-h-[42vh] items-center justify-center" aria-label="Sayıyı dinle"><AudioLines size={58} strokeWidth={1.5} className="text-[#6b8190]"/></div>:sequenceVisible?<div key={`${round}-${term}`} data-effect={(runConfig.transitionEffect??'FADE').toLowerCase()} className="anzan-stimulus-event"><ExerciseNumberDisplay value={Math.abs(current.sequence[term])} operator={term>0&&current.sequence[term]<0?'−':''} size="hero" className="mx-auto"/></div>:<div className="min-h-[42vh]" aria-hidden="true"/>}{runConfig.interval===0&&!paused&&<Button className="mt-5 h-10 px-5" onClick={advance}>{term+1<current.sequence.length?'Sonraki sayı':'Cevaba geç'} <ChevronRight/></Button>}</div>}
               {phase === 'answer' && current && <form className="w-full max-w-md text-center" onSubmit={e => {e.preventDefault();submit();}}>
                 <p className="mb-3 text-sm font-semibold opacity-70">{['soroban-read','finger-read'].includes(runConfig.mode) ? 'Gördüğün sayı kaçtı?' : runConfig.mode === 'soroban-write' ? 'Bu sayıyı sorobanda oluştur' : 'İşlemin sonucu kaç?'}</p>
                 {timedReading && measured && <p className="mb-5 text-xs opacity-55">Görsel kapandı. Cevabını hatırladığın sayı üzerinden ver.{(runConfig.answerDurationMs ?? 0) > 0 ? ` ${Math.ceil(answerRemainingMs/1000)} saniyen var.` : ''}</p>}
@@ -284,7 +314,9 @@ export default function Studio() {
             {active && <div className={`border-t px-6 py-4 ${darkStage ? 'border-white/10' : 'border-border'}`}><div className="mb-3 flex items-center justify-between"><span className="text-xs opacity-60">{attempts.length} / {runConfig.rounds} yanıt</span><div className="flex gap-2">{['countdown','stimulus','sequence'].includes(phase) && <Button variant="ghost" size="sm" onClick={()=>setPaused(v=>!v)}>{paused ? <Play /> : <Pause />}{paused ? 'Sürdür' : 'Duraklat'}</Button>}<Button variant="outline" size="sm" disabled={savingAttempt||sync==='saving'} onClick={finishSession}>Bitir ve kaydet</Button></div></div><Progress value={attempts.length/runConfig.rounds*100} aria-label="Seans ilerlemesi" /><p className="mt-3 text-[10px] opacity-55">Bitirdiğinde o ana kadar verdiğin bütün cevaplar eğitimci kaydında kalır.</p></div>}
           </div>
           {phase === 'finished' && runConfig.mode.startsWith('soroban') && attempts.some(attempt=>!attempt.correct&&attempt.attemptType!=='RETRY_AFTER_FEEDBACK') && <section className="rounded-2xl border-2 border-[#efb55f] bg-[#fff8e7] p-5"><h2 className="font-black text-[#78470c]">Yanlış soruları görsel incele</h2><p className="mt-1 text-sm text-[#8a672f]">Bir soruya dokun; verdiğin cevapla doğru boncuk dizilimini yan yana gör.</p><div className="mt-4 flex flex-wrap gap-2">{attempts.map((attempt,index)=>!attempt.correct&&attempt.attemptType!=='RETRY_AFTER_FEEDBACK'?<Button key={index} variant="outline" className="border-[#dc941f] bg-white" onClick={()=>setReviewAttempt(attempt)}>Soru {index+1}</Button>:null)}</div></section>}
-          {reviewAttempt && <dialog open aria-label="Soroban soru incelemesi" className="fixed inset-0 z-50 m-0 grid h-full max-h-none w-full max-w-none place-items-center overflow-y-auto border-0 bg-[#102034]/65 p-4"><div className="w-full max-w-6xl rounded-3xl bg-white p-5 shadow-2xl md:p-8"><SorobanAnswerComparison studentValue={Math.max(0,reviewAttempt.given)} correctValue={reviewAttempt.expected} digits={runConfig.rods??5} onNext={()=>setReviewAttempt(null)}/><div className="mt-4 grid gap-2 rounded-xl bg-[#edf5ff] p-4 text-sm sm:grid-cols-2"><p><b>Cevap süresi:</b> {(reviewAttempt.elapsedMs/1000).toFixed(2)} sn</p><p><b>Gösterim süresi:</b> {durationLabel(reviewAttempt.stimulusDurationMs??0)}</p></div></div></dialog>}
+          {reviewAttempt && runConfig.mode.startsWith('soroban') && <dialog open aria-label="Soroban soru incelemesi" className="fixed inset-0 z-50 m-0 grid h-full max-h-none w-full max-w-none place-items-center overflow-y-auto border-0 bg-[#102034]/65 p-4"><div className="w-full max-w-6xl rounded-3xl bg-white p-5 shadow-2xl md:p-8"><SorobanAnswerComparison studentValue={Math.max(0,reviewAttempt.given)} correctValue={reviewAttempt.expected} digits={runConfig.rods??5} onNext={()=>setReviewAttempt(null)}/><div className="mt-4 grid gap-2 rounded-xl bg-[#edf5ff] p-4 text-sm sm:grid-cols-2"><p><b>Cevap süresi:</b> {(reviewAttempt.elapsedMs/1000).toFixed(2)} sn</p><p><b>Gösterim süresi:</b> {durationLabel(reviewAttempt.stimulusDurationMs??0)}</p></div></div></dialog>}
+          {phase==='finished'&&mental&&attempts.some(attempt=>!attempt.correct&&attempt.attemptType!=='RETRY_AFTER_FEEDBACK')&&<section className="rounded-2xl border-2 border-[#bba5d4] bg-[#f8f2ff] p-5"><h2 className="font-black text-[#5d3e7d]">Yanlış soruları incele</h2><p className="mt-1 text-sm text-[#725b89]">İşlem dizisini, doğru cevabı ve verdiğin cevabı birlikte gör.</p><div className="mt-4 flex flex-wrap gap-2">{attempts.map((attempt,index)=>!attempt.correct&&attempt.attemptType!=='RETRY_AFTER_FEEDBACK'?<Button key={index} variant="outline" className="border-[#9b78bd] bg-white" onClick={()=>{setReviewAttempt(attempt);setReviewReplayIndex(-1);}}>Soru {index+1} ×</Button>:null)}</div></section>}
+          {reviewAttempt&&mental&&<dialog open aria-label="Anzan soru incelemesi" className="fixed inset-0 z-50 m-0 grid h-full max-h-none w-full max-w-none place-items-center overflow-y-auto border-0 bg-[#102034]/65 p-4"><div className="w-full max-w-3xl rounded-3xl bg-white p-6 text-center shadow-2xl"><p className="eyebrow text-[#72549a]">ÖĞRETİCİ TEKRAR · PERFORMANS KAYDINI DEĞİŞTİRMEZ</p><div className="my-6 min-h-32 rounded-2xl bg-[#fcfbf7] p-5">{reviewReplayIndex>=0&&reviewReplayIndex<reviewAttempt.sequence.length?<ExerciseNumberDisplay value={Math.abs(reviewAttempt.sequence[reviewReplayIndex])} operator={reviewReplayIndex>0&&reviewAttempt.sequence[reviewReplayIndex]<0?'−':''} size="large" animate/>:<p className="font-mono text-2xl font-black">{reviewAttempt.sequence.map((value,index)=>`${index>0&&value<0?'−':''}${Math.abs(value)}`).join('  ')}</p>}</div><div className="grid grid-cols-2 gap-3"><div className="rounded-2xl bg-emerald-50 p-5"><p className="text-xs font-black text-emerald-800">DOĞRU CEVAP</p><p className="mt-2 text-4xl font-black">{reviewAttempt.expected}</p></div><div className="rounded-2xl bg-rose-50 p-5"><p className="text-xs font-black text-rose-800">SENİN CEVABIN</p><p className="mt-2 text-4xl font-black">{reviewAttempt.timeout?'Boş':reviewAttempt.given}</p></div></div><p className="mt-4 text-sm">Cevap süresi: {(reviewAttempt.elapsedMs/1000).toFixed(2)} sn · {reviewAttempt.sequence.length} işlem</p><div className="mt-6 flex flex-wrap justify-center gap-3"><Button variant="outline" onClick={()=>setReviewReplayIndex(0)}>{runConfig.mode==='audio'?<><Volume2/> Tekrar dinle</>:<><Play/> Diziyi tekrar oynat</>}</Button><Button onClick={()=>{setReviewAttempt(null);setReviewReplayIndex(-1);}}>İncelemeyi kapat</Button></div></div></dialog>}
           {error && <div role="alert" className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800">{error}</div>}
           {phase === 'finished' && <section className="rounded-xl border border-border bg-white p-6"><h2 className="mb-4 font-semibold">Soru soru incele</h2><div className="overflow-x-auto"><table className="w-full text-left text-xs"><thead><tr className="border-b border-border text-muted-foreground"><th className="p-3">Soru</th><th className="p-3">Gösterilen sayı / işlem</th><th className="p-3">Yanıtın</th><th className="p-3">Doğru cevap</th><th className="p-3">Sonuç</th></tr></thead><tbody>{attempts.map((a,i)=><tr key={i} className="border-b border-border last:border-0"><td className="p-3">{i+1}</td><td className="p-3 font-mono">{a.sequence.map((n,j)=>`${j && n>0 ? '+' : ''}${n}`).join(' ')}</td><td className="p-3">{a.timeout?'Süre aşımı':a.given}</td><td className="p-3">{a.expected}</td><td className={`p-3 font-semibold ${a.correct ? 'text-primary' : 'text-[#b2733d]'}`}>{a.correct ? 'Doğru' : a.timeout ? 'Süre aşımı' : 'Tekrar çalış'}</td></tr>)}</tbody></table></div></section>}
           <section className="grid gap-4 text-xs sm:grid-cols-3"><div className="rounded-xl border border-border p-4"><CircleHelp size={18} className="mb-3 text-primary"/><h3 className="font-semibold">Önce doğruluk</h3><p className="mt-2 leading-5 text-muted-foreground">Hız, tekniğin yerleştikten sonra artırılır. Adımlı modla başlayabilirsin.</p></div><div className="rounded-xl border border-border p-4"><Pause size={18} className="mb-3 text-primary"/><h3 className="font-semibold">Kontrol sende</h3><p className="mt-2 leading-5 text-muted-foreground">Sayı akışını duraklat. Sekmeden ayrılırsan akış otomatik durur.</p></div><div className="rounded-xl border border-border p-4"><Volume2 size={18} className="mb-3 text-primary"/><h3 className="font-semibold">Ayrı çalışma motorları</h3><p className="mt-2 leading-5 text-muted-foreground">Okuma, yazma, görsel ve işitsel hesaplama ayrı değerlendirilir.</p></div></section>

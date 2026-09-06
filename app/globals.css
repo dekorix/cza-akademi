@@ -192,6 +192,24 @@ body {
 .exercise-operation { color: var(--exercise-operation-sign); font-size: .68em; font-weight: 850; text-align: left; }
 .exercise-number-enter { animation: exercise-number-in 170ms ease-out both; }
 @keyframes exercise-number-in { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: translateY(0); } }
+.anzan-focus-stage { min-height: min(78vh,760px); }
+.anzan-stimulus-screen { display:grid; min-height:min(68vh,650px); place-items:center; padding:clamp(1rem,3vw,2.5rem); }
+.anzan-stimulus-event { display:grid; width:100%; min-height:42vh; place-items:center; overflow:hidden; }
+.anzan-stimulus-event .exercise-number { color:inherit; white-space:nowrap; font-weight:900; letter-spacing:-.025em; }
+.anzan-stimulus-event[data-effect="fade"] { animation:anzan-fade 140ms ease-out both; }
+.anzan-stimulus-event[data-effect="micro_scale"] { animation:anzan-scale 150ms ease-out both; }
+.anzan-stimulus-event[data-effect="slide_up"] { animation:anzan-up 160ms ease-out both; }
+.anzan-stimulus-event[data-effect="slide_down"] { animation:anzan-down 160ms ease-out both; }
+.anzan-stimulus-event[data-effect="pulse"] { animation:anzan-pulse 190ms ease-out both; }
+.anzan-stimulus-event[data-effect="blink_clean"] { animation:anzan-blink 110ms steps(2,end) both; }
+.anzan-stimulus-event[data-effect="flip_soft"] { animation:anzan-flip 180ms ease-out both; }
+@keyframes anzan-fade { from{opacity:0} to{opacity:1} }
+@keyframes anzan-scale { from{opacity:0;transform:scale(.965)} to{opacity:1;transform:scale(1)} }
+@keyframes anzan-up { from{opacity:0;transform:translateY(1.2rem)} to{opacity:1;transform:none} }
+@keyframes anzan-down { from{opacity:0;transform:translateY(-1.2rem)} to{opacity:1;transform:none} }
+@keyframes anzan-pulse { 0%{opacity:.25;transform:scale(.97)} 65%{opacity:1;transform:scale(1.015)} 100%{transform:scale(1)} }
+@keyframes anzan-blink { from{opacity:0} to{opacity:1} }
+@keyframes anzan-flip { from{opacity:0;transform:perspective(500px) rotateX(9deg)} to{opacity:1;transform:none} }
 .launch-sequence { position: relative; isolation: isolate; animation: launch-stage-in 260ms ease-out both; transition: background 260ms ease, border-color 260ms ease; }
 .launch-backdrop { position: absolute; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
 .launch-backdrop span { position: absolute; width: 170px; height: 170px; border-radius: 999px; background: var(--step-accent); opacity: .08; filter: blur(2px); transition: background 260ms ease; animation: launch-float 2.8s ease-in-out infinite alternate; }

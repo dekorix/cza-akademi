@@ -1,6 +1,7 @@
 import type { Attempt, ExerciseConfig, ExerciseMode } from './exercise-engine';
 import { exerciseForMode } from './exercise-registry';
 import { feedbackModeFor, learningModeFor } from './practice-mode';
+import { anzanDifficulty } from './anzan-engine';
 
 export const moduleCodeByMode: Record<ExerciseMode, string> = {
   'finger-read': 'finger_read',
@@ -22,6 +23,8 @@ export function trainingSettings(config: ExerciseConfig) {
     practiceMode: config.practiceMode ?? 'free_practice',
     feedbackMode: config.feedbackMode ?? feedbackModeFor(config.practiceMode ?? 'free_practice'),
     skills: definition?.skills ?? [],
+    skillProfile: config.mode === 'flash' ? 'anzan.visual' : config.mode === 'audio' ? 'anzan.auditory' : undefined,
+    difficultyProfile: ['flash','audio'].includes(config.mode) ? anzanDifficulty(config) : undefined,
     exercise: config,
   };
 }
@@ -62,6 +65,17 @@ export function attemptPayload(attempt: Attempt, config: ExerciseConfig, questio
       targetSorobanState: attempt.targetSorobanState,
       studentSorobanState: attempt.studentSorobanState,
       differingRods: attempt.differingRods,
+      stimulusEventCount: attempt.stimulusEventCount,
+      language: attempt.language,
+      audioPace: attempt.audioPace,
+      showNumbers: attempt.showNumbers,
+      transitionEffect: config.transitionEffect,
+      stimulusVisibleMs: config.stimulusVisibleMs,
+      interStimulusGapMs: config.interStimulusGapMs,
+      voiceProfile: config.voiceProfile,
+      voiceVersion: 1,
+      skillProfile: config.mode === 'flash' ? 'anzan.visual' : config.mode === 'audio' ? 'anzan.auditory' : undefined,
+      difficultyProfile: ['flash','audio'].includes(config.mode) ? anzanDifficulty(config) : undefined,
       config,
     },
   };

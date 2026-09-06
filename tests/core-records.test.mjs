@@ -4,7 +4,8 @@ import ts from 'typescript';
 
 const source = fs.readFileSync(new URL('../lib/core-records.ts', import.meta.url), 'utf8')
   .replace("import { exerciseForMode } from './exercise-registry';", "const exerciseForMode = mode => ({id: mode.toUpperCase(), skills: []});")
-  .replace("import { feedbackModeFor, learningModeFor } from './practice-mode';", "const feedbackModeFor = mode => mode === 'performance' ? 'end_of_session' : mode === 'assessment' ? 'none_during_test' : 'immediate'; const learningModeFor = mode => mode;");
+  .replace("import { feedbackModeFor, learningModeFor } from './practice-mode';", "const feedbackModeFor = mode => mode === 'performance' ? 'end_of_session' : mode === 'assessment' ? 'none_during_test' : 'immediate'; const learningModeFor = mode => mode;")
+  .replace("import { anzanDifficulty } from './anzan-engine';", "const anzanDifficulty = config => ({operationCount:config.terms});");
 const js = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 } }).outputText;
 const module = await import(`data:text/javascript;base64,${Buffer.from(js).toString('base64')}`);
 
