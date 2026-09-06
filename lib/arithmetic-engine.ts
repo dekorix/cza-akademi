@@ -89,14 +89,14 @@ function isDirectAddition(current: number, operand: number) {
   const width = Math.max(String(current).length, String(operand).length);
   const a = String(current).padStart(width, '0');
   const b = String(operand).padStart(width, '0');
-  return [...a].every((digit, index) => Number(digit) + Number(b[index]) <= 9);
+  return Array.from(a).every((digit, index) => Number(digit) + Number(b[index]) <= 9);
 }
 
 function isDirectSubtraction(current: number, operand: number) {
   const width = Math.max(String(current).length, String(operand).length);
   const a = String(current).padStart(width, '0');
   const b = String(operand).padStart(width, '0');
-  return [...a].every((digit, index) => Number(b[index]) <= Number(digit));
+  return Array.from(a).every((digit, index) => Number(b[index]) <= Number(digit));
 }
 
 function issue(code: string, title: string, description: string, field: keyof ArithmeticSettings | undefined, severity: ValidationIssue['severity']): ValidationIssue {
