@@ -53,6 +53,7 @@ export default function Studio() {
   const [retrying, setRetrying] = useState(false);
   const [darkStage, setDarkStage] = useState(false);
   const [audioPreparing, setAudioPreparing] = useState(false);
+  const [voiceConfigured, setVoiceConfigured] = useState(true);
   const [sequenceVisible, setSequenceVisible] = useState(true);
   const [settingsOpen, setSettingsOpen] = useState(true);
   const [answerRemainingMs, setAnswerRemainingMs] = useState(0);
@@ -79,6 +80,12 @@ export default function Studio() {
   useEffect(() => {
     core('me').then(data => setStudent(coreStudent(data))).catch(() => setStudent(null)).finally(() => setAuthLoading(false));
   }, []);
+
+  useEffect(() => {
+    if (config.mode !== 'audio') { setVoiceConfigured(true); return; }
+    setVoiceConfigured(false);
+    fetch('/api/voice').then(response => response.json() as Promise<{configured?: boolean}>).then(data => setVoiceConfigured(data.configured === true)).catch(() => setVoiceConfigured(false));
+  }, [config.mode]);
 
   useEffect(() => {
     const mode = new URLSearchParams(window.location.search).get('mode');
@@ -291,7 +298,8 @@ export default function Studio() {
                 <h2 className="text-2xl font-semibold tracking-tight">Zihnine çalışma alanı aç.</h2>
                 <p className={`mx-auto mt-3 max-w-md text-sm leading-7 ${darkStage?'text-[#b6c6d7]':'text-muted-foreground'}`}>{config.mode==='finger-read'?'Ekrandaki gerçekçi parmak desenine dikkatlice bak.':config.mode==='soroban-read'?'Abaküsteki boncukları oku ve sayıyı yaz. Üst boncuk 5, çubuğa yakın her alt boncuk 1 değerindedir.':config.mode==='soroban-write'?'Verilen sayıyı sorobanda oluştur. Boncukları çubuğa yaklaştırmak ve uzaklaştırmak için dokun.':config.mode==='audio'?'Sayıları dinle ve işlemleri zihninde yap. Bütün premium sesler başlamadan önce hazırlanır.':'Sayılar sırayla ekrana gelecek. İşlemleri zihninde takip et ve son sayının ardından sonucu yaz.'}</p>
                 <div className="mb-7 mt-6 flex flex-wrap justify-center gap-3 text-xs opacity-70"><span className="rounded-full bg-[#e6f5ee] px-3 py-1 font-bold text-[#176e5e]">{practiceModeLabels[config.practiceMode??'free_practice']}</span><span>{config.rounds} soru</span><span>{config.minDigits??config.digits}–{config.maxDigits??config.digits} basamak</span><span>{mental&&isMeasuredMode(config.practiceMode??'free_practice')?config.mode==='audio'?`${config.interStimulusGapMs??500} ms ses boşluğu`:`${config.stimulusVisibleMs??1000} ms gösterim`:['finger-read','soroban-read'].includes(config.mode)&&isMeasuredMode(config.practiceMode??'free_practice')?durationLabel(config.presentationDurationMs??1000):'Süre baskısı yok'}</span></div>
-                <Button className="h-12 px-7" disabled={audioPreparing} onClick={start}>{audioPreparing?<><Loader2 className="animate-spin"/> Sesler hazırlanıyor</>:<><Play size={16} fill="currentColor"/> {config.practiceMode==='performance'?'Performans çalışmasını başlat':'Çalışmaya başla'}</>}</Button>
+                {config.mode==='audio'&&!voiceConfigured&&<p role="alert" className="mb-4 rounded-xl border border-amber-200 bg-amber-50 p-3 text-left text-xs leading-5 text-amber-900">Sesli çalışma henüz etkin değil. Sunucuda Premium TTS sağlayıcısı ve Voice ID tanımlanınca bu düğme açılacak.</p>}
+                <Button className="h-12 px-7" disabled={audioPreparing||(config.mode==='audio'&&!voiceConfigured)} onClick={start}>{audioPreparing?<><Loader2 className="animate-spin"/> Sesler hazırlanıyor</>:config.mode==='audio'&&!voiceConfigured?'Ses yapılandırması bekleniyor':<><Play size={16} fill="currentColor"/> {config.practiceMode==='performance'?'Performans çalışmasını başlat':'Çalışmaya başla'}</>}</Button>
                 {config.mode==='audio'&&<p className="mt-4 text-[11px] opacity-60">Premium Türkçe ses kütüphanesi sunucuda hazırlanır; API anahtarı tarayıcıya gönderilmez.</p>}
               </div>}
               {phase === 'countdown' && <ExerciseLaunchSequence exerciseType={runConfig.mode} title={modeLabels[runConfig.mode]} icon={runConfig.mode === 'audio' ? <AudioLines size={18}/> : <Target size={18}/>} accentToken={runConfig.mode.startsWith('finger') ? '#bd6c3c' : runConfig.mode.startsWith('soroban') ? '#16836e' : runConfig.mode === 'flash' ? '#7865b7' : '#315f86'} instruction={runConfig.mode === 'finger-read' ? 'Parmakları hızlıca tanımaya hazırlan.' : runConfig.mode === 'soroban-read' ? 'Görüntüye dikkatlice bak.' : runConfig.mode === 'soroban-write' ? 'Gösterilen sayıyı sorobanda kur.' : runConfig.mode === 'flash' ? 'Sayıları sırayla zihninde tut.' : 'Dinlemeye ve zihninde hesaplamaya hazırlan.'} countdownEnabled onComplete={openQuestion} />}
