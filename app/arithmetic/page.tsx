@@ -8,6 +8,7 @@ import { ExerciseLaunchSequence } from '@/components/exercise-launch-sequence';
 import { ExerciseNumberDisplay } from '@/components/exercise-number-display';
 import { FingerHand } from '@/components/finger-hand';
 import { Soroban } from '@/components/soroban';
+import { isMeasuredMode, practiceModeDescriptions, practiceModeLabels, shouldShowCountdown, type PracticeMode } from '@/lib/practice-mode';
 import { emptyHand, readHand, readHands, transitionFinger, type FingerName, type HandPattern, type PressMode } from '@/lib/finger-engine';
 import { coreStudent, friendlyCoreError, type CoreStudent } from '@/lib/core-client';
 import {
@@ -18,7 +19,7 @@ import {
   type ArithmeticSettings,
 } from '@/lib/arithmetic-engine';
 
-type Phase = 'settings' | 'instructions' | 'launch' | 'active' | 'results';
+type Phase = 'mode' | 'settings' | 'instructions' | 'launch' | 'active' | 'results';
 type Tool = 'soroban' | 'finger';
 type Result = {
   question: ArithmeticQuestion;
@@ -50,7 +51,7 @@ export default function ArithmeticPage() {
   const [username, setUsername] = useState('zeynep7');
   const [pin, setPin] = useState('');
   const [loginError, setLoginError] = useState('');
-  const [phase, setPhase] = useState<Phase>('settings');
+  const [phase, setPhase] = useState<Phase>('mode');
   const [settings, setSettings] = useState<ArithmeticSettings>(defaultArithmeticSettings);
   const [questions, setQuestions] = useState<ArithmeticQuestion[]>([]);
   const [index, setIndex] = useState(0);
@@ -73,6 +74,8 @@ export default function ArithmeticPage() {
   const pendingAttemptId = useRef<string | null>(null);
   const validation = useMemo(() => validateArithmeticSettings(settings), [settings]);
   const current = questions[index];
+  const measured = isMeasuredMode(settings.practiceMode);
+  const effectiveTransitionSeconds = measured ? settings.transitionSeconds : 0;
 
   const update = <K extends keyof ArithmeticSettings>(key: K, value: ArithmeticSettings[K]) => setSettings(previous => ({ ...previous, [key]: value }));
 
@@ -101,8 +104,8 @@ export default function ArithmeticPage() {
     setLeft(emptyHand());
     setRight(emptyHand());
     questionStarted.current = performance.now();
-    deadline.current = settings.transitionSeconds > 0 ? performance.now() + settings.transitionSeconds * 1000 : null;
-    setRemainingMs(settings.transitionSeconds * 1000);
+    deadline.current = effectiveTransitionSeconds > 0 ? performance.now() + effectiveTransitionSeconds * 1000 : null;
+    setRemainingMs(effectiveTransitionSeconds * 1000);
   }
 
   async function begin() {
@@ -116,7 +119,8 @@ export default function ArithmeticPage() {
       setResults([]);
       setIndex(0);
       setActiveTool(settings.toolMode === 'finger' ? 'finger' : 'soroban');
-      setPhase('launch');
+      if (shouldShowCountdown({practiceMode:settings.practiceMode,exerciseType:'addition-subtraction',timed:effectiveTransitionSeconds>0,assessmentMode:settings.practiceMode==='assessment'})) setPhase('launch');
+      else { setPhase('active'); resetWorkspace(); }
     } catch (cause) {
       if (cause instanceof Error && (cause.message === 'session_required' || cause.message === 'invalid_session')) {
         setStudent(null);
@@ -164,8 +168,8 @@ export default function ArithmeticPage() {
       targetNumber: current.finalAnswer, studentNumericAnswer: value, patternValid: true, isCorrect: correct,
       errorType: source === 'timeout' ? 'ARITH_TIMEOUT' : correct ? 'OK' : 'ARITH_WRONG_RESULT',
       errorDetail: source === 'timeout' ? 'Süre doldu.' : correct ? 'Doğru cevap' : 'Girilen cevap işlem sonucuyla eşleşmedi.',
-      stimulusDurationMs: settings.transitionSeconds * 1000, responseLatencyMs: elapsedMs, totalResponseTimeMs: elapsedMs,
-      learningMode: 'practice', difficultyLevel: current.metadata.difficultyScore, attemptNumber: 1,
+      stimulusDurationMs: effectiveTransitionSeconds * 1000, responseLatencyMs: elapsedMs, totalResponseTimeMs: elapsedMs,
+      learningMode: settings.practiceMode, difficultyLevel: current.metadata.difficultyScore, attemptNumber: 1,
       metadata: { engine: 'cza-arithmetic-v1', module: 'arithmetic', operationMode: settings.operationMode, sequence: [current.initialValue, ...current.steps.map(step => step.operator === '+' ? step.operand : -step.operand)], question: current, status: result.status, toolUsed: result.tool, sorobanValue, fingerValue: readHands(left,right).valid ? readHands(left,right).value : null },
     };
     try {
@@ -190,7 +194,7 @@ export default function ArithmeticPage() {
   // The deadline must not restart when answer text or helper-tool state changes.
   // oxlint-disable react-hooks/exhaustive-deps
   useEffect(() => {
-    if (phase !== 'active' || settings.transitionSeconds <= 0 || !current || saving) return;
+    if (phase !== 'active' || effectiveTransitionSeconds <= 0 || !current || saving) return;
     const timer = window.setInterval(() => {
       if (document.hidden) return;
       const next = Math.max(0, (deadline.current ?? performance.now()) - performance.now());
@@ -201,7 +205,7 @@ export default function ArithmeticPage() {
       }
     }, 100);
     return () => window.clearInterval(timer);
-  }, [phase, settings.transitionSeconds, current?.id, saving]);
+  }, [phase, effectiveTransitionSeconds, current?.id, saving]);
 
   // Keyboard listeners are replaced only when the visible answer or question changes.
   useEffect(() => {
@@ -255,6 +259,8 @@ export default function ArithmeticPage() {
     return { correct, wrong: results.length - correct - timeout, timeout, accuracy: results.length ? Math.round(correct / results.length * 100) : 0, average: results.length ? Math.round(results.reduce((sum,result) => sum + result.elapsedMs, 0) / results.length / 1000) : 0 };
   }, [results]);
 
+  if (student && phase === 'mode') return <main className="grid min-h-screen place-items-center bg-[#fbf7ee] p-5"><section className="w-full max-w-3xl rounded-3xl border bg-white p-7 shadow-lg"><p className="eyebrow text-primary">TOPLAMA / ÇIKARMA</p><h1 className="mt-2 text-3xl font-black">Nasıl çalışmak istersin?</h1><p className="mt-2 text-muted-foreground">Antrenman öğretir; performans ölçer; değerlendirme gelişim kararına veri sağlar.</p><div className="mt-6 grid gap-3 sm:grid-cols-2">{(Object.keys(practiceModeLabels) as PracticeMode[]).map(mode=><button key={mode} className="rounded-2xl border-2 border-[#c9d9d2] bg-[#f8fcfa] p-5 text-left transition hover:border-[#16836e] hover:bg-[#eaf8f2]" onClick={()=>{update('practiceMode',mode);if(mode==='free_practice'||mode==='guided_practice')update('transitionSeconds',0);setPhase('settings');}}><strong className="text-lg text-[#176e5e]">{practiceModeLabels[mode]}</strong><span className="mt-2 block leading-6 text-muted-foreground">{practiceModeDescriptions[mode]}</span></button>)}</div></section></main>;
+
   if (authLoading) return <div className="grid min-h-screen place-items-center bg-[#fbf7ee]"><div className="flex items-center gap-3 font-semibold text-muted-foreground"><Loader2 className="animate-spin"/> Öğrenci oturumu kontrol ediliyor…</div></div>;
 
   if (phase === 'launch' && student) return <main className="grid min-h-screen place-items-center bg-[#fbf7ee] p-5"><a href="/" className="fixed left-5 top-5 inline-flex min-h-11 items-center gap-2 rounded-xl border-2 border-[#b9d7c9] bg-[#edf7f1] px-4 font-bold text-[#205e50]"><ArrowLeft/> Çalışma merkezim</a><ExerciseLaunchSequence exerciseType="addition-subtraction" title="Toplama / Çıkarma" icon={<Grid3X3 size={18}/>} accentToken="#315f86" instruction="İşlemi dikkatlice takip et." onComplete={() => { setPhase('active'); resetWorkspace(); }}/></main>;
@@ -267,10 +273,10 @@ export default function ArithmeticPage() {
 
   if (phase === 'results') return <main className="min-h-screen bg-emerald-50 p-5"><section className="mx-auto max-w-4xl rounded-3xl border bg-white p-7 shadow-lg"><p className="eyebrow text-primary">SEANS TAMAMLANDI</p><h1 className="mt-2 text-3xl font-bold">Çalışma Performansı</h1><p className="mt-2 text-lg">{results.length} sorudan {summary.correct} tanesini doğru cevapladın.</p><div className="my-7 grid grid-cols-2 gap-3 md:grid-cols-5">{[['Soru',results.length],['Doğru',summary.correct],['Yanlış',summary.wrong],['Cevapsız',summary.timeout],['Başarı',`%${summary.accuracy}`]].map(([label,value]) => <div key={label} className="rounded-xl bg-[#edf5f0] p-4 text-center"><strong className="text-3xl">{value}</strong><p>{label}</p></div>)}</div><p className="text-center text-lg font-bold">Ortalama cevaplama süresi: {summary.average} saniye</p><div className="mt-6 flex flex-wrap gap-2">{results.map((result,resultIndex) => <button key={result.question.id} className={`grid h-12 w-12 place-items-center rounded-xl font-bold text-white ${result.status === 'correct' ? 'bg-emerald-600' : result.status === 'timeout' ? 'bg-slate-500' : 'bg-amber-600'}`} aria-label={`${resultIndex+1}. soru ayrıntısını aç`} onClick={() => setSelectedResult(result)}>{resultIndex+1}</button>)}</div>{selectedResult && <dialog open aria-label="Soru ayrıntısı" className="fixed inset-0 z-50 m-0 grid h-full max-h-none w-full max-w-none place-items-center border-0 bg-slate-900/50 p-4"><section className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl"><div className="flex items-center justify-between"><h2 className="text-2xl font-bold">Soru ayrıntısı</h2><Button variant="outline" onClick={() => setSelectedResult(null)}>Kapat</Button></div><div className="mt-5 rounded-xl bg-[#f7f5ef] p-5 font-mono text-2xl font-bold">{selectedResult.question.initialValue}{selectedResult.question.steps.map(step => <div key={step.order}>{step.operator}{step.operand}</div>)}</div><dl className="mt-5 grid grid-cols-2 gap-3"><div><dt>Doğru cevap</dt><dd className="text-2xl font-bold">{selectedResult.question.finalAnswer}</dd></div><div><dt>Verilen cevap</dt><dd className="text-2xl font-bold">{selectedResult.answer ?? 'Cevapsız'}</dd></div><div><dt>Süre</dt><dd className="font-bold">{(selectedResult.elapsedMs/1000).toFixed(1)} sn</dd></div><div><dt>Kullanılan araç</dt><dd className="font-bold">{selectedResult.tool === 'soroban' ? 'Soroban' : selectedResult.tool === 'finger' ? 'Parmak' : 'Zihinden'}</dd></div></dl></section></dialog>}<div className="mt-7 flex gap-3"><Button variant="outline" onClick={() => setPhase('settings')}>Ayarlar</Button><Button onClick={() => setPhase('instructions')}>Yeni çalışma</Button><Anchor href="/" className="inline-flex min-h-11 items-center rounded-xl border px-5 font-semibold">Bitir</Anchor></div></section></main>;
 
-  const sequence = current ? [{ operator: '', value: current.initialValue }, ...current.steps.map(step => ({ operator: step.operator, value: step.operand }))] : [];
+  const sequence = current ? [{ operator: '', value: current.initialValue }, ...current.steps.map(step => ({ operator: step.operationType === 'SUBTRACT' ? '−' : settings.operationMode === 'mixed' ? '+' : '', value: step.operand }))] : [];
   return <main className="min-h-screen bg-[#f8f4eb] p-4">
     <div className="mx-auto max-w-7xl">
-      <header className="mb-4 flex flex-wrap items-center justify-between gap-3"><div><p className="eyebrow text-primary">TOPLAMA / ÇIKARMA</p><h1 className="text-2xl font-bold">Soru {index+1} / {questions.length}</h1></div><div className="flex items-center gap-3 rounded-xl bg-white px-4 py-3 font-bold shadow-sm"><Timer/> {settings.transitionSeconds ? `${Math.ceil(remainingMs/1000)} sn` : 'Süre yok'}</div></header>
+      <header className="mb-4 flex flex-wrap items-center justify-between gap-3"><div><p className="eyebrow text-primary">TOPLAMA / ÇIKARMA · {practiceModeLabels[settings.practiceMode]}</p><h1 className="text-2xl font-bold">Soru {index+1} / {questions.length}</h1></div><div className="flex items-center gap-3 rounded-xl bg-white px-4 py-3 font-bold shadow-sm"><Timer/> {effectiveTransitionSeconds ? `${Math.ceil(remainingMs/1000)} sn` : 'Süre baskısı yok'}</div></header>
       {error && <p role="alert" className="mb-4 rounded-xl bg-amber-50 p-4 text-amber-900">{error}</p>}
       <div className="grid gap-4 lg:grid-cols-[190px_minmax(340px,1fr)_minmax(380px,460px)]">
         <aside className="rounded-2xl bg-[#17334d] p-5 text-white"><p className="font-bold">İlerleme</p><p className="mt-3 text-4xl font-black">{index+1}<span className="text-lg opacity-70">/{questions.length}</span></p><div className="mt-5 h-3 overflow-hidden rounded-full bg-white/20"><div className="h-full bg-[#7bd8bd]" style={{width:`${((index+1)/questions.length)*100}%`}}/></div><p className="mt-5 text-sm leading-6 text-[#d8e7f0]">İşlemi zihninden çözebilir, Soroban veya Parmak desteğini kullanabilirsin.</p></aside>

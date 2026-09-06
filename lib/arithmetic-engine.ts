@@ -1,3 +1,5 @@
+import type { PracticeMode } from './practice-mode';
+
 export type ArithmeticOperationMode = 'addition' | 'subtraction' | 'mixed';
 export type ArithmeticToolMode = 'soroban' | 'finger' | 'both' | 'none';
 
@@ -18,6 +20,7 @@ export type ArithmeticSettings = {
   allowNegativeResults: boolean;
   toolMode: ArithmeticToolMode;
   inputMode: 'keypad' | 'keyboard' | 'both';
+  practiceMode: PracticeMode;
 };
 
 export type ValidationIssue = {
@@ -31,6 +34,7 @@ export type ValidationIssue = {
 export type ArithmeticStep = {
   order: number;
   operator: '+' | '-';
+  operationType: 'ADD' | 'SUBTRACT';
   operand: number;
   resultAfterStep: number;
   ruleMetadata: { digitFamily: number[]; directOperation: boolean };
@@ -67,6 +71,7 @@ export const defaultArithmeticSettings: ArithmeticSettings = {
   allowNegativeResults: false,
   toolMode: 'both',
   inputMode: 'both',
+  practiceMode: 'free_practice',
 };
 
 export function seededRandom(seed: number) {
@@ -115,6 +120,7 @@ export function validateArithmeticSettings(settings: ArithmeticSettings) {
   if (!Number.isInteger(settings.questionCount) || settings.questionCount < 1 || settings.questionCount > 30) errors.push(issue('COUNT001','Soru sayısı geçersiz','Soru sayısını 1–30 arasında seçin.','questionCount','error'));
   if (!Number.isInteger(settings.operationsPerQuestion) || settings.operationsPerQuestion < 1 || settings.operationsPerQuestion > 20) errors.push(issue('COUNT002','İşlem sayısı geçersiz','Her soru için 1–20 işlem seçin.','operationsPerQuestion','error'));
   if (!Number.isFinite(settings.transitionSeconds) || settings.transitionSeconds < 0 || settings.transitionSeconds > 60) errors.push(issue('SPEED001','Süre geçersiz','Süreyi 0–60 saniye arasında seçin.','transitionSeconds','error'));
+  if (!['free_practice','guided_practice','performance','assessment'].includes(settings.practiceMode)) errors.push(issue('MODE001','Çalışma modu geçersiz','Geçerli bir çalışma modu seçin.','practiceMode','error'));
   const theoreticalMin = 10 ** (settings.minDigits - 1);
   if (settings.maxValue !== null && settings.maxValue < theoreticalMin) errors.push(issue('MAX001','Maksimum değer çok düşük',`En az ${settings.minDigits} haneli soru için maksimum değer ${theoreticalMin} veya daha büyük olmalıdır.`,'maxValue','error'));
   if (![4,5,6,7].includes(settings.sorobanRodCount)) errors.push(issue('ROD001','Soroban basamak sayısı geçersiz','Soroban için 4, 5, 6 veya 7 basamak seçin.','sorobanRodCount','error'));
@@ -175,7 +181,7 @@ export function generateArithmeticQuestion(settings: ArithmeticSettings, random:
       if (!candidates.length) break;
       const selected = pick(candidates);
       current = selected.result;
-      steps.push({ order, operator: selected.operator, operand: selected.operand, resultAfterStep: current, ruleMetadata: { digitFamily: selected.pool, directOperation: selected.direct } });
+      steps.push({ order, operator: selected.operator, operationType: selected.operator === '+' ? 'ADD' : 'SUBTRACT', operand: selected.operand, resultAfterStep: current, ruleMetadata: { digitFamily: selected.pool, directOperation: selected.direct } });
     }
     if (steps.length === settings.operationsPerQuestion) return {
       id: crypto.randomUUID(),

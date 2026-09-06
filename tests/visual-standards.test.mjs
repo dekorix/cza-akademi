@@ -10,11 +10,13 @@ const studio = fs.readFileSync(new URL('../app/studio/page.tsx',import.meta.url)
 const finger = fs.readFileSync(new URL('../app/paritmetik/page.tsx',import.meta.url),'utf8');
 
 test('the shared soroban uses prismatic beads, central tokens and static reading states',()=>{
-  for(const token of ['--soroban-bead-inactive','--soroban-bead-active','--soroban-bead-highlight','--soroban-bead-shadow','--soroban-frame','--soroban-rod','--soroban-bar','--soroban-background']) assert.match(styles,new RegExp(token));
+  for(const token of ['--soroban-red-base','--soroban-red-highlight','--soroban-red-shadow','--soroban-green-base','--soroban-green-highlight','--soroban-green-shadow','--soroban-frame','--soroban-rod','--soroban-bar','--soroban-background']) assert.match(styles,new RegExp(token));
   assert.match(styles,/clip-path:\s*polygon\(18% 0,82% 0,100% 50%,82% 100%,18% 100%,0 50%\)/);
   assert.match(soroban,/abacus-static/);
   assert.match(soroban,/abacus-interactive/);
   assert.match(styles,/\.abacus-static \.abacus-bead/);
+  assert.match(soroban,/highlightPlaces/);
+  assert.match(styles,/\.abacus-rod-difference/);
 });
 
 test('one numeric display standard is shared by arithmetic, finger and studio targets',()=>{

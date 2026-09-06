@@ -1,3 +1,5 @@
+import type { FeedbackMode, PracticeMode } from './practice-mode';
+
 export type ExerciseMode = 'finger-read' | 'soroban-read' | 'soroban-write' | 'flash' | 'audio';
 export type Operation = 'add' | 'subtract' | 'mixed';
 export type ExerciseConfig = {
@@ -9,6 +11,8 @@ export type ExerciseConfig = {
   presentationDurationMs?: number;
   answerDurationMs?: number;
   countdownEnabled?: boolean;
+  practiceMode?: PracticeMode;
+  feedbackMode?: FeedbackMode;
   rods?: 4 | 5 | 6 | 7;
   minValue?: number;
   operation: Operation;
@@ -27,12 +31,12 @@ export type ExerciseConfig = {
   freePractice?: boolean;
 };
 export type ExerciseQuestion = { sequence: number[]; answer: number };
-export type Attempt = { sequence: number[]; expected: number; given: number; correct: boolean; elapsedMs: number; stimulusDurationMs?: number; responseLatencyMs?: number; pattern?: string; timeout?: boolean; answerDurationLimitMs?: number; presentationStartedAt?: string; presentationEndedAt?: string; answerStartedAt?: string; answeredAt?: string };
+export type Attempt = { sequence: number[]; expected: number; given: number; correct: boolean; elapsedMs: number; stimulusDurationMs?: number; responseLatencyMs?: number; pattern?: string; timeout?: boolean; answerDurationLimitMs?: number; presentationStartedAt?: string; presentationEndedAt?: string; answerStartedAt?: string; answeredAt?: string; attemptType?: 'PRIMARY' | 'RETRY_AFTER_FEEDBACK'; studentSorobanState?: string; targetSorobanState?: string; differingRods?: number[] };
 export type SessionResult = { id: string; at: string; config: ExerciseConfig; attempts: Attempt[]; durationMs: number };
 
 export const defaultConfig: ExerciseConfig = {
   mode: 'soroban-read', digits: 2, terms: 4, rounds: 10, interval: 1.5,
-  presentationDurationMs: 1000, answerDurationMs: 10000, countdownEnabled: true, rods: 5, minValue: 1,
+  presentationDurationMs: 1000, answerDurationMs: 0, countdownEnabled: false, practiceMode: 'free_practice', feedbackMode: 'immediate', rods: 5, minValue: 1,
   operation: 'mixed', pool: [1,2,3,4,5,6,7,8,9],
   maxValue: 900, firstWithinMax: true, showNumbers: true, fontSize: 95,
   backgroundColor: '#ffffff', textColor: '#111827', freePractice: false,
@@ -44,6 +48,7 @@ export function validateConfig(config: ExerciseConfig): void {
   const answerDurationMs = config.answerDurationMs ?? 0;
   const rods = config.rods ?? 5;
   if (!Object.hasOwn(modeLabels, config.mode)) throw new Error('Geçerli bir egzersiz seçin.');
+  if (config.practiceMode !== undefined && !['free_practice','guided_practice','performance','assessment'].includes(config.practiceMode)) throw new Error('Geçerli bir çalışma modu seçin.');
   if (!Number.isInteger(config.digits) || config.digits < 1 || config.digits > 7) throw new Error('Basamak sayısı 1–7 arasında olmalı.');
   if (config.mode === 'finger-read' && config.digits > 2) throw new Error('Parmak Okuma en fazla 2 basamaklı olabilir.');
   if (!Number.isInteger(config.terms) || config.terms < 2 || config.terms > 30) throw new Error('Terim sayısı 2–30 arasında olmalı.');
@@ -112,16 +117,17 @@ export function createQuestion(config: ExerciseConfig, random: () => number = Ma
 }
 
 export function score(attempts: Attempt[]) {
-  const correct = attempts.filter(a => a.correct).length;
-  const timeout = attempts.filter(a => a.timeout).length;
-  const elapsed = attempts.map(a => a.elapsedMs).filter(Number.isFinite);
-  const fastestCorrect = attempts.filter(a => a.correct).map(a => a.elapsedMs).filter(Number.isFinite);
+  const primary = attempts.filter(a => a.attemptType !== 'RETRY_AFTER_FEEDBACK');
+  const correct = primary.filter(a => a.correct).length;
+  const timeout = primary.filter(a => a.timeout).length;
+  const elapsed = primary.map(a => a.elapsedMs).filter(Number.isFinite);
+  const fastestCorrect = primary.filter(a => a.correct).map(a => a.elapsedMs).filter(Number.isFinite);
   return {
-    total: attempts.length,
+    total: primary.length,
     correct,
-    wrong: attempts.length - correct - timeout,
+    wrong: primary.length - correct - timeout,
     timeout,
-    accuracy: attempts.length ? Math.round(correct / attempts.length * 100) : 0,
+    accuracy: primary.length ? Math.round(correct / primary.length * 100) : 0,
     averageResponseMs: elapsed.length ? Math.round(elapsed.reduce((sum, value) => sum + value, 0) / elapsed.length) : 0,
     fastestCorrectMs: fastestCorrect.length ? Math.min(...fastestCorrect) : null,
   };

@@ -1,5 +1,6 @@
 import type { Attempt, ExerciseConfig, ExerciseMode } from './exercise-engine';
 import { exerciseForMode } from './exercise-registry';
+import { feedbackModeFor, learningModeFor } from './practice-mode';
 
 export const moduleCodeByMode: Record<ExerciseMode, string> = {
   'finger-read': 'finger_read',
@@ -18,6 +19,8 @@ export function trainingSettings(config: ExerciseConfig) {
     stimulusDurationMs: ['finger-read','soroban-read'].includes(config.mode) ? config.presentationDurationMs ?? 1000 : Math.round(config.interval * 1000),
     answerDurationMs: config.answerDurationMs ?? 0,
     exerciseType: definition?.id,
+    practiceMode: config.practiceMode ?? 'free_practice',
+    feedbackMode: config.feedbackMode ?? feedbackModeFor(config.practiceMode ?? 'free_practice'),
     skills: definition?.skills ?? [],
     exercise: config,
   };
@@ -38,7 +41,7 @@ export function attemptPayload(attempt: Attempt, config: ExerciseConfig, questio
     stimulusDurationMs: attempt.stimulusDurationMs ?? (['finger-read','soroban-read'].includes(config.mode) ? config.presentationDurationMs ?? 1000 : Math.round(config.interval * 1000)),
     responseLatencyMs: attempt.responseLatencyMs ?? attempt.elapsedMs,
     totalResponseTimeMs: attempt.elapsedMs,
-    learningMode: config.freePractice === false ? 'program' : 'free_practice',
+    learningMode: learningModeFor(config.practiceMode ?? (config.freePractice === false ? 'guided_practice' : 'free_practice')),
     difficultyLevel: config.maxDigits ?? config.digits,
     attemptNumber: 1,
     metadata: {
@@ -55,6 +58,10 @@ export function attemptPayload(attempt: Attempt, config: ExerciseConfig, questio
       presentationEndedAt: attempt.presentationEndedAt,
       answerStartedAt: attempt.answerStartedAt,
       answeredAt: attempt.answeredAt,
+      attemptType: attempt.attemptType ?? 'PRIMARY',
+      targetSorobanState: attempt.targetSorobanState,
+      studentSorobanState: attempt.studentSorobanState,
+      differingRods: attempt.differingRods,
       config,
     },
   };
