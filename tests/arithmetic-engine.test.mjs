@@ -57,9 +57,9 @@ test('soroban basamak sayısı üretim sınırına gerçekten katılır', () => 
   }
 });
 
-test('toplama çıkarma sayfası ortak kurallı parmak ve seçilen soroban basamağını kullanır', () => {
+test('toplama çıkarma sayfası ortak parmak motorunu ve seçilen soroban basamağını kullanır', () => {
   const page = readFileSync(new URL('../app/arithmetic/page.tsx', import.meta.url), 'utf8');
-  assert.match(page, /transitionFinger\(currentHand, fingerName, 'guided'\)/);
+  assert.match(page, /transitionFinger\(currentHand, fingerName, fingerMode\)/);
   assert.match(page, /<FingerHand side="left"/);
   assert.match(page, /<FingerHand side="right"/);
   assert.match(page, /digits=\{settings\.sorobanRodCount\}/);

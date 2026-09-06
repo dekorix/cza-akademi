@@ -1,5 +1,7 @@
 'use client';
 
+import type { CSSProperties } from 'react';
+
 import { applyBeadAction, placeName, type BeadAction, type BeadMove } from '@/lib/soroban-curriculum';
 
 type Props = { value: number; digits: number; onChange?: (value: number) => void; onMove?: (move: BeadMove) => void; reveal?: boolean; teaching?: boolean; highlight?: BeadAction };
@@ -16,7 +18,7 @@ export function Soroban({ value, digits, onChange, onMove, reveal = false, teach
   const highlighted = (index: number, deck: BeadAction['deck'], bead: number) => highlight?.place === 10 ** (digits-index-1) && highlight.deck === deck && highlight.bead === bead;
   return <div className={`mx-auto w-fit ${teaching ? 'lesson-abacus' : ''}`}>
     {teaching && <div className="mb-4 flex justify-center gap-4 px-[25px]">{columns.map((_,i)=><span key={i} className="w-12 text-center text-[11px] font-semibold text-muted-foreground">{placeName(10 ** (digits-i-1))}</span>)}</div>}
-    <fieldset className="abacus" aria-label={editable ? 'Sayı oluşturmak için soroban boncukları' : 'Soroban okuma sorusu'}>
+    <fieldset className={`abacus ${editable ? 'abacus-interactive' : 'abacus-static'}`} style={{ '--soroban-rods': digits } as CSSProperties} aria-label={editable ? 'Sayı oluşturmak için soroban boncukları' : 'Soroban okuma sorusu'}>
       {columns.map((digit, index) => <div key={index} className="abacus-rod" style={{ cursor: 'default' }}>
         <button type="button" disabled={!editable} aria-label={editable ? `${placeName(10 ** (digits-index-1))} basamağı: üst boncuğu değiştir${highlighted(index,'upper',0) ? ', rehberin önerdiği hareket' : ''}` : `Üst boncuk ${digit >= 5 ? 'çubuğa yakın' : 'çubuktan uzak'}`} aria-pressed={digit >= 5} className={`abacus-bead upper ${digit >= 5 ? 'engaged' : ''} ${highlighted(index,'upper',0) ? 'hint-bead' : ''}`} onClick={() => change(index,'upper',0)} />
         {[0,1,2,3].map(bead => <button type="button" key={bead} disabled={!editable} aria-label={editable ? `${placeName(10 ** (digits-index-1))} basamağı: ${bead+1}. alt boncuk${highlighted(index,'lower',bead) ? ', rehberin önerdiği hareket' : ''}` : `${bead+1}. alt boncuk ${bead < digit%5 ? 'çubuğa yakın' : 'çubuktan uzak'}`} aria-pressed={bead < digit%5} className={`abacus-bead lower ${bead < digit%5 ? 'engaged' : ''} ${highlighted(index,'lower',bead) ? 'hint-bead' : ''}`} onClick={() => change(index,'lower',bead)} />)}

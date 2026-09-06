@@ -5,6 +5,7 @@ import { ArrowLeft, CheckCircle2, Delete, Hand, LogOut, RefreshCw, Settings, Wif
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ExerciseLaunchSequence } from '@/components/exercise-launch-sequence';
+import { ExerciseNumberDisplay } from '@/components/exercise-number-display';
 import { FingerHand } from '@/components/finger-hand';
 import { digitPattern, emptyHand, numberPattern, readHand, readHands, transitionFinger, type FingerName, type HandPattern, type PressMode } from '@/lib/finger-engine';
 
@@ -453,7 +454,7 @@ export default function ParitmetikPage() {
           <div className="mb-5 flex flex-wrap items-start justify-between gap-4"><div><p className="eyebrow text-primary">{mode === 'read' ? 'GÖR · OKU · YAZ' : 'GÖR · PARMAKLARINLA GÖSTER'}</p><h1 className="mt-2 text-2xl font-semibold tracking-tight md:text-3xl">{mode === 'read' ? 'Eller hangi sayıyı gösteriyor?' : 'Bu sayıyı ellerinle oluştur.'}</h1></div><Button variant="outline" onClick={newQuestion}><RefreshCw /> Yeni soru</Button></div>
 
           <fieldset disabled={!!feedback || sync === 'saving'} hidden={!!feedback}>
-          {mode === 'press' && <><div className="focus-number mb-3 text-center text-6xl font-extrabold text-[#173f75] md:text-7xl">{String(target).padStart(2, '0')}</div><div className="mx-auto mb-4 flex w-fit flex-wrap justify-center rounded-xl border border-border bg-[#f5f8f6] p-1">{([['guided','Kurallı'],['semi','Yarı Kurallı'],['free','Serbest']] as const).map(([value,label]) => <button key={value} className={`rounded-lg px-4 py-2 text-sm font-semibold ${pressMode === value ? 'bg-primary text-white' : 'text-muted-foreground'}`} onClick={() => { if (!submitted.current && !busy.current) { setPressMode(value); setLeft(emptyHand()); setRight(emptyHand()); } }}>{label}</button>)}</div></>}
+          {mode === 'press' && <><ExerciseNumberDisplay value={String(target).padStart(2, '0')} size="hero" animate className="mx-auto mb-3 w-fit"/><div className="mx-auto mb-4 flex w-fit flex-wrap justify-center rounded-xl border border-border bg-[#f5f8f6] p-1">{([['guided','Kurallı'],['semi','Yarı Kurallı'],['free','Serbest']] as const).map(([value,label]) => <button key={value} className={`rounded-lg px-4 py-2 text-sm font-semibold ${pressMode === value ? 'bg-primary text-white' : 'text-muted-foreground'}`} onClick={() => { if (!submitted.current && !busy.current) { setPressMode(value); setLeft(emptyHand()); setRight(emptyHand()); } }}>{label}</button>)}</div></>}
           {mode === 'read' && <div className="mb-3 focus-number min-h-14 text-center text-5xl font-bold text-[#173f75]">{answer || '—'}</div>}
 
           <div className={`mx-auto grid max-w-[760px] items-end gap-2 md:gap-8 ${handMode === 'two' ? 'grid-cols-2' : 'grid-cols-1'}`}>
