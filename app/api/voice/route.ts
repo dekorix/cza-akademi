@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto';
+import { allowRequest, rateLimited } from '@/lib/request-guard';
 
 type VoiceRequest = { term?: unknown; index?: unknown; language?: unknown; voiceProfile?: unknown; speechRate?: unknown };
 type CachedClip = { bytes: ArrayBuffer; contentType: string };
@@ -17,6 +18,8 @@ function voiceStatus() {
 export async function GET() { return json(voiceStatus(),200); }
 
 export async function POST(request: Request) {
+  const gate=allowRequest(request,'voice',60,60*1000);
+  if(!gate.allowed) return rateLimited(gate.retryAfterSeconds);
   const origin=request.headers.get('origin');
   if(origin&&origin!==new URL(request.url).origin) return json({error:'request_origin_rejected'},403);
   let input: VoiceRequest;

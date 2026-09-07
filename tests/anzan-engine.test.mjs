@@ -31,6 +31,7 @@ test('voice integration stays server-side and preloads before playback',()=>{
   assert.match(page,/preloadVoiceClips/);
   assert.match(route,/process\.env\.OPENAI_API_KEY/);
   assert.match(route,/x-cza-voice-cache/);
+  assert.match(route,/allowRequest\(request,'voice',60,60\*1000\)/);
   assert.match(route,/eksi \$\{Math\.abs\(term\)\}/);
 });
 

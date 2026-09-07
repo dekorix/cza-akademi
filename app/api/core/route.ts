@@ -1,5 +1,6 @@
 const DEFAULT_CORE_URL =
   'https://br-aged-bird-b2ml5crw-czastudent.compute.c-6.eu-central-1.aws.neon.tech/';
+import { allowRequest, rateLimited } from '@/lib/request-guard';
 
 const ALLOWED_ACTIONS = new Set([
   'login',
@@ -59,6 +60,11 @@ export async function POST(request: Request) {
   const action = typeof input.action === 'string' ? input.action : '';
   if (!ALLOWED_ACTIONS.has(action)) {
     return json({ ok: false, error: 'invalid_action' }, 400);
+  }
+
+  if (action === 'login') {
+    const gate = allowRequest(request, 'student-login', 6, 10 * 60 * 1000);
+    if (!gate.allowed) return rateLimited(gate.retryAfterSeconds);
   }
 
   const sessionToken = readCookie(request, COOKIE_NAME);
