@@ -9,7 +9,6 @@ export async function POST(request:Request){
   const action=typeof body.action==='string'?body.action:'';const secure=new URL(request.url).protocol==='https:';
   if(action==='me'){const user=await authenticatedEducator(request);return user?json({ok:true,user}):json({ok:false,error:'educator_session_required'},401);}
   if(action==='logout'){return json({ok:true},200,{'set-cookie':educatorCookie('',0,secure)});}
-  const gate=allowRequest(request,'educator-login',6,10*60*1000);if(!gate.allowed)return rateLimited(gate.retryAfterSeconds);
   const email=typeof body.email==='string'?body.email.trim().toLowerCase():'';
   if(action==='request-reset'){
     if(email!=='celikzihin.akademisi@gmail.com')return json({ok:false,error:'invalid_credentials'},401);
@@ -23,6 +22,7 @@ export async function POST(request:Request){
     const upstream=await fetch(authUrl('/reset-password'),{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({token,newPassword})});
     return upstream.ok?json({ok:true}):json({ok:false,error:'invalid_reset'},400);
   }
+  const gate=allowRequest(request,'educator-login',6,10*60*1000);if(!gate.allowed)return rateLimited(gate.retryAfterSeconds);
   if(action!=='login')return json({ok:false,error:'invalid_action'},400);
   if(email!=='celikzihin.akademisi@gmail.com')return json({ok:false,error:'invalid_credentials'},401);
   const password=typeof body.password==='string'?body.password:'';if(password.length<8)return json({ok:false,error:'invalid_credentials'},401);
