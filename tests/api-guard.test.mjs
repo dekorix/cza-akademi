@@ -8,11 +8,13 @@ const guard = fs.readFileSync(new URL('../lib/request-guard.ts', import.meta.url
 
 test('sensitive API routes use a shared request guard', () => {
   assert.match(core, /allowRequest\(request, 'student-login', 6, 10 \* 60 \* 1000\)/);
-  assert.match(report, /allowRequest\(request, 'educator-report', 20, 10 \* 60 \* 1000\)/);
+  assert.match(report, /allowRequest\(request,'educator-report',20,10\*60\*1000\)/);
   assert.match(guard, /status: 429/);
   assert.match(guard, /retry-after/);
 });
 
-test('educator reporting supports an environment-specific upstream URL', () => {
-  assert.match(report, /process\.env\.CZA_EDUCATOR_REPORT_URL/);
+test('educator reporting requires central auth and a server-only database connection', () => {
+  assert.match(report, /authenticatedEducator\(request\)/);
+  assert.match(report, /process\.env\.DATABASE_URL/);
+  assert.match(report, /teacher_student_links/);
 });
