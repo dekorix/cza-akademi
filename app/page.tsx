@@ -1,10 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ArrowRight, AudioLines, BookOpenCheck, BrainCircuit, ChartNoAxesCombined, Check, ChevronRight, Clock3, Flame, Hand, LayoutDashboard, Menu, Play, Sparkles, Target, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
+import { Input } from '@/components/ui/input';
+import { core, coreStudent, friendlyCoreError, type CoreStudent } from '@/lib/core-client';
 
 const modules = [
   { title: 'Parmak tekniği', detail: 'Oku, parmaklarınla göster ve anında geri bildirim al', icon: Hand, color: '#f8eee3', ink: '#a56730', level: 'Learning Core bağlı', progress: 1, href: '/paritmetik' },
@@ -15,10 +17,34 @@ const modules = [
 ];
 
 export default function Home() {
+  const [authLoading, setAuthLoading] = useState(true);
+  const [student, setStudent] = useState<CoreStudent | null>(null);
+  const [username, setUsername] = useState('');
+  const [pin, setPin] = useState('');
+  const [loginError, setLoginError] = useState('');
   const [menu, setMenu] = useState(false);
   const [digits, setDigits] = useState([0, 2, 4]);
   const [notice, setNotice] = useState('');
   const value = digits.reduce((total, digit) => total * 10 + digit, 0);
+
+  useEffect(() => {
+    core('me').then(data => setStudent(coreStudent(data))).catch(() => setStudent(null)).finally(() => setAuthLoading(false));
+  }, []);
+
+  async function login(event: React.SyntheticEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setLoginError('');
+    try {
+      const data = await core('login', { username: username.trim(), pin: pin.trim() });
+      setStudent(coreStudent(data));
+      setPin('');
+    } catch (error) {
+      setLoginError(friendlyCoreError(error));
+    }
+  }
+
+  if (authLoading) return <div className="grid min-h-screen place-items-center bg-background text-sm text-muted-foreground">Öğrenci oturumu açılıyor…</div>;
+  if (!student) return <main className="min-h-screen bg-background px-5 py-12"><form onSubmit={login} className="mx-auto mt-[8vh] max-w-md rounded-3xl border border-border bg-white p-8 shadow-lg"><p className="eyebrow text-primary">ÇELİK ZİHİN AKADEMİSİ</p><h1 className="mt-3 text-3xl font-semibold">Öğrenci girişi</h1><p className="mt-2 text-base leading-7 text-muted-foreground">Çalışma merkezine girmek için kullanıcı adı ve PIN bilgilerini yaz.</p><label className="mt-7 block text-sm font-semibold" htmlFor="home-username">Kullanıcı adı</label><Input id="home-username" autoComplete="username" value={username} onChange={event => setUsername(event.target.value)} className="mt-2 h-12" required /><label className="mt-4 block text-sm font-semibold" htmlFor="home-pin">PIN</label><Input id="home-pin" type="password" inputMode="numeric" maxLength={6} autoComplete="current-password" value={pin} onChange={event => setPin(event.target.value.replace(/\D/g, ''))} className="mt-2 h-12" required />{loginError && <p role="alert" className="mt-4 rounded-xl bg-red-50 p-4 text-sm font-semibold text-red-800">{loginError}</p>}<Button type="submit" className="mt-6 h-12 w-full text-base" disabled={!username.trim() || !pin.trim()}>Giriş yap</Button></form></main>;
 
   return (
     <div className="academy-shell lg:pl-[236px]">
