@@ -29,6 +29,7 @@ dev-network*.log
 
 # local environment
 .env*
+!.env.example
 
 # deployment and generated files
 .vercel
