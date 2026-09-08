@@ -37,7 +37,7 @@ jobs:
 
       - name: Lint assessment changes
         run: >-
-          pnpm exec oxlint
+          pnpm exec oxlint --format unix
           app/assessment
           app/educator/assessment
           components/assessment-report.tsx
