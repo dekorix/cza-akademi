@@ -1,5 +1,5 @@
 import { neon } from '@neondatabase/serverless';
-import { warmupTasks } from '@/lib/assessment-engine';
+import { assessmentTasks } from '@/lib/assessment-routing';
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -71,13 +71,13 @@ export async function POST(request: Request) {
 
     if (action === 'create') {
       const studentLabel = typeof input.studentLabel === 'string' ? input.studentLabel.slice(0, 80) : 'Pilot öğrenci';
-      const firstTask = warmupTasks[0]?.id ?? null;
+      const firstTask = assessmentTasks[0]?.id ?? null;
       const rows = await sql`
-        INSERT INTO public.assessment_sessions (template_code, student_label, current_task_code)
-        VALUES ('CZA_1_TO_2_V1', ${studentLabel}, ${firstTask})
-        RETURNING id, template_code, student_label, status, current_task_code, started_at
+        INSERT INTO public.assessment_sessions (template_code, student_label, current_task_code, metadata)
+        VALUES ('CZA_1_TO_2_V1', ${studentLabel}, ${firstTask}, ${JSON.stringify({ version: 2, stations: ['WARMUP','MATHEMATICS'] })}::jsonb)
+        RETURNING id, template_code, student_label, status, current_task_code, started_at, metadata
       `;
-      return json({ ok: true, session: rows[0], tasks: warmupTasks });
+      return json({ ok: true, session: rows[0], tasks: assessmentTasks });
     }
 
     if (action === 'get') {
@@ -96,7 +96,7 @@ export async function POST(request: Request) {
         SELECT * FROM public.assessment_observations
         WHERE session_id = ${sessionId}::uuid ORDER BY created_at ASC
       `;
-      return json({ ok: true, session: sessions[0], attempts, observations, tasks: warmupTasks });
+      return json({ ok: true, session: sessions[0], attempts, observations, tasks: assessmentTasks });
     }
 
     if (action === 'attempt') {
@@ -111,22 +111,23 @@ export async function POST(request: Request) {
       const supportLevel = Math.max(0, Math.min(5, Number(input.supportLevel ?? 0)));
       const selfCorrected = Boolean(input.selfCorrected);
       const rubricScores = typeof input.rubricScores === 'object' && input.rubricScores ? input.rubricScores : {};
+      const answerPayload = typeof input.answerPayload === 'object' && input.answerPayload ? input.answerPayload : {};
       const responseLatencyMs = firstActionAt ? Math.max(0, firstActionAt.getTime() - shownAt.getTime()) : null;
       const totalResponseTimeMs = Math.max(0, completedAt.getTime() - shownAt.getTime());
       await sql`
         INSERT INTO public.assessment_attempts (
-          session_id, task_code, shown_at, first_action_at, completed_at, answer_text,
+          session_id, task_code, shown_at, first_action_at, completed_at, answer_text, answer_payload,
           answer_changes, support_level, self_corrected, rubric_scores,
           response_latency_ms, total_response_time_ms
         ) VALUES (
           ${sessionId}::uuid, ${taskCode}, ${shownAt.toISOString()}::timestamptz,
           ${firstActionAt ? firstActionAt.toISOString() : null}::timestamptz,
-          ${completedAt.toISOString()}::timestamptz, ${answerText}, ${answerChanges},
-          ${supportLevel}, ${selfCorrected}, ${JSON.stringify(rubricScores)}::jsonb,
+          ${completedAt.toISOString()}::timestamptz, ${answerText}, ${JSON.stringify(answerPayload)}::jsonb,
+          ${answerChanges}, ${supportLevel}, ${selfCorrected}, ${JSON.stringify(rubricScores)}::jsonb,
           ${responseLatencyMs}, ${totalResponseTimeMs}
         )
       `;
-      if (typeof input.nextTaskCode === 'string') {
+      if (typeof input.nextTaskCode === 'string' && input.nextTaskCode) {
         await sql`UPDATE public.assessment_sessions SET current_task_code = ${input.nextTaskCode} WHERE id = ${sessionId}::uuid`;
       }
       return json({ ok: true });
