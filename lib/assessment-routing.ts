@@ -33,6 +33,10 @@ const anchorAnswers: Record<string, string[]> = {
   'COG-01A': ['4', '4 tane'],
   'COG-01S': ['3', '3 tane'],
   'COG-01B': ['2', '2 tane'],
+  'COG-02A': ['417', '4 1 7', '4-1-7'],
+  'COG-02S': ['47', '4 7', '4-7'],
+  'COG-02B': ['714', '7 1 4', '7-1-4'],
+  'COG-02T': ['825', '8 2 5', '8-2-5'],
   'COG-03A': ['1221', '1 2 2 1'],
   'COG-03S': ['12', '1 2'],
   'COG-03B': ['2112', '2 1 1 2'],
@@ -95,6 +99,7 @@ const adaptiveNext: Record<string, { correct: string; incorrect: string }> = {
   'TR-03A': { correct: 'TR-03B', incorrect: 'TR-03S' },
   'TR-05A': { correct: 'TR-05B', incorrect: 'TR-05S' },
   'COG-01A': { correct: 'COG-01B', incorrect: 'COG-01S' },
+  'COG-02A': { correct: 'COG-02B', incorrect: 'COG-02S' },
   'COG-03A': { correct: 'COG-03B', incorrect: 'COG-03S' },
   'COG-04A': { correct: 'COG-04B', incorrect: 'COG-04S' },
 };
