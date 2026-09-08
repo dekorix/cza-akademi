@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, BrainCircuit, Clipboard, RefreshCw, Sparkles, TrendingUp, UserRoundCheck } from 'lucide-react';
+import { ArrowLeft, BrainCircuit, Clipboard, FileText, RefreshCw, Sparkles, TrendingUp, UserRoundCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import type { AssessmentTask, ObservationCode } from '@/lib/assessment-engine';
@@ -116,6 +116,11 @@ export default function EducatorAssessmentPage() {
     return `${window.location.origin}/assessment?session=${sessionId}`;
   }
 
+  function reportUrl() {
+    if (!sessionId) return '/educator/assessment/report';
+    return `/educator/assessment/report?session=${encodeURIComponent(sessionId)}`;
+  }
+
   async function copyLink() {
     const url = childUrl();
     if (!url) return;
@@ -143,7 +148,7 @@ export default function EducatorAssessmentPage() {
       {!sessionId ? <section className="max-w-2xl rounded-2xl border bg-white p-7 shadow-sm"><div className="flex items-center gap-3"><span className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#e7f5ed] text-[#226f60]"><UserRoundCheck/></span><div><h2 className="text-xl font-semibold">Yeni değerlendirme başlat</h2><p className="text-xs text-muted-foreground">Pilot için yalnız görünen öğrenci adı yeterli.</p></div></div><div className="mt-6 flex gap-3"><Input value={studentLabel} onChange={e=>setStudentLabel(e.target.value)} className="h-11"/><Button onClick={createSession} disabled={busy} className="h-11 bg-[#226f60] hover:bg-[#195749]">{busy?'Hazırlanıyor…':'Oturumu oluştur'}</Button></div>{message&&<p className="mt-4 text-sm text-[#55766b]">{message}</p>}</section> : <div className="grid items-start gap-6 xl:grid-cols-[1.15fr_.85fr]">
 
         <div className="space-y-6">
-          <section className="rounded-2xl border border-[#cfe4d9] bg-white p-6 shadow-sm"><div className="flex flex-wrap items-center justify-between gap-4"><div><p className="text-xs font-bold uppercase tracking-[.14em] text-[#5d8c7d]">Aktif oturum</p><h2 className="mt-1 text-2xl font-semibold">{session?.student_label || studentLabel}</h2><p className="mt-1 text-xs text-muted-foreground">Durum: {session?.status} · {attempts.length} görev tamamlandı</p></div><Button variant="outline" onClick={()=>refresh()}><RefreshCw/> Yenile</Button></div><div className="mt-5 rounded-xl bg-[#f4f9f6] p-4"><p className="text-xs font-semibold text-[#4c6f64]">Öğrenci bağlantısı</p><div className="mt-2 flex flex-col gap-2 sm:flex-row"><code className="min-w-0 flex-1 overflow-hidden text-ellipsis whitespace-nowrap rounded-lg border bg-white px-3 py-3 text-xs">{childUrl()}</code><Button onClick={copyLink} variant="outline"><Clipboard/> Kopyala</Button></div></div></section>
+          <section className="rounded-2xl border border-[#cfe4d9] bg-white p-6 shadow-sm"><div className="flex flex-wrap items-center justify-between gap-4"><div><p className="text-xs font-bold uppercase tracking-[.14em] text-[#5d8c7d]">Aktif oturum</p><h2 className="mt-1 text-2xl font-semibold">{session?.student_label || studentLabel}</h2><p className="mt-1 text-xs text-muted-foreground">Durum: {session?.status} · {attempts.length} görev tamamlandı</p></div><div className="flex flex-wrap gap-2"><a href={reportUrl()} className="inline-flex h-9 items-center justify-center gap-2 rounded-md border border-[#c9d9d1] bg-white px-3 text-sm font-semibold text-[#315f50] transition hover:bg-[#f3f8f5]"><FileText size={15}/> Raporu aç</a><Button variant="outline" onClick={()=>refresh()}><RefreshCw/> Yenile</Button></div></div><div className="mt-5 rounded-xl bg-[#f4f9f6] p-4"><p className="text-xs font-semibold text-[#4c6f64]">Öğrenci bağlantısı</p><div className="mt-2 flex flex-col gap-2 sm:flex-row"><code className="min-w-0 flex-1 overflow-hidden text-ellipsis whitespace-nowrap rounded-lg border bg-white px-3 py-3 text-xs">{childUrl()}</code><Button onClick={copyLink} variant="outline"><Clipboard/> Kopyala</Button></div></div></section>
 
           <section className="rounded-2xl border bg-white p-6 shadow-sm"><div className="flex items-center gap-3"><Sparkles className="text-[#c69428]"/><div><p className="text-xs font-bold uppercase tracking-[.14em] text-[#9c7c39]">Şu anda çocuk ekranında</p><h2 className="mt-1 text-xl font-semibold">{currentTask?.title || (session?.status==='completed'?'Değerlendirme tamamlandı':'Görev bekleniyor')}</h2></div></div>{currentTask&&<><p className="mt-5 rounded-xl bg-[#fff9e9] p-5 text-lg font-semibold leading-7 text-[#463f2a]">“{currentTask.childInstruction}”</p><div className="mt-4 rounded-xl border border-[#d8e7df] p-4"><p className="text-xs font-bold uppercase tracking-[.12em] text-[#5d8c7d]">Eğitmene özel yönerge</p><p className="mt-2 text-sm leading-6">{currentTask.educatorInstruction}</p></div></>}</section>
 
