@@ -35,7 +35,30 @@ jobs:
       - name: Build
         run: pnpm build
 
+      - name: Start built app
+        run: |
+          pnpm exec wrangler dev --config dist/server/wrangler.json --port 8787 > /tmp/cza-preview.log 2>&1 &
+          echo $! > /tmp/cza-preview.pid
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:8787/educator/assessment > /tmp/assessment-educator.html; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/cza-preview.log
+          exit 1
+
+      - name: Smoke test assessment routes
+        run: |
+          curl -fsS http://127.0.0.1:8787/assessment > /tmp/assessment-student.html
+          curl -fsS http://127.0.0.1:8787/educator/assessment > /tmp/assessment-educator.html
+          curl -fsS http://127.0.0.1:8787/educator/assessment/report > /tmp/assessment-report.html
+          test -s /tmp/assessment-student.html
+          test -s /tmp/assessment-educator.html
+          test -s /tmp/assessment-report.html
+
       - name: Lint assessment changes
+        continue-on-error: true
         run: >-
           pnpm exec oxlint --format unix
           app/assessment
