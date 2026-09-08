@@ -1,5 +1,6 @@
 import { neon } from '@neondatabase/serverless';
 import { assessmentTasks } from '@/lib/assessment-routing';
+import { calculateLearningResponse, type AssessmentAttemptRecord } from '@/lib/assessment-learning-response';
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -74,7 +75,12 @@ export async function POST(request: Request) {
       const firstTask = assessmentTasks[0]?.id ?? null;
       const rows = await sql`
         INSERT INTO public.assessment_sessions (template_code, student_label, current_task_code, metadata)
-        VALUES ('CZA_1_TO_2_V1', ${studentLabel}, ${firstTask}, ${JSON.stringify({ version: 2, stations: ['WARMUP','MATHEMATICS'] })}::jsonb)
+        VALUES (
+          'CZA_1_TO_2_V1',
+          ${studentLabel},
+          ${firstTask},
+          ${JSON.stringify({ version: 3, stations: ['WARMUP','MATHEMATICS','LANGUAGE','COGNITIVE'], learningResponseVersion: 1 })}::jsonb
+        )
         RETURNING id, template_code, student_label, status, current_task_code, started_at, metadata
       `;
       return json({ ok: true, session: rows[0], tasks: assessmentTasks });
@@ -96,7 +102,8 @@ export async function POST(request: Request) {
         SELECT * FROM public.assessment_observations
         WHERE session_id = ${sessionId}::uuid ORDER BY created_at ASC
       `;
-      return json({ ok: true, session: sessions[0], attempts, observations, tasks: assessmentTasks });
+      const learningResponse = calculateLearningResponse(attempts as AssessmentAttemptRecord[], assessmentTasks);
+      return json({ ok: true, session: sessions[0], attempts, observations, tasks: assessmentTasks, learningResponse });
     }
 
     if (action === 'attempt') {
@@ -107,7 +114,7 @@ export async function POST(request: Request) {
       const firstActionAt = typeof input.firstActionAt === 'number' ? new Date(input.firstActionAt) : null;
       const completedAt = typeof input.completedAt === 'number' ? new Date(input.completedAt) : new Date();
       const answerText = typeof input.answerText === 'string' ? input.answerText.slice(0, 4000) : null;
-      const answerChanges = Number(input.answerChanges ?? 0);
+      const answerChanges = Math.max(0, Math.min(1000, Number(input.answerChanges ?? 0)));
       const supportLevel = Math.max(0, Math.min(5, Number(input.supportLevel ?? 0)));
       const selfCorrected = Boolean(input.selfCorrected);
       const rubricScores = typeof input.rubricScores === 'object' && input.rubricScores ? input.rubricScores : {};
@@ -131,6 +138,30 @@ export async function POST(request: Request) {
         await sql`UPDATE public.assessment_sessions SET current_task_code = ${input.nextTaskCode} WHERE id = ${sessionId}::uuid`;
       }
       return json({ ok: true });
+    }
+
+    if (action === 'score') {
+      const sessionId = typeof input.sessionId === 'string' ? input.sessionId : '';
+      const attemptId = typeof input.attemptId === 'string' ? input.attemptId : '';
+      const taskCode = typeof input.taskCode === 'string' ? input.taskCode : '';
+      const rawScores = typeof input.rubricScores === 'object' && input.rubricScores ? input.rubricScores as Record<string, unknown> : {};
+      if (!sessionId || !attemptId || !taskCode) return json({ ok: false, error: 'missing_fields' }, 400);
+      const task = assessmentTasks.find((item) => item.id === taskCode);
+      if (!task) return json({ ok: false, error: 'task_not_found' }, 404);
+      const rubricScores: Record<string, number> = {};
+      for (const dimension of task.rubric) {
+        const raw = rawScores[dimension.id];
+        if (typeof raw !== 'number' || !Number.isFinite(raw)) continue;
+        rubricScores[dimension.id] = Math.max(0, Math.min(dimension.max, Math.round(raw)));
+      }
+      const updated = await sql`
+        UPDATE public.assessment_attempts
+        SET rubric_scores = ${JSON.stringify(rubricScores)}::jsonb
+        WHERE id = ${attemptId}::uuid AND session_id = ${sessionId}::uuid AND task_code = ${taskCode}
+        RETURNING id
+      `;
+      if (!updated.length) return json({ ok: false, error: 'attempt_not_found' }, 404);
+      return json({ ok: true, rubricScores });
     }
 
     if (action === 'observe') {
