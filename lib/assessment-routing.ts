@@ -100,9 +100,10 @@ const adaptiveNext: Record<string, { correct: string; incorrect: string }> = {
 };
 
 export function routeAssessmentTask(taskCode: string, answer: string) {
+  const matched = answerMatches(taskCode, answer);
   const adaptive = adaptiveNext[taskCode];
   if (adaptive) {
-    const correct = answerMatches(taskCode, answer) === true;
+    const correct = matched === true;
     return {
       nextTaskCode: correct ? adaptive.correct : adaptive.incorrect,
       correctness: correct ? 'correct' : 'incorrect',
@@ -113,5 +114,9 @@ export function routeAssessmentTask(taskCode: string, answer: string) {
   const nextTaskCode = Object.prototype.hasOwnProperty.call(fixedNext, taskCode)
     ? fixedNext[taskCode]
     : null;
-  return { nextTaskCode, correctness: null, supportTriggered: false };
+  return {
+    nextTaskCode,
+    correctness: matched === true ? 'correct' : matched === false ? 'incorrect' : null,
+    supportTriggered: false,
+  };
 }
