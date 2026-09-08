@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Input } from '@/components/ui/input';
-import { core, coreStudent, friendlyCoreError, type CoreStudent } from '@/lib/core-client';
+import { core, coreStudent, friendlyCoreError, studentName, type CoreStudent } from '@/lib/core-client';
 
 const modules = [
   { title: 'Parmak tekniği', detail: 'Oku, parmaklarınla göster ve anında geri bildirim al', icon: Hand, color: '#f8eee3', ink: '#a56730', level: 'Learning Core bağlı', progress: 1, href: '/paritmetik' },
@@ -26,6 +26,7 @@ export default function Home() {
   const [digits, setDigits] = useState([0, 2, 4]);
   const [notice, setNotice] = useState('');
   const value = digits.reduce((total, digit) => total * 10 + digit, 0);
+  const displayName = student ? studentName(student) : 'Öğrenci';
 
   useEffect(() => {
     core('me').then(data => setStudent(coreStudent(data))).catch(() => setStudent(null)).finally(() => setAuthLoading(false));
@@ -81,14 +82,14 @@ export default function Home() {
         <div className="flex items-center gap-5">
           <span className="hidden items-center gap-1.5 text-sm font-semibold text-[#b06d3f] sm:flex"><Flame size={18} /> 4 günlük seri</span>
           <div className="h-7 w-px bg-border" />
-          <a href="/paritmetik" className="flex items-center gap-3 rounded-xl px-2 py-1 transition-colors hover:bg-secondary"><span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#f1ddc6] font-semibold text-[#875a38]">C</span><div className="hidden sm:block"><p className="text-sm font-semibold">CZA öğrenci girişi</p><p className="text-[11px] text-muted-foreground">Learning Core ile devam et</p></div></a>
+          <a href="/paritmetik" className="flex items-center gap-3 rounded-xl px-2 py-1 transition-colors hover:bg-secondary"><span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#f1ddc6] font-semibold text-[#875a38]">{displayName.slice(0,1).toLocaleUpperCase('tr')}</span><div className="hidden sm:block"><p className="text-sm font-semibold">{displayName}</p><p className="text-[11px] text-muted-foreground">CZA Çalışma Paneli</p></div></a>
         </div>
       </header>
 
       <main className="mx-auto max-w-[1440px] px-5 py-8 md:px-9 xl:px-12">
         <div className="mb-7 flex flex-wrap items-end justify-between gap-3">
-          <div><p className="eyebrow mb-2 text-primary">Bugün kendine bir adım daha yaklaş</p><h1 className="text-[27px] font-semibold leading-tight tracking-[-.035em] md:text-[34px]">Günaydın Elif, odak seansın hazır.</h1><p className="mt-2 text-sm text-muted-foreground">Bugün soroban becerini güçlendiriyoruz. Acele etmeden, doğru teknikle.</p></div>
-          <span className="rounded-lg border border-border bg-white px-3 py-2 text-xs text-muted-foreground">Örnek çalışma günü</span>
+          <div><p className="eyebrow mb-2 text-primary">Bugün kendine bir adım daha yaklaş</p><h1 className="text-[27px] font-semibold leading-tight tracking-[-.035em] md:text-[34px]">Merhaba {displayName}, çalışma alanın hazır.</h1><p className="mt-2 text-sm text-muted-foreground">Acele etmeden, doğru teknikle ilerle. Her tamamlanan çalışma güvenli öğrenci kaydına işlenir.</p></div>
+          <span className="rounded-lg border border-[#b9daca] bg-[#edf8f2] px-3 py-2 text-xs font-semibold text-[#276151]">Merkezî kayıt etkin</span>
         </div>
 
         <a href="/studio" className="group mb-7 flex min-h-36 flex-col justify-between gap-5 overflow-hidden rounded-2xl border border-[#77ad9c] bg-[linear-gradient(120deg,#174e46,#237d6c_55%,#315f86)] p-6 text-white shadow-[0_14px_34px_rgba(25,78,70,.22)] transition hover:-translate-y-0.5 hover:shadow-[0_18px_40px_rgba(25,78,70,.28)] sm:flex-row sm:items-center md:p-8"><div className="flex items-center gap-5"><span className="grid h-16 w-16 shrink-0 place-items-center rounded-2xl bg-white/15 ring-1 ring-white/25"><BrainCircuit size={34}/></span><div><p className="text-xs font-bold uppercase tracking-[.14em] text-[#cdebdc]">Bütün çalışmalar tek merkezde</p><h2 className="mt-2 text-2xl font-bold md:text-3xl">Egzersiz Stüdyosunu Aç</h2><p className="mt-2 max-w-2xl text-sm leading-6 text-[#e1f1eb]">Parmak, Soroban, Toplama–Çıkarma, Flash ve Sesli Anzan çalışmalarını seç; süreni ve seviyeni ayarla.</p></div></div><span className="inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-xl bg-[#f4d46c] px-6 font-bold text-[#263d39] shadow-sm transition group-hover:bg-[#ffe58a]">Stüdyoya gir <ArrowRight size={18}/></span></a>
@@ -117,15 +118,15 @@ export default function Home() {
 
           <Card className="rounded-2xl py-6 ring-border">
             <CardContent className="px-6">
-              <div className="flex items-center justify-between"><h2 className="font-semibold">Bugünkü rotam</h2><span className="text-xs text-muted-foreground">1 / 3</span></div>
-              <Progress value={33} aria-label="Günlük rota yüzde 33 tamamlandı" className="mb-6 mt-4" />
+              <div className="flex items-center justify-between"><h2 className="font-semibold">Çalışma rotam</h2><span className="text-xs text-muted-foreground">Kendi hızında</span></div>
+              <Progress value={0} aria-label="Çalışma rotası henüz başlamadı" className="mb-6 mt-4" />
               <div className="space-y-5">
-                {[{ title: 'Boncuklarla ısınma', time: 'Örnek adım', done: true }, { title: 'Soroban · sayı okuma', time: '5 soruluk pilot', done: false }, { title: 'Kısa Anzan turu', time: 'Ayarlanabilir pilot', done: false }].map((step, index) => <div key={step.title} className="flex gap-3">
-                  <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${step.done ? 'bg-secondary text-primary' : index === 1 ? 'bg-[#226f60] text-white' : 'border border-border text-muted-foreground'}`}>{step.done ? <Check size={14} /> : index + 1}</span>
-                  <div><p className={`text-xs font-semibold ${step.done ? 'text-muted-foreground' : ''}`}>{step.title}</p><p className="mt-1 text-[11px] text-muted-foreground">{step.done ? 'Tamamlandı' : step.time}</p></div>
+                {[{ title: 'Parmak veya soroban çalışması', time: 'Çalışma türünü seç' }, { title: 'Kısa Anzan turu', time: 'Süre ve seviyeni ayarla' }, { title: 'Sonucunu incele', time: 'Doğru, yanlış ve sürelerini gör' }].map((step, index) => <div key={step.title} className="flex gap-3">
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-border text-xs font-semibold text-muted-foreground">{index + 1}</span>
+                  <div><p className="text-xs font-semibold">{step.title}</p><p className="mt-1 text-[11px] text-muted-foreground">{step.time}</p></div>
                 </div>)}
               </div>
-              <div className="mt-7 rounded-lg bg-[#fbf7ee] p-3 text-[11px] leading-5 text-[#8a734e]">Bu rota bir arayüz örneğidir. Kişiselleştirilmiş atamalar, Kampüs bağlantısından sonra etkinleşecek.</div>
+              <div className="mt-7 rounded-lg bg-[#fbf7ee] p-3 text-[11px] leading-5 text-[#8a734e]">Kişiselleştirilmiş rota ve geçmiş gelişim verileri merkezî aktarım tamamlandığında burada gösterilecek.</div>
             </CardContent>
           </Card>
         </div>
@@ -145,16 +146,12 @@ export default function Home() {
 
         <div className="mt-7 grid gap-5 xl:grid-cols-[1fr_300px]">
           <section id="development" className="scroll-mt-6 rounded-xl border border-border bg-white p-6">
-            <div className="flex items-center justify-between"><h2 className="font-semibold">Çaban gelişime dönüşüyor</h2><span className="text-[11px] text-muted-foreground">Örnek haftalık görünüm</span></div>
-            <div className="mt-6 grid gap-6 sm:grid-cols-[1fr_1fr_1.3fr]">
-              <div><p className="text-xs text-muted-foreground">Doğruluk</p><p className="mt-1 text-3xl font-semibold tracking-tight">%92 <span className="text-xs font-medium text-primary">+8 puan</span></p><p className="mt-2 text-[11px] text-muted-foreground">Önceki örnek haftaya göre</p></div>
-              <div><p className="text-xs text-muted-foreground">Odaklı çalışma</p><p className="mt-1 text-3xl font-semibold tracking-tight">68 <span className="text-sm font-normal text-muted-foreground">dakika</span></p><p className="mt-2 text-[11px] text-muted-foreground">5 kısa seans tamamlandı</p></div>
-              <div className="flex items-end justify-between gap-3" aria-label="Haftalık örnek çalışma süreleri">{[45, 70, 55, 85, 65, 20, 12].map((height, index) => <div key={index} className="flex w-full flex-col items-center gap-2"><div className="flex h-[64px] w-full items-end"><div className={`w-full rounded-t-sm ${index < 5 ? 'bg-[#a9d1bd]' : 'bg-[#edf0ed]'}`} style={{ height: `${height}%` }} /></div><span className="text-[9px] text-muted-foreground">{['Pt', 'Sa', 'Ça', 'Pe', 'Cu', 'Ct', 'Pa'][index]}</span></div>)}</div>
-            </div>
+            <div className="flex items-center justify-between"><h2 className="font-semibold">Çaban gelişime dönüşüyor</h2><span className="text-[11px] text-muted-foreground">Kayıtların geldikçe güncellenecek</span></div>
+            <p className="mt-6 rounded-xl bg-secondary/40 p-5 text-sm leading-6 text-muted-foreground">Bu bölümde çalışma süren, doğru–yanlış sayın, başarı oranın ve haftalık gelişimin kendi kayıtlarından gösterilecek. Geçmiş Kampüs verilerin de aktarım sonrasında “Geçmiş gelişimim” bölümüne eklenecek.</p>
           </section>
-          <section className="rounded-xl border border-[#e7decc] bg-[#faf6ec] p-6"><div className="mb-3 flex items-center gap-2"><span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#e9dfc8] text-[11px] font-semibold">CZA</span><h2 className="text-sm font-semibold">Eğitimcinden bir not</h2></div><p className="text-xs leading-6 text-[#786b54]">“Boncuk hareketlerin daha kararlı. Bu hafta beşe tamamlama adımlarını sesli düşünerek çalışmanı istiyorum.”</p><p className="mt-4 text-[10px] text-[#998967]">Örnek eğitimci geri bildirimi</p></section>
+          <section className="rounded-xl border border-[#e7decc] bg-[#faf6ec] p-6"><div className="mb-3 flex items-center gap-2"><span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#e9dfc8] text-[11px] font-semibold">CZA</span><h2 className="text-sm font-semibold">Eğitimcinden bir not</h2></div><p className="text-xs leading-6 text-[#786b54]">Eğitimcin sana kişisel not bıraktığında burada görünecek.</p><p className="mt-4 text-[10px] text-[#998967]">Henüz kişisel not yok</p></section>
         </div>
-        <footer className="mt-8 flex flex-wrap items-center justify-between gap-2 border-t border-border pt-5 text-[10px] text-muted-foreground"><span>CZA Egzersiz Akademisi · Bağımsız çalışma alanı</span><button className="underline underline-offset-2" onClick={() => setNotice('Paritmetik için bir bağlı öğrenci test hesabı Learning Core’da çalışır. Ana paneldeki diğer öğrenci, gelişim ve rota verileri örnektir; genel eğitimci ve veli girişi henüz etkin değildir.')}>Bu önizleme hakkında</button></footer>
+        <footer className="mt-8 flex flex-wrap items-center justify-between gap-2 border-t border-border pt-5 text-[10px] text-muted-foreground"><span>CZA Çalışma Paneli</span><button className="underline underline-offset-2" onClick={() => setNotice('Çalışma sonuçların merkezî öğrenci kaydına işlenir. Geçmiş Kampüs değerlendirmelerin kontrollü aktarım sonrasında burada da görünür.')}>Kayıtlarım hakkında</button></footer>
       </main>
       {notice && <div role="status" className="fixed bottom-5 right-5 z-50 flex max-w-sm items-start gap-3 rounded-xl border border-border bg-white p-5 text-sm shadow-xl"><p className="leading-6">{notice}</p><Button size="icon-xs" variant="ghost" aria-label="Bildirimi kapat" onClick={() => setNotice('')}><X /></Button></div>}
     </div>

@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { CheckCircle2, KeyRound, Loader2, Search, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { educatorAuthRequest, educatorAuthError } from '@/lib/educator-auth-client';
 
 type Report = {
   student: { campusCode: string; name: string };
@@ -51,52 +52,57 @@ function message(code: string) {
   return 'Merkezi rapor şu anda açılamadı.';
 }
 
-export function CentralStudentReport() {
+export function CentralStudentReport({ children, initialCode = '' }: { children?: ReactNode; initialCode?: string } = {}) {
   const [authenticated, setAuthenticated] = useState(false);
-  const [email, setEmail] = useState('celikzihin.akademisi@gmail.com');
+  const [checking, setChecking] = useState(true);
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [code, setCode] = useState('582946');
+  const [code, setCode] = useState(initialCode);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [report, setReport] = useState<Report | null>(null);
   useEffect(() => {
-    void fetch('/api/educator-auth', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ action: 'me' }),
-    })
-      .then((r) => setAuthenticated(r.ok))
-      .catch(() => setAuthenticated(false));
+    let active = true;
+    void educatorAuthRequest({ action: 'me' })
+      .then(() => { if (active) setAuthenticated(true); })
+      .catch(() => { if (active) setAuthenticated(false); })
+      .finally(() => { if (active) setChecking(false); });
+    return () => { active = false; };
   }, []);
-  async function login(event: React.SyntheticEvent<HTMLFormElement>) {
-    event.preventDefault();
+  async function logout() {
+    if (loading) return;
     setLoading(true);
     setError('');
-    const response = await fetch('/api/educator-auth', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ action: 'login', email, password }),
-    });
-    setLoading(false);
-    if (response.ok) {
+    try {
+      await educatorAuthRequest({ action: 'logout' });
+      setAuthenticated(false);
+      setReport(null);
+    } catch (error) { setError(educatorAuthError(error)); }
+    finally { setLoading(false); }
+  }
+  async function login(event: React.SyntheticEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (loading) return;
+    setLoading(true);
+    setError('');
+    try {
+      await educatorAuthRequest({ action: 'login', email, password });
       setAuthenticated(true);
       setPassword('');
-    } else
-      setError(
-        'E-posta veya parola hatalı. İlk girişte parola oluştur bağlantısını kullan.',
-      );
+    } catch (error) {
+      setError(educatorAuthError(error));
+    } finally { setLoading(false); }
   }
   async function reset() {
+    if (loading) return;
     setLoading(true);
-    await fetch('/api/educator-auth', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ action: 'request-reset', email }),
-    });
-    setLoading(false);
-    setError(
-      'Parola oluşturma bağlantısı için kurum e-postasının gelen kutusunu kontrol et.',
-    );
+    setError('');
+    try {
+      await educatorAuthRequest({ action: 'request-reset', email });
+      setError('Parola bağlantısı isteği alındı. E-postanın gelen kutusunu kontrol et.');
+    } catch (error) {
+      setError(educatorAuthError(error));
+    } finally { setLoading(false); }
   }
   async function load(event: React.SyntheticEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -119,6 +125,7 @@ export function CentralStudentReport() {
       setLoading(false);
     }
   }
+  if (checking) return <p role="status" className="p-8 text-center">Eğitimci oturumu kontrol ediliyor…</p>;
   if (!authenticated)
     return (
       <form
@@ -126,7 +133,7 @@ export function CentralStudentReport() {
         className="mx-auto max-w-lg rounded-xl border border-border bg-white p-6"
       >
         <p className="eyebrow text-primary">Güvenli eğitimci girişi</p>
-        <h2 className="mt-2 text-xl font-semibold">Habip Çelik</h2>
+        <h2 className="mt-2 text-xl font-semibold">CZA Eğitimci girişi</h2>
         <label
           className="mt-5 block text-xs font-semibold"
           htmlFor="educatorEmail"
@@ -136,6 +143,8 @@ export function CentralStudentReport() {
         <Input
           id="educatorEmail"
           type="email"
+          required
+          autoComplete="username"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           className="mt-2"
@@ -149,6 +158,8 @@ export function CentralStudentReport() {
         <Input
           id="educatorPassword"
           type="password"
+          required
+          autoComplete="current-password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           className="mt-2"
@@ -160,6 +171,7 @@ export function CentralStudentReport() {
         <button
           type="button"
           onClick={reset}
+          disabled={loading}
           className="mt-4 w-full text-sm font-semibold text-primary"
         >
           İlk parolamı oluştur
@@ -171,6 +183,13 @@ export function CentralStudentReport() {
         )}
       </form>
     );
+  if (children) return <>
+    <div className="flex flex-wrap items-center justify-end gap-3 bg-white p-3">
+      {error && <p role="alert">{error}</p>}
+      <Button variant="outline" onClick={logout} disabled={loading}>Güvenli çıkış</Button>
+    </div>
+    {children}
+  </>;
   return (
     <div className="space-y-5">
       <form

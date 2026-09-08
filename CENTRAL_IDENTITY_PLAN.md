@@ -1,5 +1,7 @@
 # CZA tek kimlik ve kayıt kararı
 
+Ana ürün, panel ve pedagojik ilkeler için [CZA Ana Mimari](docs/CZA_MASTER_ARCHITECTURE.md) belgesini esas alın. Bu belge yalnız merkezî kimlik ve kayıt bağlantısının uygulama kararlarını açıklar.
+
 ## Karar
 
 **Neon Learning Core**, Çelik Zihin Akademisi için öğrencinin, eğitimcinin, oturumların, çalışma sonuçlarının ve eğitimci raporlarının tek kayıt otoritesidir.

@@ -23,6 +23,13 @@ Bu kaynak, Çelik Anzan / Çelik Zihin Akademisi uygulamasının teknik kontrol 
 - Tarayıcıdaki kısa süreli pilot verisi merkezi öğrenci kaydı sayılmaz.
 - Ses dosyaları kalıcı, sürümlü ve erişim kontrollü depolamada önbelleklenir.
 
+## Sesli Anzan yayın notu
+
+- Sesli Anzan başlangıç ekranı ve çalışma başlatma koruması hazırdır.
+- Premium ses yalnız `CZA_TTS_PROVIDER=openai`, `OPENAI_API_KEY` ve `CZA_TTS_VOICE_ID` canlı ortam gizli değerleri tanımlandıktan sonra açılır.
+- Bu değerler eksikse uygulama çalışma başlatmaz ve "Ses yapılandırması bekleniyor" bilgisini gösterir. Bu kasıtlı bir korumadır; Flash Anzan ve diğer çalışma modlarını etkilemez.
+- Canlıya almadan önce Türkçe 1, 7, 6, 9, 10, 20, 30, 57 ve 99 telaffuzu ile 500 ms, 300 ms ve 200 ms sıralı oynatma gerçek cihazda doğrulanır.
+
 ## Yayın kapısı
 
 - Otomatik testler ve üretim derlemesi geçer.

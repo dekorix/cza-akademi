@@ -2,25 +2,24 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { educatorAuthRequest, educatorAuthError } from '@/lib/educator-auth-client';
 export default function ResetPassword() {
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState('');
   const [saving, setSaving] = useState(false);
   async function submit(e: React.SyntheticEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (saving) return;
     setSaving(true);
     setMessage('');
     const token = new URLSearchParams(location.search).get('token') || '';
-    const r = await fetch('/api/educator-auth', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ action: 'reset', token, newPassword: password }),
-    });
-    const result = await r.json().catch(() => ({}));
-    setMessage(r.ok ? 'Parolan hazır. Eğitimci panelinden giriş yapabilirsin.' :
-      result.error === 'rate_limited' ? 'Çok fazla deneme yapıldı. Birkaç dakika sonra tekrar dene.' :
-      'Bağlantı geçersiz veya süresi dolmuş. Yeni bir bağlantı iste.');
-    setSaving(false);
+    try {
+      await educatorAuthRequest({ action: 'reset', token, newPassword: password });
+      setPassword('');
+      setMessage('Parolan hazır. Eğitimci panelinden giriş yapabilirsin.');
+    } catch (error) {
+      setMessage(educatorAuthError(error));
+    } finally { setSaving(false); }
   }
   return (
     <main className="mx-auto max-w-md p-8">
@@ -29,13 +28,17 @@ export default function ResetPassword() {
         <Input
           type="password"
           minLength={8}
+          required
+          autoComplete="new-password"
+          aria-label="Yeni parola"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           placeholder="En az 8 karakter"
         />
         <Button className="w-full" disabled={saving}>{saving ? 'Kaydediliyor…' : 'Parolayı kaydet'}</Button>
       </form>
-      {message && <p className="mt-4">{message}</p>}
+      {message && <p role="status" className="mt-4">{message}</p>}
+      <a href="/educator?tab=reports" className="mt-5 inline-block font-semibold text-primary">Eğitimci girişine dön</a>
     </main>
   );
 }

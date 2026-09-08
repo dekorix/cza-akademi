@@ -20,7 +20,7 @@ test('main routes and query-bearing teaching/program links remain native anchors
   for (const [file, hrefs] of [
     ['app/page.tsx', ['/', '/studio', '/learn', '/educator']],
     ['app/learn/page.tsx', ['/', '/educator?tab=teaching']],
-    ['app/educator/page.tsx', ['/', '/studio?program=demo', '/studio', '/paritmetik?from=educator&username=zeynep7']],
+    ['app/educator/page.tsx', ['/', '/studio?program=demo', '/studio']],
     ['app/studio/page.tsx', ['/', '/educator']],
     ['components/teaching-reports.tsx', ['/learn']],
   ]) {
@@ -33,9 +33,10 @@ test('main routes and query-bearing teaching/program links remain native anchors
 });
 
 test('educator handoff carries the selected username but never a PIN', () => {
-  const educator = source('app/educator/page.tsx');
+  const educator = source('components/educator-students.tsx');
   const paritmetik = source('app/paritmetik/page.tsx');
-  assert.ok(educator.includes('/paritmetik?from=educator&username=zeynep7'));
+  assert.ok(educator.includes('/paritmetik?from=educator&username=${encodeURIComponent(student.username)}'));
+  assert.doesNotMatch(educator, /zeynep7/);
   assert.doesNotMatch(educator, /[?&]pin=/i);
   assert.match(paritmetik, /params\.get\('username'\)/);
   assert.match(paritmetik, /params\.get\('from'\) === 'educator'/);
