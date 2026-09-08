@@ -56,6 +56,7 @@ function answerMatches(taskCode: string, answer: string) {
   const expected = anchorAnswers[taskCode];
   if (!expected) return null;
   const value = normalize(answer);
+  if (!value) return null;
   return expected.some((item) => normalize(item) === value);
 }
 
@@ -108,11 +109,19 @@ export function routeAssessmentTask(taskCode: string, answer: string) {
   const matched = answerMatches(taskCode, answer);
   const adaptive = adaptiveNext[taskCode];
   if (adaptive) {
-    const correct = matched === true;
+    if (matched == null) {
+      return {
+        nextTaskCode: adaptive.correct,
+        correctness: null,
+        supportTriggered: false,
+        needsEducatorReview: true,
+      };
+    }
     return {
-      nextTaskCode: correct ? adaptive.correct : adaptive.incorrect,
-      correctness: correct ? 'correct' : 'incorrect',
-      supportTriggered: !correct,
+      nextTaskCode: matched ? adaptive.correct : adaptive.incorrect,
+      correctness: matched ? 'correct' : 'incorrect',
+      supportTriggered: !matched,
+      needsEducatorReview: false,
     };
   }
 
@@ -123,5 +132,6 @@ export function routeAssessmentTask(taskCode: string, answer: string) {
     nextTaskCode,
     correctness: matched === true ? 'correct' : matched === false ? 'incorrect' : null,
     supportTriggered: false,
+    needsEducatorReview: matched == null && Boolean(anchorAnswers[taskCode]),
   };
 }
