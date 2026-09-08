@@ -57,6 +57,8 @@ jobs:
           test -s /tmp/assessment-educator.html
           test -s /tmp/assessment-report.html
 
+      # The repository has existing lint debt. Keep assessment-only lint visible while
+      # typecheck, production build and runtime smoke tests remain the merge blockers.
       - name: Lint assessment changes
         continue-on-error: true
         run: >-
