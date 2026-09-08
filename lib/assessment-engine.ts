@@ -17,6 +17,21 @@ export type SkillId =
   | 'verbal_expression'
   | 'self_regulation';
 
+export type SkillCluster =
+  | 'Akademik Temel'
+  | 'Bilişsel İşlemleme'
+  | 'Üst Düzey Düşünme'
+  | 'Öz Düzenleme ve İfade';
+
+export interface SkillDefinition {
+  code: string;
+  label: string;
+  cluster: SkillCluster;
+  description: string;
+}
+
+export const CZA_SKILL_CATALOG_VERSION = 'CZA_14_SKILLS_V1.0';
+
 export type ObservationCode =
   | 'DIRECT_RECALL'
   | 'COUNTING'
@@ -63,21 +78,91 @@ export interface TaskAttempt {
   rubricScores: Record<string, number>;
 }
 
-export const skillCatalog: Record<SkillId, { label: string; cluster: string }> = {
-  number_sense: { label: 'Sayı ve nicelik algısı', cluster: 'Akademik temel' },
-  math_reasoning: { label: 'İşlem ve kavramsal matematik', cluster: 'Akademik temel' },
-  reading_fluency: { label: 'Okuma doğruluğu ve akıcılığı', cluster: 'Akademik temel' },
-  comprehension: { label: 'Okuduğunu / dinlediğini anlama', cluster: 'Akademik temel' },
-  written_expression: { label: 'Yazılı ifade ve yazma', cluster: 'Akademik temel' },
-  attention: { label: 'Dikkat ve seçici odaklanma', cluster: 'Bilişsel işlemleme' },
-  working_memory: { label: 'Çalışma belleği', cluster: 'Bilişsel işlemleme' },
-  processing_speed: { label: 'İşlemleme hızı', cluster: 'Bilişsel işlemleme' },
-  visual_spatial: { label: 'Görsel-uzamsal düşünme', cluster: 'Bilişsel işlemleme' },
-  pattern_reasoning: { label: 'Mantıksal muhakeme ve örüntü', cluster: 'Üst düzey düşünme' },
-  problem_solving: { label: 'Problem çözme', cluster: 'Üst düzey düşünme' },
-  cognitive_flexibility: { label: 'Yaratıcılık ve bilişsel esneklik', cluster: 'Üst düzey düşünme' },
-  verbal_expression: { label: 'Sözel ifade ve düşünceyi açıklama', cluster: 'İfade ve öz yönetim' },
-  self_regulation: { label: 'Planlama, öz kontrol ve yürütücü işlev', cluster: 'İfade ve öz yönetim' },
+export const skillCatalog: Record<SkillId, SkillDefinition> = {
+  number_sense: {
+    code: 'CZA-S01',
+    label: 'Sayı ve Nicelik Duyusu',
+    cluster: 'Akademik Temel',
+    description: 'Sayıların büyüklüğünü, miktarı, basamak değerini ve sayılar arasındaki ilişkileri kavramsal olarak anlamlandırma.'
+  },
+  math_reasoning: {
+    code: 'CZA-S02',
+    label: 'Matematiksel Muhakeme ve İşlem Esnekliği',
+    cluster: 'Akademik Temel',
+    description: 'İşlemlerin anlamını kavrama, uygun strateji seçme, farklı çözüm yolları üretme ve matematiksel düşünceyi yeni duruma taşıma.'
+  },
+  reading_fluency: {
+    code: 'CZA-S03',
+    label: 'Okuma Doğruluğu ve Akıcılığı',
+    cluster: 'Akademik Temel',
+    description: 'Yaşa ve öğretim düzeyine uygun metni doğru, anlaşılır ve giderek otomatikleşen biçimde okuyabilme.'
+  },
+  comprehension: {
+    code: 'CZA-S04',
+    label: 'Anlama ve Çıkarım',
+    cluster: 'Akademik Temel',
+    description: 'Okunan veya dinlenen bilgiyi anlama, neden-sonuç kurma, örtük bilgiyi çıkarma ve bilgiyi yeni bağlama aktarma.'
+  },
+  written_expression: {
+    code: 'CZA-S05',
+    label: 'Yazılı İfade',
+    cluster: 'Akademik Temel',
+    description: 'Düşünceyi yaş düzeyine uygun sözcük, cümle ve yazılı anlatım yoluyla anlaşılır biçimde ifade etme.'
+  },
+  attention: {
+    code: 'CZA-S06',
+    label: 'Seçici ve Sürdürülen Dikkat',
+    cluster: 'Bilişsel İşlemleme',
+    description: 'Hedef uyaranı seçme, dikkat dağıtıcıları baskılama ve görev boyunca odağı yeterli süre koruma.'
+  },
+  working_memory: {
+    code: 'CZA-S07',
+    label: 'Çalışma Belleği',
+    cluster: 'Bilişsel İşlemleme',
+    description: 'Bilgiyi kısa süre zihinde tutma, sırasını koruma ve gerektiğinde zihinsel olarak işleyip dönüştürme.'
+  },
+  processing_speed: {
+    code: 'CZA-S08',
+    label: 'İşlemleme Hızı ve Hız-Doğruluk Dengesi',
+    cluster: 'Bilişsel İşlemleme',
+    description: 'Basit veya öğrenilmiş bilgiyi uygun hızda işleme; hız artarken doğruluk ve kontrolü koruyabilme.'
+  },
+  visual_spatial: {
+    code: 'CZA-S09',
+    label: 'Görsel-Uzamsal İşlemleme',
+    cluster: 'Bilişsel İşlemleme',
+    description: 'Şekil, konum, yön, parça-bütün ve mekânsal ilişkileri zihinde temsil etme ve kullanma.'
+  },
+  pattern_reasoning: {
+    code: 'CZA-S10',
+    label: 'Mantıksal Örüntü ve Kural Çıkarma',
+    cluster: 'Üst Düzey Düşünme',
+    description: 'Diziler, ilişkiler ve ipuçları içinden düzeni fark etme, kuralı çıkarma ve gerekçelendirme.'
+  },
+  problem_solving: {
+    code: 'CZA-S11',
+    label: 'Problem Çözme ve Strateji Kurma',
+    cluster: 'Üst Düzey Düşünme',
+    description: 'Problemi tanımlama, plan yapma, uygun strateji seçme, sonucu kontrol etme ve gerektiğinde yöntemi değiştirme.'
+  },
+  cognitive_flexibility: {
+    code: 'CZA-S12',
+    label: 'Bilişsel Esneklik ve Yaratıcı Üretim',
+    cluster: 'Üst Düzey Düşünme',
+    description: 'Tek bir çözüme takılmadan alternatif üretme, kural değişimine uyum sağlama ve özgün fakat işe yarar fikirler geliştirme.'
+  },
+  verbal_expression: {
+    code: 'CZA-S13',
+    label: 'Sözel İfade ve Gerekçelendirme',
+    cluster: 'Öz Düzenleme ve İfade',
+    description: 'Düşünceyi sözlü olarak açık, bağlantılı ve gerekçeli biçimde ifade etme; nasıl düşündüğünü anlatabilme.'
+  },
+  self_regulation: {
+    code: 'CZA-S14',
+    label: 'Öz Düzenleme ve Yürütücü Kontrol',
+    cluster: 'Öz Düzenleme ve İfade',
+    description: 'Göreve başlama, planlama, dürtüyü kontrol etme, hatayı fark edip düzeltme, sebat etme ve yardım ihtiyacını uygun biçimde yönetme.'
+  },
 };
 
 const warmRubric: RubricDimension[] = [
