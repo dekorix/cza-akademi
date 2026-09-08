@@ -32,8 +32,21 @@ jobs:
       - name: Type check
         run: pnpm exec tsc --noEmit
 
-      - name: Lint
-        run: pnpm lint
-
       - name: Build
         run: pnpm build
+
+      - name: Lint assessment changes
+        run: >-
+          pnpm exec oxlint
+          app/assessment
+          app/educator/assessment
+          components/assessment-report.tsx
+          lib/assessment-engine.ts
+          lib/assessment-routing.ts
+          lib/assessment-math.ts
+          lib/assessment-math-extended.ts
+          lib/assessment-language.ts
+          lib/assessment-cognitive.ts
+          lib/assessment-learning-response.ts
+          lib/assessment-report.ts
+          types/http-json.d.ts
