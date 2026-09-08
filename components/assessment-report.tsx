@@ -1,5 +1,6 @@
 'use client';
 
+import type { LucideIcon } from 'lucide-react';
 import { BrainCircuit, FileText, Gauge, Lightbulb, Printer, ShieldCheck, Sparkles, Target } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { CzaAssessmentReport, SkillReport } from '@/lib/assessment-report';
@@ -32,9 +33,17 @@ function familyInitialLabel(value: string) {
   return 'Henüz görülmedi';
 }
 
+type MetricCard = { label: string; value: string; caption: string; icon: LucideIcon };
+
 export function AssessmentReport({ report, studentLabel }: { report: CzaAssessmentReport; studentLabel: string }) {
   const usableSkills = report.skills.filter((skill) => skill.status !== 'INSUFFICIENT');
   const completedMath = report.math.families.filter((family) => family.initial !== 'not_seen');
+  const metricCards: MetricCard[] = [
+    { label: 'Kanıt kapsamı', value: `%${report.evidenceCoverage}`, caption: 'Birden fazla görev ailesinden oluşan profil', icon: ShieldCheck },
+    { label: 'Öğrenme tepkisi', value: report.learningResponse.index == null ? '—' : `${report.learningResponse.index}/100`, caption: report.learningResponse.label, icon: Gauge },
+    { label: 'Tamamlanan görev', value: String(report.process.completedTaskCount), caption: `${report.process.supportTaskCount} destek görevi açıldı`, icon: Target },
+    { label: 'Öz-düzeltme', value: String(report.process.selfCorrectionCount), caption: 'Cevap/strateji değişim işareti', icon: Sparkles },
+  ];
 
   return <section className="space-y-6 print:space-y-4">
     <section className="overflow-hidden rounded-3xl border border-[#d8e7df] bg-white shadow-sm print:shadow-none">
@@ -49,16 +58,14 @@ export function AssessmentReport({ report, studentLabel }: { report: CzaAssessme
         </div>
       </div>
       <div className="grid gap-4 p-6 md:grid-cols-4 md:p-8">
-        {[
-          ['Kanıt kapsamı', `%${report.evidenceCoverage}`, 'Birden fazla görev ailesinden oluşan profil', ShieldCheck],
-          ['Öğrenme tepkisi', report.learningResponse.index == null ? '—' : `${report.learningResponse.index}/100`, report.learningResponse.label, Gauge],
-          ['Tamamlanan görev', String(report.process.completedTaskCount), `${report.process.supportTaskCount} destek görevi açıldı`, Target],
-          ['Öz-düzeltme', String(report.process.selfCorrectionCount), 'Cevap/strateji değişim işareti', Sparkles],
-        ].map(([label, value, caption, Icon]) => <div key={String(label)} className="rounded-2xl border border-[#e0ebe5] bg-[#f9fcfa] p-5">
-          <div className="flex items-center gap-2 text-[#477565]"><Icon size={18}/><p className="text-xs font-bold uppercase tracking-[.1em]">{label}</p></div>
-          <p className="mt-3 text-2xl font-semibold text-[#18372f]">{value}</p>
-          <p className="mt-1 text-xs leading-5 text-muted-foreground">{caption}</p>
-        </div>)}
+        {metricCards.map((card) => {
+          const Icon = card.icon;
+          return <div key={card.label} className="rounded-2xl border border-[#e0ebe5] bg-[#f9fcfa] p-5">
+            <div className="flex items-center gap-2 text-[#477565]"><Icon size={18}/><p className="text-xs font-bold uppercase tracking-[.1em]">{card.label}</p></div>
+            <p className="mt-3 text-2xl font-semibold text-[#18372f]">{card.value}</p>
+            <p className="mt-1 text-xs leading-5 text-muted-foreground">{card.caption}</p>
+          </div>;
+        })}
       </div>
       <div className="border-t border-[#e5ece8] px-6 py-5 md:px-8"><p className="text-sm leading-6 text-[#52665f]">{report.evidenceNote}</p></div>
     </section>
