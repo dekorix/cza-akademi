@@ -22,6 +22,7 @@ Bu çalışma mevcut Apps Script Kampüs yayınına dokunmadan ayrı bir uygulam
 - Eğitimci Kampüsü oturum doğrulamasıyla öğrenci kodu 582946 için toplam/doğru/yanlış/başarı, mod dağılımı, hata ve son soru kayıtları.
 - Eğitimci deneme programı, ayrıca filtrelenebilir cihaz içi yedek sonuçlar ve CSV indirme.
 - Atölye yol haritasında çalışan pilot ile henüz geliştirilmemiş alanların ayrılması.
+- CZA Değerlendirme Motoru V1: `/assessment`, `/educator/assessment` ve `/educator/assessment/report` rotaları; 14 beceri standardı, adaptif görev aileleri, öğrenme tepkisi ve bütüncül rapor çekirdeği.
 
 ## Sınırlar
 
@@ -33,7 +34,21 @@ Bu çalışma mevcut Apps Script Kampüs yayınına dokunmadan ayrı bir uygulam
 - Ders kayıtları ayrı sessionStorage anahtarında en son 40 tamamlanmış çalışmayla sınırlıdır. Yarım kalan dersler kaydedilmez; ders değiştirmede ve sekme kapanışında uyarı vardır. Kalıcı öğrenci portfolyosu değildir.
 - Ekrandaki boncuk adımları fiziksel parmak/duruş/eşzamanlı hareketi ölçmez. Fiziksel 6–9 oluşturmanın eşzamanlı hareketi ekranda ayrı tıklamalara ayrılır. Eğitimci gözlemi ve içerik kabulü gereklidir.
 - Sesli Anzan cihaz konuşmasını kullanır; dil/ses kalitesi platforma bağlıdır. Eğitimci onaylı profesyonel ses kayıtları sonraki fazdadır.
-- 14 CZA becerisi ile atölye eşleştirmeleri henüz eğitimci tarafından onaylanmadı.
+- CZA Değerlendirme Motoru henüz ana dala birleştirilmedi. Dışarıdan erişilebilir kalıcı preview URL’si bağlı hosting hesabı olmadığı için oluşturulamadı.
+
+## CZA Değerlendirme Motoru V1 doğrulaması — 8 Eylül 2026
+
+- GitHub Actions üzerinde Node 22.13 + pnpm ile gerçek CI akışı oluşturuldu.
+- `pnpm exec tsc --noEmit` başarıyla tamamlandı.
+- `pnpm build` / `vinext build` gerçek üretim derlemesi başarıyla tamamlandı.
+- Derlenen uygulama `wrangler dev --config dist/server/wrangler.json` ile CI içinde gerçek Worker runtime üzerinde başlatıldı.
+- Aşağıdaki üç rota HTTP smoke testinden başarıyla geçti:
+  - `/assessment`
+  - `/educator/assessment`
+  - `/educator/assessment/report`
+- Böylece değerlendirme ekranlarının yalnız kaynak kod seviyesinde değil, derlenmiş çalışma ortamında da açılabildiği doğrulandı.
+- Assessment kapsamındaki oxlint teknik borcu ayrı izleniyor; üretim derlemesini veya runtime smoke testini engellemiyor. CI’de görünür tutuluyor.
+- Vercel bağlantısında kullanılabilir takım/proje görünmediği için kalıcı dış preview adresi bu doğrulama kapsamında üretilemedi.
 
 ## Bir sonraki uygulama fazı
 
