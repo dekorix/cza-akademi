@@ -1,9 +1,10 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { ArrowRight, CheckCircle2, Mic, Sparkles } from 'lucide-react';
+import { ArrowRight, BrainCircuit, CheckCircle2, Mic, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { AssessmentTask } from '@/lib/assessment-engine';
+import { routeAssessmentTask } from '@/lib/assessment-routing';
 
 async function callAssessment(body: Record<string, unknown>) {
   const response = await fetch('/api/assessment', {
@@ -49,7 +50,8 @@ export default function AssessmentStudentPage() {
   }, []);
 
   const task = useMemo(() => tasks.find((item) => item.id === currentCode), [tasks, currentCode]);
-  const index = task ? tasks.findIndex((item) => item.id === task.id) : -1;
+  const attemptedStep = task ? tasks.findIndex((item) => item.id === task.id) : -1;
+  const isMath = task?.id.startsWith('MAT-') ?? false;
 
   function touch() {
     if (!firstActionAt.current) firstActionAt.current = Date.now();
@@ -59,7 +61,8 @@ export default function AssessmentStudentPage() {
     if (!task) return;
     touch();
     const completedAt = Date.now();
-    const nextTask = tasks[index + 1];
+    const route = routeAssessmentTask(task.id, answer);
+    const nextTask = route.nextTaskCode ? tasks.find((item) => item.id === route.nextTaskCode) : undefined;
     try {
       await callAssessment({
         action: 'attempt',
@@ -70,9 +73,14 @@ export default function AssessmentStudentPage() {
         completedAt,
         answerText: verbal && !answer.trim() ? '[Sözlü cevap]' : answer,
         answerChanges: answerChanges.current,
-        supportLevel: 0,
-        selfCorrected: answerChanges.current > 0,
+        supportLevel: task.role === 'SUPPORT_PROBE' ? 3 : 0,
+        selfCorrected: answerChanges.current > 1,
         rubricScores: {},
+        answerPayload: {
+          routeCorrectness: route.correctness,
+          supportTriggered: route.supportTriggered,
+          responseMode: verbal ? 'SPEAK' : 'TEXT',
+        },
         nextTaskCode: nextTask?.id,
       });
       if (!nextTask) {
@@ -94,22 +102,26 @@ export default function AssessmentStudentPage() {
 
   if (status === 'loading') return <main className="flex min-h-screen items-center justify-center bg-[#f7fbf8] text-sm text-muted-foreground">CZA değerlendirme alanı hazırlanıyor…</main>;
   if (status === 'error') return <main className="flex min-h-screen items-center justify-center bg-[#f7fbf8] p-6"><div className="max-w-lg rounded-3xl border bg-white p-8 text-center"><p className="text-xl font-semibold">Bağlantıyı açamadık</p><p className="mt-3 text-sm text-muted-foreground">{error}</p></div></main>;
-  if (status === 'done') return <main className="flex min-h-screen items-center justify-center bg-[#f7fbf8] p-6"><div className="max-w-xl rounded-3xl border border-[#c7e5d5] bg-white p-9 text-center shadow-sm"><span className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#e5f6ed] text-[#226f60]"><CheckCircle2 size={34}/></span><h1 className="mt-5 text-3xl font-bold text-[#18372f]">Harika bir keşif yaptık!</h1><p className="mt-3 text-base leading-7 text-muted-foreground">Burada doğru ya da yanlış olmaktan çok, nasıl düşündüğün önemliydi. Şimdi eğitmenin senin güçlü yönlerine bakacak.</p></div></main>;
+  if (status === 'done') return <main className="flex min-h-screen items-center justify-center bg-[#f7fbf8] p-6"><div className="max-w-xl rounded-3xl border border-[#c7e5d5] bg-white p-9 text-center shadow-sm"><span className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#e5f6ed] text-[#226f60]"><CheckCircle2 size={34}/></span><h1 className="mt-5 text-3xl font-bold text-[#18372f]">Harika bir keşif yaptık!</h1><p className="mt-3 text-base leading-7 text-muted-foreground">Burada sadece doğru cevaplara değil, nasıl düşündüğüne, hangi yolu seçtiğine ve yeni bir fikri nasıl kullandığına baktık.</p></div></main>;
 
   if (!task) return null;
   const isProbe = task.role === 'CZA_PROBE';
+  const isSupport = task.role === 'SUPPORT_PROBE';
+  const isTransfer = task.role === 'TRANSFER';
+  const roleLabel = isSupport ? 'Birlikte Bir İpucu' : isTransfer ? 'Yeni Durumda Dene' : isProbe ? 'CZA Zihin Sorusu' : isMath ? 'Tanıdık Matematik Sorusu' : 'Kolay Başlangıç';
+  const progressText = isMath ? `Matematik keşfi · ${task.groupId.replace('MAT-0','')}/5` : `Tanışma · ${Math.max(1,attemptedStep + 1)}/10`;
 
   return <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,#eef8f2,transparent_42%),linear-gradient(#fbfdfc,#f5faf7)] px-4 py-6 md:px-8 md:py-10">
     <div className="mx-auto max-w-5xl">
       <header className="mb-6 flex items-center justify-between gap-3">
-        <div className="flex items-center gap-3"><span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#18372f] text-xs font-black text-white">CZA</span><div><p className="font-semibold text-[#18372f]">Zihin Keşif Yolculuğu</p><p className="text-xs text-muted-foreground">Isınma ve tanışma</p></div></div>
-        <div className="rounded-full border bg-white px-4 py-2 text-xs font-semibold text-[#45685e]">{Math.max(1,index + 1)} / {tasks.length}</div>
+        <div className="flex items-center gap-3"><span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#18372f] text-xs font-black text-white">CZA</span><div><p className="font-semibold text-[#18372f]">Zihin Keşif Yolculuğu</p><p className="text-xs text-muted-foreground">{progressText}</p></div></div>
+        <div className="rounded-full border bg-white px-4 py-2 text-xs font-semibold text-[#45685e]">{isMath ? 'Sayı Laboratuvarı' : 'Tanışma Alanı'}</div>
       </header>
 
       <section className="overflow-hidden rounded-[2rem] border border-[#d7e9df] bg-white shadow-[0_18px_60px_rgba(39,97,81,0.08)]">
-        <div className={`px-6 py-5 md:px-9 ${isProbe ? 'bg-[#fff6df]' : 'bg-[#eaf6ef]'}`}>
-          <div className="flex items-center gap-2 text-sm font-bold text-[#276151]">{isProbe ? <Sparkles size={18}/> : <span className="text-lg">☀️</span>}{isProbe ? 'CZA Zihin Sorusu' : 'Kolay Başlangıç'}</div>
-          <p className="mt-1 text-xs text-[#5b776f]">Aklına geleni söyleyebilirsin. Burada tek bir doğru cevap yok.</p>
+        <div className={`px-6 py-5 md:px-9 ${isSupport ? 'bg-[#edf3ff]' : isProbe || isTransfer ? 'bg-[#fff6df]' : 'bg-[#eaf6ef]'}`}>
+          <div className="flex items-center gap-2 text-sm font-bold text-[#276151]">{isMath ? <BrainCircuit size={18}/> : isProbe ? <Sparkles size={18}/> : <span className="text-lg">☀️</span>}{roleLabel}</div>
+          <p className="mt-1 text-xs text-[#5b776f]">{isSupport ? 'Bu bir başarısızlık değil; düşünme yolunu daha yakından görmek için küçük bir destek.' : isMath ? 'Önce bildiğin yerden başla; sonra düşünme yolunu birlikte keşfedeceğiz.' : 'Aklına geleni söyleyebilirsin. Burada tek bir doğru cevap yok.'}</p>
         </div>
         <div className="px-6 py-8 md:px-10 md:py-12">
           <p className="text-sm font-semibold uppercase tracking-[.14em] text-[#8a9f98]">{task.title}</p>
@@ -120,7 +132,7 @@ export default function AssessmentStudentPage() {
               value={answer}
               onFocus={touch}
               onChange={(e) => { touch(); answerChanges.current += 1; setAnswer(e.target.value); }}
-              placeholder="İstersen buraya yazabilirsin…"
+              placeholder={isMath ? 'Cevabını veya düşündüğün yolu buraya yazabilirsin…' : 'İstersen buraya yazabilirsin…'}
               className="min-h-40 w-full resize-none rounded-2xl border border-[#d8e7df] bg-[#fbfdfc] p-5 text-lg outline-none transition focus:border-[#75af98] focus:ring-4 focus:ring-[#dcefe6]"
             />
             <button
@@ -128,7 +140,7 @@ export default function AssessmentStudentPage() {
               onClick={() => { touch(); setVerbal((value) => !value); }}
               className={`flex min-h-28 min-w-44 flex-col items-center justify-center rounded-2xl border px-6 font-semibold transition ${verbal ? 'border-[#69a789] bg-[#e6f5ed] text-[#226f60]' : 'border-[#eadfbf] bg-[#fff9e9] text-[#856f32]'}`}
             >
-              <Mic size={28}/><span className="mt-2">{verbal ? 'Sözlü cevap verdim ✓' : 'Sözlü cevap vereceğim'}</span>
+              <Mic size={28}/><span className="mt-2">{verbal ? 'Sözlü cevap verdim ✓' : 'Sözlü de anlatacağım'}</span>
             </button>
           </div>
           <div className="mt-8 flex items-center justify-between gap-4 border-t border-[#edf2ef] pt-6">
