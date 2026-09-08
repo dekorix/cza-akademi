@@ -1,6 +1,7 @@
 import { neon } from '@neondatabase/serverless';
 import { assessmentTasks } from '@/lib/assessment-routing';
 import { calculateLearningResponse, type AssessmentAttemptRecord } from '@/lib/assessment-learning-response';
+import { generateAssessmentReport, type ReportAttempt, type ReportObservation } from '@/lib/assessment-report';
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -79,14 +80,14 @@ export async function POST(request: Request) {
           'CZA_1_TO_2_V1',
           ${studentLabel},
           ${firstTask},
-          ${JSON.stringify({ version: 3, stations: ['WARMUP','MATHEMATICS','LANGUAGE','COGNITIVE'], learningResponseVersion: 1 })}::jsonb
+          ${JSON.stringify({ version: 4, stations: ['WARMUP','MATHEMATICS','LANGUAGE','COGNITIVE'], learningResponseVersion: 1, reportVersion: 1 })}::jsonb
         )
         RETURNING id, template_code, student_label, status, current_task_code, started_at, metadata
       `;
       return json({ ok: true, session: rows[0], tasks: assessmentTasks });
     }
 
-    if (action === 'get') {
+    if (action === 'get' || action === 'report') {
       const sessionId = typeof input.sessionId === 'string' ? input.sessionId : '';
       if (!sessionId) return json({ ok: false, error: 'session_required' }, 400);
       const sessions = await sql`
@@ -103,7 +104,14 @@ export async function POST(request: Request) {
         WHERE session_id = ${sessionId}::uuid ORDER BY created_at ASC
       `;
       const learningResponse = calculateLearningResponse(attempts as AssessmentAttemptRecord[], assessmentTasks);
-      return json({ ok: true, session: sessions[0], attempts, observations, tasks: assessmentTasks, learningResponse });
+      const report = generateAssessmentReport(
+        attempts as ReportAttempt[],
+        observations as ReportObservation[],
+        assessmentTasks,
+        learningResponse,
+      );
+      if (action === 'report') return json({ ok: true, session: sessions[0], report });
+      return json({ ok: true, session: sessions[0], attempts, observations, tasks: assessmentTasks, learningResponse, report });
     }
 
     if (action === 'attempt') {
