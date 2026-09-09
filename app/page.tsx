@@ -31,7 +31,31 @@ export function StudentPortal({ area }: { area: 'main' | 'work' }) {
   const displayName = student ? studentName(student) : 'Öğrenci';
 
   useEffect(() => {
-    core('me').then(data => setStudent(coreStudent(data))).catch(() => setStudent(null)).finally(() => setAuthLoading(false));
+    async function restoreStudent() {
+      try {
+        const ticket = new URLSearchParams(window.location.search).get('handoff');
+        if (ticket) {
+          const response = await fetch('/api/legacy-handoff', {
+            method: 'POST',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({ ticket }),
+          });
+          const result = await response.json() as { ok?: boolean; error?: string };
+          window.history.replaceState({}, '', '/work');
+          if (!response.ok || result.ok !== true) throw new Error(result.error || 'handoff_unavailable');
+        }
+        const data = await core('me');
+        setStudent(coreStudent(data));
+      } catch (error) {
+        setStudent(null);
+        if (error instanceof Error && error.message !== 'session_required' && error.message !== 'invalid_session') {
+          setLoginError('Güvenli panel geçişi tamamlanamadı. Öğrenci paneline dönüp yeniden dene.');
+        }
+      } finally {
+        setAuthLoading(false);
+      }
+    }
+    void restoreStudent();
   }, []);
 
   async function login(event: React.SyntheticEvent<HTMLFormElement>) {
