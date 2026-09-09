@@ -62,3 +62,28 @@ export async function POST(request: Request) {
     return json({ ok: false, error: 'handoff_unavailable' }, 502);
   }
 }
+
+export async function GET(request: Request) {
+  const url = new URL(request.url);
+  const ticket = url.searchParams.get('ticket') || '';
+  const exchange = await POST(new Request(request.url, {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json',
+      'user-agent': request.headers.get('user-agent') || '',
+    },
+    body: JSON.stringify({ ticket }),
+  }));
+
+  if (!exchange.ok) {
+    return Response.redirect(new URL('/work?handoffError=1', url), 303);
+  }
+
+  const headers = new Headers({
+    location: new URL('/work', url).toString(),
+    'cache-control': 'no-store',
+  });
+  const cookie = exchange.headers.get('set-cookie');
+  if (cookie) headers.set('set-cookie', cookie);
+  return new Response(null, { status: 303, headers });
+}

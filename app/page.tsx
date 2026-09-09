@@ -35,15 +35,10 @@ export function StudentPortal({ area }: { area: 'main' | 'work' }) {
       try {
         const ticket = new URLSearchParams(window.location.search).get('handoff');
         if (ticket) {
-          const response = await fetch('/api/legacy-handoff', {
-            method: 'POST',
-            headers: { 'content-type': 'application/json' },
-            body: JSON.stringify({ ticket }),
-          });
-          const result = await response.json() as { ok?: boolean; error?: string };
-          window.history.replaceState({}, '', '/work');
-          if (!response.ok || result.ok !== true) throw new Error(result.error || 'handoff_unavailable');
+          window.location.replace(`/api/legacy-handoff?ticket=${encodeURIComponent(ticket)}`);
+          return;
         }
+        if (new URLSearchParams(window.location.search).get('handoffError')) throw new Error('handoff_unavailable');
         const data = await core('me');
         setStudent(coreStudent(data));
       } catch (error) {

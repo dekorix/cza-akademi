@@ -18,8 +18,11 @@ test('legacy handoff is server-validated and creates an HttpOnly scoped session'
   assert.doesNotMatch(route, /pin_hash/);
 });
 
-test('work panel consumes the handoff before checking the current session', () => {
+test('work panel exchanges the handoff through a top-level redirect', () => {
   assert.match(page, /legacy-handoff/);
   assert.match(page, /URLSearchParams\(window\.location\.search\)\.get\('handoff'\)/);
-  assert.match(page, /history\.replaceState/);
+  assert.match(page, /window\.location\.replace/);
+  assert.match(route, /export async function GET/);
+  assert.match(route, /Response\.redirect/);
+  assert.match(route, /status: 303/);
 });
