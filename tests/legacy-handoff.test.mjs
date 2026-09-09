@@ -12,6 +12,8 @@ test('legacy handoff is server-validated and creates an HttpOnly scoped session'
   assert.match(route, /createHash\('sha256'\)/);
   assert.match(route, /HttpOnly/);
   assert.match(route, /Path=\/api\/core/);
+  assert.match(route, /legacy_reference/);
+  assert.match(route, /upper\(i\.identifier_value\) = upper/);
   assert.match(route, /SameSite=Lax/);
   assert.doesNotMatch(route, /pin_hash/);
 });

@@ -37,8 +37,8 @@ export async function POST(request: Request) {
       FROM public.student_external_identifiers i
       JOIN public.students s ON s.id = i.student_id
       JOIN public.users u ON u.id = s.user_id
-      WHERE i.identifier_type = 'campus_student_code'
-        AND i.identifier_value = ${handoff.studentCode}
+      WHERE i.identifier_type IN ('campus_student_code', 'legacy_reference')
+        AND upper(i.identifier_value) = upper(${handoff.studentCode})
         AND s.status = 'active' AND u.is_active = true AND u.role = 'student'
       LIMIT 1
     `;
