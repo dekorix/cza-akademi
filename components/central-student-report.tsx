@@ -55,7 +55,7 @@ function message(code: string) {
 export function CentralStudentReport({ children, initialCode = '' }: { children?: ReactNode; initialCode?: string } = {}) {
   const [authenticated, setAuthenticated] = useState(false);
   const [checking, setChecking] = useState(true);
-  const [email, setEmail] = useState('');
+  const [email] = useState('celikzihin.akademisi@gmail.com');
   const [password, setPassword] = useState('');
   const [code, setCode] = useState(initialCode);
   const [loading, setLoading] = useState(false);
@@ -144,10 +144,10 @@ export function CentralStudentReport({ children, initialCode = '' }: { children?
           id="educatorEmail"
           type="email"
           required
+          readOnly
           autoComplete="username"
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="mt-2"
+          className="mt-2 bg-muted/40"
         />
         <label
           className="mt-4 block text-xs font-semibold"
