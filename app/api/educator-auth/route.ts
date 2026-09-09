@@ -13,21 +13,25 @@ export async function POST(request:Request){
   if(action==='request-reset'){
     if(email!=='celikzihin.akademisi@gmail.com')return json({ok:false,error:'invalid_credentials'},401);
     const redirectTo=`${new URL(request.url).origin}/educator/reset-password`;
-    const upstream=await fetch(authUrl('/request-password-reset'),{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({email,redirectTo})});
+    const upstream=await fetch(authUrl('/request-password-reset'),{method:'POST',headers:{'content-type':'application/json',origin:new URL(request.url).origin},body:JSON.stringify({email,redirectTo})});
     return upstream.ok?json({ok:true}):json({ok:false,error:'reset_unavailable'},502);
   }
   if(action==='reset'){
     const token=typeof body.token==='string'?body.token:'';const newPassword=typeof body.newPassword==='string'?body.newPassword:'';
     if(!token||newPassword.length<8)return json({ok:false,error:'invalid_reset'},400);
-    const upstream=await fetch(authUrl('/reset-password'),{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({token,newPassword})});
-    return upstream.ok?json({ok:true}):json({ok:false,error:'invalid_reset'},400);
+    const upstream=await fetch(authUrl('/reset-password'),{method:'POST',headers:{'content-type':'application/json',origin:new URL(request.url).origin},body:JSON.stringify({token,newPassword})});
+    if(upstream.ok)return json({ok:true});
+    const failure=await upstream.json().catch(()=>({})) as {code?:string};
+    const invalid=['INVALID_TOKEN','TOKEN_EXPIRED'].includes(failure.code||'');
+    return json({ok:false,error:invalid?'invalid_reset':'reset_unavailable'},invalid?400:502);
   }
   const gate=allowRequest(request,'educator-login',6,10*60*1000);if(!gate.allowed)return rateLimited(gate.retryAfterSeconds);
   if(action!=='login')return json({ok:false,error:'invalid_action'},400);
   if(email!=='celikzihin.akademisi@gmail.com')return json({ok:false,error:'invalid_credentials'},401);
   const password=typeof body.password==='string'?body.password:'';if(password.length<8)return json({ok:false,error:'invalid_credentials'},401);
-  const upstream=await fetch(authUrl('/sign-in/email'),{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({email,password,rememberMe:false})});
+  const upstream=await fetch(authUrl('/sign-in/email'),{method:'POST',headers:{'content-type':'application/json',origin:new URL(request.url).origin},body:JSON.stringify({email,password,rememberMe:false})});
   const result=await upstream.json().catch(()=>({})) as Record<string,unknown>;if(!upstream.ok)return json({ok:false,error:'invalid_credentials'},401);
   const setCookie=upstream.headers.get('set-cookie')||'';const pair=setCookie.split(';',1)[0];if(!pair.includes('='))return json({ok:false,error:'session_not_created'},502);
   return json({ok:true,user:result.user},200,{'set-cookie':educatorCookie(pair,60*60*8,secure)});
 }
+
