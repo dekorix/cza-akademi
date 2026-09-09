@@ -18,7 +18,7 @@ test('cross-page navigation does not depend on the failing client router shim', 
 
 test('main routes and query-bearing teaching/program links remain native anchors', () => {
   for (const [file, hrefs] of [
-    ['app/page.tsx', ['/', '/studio', '/learn', '/educator']],
+    ['app/page.tsx', ['/work', '/studio', '/learn']],
     ['app/learn/page.tsx', ['/', '/educator?tab=teaching']],
     ['app/educator/page.tsx', ['/', '/studio?program=demo', '/studio']],
     ['app/studio/page.tsx', ['/', '/educator']],
@@ -30,6 +30,7 @@ test('main routes and query-bearing teaching/program links remain native anchors
   assert.match(source('app/page.tsx'), /<a[^>]*href=\{module\.href\}/);
   assert.ok(source('app/page.tsx').includes('/studio?mode=flash'));
   assert.ok(source('app/page.tsx').includes('/studio?mode=audio'));
+  assert.match(source('app/page.tsx'), /window\.location\.replace\(CAMPUS_V14_URL\)/);
 });
 
 test('educator handoff carries the selected username but never a PIN', () => {

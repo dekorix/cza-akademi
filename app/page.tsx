@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { ArrowRight, AudioLines, BookOpenCheck, BrainCircuit, ChartNoAxesCombined, Check, ChevronRight, Clock3, Flame, Hand, LayoutDashboard, Menu, Play, Sparkles, Target, X } from 'lucide-react';
+import { ArrowRight, AudioLines, BookOpenCheck, BrainCircuit, ChartNoAxesCombined, Check, ChevronRight, Clock3, Dumbbell, Flame, Hand, LayoutDashboard, LogOut, Menu, Play, School, ShieldCheck, Sparkles, Target, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -16,7 +16,9 @@ const modules = [
   { title: 'Sesli Anzan', detail: 'Dinle, canlandır, hesapla', icon: AudioLines, color: '#eef1f4', ink: '#6c7b8d', level: 'Sıradaki adım', progress: 0, href: '/studio?mode=audio' },
 ];
 
-export default function Home() {
+const CAMPUS_V14_URL = 'https://script.google.com/macros/s/AKfycbwIS-o_6HB8GiA-pLhR-zK4aRZCqo_kz_dpUJFWA94NqMUT2E22tu6tThHPSAT0Ro92/exec?v=14';
+
+export function StudentPortal({ area }: { area: 'main' | 'work' }) {
   const [authLoading, setAuthLoading] = useState(true);
   const [student, setStudent] = useState<CoreStudent | null>(null);
   const [username, setUsername] = useState('');
@@ -44,8 +46,24 @@ export default function Home() {
     }
   }
 
+  async function logout() {
+    try { await core('logout'); } finally { setStudent(null); setPin(''); }
+  }
+
   if (authLoading) return <div className="grid min-h-screen place-items-center bg-background text-sm text-muted-foreground">Öğrenci oturumu açılıyor…</div>;
   if (!student) return <main className="min-h-screen bg-background px-5 py-12"><form onSubmit={login} className="mx-auto mt-[8vh] max-w-md rounded-3xl border border-border bg-white p-8 shadow-lg"><p className="eyebrow text-primary">ÇELİK ZİHİN AKADEMİSİ</p><h1 className="mt-3 text-3xl font-semibold">Öğrenci girişi</h1><p className="mt-2 text-base leading-7 text-muted-foreground">Çalışma merkezine girmek için kullanıcı adı ve PIN bilgilerini yaz.</p><label className="mt-7 block text-sm font-semibold" htmlFor="home-username">Kullanıcı adı</label><Input id="home-username" autoComplete="username" value={username} onChange={event => setUsername(event.target.value)} className="mt-2 h-12" required /><label className="mt-4 block text-sm font-semibold" htmlFor="home-pin">PIN</label><Input id="home-pin" type="password" inputMode="numeric" maxLength={6} autoComplete="current-password" value={pin} onChange={event => setPin(event.target.value.replace(/\D/g, ''))} className="mt-2 h-12" required />{loginError && <p role="alert" className="mt-4 rounded-xl bg-red-50 p-4 text-sm font-semibold text-red-800">{loginError}</p>}<Button type="submit" className="mt-6 h-12 w-full text-base" disabled={!username.trim() || !pin.trim()}>Giriş yap</Button></form></main>;
+
+  if (area === 'main') return <div className="min-h-screen bg-background">
+    <header className="border-b border-border bg-white"><div className="mx-auto flex h-20 max-w-6xl items-center justify-between gap-4 px-5"><div className="flex items-center gap-3"><span className="grid h-10 w-10 place-items-center rounded-xl bg-primary font-black text-white">CZA</span><div><p className="font-semibold">CZA Öğrenci Paneli</p><p className="text-xs text-muted-foreground">Ana gelişim merkezi</p></div></div><Button variant="outline" onClick={logout}><LogOut/> Güvenli çıkış</Button></div></header>
+    <main className="mx-auto max-w-6xl px-5 py-9">
+      <div className="mb-8 flex flex-wrap items-end justify-between gap-4"><div><p className="eyebrow text-primary">TEK ÖĞRENCİ · TEK GELİŞİM GEÇMİŞİ</p><h1 className="mt-2 text-3xl font-semibold tracking-tight">Merhaba {displayName}, ana paneline hoş geldin.</h1><p className="mt-3 max-w-2xl text-base leading-7 text-muted-foreground">Akademik gelişimini ve beceri çalışmalarını iki sade alandan yönetebilirsin.</p></div><span className="inline-flex items-center gap-2 rounded-xl bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-800"><ShieldCheck size={18}/> Merkezî kayıt etkin</span></div>
+      <section className="grid gap-5 md:grid-cols-2" aria-label="Öğrenci çalışma alanları">
+        <a href={CAMPUS_V14_URL} className="group rounded-3xl border-2 border-[#315a83]/30 bg-[linear-gradient(145deg,#fff,#e8f2fb)] p-7 shadow-sm transition hover:-translate-y-1 hover:shadow-lg"><span className="grid h-14 w-14 place-items-center rounded-2xl bg-[#315a83] text-white"><School size={28}/></span><p className="mt-6 text-xs font-bold tracking-widest text-[#315a83]">ANA AKADEMİK PANEL</p><h2 className="mt-2 text-2xl font-bold">CZA Kampüs · Sürüm 14</h2><p className="mt-3 min-h-20 text-sm leading-7 text-muted-foreground">Değerlendirme sonuçların, okul derslerin, hedeflerin, eğitimci yönlendirmelerin ve gelişim yolun.</p><span className="mt-5 inline-flex items-center gap-2 font-semibold text-[#315a83]">Akademik panelimi aç <ArrowRight size={18} className="transition group-hover:translate-x-1"/></span></a>
+        <a href="/work" className="group rounded-3xl border-2 border-primary/30 bg-[linear-gradient(145deg,#fff,#e5f4ed)] p-7 shadow-sm transition hover:-translate-y-1 hover:shadow-lg"><span className="grid h-14 w-14 place-items-center rounded-2xl bg-primary text-white"><Dumbbell size={28}/></span><p className="mt-6 text-xs font-bold tracking-widest text-primary">BECERİ VE EGZERSİZ ALANI</p><h2 className="mt-2 text-2xl font-bold">CZA Çalışma Paneli</h2><p className="mt-3 min-h-20 text-sm leading-7 text-muted-foreground">Parmak, Soroban, Toplama–Çıkarma, Flash Anzan, Sesli Anzan ve gelişecek diğer atölyeler.</p><span className="mt-5 inline-flex items-center gap-2 font-semibold text-primary">Çalışma alanımı aç <ArrowRight size={18} className="transition group-hover:translate-x-1"/></span></a>
+      </section>
+      <section className="mt-6 rounded-2xl border border-border bg-white p-6"><h2 className="font-semibold">Paneller nasıl birlikte çalışır?</h2><p className="mt-2 text-sm leading-7 text-muted-foreground">Her iki alan aynı öğrenciye aittir. Çalışma Panelindeki yeni sonuçlar merkezî kayda işlenir; eğitimci bu sonuçları kendi güvenli panelinden görür.</p></section>
+    </main>
+  </div>;
 
   return (
     <div className="academy-shell lg:pl-[236px]">
@@ -58,16 +76,13 @@ export default function Home() {
         </div>
         <p className="eyebrow mb-3 px-4 text-[#7e91a5]">Çalışma alanım</p>
         <nav className="space-y-1" aria-label="Ana menü">
-          <a href="/" className="academy-nav active"><LayoutDashboard size={18} /> Çalışma merkezim</a>
+          <a href="/work" className="academy-nav active"><LayoutDashboard size={18} /> Çalışma merkezim</a>
           <a href="/studio" className="academy-nav"><BrainCircuit size={18} /> Egzersiz stüdyosu</a>
           <a href="/paritmetik" className="academy-nav"><Hand size={18} /> Paritmetik</a>
           <a href="/learn" className="academy-nav"><BookOpenCheck size={18} /> Öğrenme yolum</a>
           <a href="#development" className="academy-nav" onClick={() => setMenu(false)}><ChartNoAxesCombined size={18} /> Gelişimim</a>
         </nav>
-        <div className="mt-10 border-t border-white/10 pt-6">
-          <p className="eyebrow mb-3 px-4 text-[#7e91a5]">Eğitimci alanı</p>
-          <a href="/educator" className="academy-nav"><Target size={18} /> Kontrol merkezi <ArrowRight size={14} className="ml-auto" /></a>
-        </div>
+        <div className="mt-10 border-t border-white/10 pt-6"><a href="/" className="academy-nav"><ArrowRight className="rotate-180" size={18}/> CZA Öğrenci Paneli</a></div>
         <div className="mt-auto pt-10">
           <div className="rounded-xl border border-[#3b4d60] p-4">
             <div className="mb-3 flex items-center gap-2 text-[#d8eeac]"><Sparkles size={17} /><span className="text-sm font-semibold">Küçük adımlar, güçlü zihin.</span></div>
@@ -151,9 +166,14 @@ export default function Home() {
           </section>
           <section className="rounded-xl border border-[#e7decc] bg-[#faf6ec] p-6"><div className="mb-3 flex items-center gap-2"><span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#e9dfc8] text-[11px] font-semibold">CZA</span><h2 className="text-sm font-semibold">Eğitimcinden bir not</h2></div><p className="text-xs leading-6 text-[#786b54]">Eğitimcin sana kişisel not bıraktığında burada görünecek.</p><p className="mt-4 text-[10px] text-[#998967]">Henüz kişisel not yok</p></section>
         </div>
-        <footer className="mt-8 flex flex-wrap items-center justify-between gap-2 border-t border-border pt-5 text-[10px] text-muted-foreground"><span>CZA Çalışma Paneli</span><button className="underline underline-offset-2" onClick={() => setNotice('Çalışma sonuçların merkezî öğrenci kaydına işlenir. Geçmiş Kampüs değerlendirmelerin kontrollü aktarım sonrasında burada da görünür.')}>Kayıtlarım hakkında</button></footer>
+        <footer className="mt-8 flex flex-wrap items-center justify-between gap-2 border-t border-border pt-5 text-[10px] text-muted-foreground"><a href="/" className="font-semibold text-primary">CZA Öğrenci Paneline dön</a><button className="underline underline-offset-2" onClick={() => setNotice('Çalışma sonuçların merkezî öğrenci kaydına işlenir. Geçmiş Kampüs değerlendirmelerin kontrollü aktarım sonrasında burada da görünür.')}>Kayıtlarım hakkında</button></footer>
       </main>
       {notice && <div role="status" className="fixed bottom-5 right-5 z-50 flex max-w-sm items-start gap-3 rounded-xl border border-border bg-white p-5 text-sm shadow-xl"><p className="leading-6">{notice}</p><Button size="icon-xs" variant="ghost" aria-label="Bildirimi kapat" onClick={() => setNotice('')}><X /></Button></div>}
     </div>
   );
+}
+
+export default function Home() {
+  useEffect(() => { window.location.replace(CAMPUS_V14_URL); }, []);
+  return <main className="grid min-h-screen place-items-center bg-background px-5"><div className="text-center"><p className="eyebrow text-primary">ÇELİK ZİHİN AKADEMİSİ</p><h1 className="mt-3 text-2xl font-semibold">CZA Öğrenci Girişi açılıyor…</h1><a className="mt-5 inline-flex font-semibold text-primary" href={CAMPUS_V14_URL}>Açılmazsa öğrenci girişine dokun</a></div></main>;
 }

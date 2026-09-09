@@ -274,7 +274,7 @@ export function CentralStudentReport({ children, initialCode = '' }: { children?
             <div className="border-b border-border p-5">
               <h3 className="font-semibold">Son soru kayıtları</h3>
               <p className="mt-1 text-xs text-muted-foreground">
-                Çocuğun işlemi, verdiği cevap, doğru cevap, hata türü ve cevap
+                Gösterilen işlem, verilen cevap, doğru cevap, hata türü ve cevap
                 süresi.
               </p>
             </div>
@@ -285,7 +285,7 @@ export function CentralStudentReport({ children, initialCode = '' }: { children?
                     <th className="p-3">Tarih</th>
                     <th className="p-3">Çalışma</th>
                     <th className="p-3">İşlem</th>
-                    <th className="p-3">Cevap / doğru</th>
+                    <th className="p-3">Verilen / doğru cevap</th>
                     <th className="p-3">Süre</th>
                     <th className="p-3">Sonuç</th>
                   </tr>

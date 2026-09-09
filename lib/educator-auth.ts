@@ -23,7 +23,8 @@ export async function authenticatedEducator(request: Request) {
   const response = await fetch(`${AUTH_BASE}/get-session`,{headers:{cookie:upstreamCookie},cache:'no-store'});
   if (!response.ok) return null;
   const data = await response.json() as {user?:{id?:string;email?:string;name?:string}};
-  return data.user?.id ? data.user : null;
+  const userEmail = (data.user?.email || '').trim().toLowerCase();
+  return data.user?.id === EDUCATOR_AUTH_USER_ID && userEmail === EDUCATOR_EMAIL ? data.user : null;
 }
 
 export function authUrl(path: string) { return `${AUTH_BASE}${path}`; }

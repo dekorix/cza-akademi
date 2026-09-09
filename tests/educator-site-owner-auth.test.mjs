@@ -14,4 +14,6 @@ test('private Site owner identity is mapped to the central educator', () => {
 test('the existing Neon session remains as a fallback', () => {
   assert.match(source, /readCookie\(request, EDUCATOR_COOKIE\)/);
   assert.match(source, /\/get-session/);
+  assert.match(source, /data\.user\?\.id === EDUCATOR_AUTH_USER_ID/);
+  assert.match(source, /userEmail === EDUCATOR_EMAIL/);
 });
