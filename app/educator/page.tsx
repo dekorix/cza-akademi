@@ -18,7 +18,7 @@ const roadmap = [
   ['Soroban okuma','Boncuk örüntüsünü sayıya dönüştürme','Pilot'],
   ['Soroban yazma','Sayıyı etkileşimli abaküste oluşturma','Pilot'],
   ['Flash Anzan','Görsel sıralı işlem, hız ve rakam havuzu','Pilot'],
-  ['Sesli Anzan','Cihaz konuşmasıyla sıralı işlem','Pilot'],
+  ['Sesli Anzan','Sunucuda hazırlanan premium Türkçe seslerle sıralı işlem','Sağlayıcı bekliyor'],
   ['Parmak okuma ve basma','Sağ el, sol el, iki el; doğru hareket modeli','Yöntem onayı'],
   ['Soroban temel öğretim','8 ders; rehberli hareketler, doğrudan ve basit 5–10 tamamlamaları','Pilot'],
   ['Çarpım tablosu ve çarpma','Basamaklı öğretim, hataya göre tekrar','Planlandı'],
@@ -73,3 +73,4 @@ function EducatorDashboard() {
     </main>
   </div>;
 }
+
