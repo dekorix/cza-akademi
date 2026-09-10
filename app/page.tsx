@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { ArrowRight, AudioLines, BookOpenCheck, BrainCircuit, ChartNoAxesCombined, Check, ChevronRight, Clock3, Dumbbell, Flame, Hand, LayoutDashboard, LogOut, Menu, Play, School, ShieldCheck, Sparkles, Target, X } from 'lucide-react';
+import { ArrowRight, AudioLines, BookOpenCheck, BrainCircuit, ChartNoAxesCombined, Check, ChevronRight, Clock3, Dumbbell, Flame, Hand, LayoutDashboard, Loader2, LogOut, Menu, Play, School, ShieldCheck, Sparkles, Target, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -24,6 +24,7 @@ export function StudentPortal({ area }: { area: 'main' | 'work' }) {
   const [username, setUsername] = useState('');
   const [pin, setPin] = useState('');
   const [loginError, setLoginError] = useState('');
+  const [loginBusy, setLoginBusy] = useState(false);
   const [menu, setMenu] = useState(false);
   const [digits, setDigits] = useState([0, 2, 4]);
   const [notice, setNotice] = useState('');
@@ -56,12 +57,15 @@ export function StudentPortal({ area }: { area: 'main' | 'work' }) {
   async function login(event: React.SyntheticEvent<HTMLFormElement>) {
     event.preventDefault();
     setLoginError('');
+    setLoginBusy(true);
     try {
       const data = await core('login', { username: username.trim(), pin: pin.trim() });
       setStudent(coreStudent(data));
       setPin('');
     } catch (error) {
       setLoginError(friendlyCoreError(error));
+    } finally {
+      setLoginBusy(false);
     }
   }
 
@@ -70,7 +74,7 @@ export function StudentPortal({ area }: { area: 'main' | 'work' }) {
   }
 
   if (authLoading) return <div className="grid min-h-screen place-items-center bg-background text-sm text-muted-foreground">Öğrenci oturumu açılıyor…</div>;
-  if (!student) return <main className="min-h-screen bg-background px-5 py-12"><form onSubmit={login} className="mx-auto mt-[8vh] max-w-md rounded-3xl border border-border bg-white p-8 shadow-lg"><p className="eyebrow text-primary">ÇELİK ZİHİN AKADEMİSİ</p><h1 className="mt-3 text-3xl font-semibold">Öğrenci girişi</h1><p className="mt-2 text-base leading-7 text-muted-foreground">Çalışma merkezine girmek için kullanıcı adı ve PIN bilgilerini yaz.</p><label className="mt-7 block text-sm font-semibold" htmlFor="home-username">Kullanıcı adı</label><Input id="home-username" autoComplete="username" value={username} onChange={event => setUsername(event.target.value)} className="mt-2 h-12" required /><label className="mt-4 block text-sm font-semibold" htmlFor="home-pin">PIN</label><Input id="home-pin" type="password" inputMode="numeric" maxLength={6} autoComplete="current-password" value={pin} onChange={event => setPin(event.target.value.replace(/\D/g, ''))} className="mt-2 h-12" required />{loginError && <p role="alert" className="mt-4 rounded-xl bg-red-50 p-4 text-sm font-semibold text-red-800">{loginError}</p>}<Button type="submit" className="mt-6 h-12 w-full text-base" disabled={!username.trim() || !pin.trim()}>Giriş yap</Button></form></main>;
+  if (!student) return <main className="min-h-screen bg-background px-5 py-12"><form onSubmit={login} aria-busy={loginBusy} className="mx-auto mt-[8vh] max-w-md rounded-3xl border border-border bg-white p-8 shadow-lg"><p className="eyebrow text-primary">ÇELİK ZİHİN AKADEMİSİ</p><h1 className="mt-3 text-3xl font-semibold">Öğrenci girişi</h1><p className="mt-2 text-base leading-7 text-muted-foreground">Çalışma merkezine girmek için kullanıcı adı ve PIN bilgilerini yaz.</p><label className="mt-7 block text-sm font-semibold" htmlFor="home-username">Kullanıcı adı</label><Input id="home-username" autoComplete="username" value={username} onChange={event => setUsername(event.target.value)} className="mt-2 h-12" disabled={loginBusy} required /><label className="mt-4 block text-sm font-semibold" htmlFor="home-pin">PIN</label><Input id="home-pin" type="password" inputMode="numeric" maxLength={6} autoComplete="current-password" value={pin} onChange={event => setPin(event.target.value.replace(/\D/g, ''))} className="mt-2 h-12" disabled={loginBusy} required />{loginError && <p role="alert" className="mt-4 rounded-xl bg-red-50 p-4 text-sm font-semibold text-red-800">{loginError}</p>}{loginBusy && <p role="status" className="mt-4 text-center text-sm font-medium text-primary">Bilgilerin güvenli biçimde doğrulanıyor…</p>}<Button type="submit" className="mt-6 h-12 w-full text-base" disabled={loginBusy || !username.trim() || !pin.trim()}>{loginBusy ? <><Loader2 className="animate-spin"/> Giriş hazırlanıyor…</> : 'Giriş yap'}</Button></form></main>;
 
   if (area === 'main') return <div className="min-h-screen bg-background">
     <header className="border-b border-border bg-white"><div className="mx-auto flex h-20 max-w-6xl items-center justify-between gap-4 px-5"><div className="flex items-center gap-3"><span className="grid h-10 w-10 place-items-center rounded-xl bg-primary font-black text-white">CZA</span><div><p className="font-semibold">CZA Öğrenci Paneli</p><p className="text-xs text-muted-foreground">Ana gelişim merkezi</p></div></div><Button variant="outline" onClick={logout}><LogOut/> Güvenli çıkış</Button></div></header>

@@ -12,7 +12,7 @@ Bu çalışma mevcut Apps Script Kampüs yayınına dokunmadan ayrı bir uygulam
 - Rehberli derste basamak/boncuk/yön geri bildirimi; bağımsız denemede ilk yanıt, ipucu kullanımı ve gerçek dijital hareket kaydı.
 - Doğru sonuç ile örnek yöntem eşleşmesi ayrı değerlendirilir. Alternatif doğru yollar yanlış sayılmaz. Ders tamamlanması ustalık/seviye onayı değildir.
 - Eğitimci “Ders incelemesi”: sekme-yerel ders filtresi, soru ve ham hareket incelemesi, CSV.
-- Flash Anzan ve cihazın Türkçe konuşma desteğiyle Sesli Anzan.
+- Flash Anzan ve sunucuda hazırlanan premium Türkçe ses altyapısına sahip Sesli Anzan.
 - Basamak, soru, terim, işlem türü, gösterim süresi, adımlı mod ve tek basamaklı rakam havuzu.
 - Flash Anzan ayarları: toplama/çıkarma/karışık işlem, bağımsız 1–9 havuzları, işlem sayısı, minimum/maksimum hane, maksimum değer, ilk sayıyı sınır içinde üretme, 0 = süresiz/manuel akış, 0,1–8 saniye gösterim, görsel sayı aç/kapa, rakam boyutu ve zemin/yazı rengi.
 - Flash akışı 3–2–1 geri sayım kullanır; sayı dizisi tek tek görünür, görsel gösterim süresi cevap süresinden ayrı ölçülür, cevap sonrası doğru cevap–girilen cevap karşılaştırması gösterilir ve sonraki soru otomatik açılır. Son ekranda soru, doğru, yanlış ve başarı oranı görünür.
@@ -33,7 +33,7 @@ Bu çalışma mevcut Apps Script Kampüs yayınına dokunmadan ayrı bir uygulam
 - Temel öğretim pilotu yalnızca tek basamaklı doğrudan/5 tamamlamaları ve basit tek onluk geçişi içerir. İç içe 5–10 tamamlamaları, çoklu elde/bozma, geniş yaş/seviye varyasyonları henüz yoktur. Rastgele stüdyo soruları teknik-odaklı ustalık kanıtı değildir.
 - Ders kayıtları ayrı sessionStorage anahtarında en son 40 tamamlanmış çalışmayla sınırlıdır. Yarım kalan dersler kaydedilmez; ders değiştirmede ve sekme kapanışında uyarı vardır. Kalıcı öğrenci portfolyosu değildir.
 - Ekrandaki boncuk adımları fiziksel parmak/duruş/eşzamanlı hareketi ölçmez. Fiziksel 6–9 oluşturmanın eşzamanlı hareketi ekranda ayrı tıklamalara ayrılır. Eğitimci gözlemi ve içerik kabulü gereklidir.
-- Sesli Anzan cihaz konuşmasını kullanır; dil/ses kalitesi platforma bağlıdır. Eğitimci onaylı profesyonel ses kayıtları sonraki fazdadır.
+- Sesli Anzan altyapısı API anahtarını tarayıcıya göndermeden sunucuda çalışır; ancak canlı ortamda sağlayıcı, API anahtarı ve eğitimci onaylı Voice ID henüz tanımlı değildir. Bu üç ayar ve gerçek cihaz telaffuz testi tamamlanmadan modül etkin sayılmaz.
 - CZA Değerlendirme Motoru henüz ana dala birleştirilmedi. Dışarıdan erişilebilir kalıcı preview URL’si bağlı hosting hesabı olmadığı için oluşturulamadı.
 
 ## CZA Değerlendirme Motoru V1 doğrulaması — 8 Eylül 2026

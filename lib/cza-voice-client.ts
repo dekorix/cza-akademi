@@ -4,16 +4,32 @@ export function voiceClipKey(term: number, index: number, language: string, voic
   return `${voiceProfile}:${language}:${index === 0 ? term : term < 0 ? `minus-${Math.abs(term)}` : term}:${speechRate}`;
 }
 
-export async function preloadVoiceClips(terms: { term: number; index: number }[], options: { language: string; voiceProfile: string; speechRate: number }) {
+export async function preloadVoiceClips(terms: { term: number; index: number }[], options: { language: string; voiceProfile: string; speechRate: number }, concurrency = 4) {
   const unique = new Map<string,{term:number;index:number}>();
   for (const item of terms) unique.set(voiceClipKey(item.term,item.index,options.language,options.voiceProfile,options.speechRate),item);
   const clips = new Map<string,string>();
-  await Promise.all([...unique].map(async ([key,item]) => {
-    const response = await fetch('/api/voice', { method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify({...item,...options}) });
-    if (!response.ok) { const detail=await response.json().catch(()=>({})) as {error?:unknown}; throw new Error(typeof detail.error==='string'?detail.error:'premium_voice_unavailable'); }
-    clips.set(key,URL.createObjectURL(await response.blob()));
-  }));
-  return clips;
+  const queue=[...unique];
+  let cursor=0;
+  async function worker() {
+    while(cursor<queue.length) {
+      const [key,item]=queue[cursor++];
+      const response = await fetch('/api/voice', { method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify({...item,...options}) });
+      if (!response.ok) { const detail=await response.json().catch(()=>({})) as {error?:unknown}; throw new Error(typeof detail.error==='string'?detail.error:'premium_voice_unavailable'); }
+      clips.set(key,URL.createObjectURL(await response.blob()));
+    }
+  }
+  try {
+    await Promise.all(Array.from({length:Math.min(Math.max(1,Math.floor(concurrency)),queue.length)},worker));
+    return clips;
+  } catch(error) {
+    releaseVoiceClips(clips);
+    throw error;
+  }
+}
+
+export function releaseVoiceClips(clips: Map<string,string>) {
+  for(const url of clips.values()) URL.revokeObjectURL(url);
+  clips.clear();
 }
 
 export class AudioStimulusScheduler {

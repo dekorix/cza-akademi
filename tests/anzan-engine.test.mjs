@@ -5,6 +5,7 @@ import ts from 'typescript';
 
 async function load(file){const source=fs.readFileSync(new URL(file,import.meta.url),'utf8');const js=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022}}).outputText;return import(`data:text/javascript;base64,${Buffer.from(js).toString('base64')}`);}
 const anzan=await load('../lib/anzan-engine.ts');
+const voiceClient=await load('../lib/cza-voice-client.ts');
 
 test('repeated values remain separate presentation events',()=>{
   const sequence=[7,7,2,2,2,5];
@@ -42,4 +43,17 @@ test('0–99 audio library manifest is deterministic and complete',()=>{
 
 test('500, 300 and 200 ms gaps never overlap clips',()=>{
   for(const gap of [500,300,200]) { const schedule=anzan.scheduleAudioClips([410,620,380,510],gap); for(let index=1;index<schedule.length;index++) assert.ok(schedule[index].startMs>=schedule[index-1].endMs+gap); }
+});
+
+test('audio preloading limits simultaneous provider requests',async()=>{
+  const originalFetch=globalThis.fetch, originalCreate=URL.createObjectURL, originalRevoke=URL.revokeObjectURL;
+  let active=0, peak=0, id=0;
+  globalThis.fetch=async()=>{ active++; peak=Math.max(peak,active); await new Promise(resolve=>setTimeout(resolve,5)); active--; return new Response(new Blob(['audio']),{status:200}); };
+  URL.createObjectURL=()=>`blob:test-${++id}`;
+  URL.revokeObjectURL=()=>{};
+  try {
+    const clips=await voiceClient.preloadVoiceClips(Array.from({length:12},(_,index)=>({term:index,index})),{language:'tr-TR',voiceProfile:'CZA_STANDARD',speechRate:1},4);
+    assert.equal(clips.size,12);
+    assert.ok(peak<=4,`peak request count was ${peak}`);
+  } finally { globalThis.fetch=originalFetch; URL.createObjectURL=originalCreate; URL.revokeObjectURL=originalRevoke; }
 });
