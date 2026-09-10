@@ -1,0 +1,2982 @@
+<!DOCTYPE html>
+<html lang="tr">
+  <head>
+    <base target="_top">
+    <meta charset="utf-8">
+    <style>
+      :root {
+        --night: #101934;
+        --night-2: #17244a;
+        --blue: #5267f7;
+        --blue-dark: #344bd4;
+        --cyan: #35c7df;
+        --lime: #b9ed60;
+        --orange: #ffb052;
+        --ink: #17223d;
+        --muted: #74809a;
+        --paper: #f5f7fc;
+        --line: #e5e9f2;
+        --good: #23a26d;
+        --bad: #e25563;
+        --white: #fff;
+        --radius: 24px;
+        --shadow: 0 18px 50px rgba(32, 48, 93, .1);
+      }
+
+      * { box-sizing: border-box; }
+      html { scroll-behavior: smooth; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        color: var(--ink);
+        background: var(--paper);
+        font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+      button, input { font: inherit; }
+      button { color: inherit; }
+      button:focus-visible, input:focus-visible {
+        outline: 3px solid rgba(82, 103, 247, .25);
+        outline-offset: 2px;
+      }
+      .hidden { display: none !important; }
+
+      /* Login */
+      .login-page {
+        display: grid;
+        grid-template-columns: minmax(360px, 1.05fr) minmax(440px, .95fr);
+        min-height: 100vh;
+        background: white;
+      }
+      .login-showcase {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        min-height: 100vh;
+        padding: 54px clamp(38px, 6vw, 88px);
+        overflow: hidden;
+        color: white;
+        background:
+          radial-gradient(circle at 78% 14%, rgba(53, 199, 223, .31), transparent 28%),
+          radial-gradient(circle at 15% 92%, rgba(185, 237, 96, .16), transparent 28%),
+          linear-gradient(145deg, #101934 0%, #172452 58%, #203982 100%);
+      }
+      .login-showcase::before,
+      .login-showcase::after {
+        content: "";
+        position: absolute;
+        border: 1px solid rgba(255, 255, 255, .12);
+        border-radius: 50%;
+      }
+      .login-showcase::before { width: 430px; height: 430px; right: -190px; top: 12%; }
+      .login-showcase::after { width: 650px; height: 650px; right: -330px; top: 2%; }
+      .brand-lockup { position: relative; z-index: 1; display: flex; align-items: center; gap: 13px; }
+      .brand-mark {
+        display: grid;
+        place-items: center;
+        width: 47px;
+        height: 47px;
+        border-radius: 15px;
+        color: var(--night);
+        background: var(--lime);
+        box-shadow: 0 10px 30px rgba(185, 237, 96, .2);
+        font-size: 14px;
+        font-weight: 900;
+        letter-spacing: -.04em;
+      }
+      .brand-copy strong { display: block; font-size: 18px; letter-spacing: -.02em; }
+      .brand-copy span { color: rgba(255, 255, 255, .62); font-size: 12px; }
+      .showcase-copy { position: relative; z-index: 1; max-width: 600px; padding: 60px 0; }
+      .showcase-kicker {
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        margin-bottom: 24px;
+        padding: 9px 13px;
+        border: 1px solid rgba(255, 255, 255, .15);
+        border-radius: 99px;
+        color: #dfe7ff;
+        background: rgba(255, 255, 255, .06);
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: .04em;
+        text-transform: uppercase;
+      }
+      .showcase-kicker i { width: 7px; height: 7px; border-radius: 50%; background: var(--lime); box-shadow: 0 0 0 5px rgba(185, 237, 96, .12); }
+      .showcase-copy h1 {
+        max-width: 570px;
+        margin: 0;
+        font-size: clamp(42px, 5vw, 72px);
+        line-height: .99;
+        letter-spacing: -.055em;
+      }
+      .showcase-copy h1 em { color: var(--lime); font-style: normal; }
+      .showcase-copy p {
+        max-width: 515px;
+        margin: 25px 0 0;
+        color: rgba(235, 240, 255, .7);
+        font-size: 17px;
+        line-height: 1.7;
+      }
+      .showcase-features { position: relative; z-index: 1; display: flex; flex-wrap: wrap; gap: 10px; }
+      .showcase-features span {
+        padding: 9px 12px;
+        border: 1px solid rgba(255, 255, 255, .12);
+        border-radius: 12px;
+        color: rgba(255, 255, 255, .72);
+        background: rgba(255, 255, 255, .05);
+        font-size: 12px;
+        font-weight: 700;
+      }
+      .login-side {
+        display: grid;
+        place-items: center;
+        min-height: 100vh;
+        padding: 40px;
+        background:
+          radial-gradient(circle at 100% 0%, #eef0ff 0, transparent 29%),
+          white;
+      }
+      .login-card { width: min(100%, 430px); }
+      .mobile-brand { display: none; margin-bottom: 34px; color: var(--night); }
+      .mobile-brand .brand-mark { color: white; background: var(--blue); }
+      .login-card h2 { margin: 0 0 11px; color: var(--night); font-size: 34px; letter-spacing: -.04em; }
+      .login-intro { margin: 0 0 35px; color: var(--muted); line-height: 1.6; }
+      .field { margin-top: 20px; }
+      .field label {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 9px;
+        color: #39435d;
+        font-size: 13px;
+        font-weight: 800;
+      }
+      .field small { color: #9aa3b7; font-weight: 600; }
+      .input-wrap { position: relative; }
+      .input-icon {
+        position: absolute;
+        left: 16px;
+        top: 50%;
+        width: 20px;
+        color: #939db1;
+        transform: translateY(-50%);
+      }
+      .field input {
+        width: 100%;
+        height: 56px;
+        padding: 0 17px 0 49px;
+        border: 1px solid #dce1eb;
+        border-radius: 15px;
+        color: var(--ink);
+        background: #fbfcff;
+        outline: none;
+        transition: .18s ease;
+      }
+      .field input:focus {
+        border-color: var(--blue);
+        background: white;
+        box-shadow: 0 0 0 4px rgba(82, 103, 247, .1);
+      }
+      .login-button, .action-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        border: 0;
+        border-radius: 15px;
+        color: white;
+        background: linear-gradient(135deg, var(--blue), var(--blue-dark));
+        box-shadow: 0 12px 25px rgba(70, 91, 222, .22);
+        font-weight: 850;
+        cursor: pointer;
+        transition: transform .16s ease, box-shadow .16s ease, opacity .16s ease;
+      }
+      .login-button { width: 100%; height: 56px; margin-top: 27px; }
+      .login-button:hover, .action-button:hover { transform: translateY(-2px); box-shadow: 0 16px 30px rgba(70, 91, 222, .29); }
+      button:disabled { opacity: .52; cursor: not-allowed; transform: none !important; }
+      .login-error { min-height: 22px; margin-top: 14px; color: var(--bad); font-size: 13px; font-weight: 750; text-align: center; }
+      .secure-note {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        margin-top: 20px;
+        color: #9aa3b7;
+        font-size: 12px;
+      }
+
+      /* Campus shell */
+      .campus { display: grid; grid-template-columns: 246px minmax(0, 1fr); min-height: 100vh; }
+      .sidebar {
+        position: sticky;
+        top: 0;
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        padding: 28px 20px 22px;
+        color: white;
+        background:
+          radial-gradient(circle at 30% 92%, rgba(53, 199, 223, .16), transparent 31%),
+          var(--night);
+      }
+      .side-brand { padding: 0 8px; }
+      .side-nav { display: grid; gap: 7px; margin-top: 48px; }
+      .nav-button {
+        display: flex;
+        align-items: center;
+        gap: 13px;
+        width: 100%;
+        min-height: 48px;
+        padding: 0 14px;
+        border: 0;
+        border-radius: 14px;
+        color: #9ca9c9;
+        background: transparent;
+        font-weight: 740;
+        text-align: left;
+        cursor: pointer;
+        transition: .16s ease;
+      }
+      .nav-button:hover { color: white; background: rgba(255, 255, 255, .06); }
+      .nav-button.active { color: white; background: linear-gradient(135deg, rgba(82, 103, 247, .95), rgba(82, 103, 247, .58)); }
+      .nav-icon { display: grid; place-items: center; width: 24px; font-size: 18px; }
+      .sidebar-spacer { flex: 1; }
+      .mini-profile {
+        display: grid;
+        grid-template-columns: 40px 1fr;
+        gap: 10px;
+        align-items: center;
+        padding: 12px;
+        border: 1px solid rgba(255,255,255,.08);
+        border-radius: 16px;
+        background: rgba(255,255,255,.05);
+      }
+      .mini-avatar, .avatar {
+        display: grid;
+        place-items: center;
+        border-radius: 50%;
+        color: var(--night);
+        background: var(--lime);
+        font-weight: 900;
+      }
+      .mini-avatar { width: 40px; height: 40px; font-size: 12px; }
+      .mini-profile strong { display: block; overflow: hidden; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+      .mini-profile span { display: block; margin-top: 3px; color: #8795b8; font-size: 10px; }
+      .main-column { min-width: 0; }
+      .topbar {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        min-height: 82px;
+        padding: 0 clamp(24px, 4vw, 54px);
+        border-bottom: 1px solid rgba(225, 229, 239, .85);
+        background: rgba(245, 247, 252, .9);
+        backdrop-filter: blur(16px);
+      }
+      .welcome { color: var(--muted); font-size: 13px; }
+      .welcome strong { display: block; margin-top: 4px; color: var(--ink); font-size: 17px; }
+      .top-actions { display: flex; align-items: center; gap: 12px; }
+      .level-chip {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        height: 40px;
+        padding: 0 13px;
+        border: 1px solid #e1e6f0;
+        border-radius: 13px;
+        color: #4b5772;
+        background: white;
+        font-size: 12px;
+        font-weight: 850;
+      }
+      .level-chip b { color: var(--blue); }
+      .icon-button {
+        display: grid;
+        place-items: center;
+        width: 40px;
+        height: 40px;
+        border: 1px solid #e1e6f0;
+        border-radius: 13px;
+        color: #7a859d;
+        background: white;
+        cursor: pointer;
+      }
+      .content { width: min(100%, 1280px); margin: 0 auto; padding: 34px clamp(22px, 4vw, 54px) 60px; }
+      .view { animation: rise .28s ease both; }
+      @keyframes rise { from { opacity: 0; transform: translateY(7px); } }
+
+      /* Dashboard */
+      .hero {
+        position: relative;
+        display: grid;
+        grid-template-columns: minmax(0, 1.35fr) minmax(280px, .65fr);
+        gap: 30px;
+        min-height: 250px;
+        padding: clamp(28px, 4vw, 48px);
+        overflow: hidden;
+        border-radius: 28px;
+        color: white;
+        background:
+          radial-gradient(circle at 88% 25%, rgba(53, 199, 223, .3), transparent 24%),
+          linear-gradient(125deg, #253d92 0%, #5267f7 54%, #4256d4 100%);
+        box-shadow: 0 22px 50px rgba(54, 76, 183, .2);
+      }
+      .hero::after {
+        content: "";
+        position: absolute;
+        right: -70px;
+        bottom: -160px;
+        width: 380px;
+        height: 380px;
+        border: 70px solid rgba(255,255,255,.07);
+        border-radius: 50%;
+      }
+      .hero-copy, .hero-visual { position: relative; z-index: 1; }
+      .hero-kicker { color: #d8deff; font-size: 12px; font-weight: 850; letter-spacing: .08em; text-transform: uppercase; }
+      .hero h1 { margin: 10px 0 12px; font-size: clamp(29px, 3.5vw, 47px); line-height: 1.05; letter-spacing: -.045em; }
+      .hero p { max-width: 630px; margin: 0; color: #e0e5ff; font-size: 14px; line-height: 1.65; }
+      .hero .action-button { height: 49px; margin-top: 24px; padding: 0 20px; color: var(--night); background: var(--lime); box-shadow: 0 12px 25px rgba(27,42,84,.2); }
+      .hero-visual { display: grid; place-items: center; }
+      .route-orbit {
+        position: relative;
+        display: grid;
+        place-items: center;
+        width: 184px;
+        height: 184px;
+        border: 1px dashed rgba(255,255,255,.35);
+        border-radius: 50%;
+      }
+      .route-core {
+        display: grid;
+        place-items: center;
+        width: 108px;
+        height: 108px;
+        border: 12px solid rgba(255,255,255,.16);
+        border-radius: 50%;
+        color: var(--night);
+        background: var(--lime);
+        box-shadow: 0 20px 35px rgba(17, 25, 52, .24);
+        font-size: 26px;
+        font-weight: 950;
+      }
+      .orbit-dot { position: absolute; width: 38px; height: 38px; border: 7px solid rgba(255,255,255,.13); border-radius: 50%; background: var(--cyan); }
+      .orbit-dot.one { top: 4px; right: 12px; }
+      .orbit-dot.two { bottom: 3px; left: 12px; background: var(--orange); }
+      .profile-banner {
+        display: grid;
+        grid-template-columns: 82px minmax(0, 1fr) auto;
+        gap: 17px;
+        align-items: center;
+        margin-top: 18px;
+        padding: 17px 19px;
+        border: 1px solid var(--line);
+        border-radius: 20px;
+        background: white;
+        box-shadow: 0 10px 28px rgba(34,51,95,.055);
+      }
+      .profile-banner-score { display: grid; place-items: center; width: 65px; height: 65px; border: 7px solid #e8ebff; border-radius: 50%; color: var(--blue); background: #f6f7ff; font-size: 16px; font-weight: 920; }
+      .profile-banner small { color: var(--blue); font-size: 9px; font-weight: 900; letter-spacing: .07em; text-transform: uppercase; }
+      .profile-banner strong { display: block; margin-top: 5px; font-size: 13px; line-height: 1.45; }
+      .profile-banner p { margin: 4px 0 0; color: var(--muted); font-size: 10px; line-height: 1.45; }
+      .profile-banner .action-button { min-width: 155px; height: 42px; padding: 0 15px; box-shadow: none; font-size: 11px; }
+      .educator-assessment-status { display: grid; grid-template-columns: 42px minmax(0,1fr) auto; gap: 13px; align-items: center; margin-top: 12px; padding: 13px 15px; border: 1px solid #e2e6ef; border-radius: 16px; color: #56627a; background: #fafbfe; }
+      .educator-assessment-icon { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 13px; color: var(--blue); background: #ecefff; font-size: 17px; }
+      .educator-assessment-status small, .educator-assessment-status strong { display: block; }
+      .educator-assessment-status small { color: var(--blue); font-size: 8px; font-weight: 900; letter-spacing: .06em; text-transform: uppercase; }
+      .educator-assessment-status strong { margin-top: 4px; color: var(--ink); font-size: 11px; }
+      .educator-assessment-status p { margin: 4px 0 0; color: var(--muted); font-size: 9px; line-height: 1.45; }
+      .educator-assessment-badge { padding: 6px 9px; border-radius: 99px; color: #745b20; background: #fff3cf; font-size: 7px; font-weight: 900; }
+      .educator-assessment-status.in-progress .educator-assessment-badge { color: #4d61ba; background: #e8ebff; }
+      .educator-assessment-status.completed .educator-assessment-badge { color: #147557; background: #ddf6eb; }
+      .daily-route {
+        margin-top: 18px;
+        padding: clamp(22px, 3vw, 30px);
+        overflow: hidden;
+        border: 1px solid #dde3f2;
+        border-radius: 24px;
+        background:
+          radial-gradient(circle at 96% 0, rgba(82,103,247,.09), transparent 28%),
+          white;
+        box-shadow: 0 14px 34px rgba(34,51,95,.065);
+      }
+      .daily-route-head { display: flex; align-items: center; justify-content: space-between; gap: 22px; }
+      .daily-route-date { color: var(--blue); font-size: 10px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
+      .daily-route h2 { margin: 7px 0 6px; font-size: 23px; letter-spacing: -.035em; }
+      .daily-route-summary { max-width: 780px; margin: 0; color: var(--muted); font-size: 12px; line-height: 1.55; }
+      .daily-route-progress {
+        flex: 0 0 auto;
+        display: grid;
+        place-items: center;
+        width: 82px;
+        height: 82px;
+        border: 8px solid #e8ebff;
+        border-radius: 50%;
+        color: var(--blue);
+        background: #f7f8ff;
+        text-align: center;
+      }
+      .daily-route-progress strong { display: block; font-size: 18px; letter-spacing: -.04em; }
+      .daily-route-progress span { display: block; margin-top: 1px; color: var(--muted); font-size: 8px; font-weight: 800; }
+      .route-connection {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin: 18px 0 14px;
+        color: #62708b;
+        font-size: 10px;
+        font-weight: 850;
+      }
+      .route-connection::before { content: "✦"; color: var(--orange); font-size: 14px; }
+      .personal-route-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+      .daily-route-step {
+        position: relative;
+        display: flex;
+        min-width: 0;
+        min-height: 222px;
+        padding: 19px;
+        overflow: hidden;
+        border: 1px solid #e3e7f0;
+        border-radius: 19px;
+        background: #fbfcff;
+        flex-direction: column;
+      }
+      .daily-route-step::after {
+        content: "";
+        position: absolute;
+        right: -33px;
+        bottom: -42px;
+        width: 104px;
+        height: 104px;
+        border-radius: 50%;
+        background: var(--step-soft, #eef0ff);
+      }
+      .daily-route-step.strength { --step-color: #1d9b78; --step-soft: #e0f7ef; }
+      .daily-route-step.focus { --step-color: #5267f7; --step-soft: #e7eaff; border-color: #cfd5ff; background: #f8f8ff; }
+      .daily-route-step.balance { --step-color: #d07855; --step-soft: #f9e9e1; }
+      .route-step-top { position: relative; z-index: 1; display: flex; align-items: center; gap: 10px; }
+      .route-step-number { display: grid; place-items: center; width: 31px; height: 31px; border-radius: 10px; color: white; background: var(--step-color); font-size: 10px; font-weight: 950; }
+      .route-step-eyebrow { color: var(--step-color); font-size: 9px; font-weight: 920; letter-spacing: .07em; }
+      .daily-route-step h3 { position: relative; z-index: 1; margin: 15px 0 7px; font-size: 15px; line-height: 1.35; }
+      .daily-route-step p { position: relative; z-index: 1; margin: 0; color: var(--muted); font-size: 11px; line-height: 1.55; }
+      .route-step-meta { position: relative; z-index: 1; margin-top: auto; padding-top: 14px; color: #8792a8; font-size: 9px; font-weight: 800; }
+      .route-step-progress { position: relative; z-index: 1; height: 5px; margin-top: 9px; overflow: hidden; border-radius: 99px; background: #e9ecf3; }
+      .route-step-progress i { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--blue), var(--cyan)); }
+      .route-step-button { position: relative; z-index: 1; align-self: flex-start; margin-top: 12px; padding: 0; border: 0; color: var(--step-color); background: transparent; font-size: 10px; font-weight: 900; cursor: pointer; }
+      .stat-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin-top: 18px; }
+      .stat-card {
+        min-width: 0;
+        padding: 19px;
+        border: 1px solid var(--line);
+        border-radius: 20px;
+        background: white;
+        box-shadow: 0 10px 28px rgba(34, 51, 95, .06);
+      }
+      .stat-top { display: flex; justify-content: space-between; gap: 10px; align-items: center; }
+      .stat-icon { display: grid; place-items: center; width: 39px; height: 39px; border-radius: 13px; background: #eef0ff; font-size: 18px; }
+      .stat-card:nth-child(2) .stat-icon { background: #fff4e4; }
+      .stat-card:nth-child(3) .stat-icon { background: #e7f9f5; }
+      .stat-card:nth-child(4) .stat-icon { background: #ecf8dd; }
+      .stat-label { color: var(--muted); font-size: 11px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; }
+      .stat-value { margin-top: 15px; font-size: 27px; font-weight: 920; letter-spacing: -.035em; }
+      .stat-caption { margin-top: 4px; overflow: hidden; color: #9ba4b6; font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+      .mini-progress { height: 5px; margin-top: 12px; overflow: hidden; border-radius: 99px; background: #edf0f5; }
+      .mini-progress i { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--blue), var(--cyan)); }
+      .dashboard-grid { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(270px, .65fr); gap: 18px; margin-top: 18px; }
+      .panel {
+        min-width: 0;
+        padding: 24px;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: white;
+        box-shadow: 0 10px 30px rgba(34, 51, 95, .055);
+      }
+      .panel-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 15px; margin-bottom: 23px; }
+      .panel-title { margin: 0; font-size: 18px; letter-spacing: -.025em; }
+      .panel-subtitle { margin: 5px 0 0; color: var(--muted); font-size: 12px; line-height: 1.5; }
+      .soft-link { border: 0; color: var(--blue); background: transparent; font-size: 12px; font-weight: 850; cursor: pointer; }
+      .week-chart { display: grid; grid-template-columns: repeat(7, 1fr); gap: 12px; min-height: 156px; align-items: end; }
+      .week-day { display: grid; grid-template-rows: 1fr auto auto; gap: 8px; height: 154px; text-align: center; }
+      .bar-space { display: flex; align-items: flex-end; justify-content: center; }
+      .week-bar {
+        position: relative;
+        width: min(28px, 75%);
+        min-height: 7px;
+        border-radius: 8px 8px 4px 4px;
+        background: linear-gradient(180deg, var(--cyan), var(--blue));
+        transition: height .35s ease;
+      }
+      .week-day.today .week-bar { background: linear-gradient(180deg, var(--lime), #71c873); }
+      .week-count { color: #516078; font-size: 11px; font-weight: 850; }
+      .week-label { color: #9aa4b7; font-size: 10px; }
+      .mission {
+        position: relative;
+        overflow: hidden;
+        color: white;
+        background:
+          radial-gradient(circle at 100% 0, rgba(255,176,82,.26), transparent 35%),
+          var(--night-2);
+      }
+      .mission::after { content: "✦"; position: absolute; right: 21px; top: 13px; color: rgba(255,255,255,.08); font-size: 86px; }
+      .mission-label { position: relative; z-index: 1; color: var(--lime); font-size: 11px; font-weight: 850; letter-spacing: .08em; text-transform: uppercase; }
+      .mission h3 { position: relative; z-index: 1; margin: 12px 0 7px; font-size: 21px; line-height: 1.2; }
+      .mission p { position: relative; z-index: 1; min-height: 38px; margin: 0; color: #aeb9d5; font-size: 12px; line-height: 1.55; }
+      .mission-progress-label { display: flex; justify-content: space-between; margin-top: 25px; color: #d4daf0; font-size: 11px; font-weight: 750; }
+      .mission-progress { height: 9px; margin-top: 8px; overflow: hidden; border-radius: 99px; background: rgba(255,255,255,.1); }
+      .mission-progress i { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--lime), var(--cyan)); }
+      .mission .action-button { width: 100%; height: 45px; margin-top: 20px; color: var(--night); background: white; box-shadow: none; }
+      .section-heading { display: flex; justify-content: space-between; align-items: end; gap: 15px; margin: 34px 0 16px; }
+      .section-heading h2 { margin: 0; font-size: 22px; letter-spacing: -.03em; }
+      .section-heading p { margin: 5px 0 0; color: var(--muted); font-size: 12px; }
+      .assigned-content-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 14px; }
+      .assigned-content-card { position: relative; display: flex; min-height: 210px; padding: 20px; overflow: hidden; border: 1px solid #dfe4ef; border-radius: 20px; background: linear-gradient(150deg, #fff, #f7f9fe); flex-direction: column; }
+      .assigned-content-card::after { content: ""; position: absolute; right: -35px; top: -38px; width: 115px; height: 115px; border-radius: 50%; background: #eef0ff; }
+      .assigned-stage { position: relative; z-index: 1; align-self: flex-start; padding: 6px 9px; border-radius: 99px; color: var(--blue); background: #e9ecff; font-size: 9px; font-weight: 900; }
+      .assigned-content-card h3 { position: relative; z-index: 1; margin: 14px 0 7px; font-size: 16px; line-height: 1.35; }
+      .assigned-content-card p { position: relative; z-index: 1; margin: 0; color: var(--muted); font-size: 10px; line-height: 1.55; }
+      .assigned-meta { position: relative; z-index: 1; margin-top: 10px; color: #7d889d; font-size: 9px; line-height: 1.5; }
+      .assigned-open { position: relative; z-index: 1; align-self: flex-start; min-height: 36px; margin-top: auto; padding: 0 12px; border: 0; border-radius: 11px; color: white; background: var(--blue); font-size: 9px; font-weight: 900; }
+      .assigned-open:disabled { cursor: wait; opacity: .65; }
+      .assigned-state { position: relative; z-index: 1; align-self: flex-start; margin-top: 10px; padding: 5px 8px; border-radius: 99px; color: #7d6a24; background: #fff5d8; font-size: 8px; font-weight: 900; }
+      .assigned-state.opened { color: #4d61ba; background: #e8ebff; }
+      .assigned-state.completed { color: #147557; background: #ddf6eb; }
+      .assigned-actions { position: relative; z-index: 1; display: flex; flex-wrap: wrap; gap: 7px; margin-top: auto; padding-top: 14px; }
+      .assigned-actions .assigned-open { margin-top: 0; }
+      .assigned-complete { min-height: 36px; padding: 0 12px; border: 1px solid #d7deeb; border-radius: 11px; color: #5267f7; background: white; font-size: 9px; font-weight: 900; }
+      .assigned-complete:disabled { color: #929caf; background: #eef1f5; cursor: not-allowed; }
+      .roadmap {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 14px;
+      }
+      .skill-card {
+        position: relative;
+        min-height: 154px;
+        padding: 20px;
+        overflow: hidden;
+        border: 1px solid var(--line);
+        border-radius: 20px;
+        background: white;
+      }
+      .skill-card::after {
+        content: "";
+        position: absolute;
+        right: -24px;
+        bottom: -29px;
+        width: 83px;
+        height: 83px;
+        border-radius: 50%;
+        background: #f3f5fa;
+      }
+      .skill-index {
+        display: grid;
+        place-items: center;
+        width: 33px;
+        height: 33px;
+        border-radius: 11px;
+        color: var(--blue);
+        background: #eef0ff;
+        font-size: 11px;
+        font-weight: 900;
+      }
+      .skill-card.done .skill-index { color: #14734f; background: #dcf6ea; }
+      .skill-card.repair .skill-index { color: #a76316; background: #fff0dc; }
+      .skill-card h3 { margin: 14px 0 5px; font-size: 14px; line-height: 1.35; }
+      .skill-card p { margin: 0; color: var(--muted); font-size: 11px; }
+      .skill-status { display: inline-flex; align-items: center; gap: 6px; margin-top: 14px; font-size: 10px; font-weight: 850; }
+      .skill-status i { width: 7px; height: 7px; border-radius: 50%; background: #aeb6c6; }
+      .skill-card.done .skill-status { color: var(--good); }
+      .skill-card.done .skill-status i { background: var(--good); }
+      .skill-card.repair .skill-status { color: #b06c21; }
+      .skill-card.repair .skill-status i { background: var(--orange); }
+      .badge-row { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; }
+      .badge-card { padding: 18px 10px; border: 1px solid var(--line); border-radius: 18px; background: white; text-align: center; }
+      .badge-medal {
+        display: grid;
+        place-items: center;
+        width: 53px;
+        height: 53px;
+        margin: 0 auto 12px;
+        border: 6px solid #e8ebff;
+        border-radius: 50%;
+        background: linear-gradient(145deg, #7687ff, #485bdb);
+        box-shadow: 0 8px 18px rgba(73, 92, 219, .2);
+        font-size: 21px;
+      }
+      .badge-card:nth-child(2) .badge-medal { border-color: #fff0db; background: linear-gradient(145deg, #ffc66e, #f29b39); }
+      .badge-card:nth-child(3) .badge-medal { border-color: #dff8f1; background: linear-gradient(145deg, #55d5b2, #1e9b78); }
+      .badge-card:nth-child(4) .badge-medal { border-color: #e7f5d0; background: linear-gradient(145deg, #c9ee78, #83ba38); }
+      .badge-card:nth-child(5) .badge-medal { border-color: #ffe5e8; background: linear-gradient(145deg, #ff8b96, #df5060); }
+      .badge-card.locked { opacity: .42; filter: grayscale(.85); }
+      .badge-card strong { display: block; font-size: 12px; }
+      .badge-card span { display: block; margin-top: 4px; color: var(--muted); font-size: 10px; }
+
+      /* Holistic skill campus */
+      .skill-campus-hero {
+        display: grid;
+        grid-template-columns: minmax(0, 1.35fr) minmax(250px, .65fr);
+        gap: 25px;
+        align-items: center;
+        padding: clamp(28px, 4vw, 44px);
+        border-radius: 28px;
+        color: white;
+        background:
+          radial-gradient(circle at 88% 20%, rgba(185,237,96,.2), transparent 27%),
+          linear-gradient(135deg, #17244a, #243a7b 62%, #31509c);
+        box-shadow: 0 20px 45px rgba(25, 39, 82, .18);
+      }
+      .skill-campus-hero .hero-kicker { color: var(--lime); }
+      .skill-campus-hero h1 { margin: 11px 0 13px; font-size: clamp(30px, 4vw, 48px); line-height: 1.05; letter-spacing: -.045em; }
+      .skill-campus-hero p { max-width: 650px; margin: 0; color: #b9c5e2; font-size: 14px; line-height: 1.7; }
+      .profile-orbit { display: grid; place-items: center; width: 178px; height: 178px; margin: auto; border: 1px dashed rgba(255,255,255,.3); border-radius: 50%; }
+      .profile-score { display: grid; place-items: center; width: 124px; height: 124px; border: 13px solid rgba(255,255,255,.11); border-radius: 50%; color: var(--night); background: var(--lime); text-align: center; }
+      .profile-score strong { display: block; font-size: 30px; letter-spacing: -.04em; }
+      .profile-score span { display: block; margin-top: 2px; font-size: 9px; font-weight: 850; text-transform: uppercase; }
+      .profile-strip { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin-top: 18px; }
+      .profile-card { min-width: 0; padding: 20px; border: 1px solid var(--line); border-radius: 20px; background: white; box-shadow: 0 10px 28px rgba(34,51,95,.055); }
+      .profile-card small { color: var(--muted); font-size: 10px; font-weight: 850; letter-spacing: .06em; text-transform: uppercase; }
+      .profile-card strong { display: block; margin-top: 9px; font-size: 15px; line-height: 1.45; }
+      .profile-card.accent { color: white; border-color: transparent; background: linear-gradient(135deg, #5267f7, #394ed2); }
+      .profile-card.accent small { color: #d8deff; }
+      .skill-campus-toolbar { display: flex; justify-content: space-between; align-items: end; gap: 18px; margin: 34px 0 16px; }
+      .skill-campus-toolbar h2 { margin: 0; font-size: 23px; letter-spacing: -.03em; }
+      .skill-campus-toolbar p { margin: 5px 0 0; color: var(--muted); font-size: 12px; }
+      .category-filters { display: flex; flex-wrap: wrap; gap: 7px; justify-content: flex-end; }
+      .filter-chip { min-height: 35px; padding: 0 12px; border: 1px solid #dfe4ee; border-radius: 99px; color: #6f7b93; background: white; font-size: 10px; font-weight: 850; cursor: pointer; }
+      .filter-chip.active { color: white; border-color: var(--blue); background: var(--blue); }
+      .holistic-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+      .holistic-card {
+        position: relative;
+        display: grid;
+        grid-template-rows: auto 1fr auto;
+        min-height: 218px;
+        padding: 20px;
+        overflow: hidden;
+        border: 1px solid var(--line);
+        border-top: 4px solid var(--skill-color, var(--blue));
+        border-radius: 21px;
+        background: white;
+        text-align: left;
+        cursor: pointer;
+        transition: transform .16s ease, box-shadow .16s ease;
+      }
+      .holistic-card:hover { transform: translateY(-3px); box-shadow: 0 16px 35px rgba(34,51,95,.1); }
+      .holistic-top { display: flex; justify-content: space-between; gap: 12px; align-items: center; }
+      .holistic-number { color: var(--skill-color, var(--blue)); font-size: 11px; font-weight: 900; letter-spacing: .07em; }
+      .score-pill { display: inline-flex; align-items: center; gap: 5px; padding: 7px 9px; border-radius: 10px; color: var(--skill-color, var(--blue)); background: color-mix(in srgb, var(--skill-color, var(--blue)) 11%, white); font-size: 11px; font-weight: 900; }
+      .holistic-card h3 { margin: 18px 0 7px; font-size: 16px; line-height: 1.3; letter-spacing: -.015em; }
+      .holistic-card p { margin: 0; color: var(--muted); font-size: 11px; line-height: 1.55; }
+      .holistic-footer { display: flex; justify-content: space-between; gap: 10px; align-items: center; margin-top: 17px; padding-top: 14px; border-top: 1px solid #edf0f5; }
+      .holistic-status { color: #647089; font-size: 10px; font-weight: 850; }
+      .holistic-content-count { color: var(--blue); font-size: 10px; font-weight: 850; }
+      .skill-campus-loading { padding: 70px 20px; color: var(--muted); text-align: center; }
+
+      .modal-overlay {
+        position: fixed;
+        z-index: 80;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        padding: 22px;
+        background: rgba(11, 18, 40, .72);
+        backdrop-filter: blur(9px);
+      }
+      .modal-card { width: min(100%, 760px); max-height: min(90vh, 820px); overflow: auto; border-radius: 27px; background: white; box-shadow: 0 35px 90px rgba(0,0,0,.3); }
+      .modal-head { position: relative; padding: 31px 34px 26px; color: white; background: linear-gradient(135deg, var(--modal-color, #5267f7), #17244a); }
+      .modal-head small { color: rgba(255,255,255,.72); font-size: 10px; font-weight: 850; letter-spacing: .07em; text-transform: uppercase; }
+      .modal-head h2 { margin: 9px 48px 8px 0; font-size: 28px; letter-spacing: -.035em; }
+      .modal-head p { max-width: 590px; margin: 0; color: rgba(255,255,255,.76); font-size: 12px; line-height: 1.6; }
+      .modal-close { position: absolute; top: 19px; right: 19px; display: grid; place-items: center; width: 38px; height: 38px; border: 1px solid rgba(255,255,255,.18); border-radius: 12px; color: white; background: rgba(255,255,255,.09); cursor: pointer; }
+      .modal-body { padding: 28px 34px 34px; }
+      .method-box { padding: 16px; border-radius: 15px; color: #536078; background: #f5f7fb; font-size: 12px; line-height: 1.6; }
+      .content-journey { display: grid; gap: 10px; margin-top: 20px; }
+      .content-stop { display: grid; grid-template-columns: 37px 1fr auto; gap: 12px; align-items: center; padding: 14px; border: 1px solid #e4e8f1; border-radius: 15px; }
+      .stop-number { display: grid; place-items: center; width: 37px; height: 37px; border-radius: 12px; color: var(--blue); background: #eef0ff; font-size: 11px; font-weight: 900; }
+      .content-stop strong { display: block; font-size: 12px; }
+      .content-stop span { display: block; margin-top: 4px; color: var(--muted); font-size: 10px; }
+      .content-state { padding: 7px 9px; border-radius: 9px; color: #7b8497; background: #f1f3f7; font-size: 9px; font-weight: 900; white-space: nowrap; }
+      .content-state.active { color: #14734f; background: #dcf6ea; }
+
+      .onboarding-card { width: min(100%, 900px); max-height: min(92vh, 850px); overflow: auto; border-radius: 30px; background: white; box-shadow: 0 35px 100px rgba(0,0,0,.34); }
+      .onboarding-layout { display: grid; grid-template-columns: .78fr 1.22fr; min-height: 560px; }
+      .onboarding-brand { position: relative; overflow: hidden; padding: 38px; color: white; background: linear-gradient(150deg, #101934, #263f8b); }
+      .onboarding-brand::after { content: ''; position: absolute; right: -120px; bottom: -130px; width: 310px; height: 310px; border: 54px solid rgba(255,255,255,.07); border-radius: 50%; }
+      .onboarding-brand h2 { position: relative; z-index: 1; margin: 70px 0 15px; font-size: 36px; line-height: 1.05; letter-spacing: -.045em; }
+      .onboarding-brand p { position: relative; z-index: 1; color: #b8c4df; font-size: 13px; line-height: 1.7; }
+      .onboarding-main { padding: 42px; }
+      .onboarding-main .hero-kicker { color: var(--blue); }
+      .onboarding-main h3 { margin: 10px 0 8px; font-size: 28px; letter-spacing: -.035em; }
+      .onboarding-main > p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.6; }
+      .intro-profile { display: grid; grid-template-columns: 110px 1fr; gap: 15px; margin-top: 24px; }
+      .intro-score { display: grid; place-items: center; min-height: 110px; border-radius: 19px; color: var(--night); background: var(--lime); text-align: center; }
+      .intro-score strong { display: block; font-size: 27px; }
+      .intro-score span { display: block; font-size: 9px; font-weight: 850; }
+      .intro-lists { display: grid; gap: 9px; }
+      .intro-list { padding: 13px 14px; border-radius: 14px; background: #f5f7fb; }
+      .intro-list small { color: var(--muted); font-size: 9px; font-weight: 850; text-transform: uppercase; }
+      .intro-list strong { display: block; margin-top: 5px; font-size: 11px; line-height: 1.45; }
+      .intro-steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; margin-top: 18px; }
+      .intro-step { padding: 14px; border: 1px solid var(--line); border-radius: 14px; }
+      .intro-step b { display: grid; place-items: center; width: 26px; height: 26px; margin-bottom: 10px; border-radius: 9px; color: var(--blue); background: #eef0ff; font-size: 10px; }
+      .intro-step strong { display: block; font-size: 11px; }
+      .intro-step span { display: block; margin-top: 4px; color: var(--muted); font-size: 9px; line-height: 1.4; }
+      .onboarding-main .action-button { width: 100%; height: 51px; margin-top: 22px; }
+
+      /* Learning view */
+      .learning-layout { display: grid; grid-template-columns: minmax(0, 1fr) 290px; gap: 18px; }
+      .question-panel { padding: clamp(23px, 4vw, 38px); }
+      .question-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 18px; }
+      .back-button { display: inline-flex; align-items: center; gap: 7px; border: 0; color: var(--muted); background: transparent; font-size: 12px; font-weight: 800; cursor: pointer; }
+      .timer { display: flex; align-items: center; gap: 7px; color: #56627b; font-size: 12px; font-weight: 850; }
+      .question-meta { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 27px; }
+      .meta-pill { padding: 7px 10px; border-radius: 9px; color: var(--blue-dark); background: #eef0ff; font-size: 10px; font-weight: 850; }
+      .meta-pill.level { color: #8a5a1f; background: #fff1df; }
+      .question-number { margin-top: 27px; color: #a0a9ba; font-size: 11px; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; }
+      .question-text { margin: 10px 0 25px; font-size: clamp(20px, 2.3vw, 29px); line-height: 1.38; letter-spacing: -.025em; font-weight: 820; }
+      .options { display: grid; gap: 11px; }
+      .option {
+        display: grid;
+        grid-template-columns: 41px minmax(0, 1fr) 22px;
+        align-items: center;
+        gap: 13px;
+        width: 100%;
+        min-height: 63px;
+        padding: 10px 15px 10px 11px;
+        border: 1px solid #dfe4ee;
+        border-radius: 16px;
+        color: #3c4863;
+        background: white;
+        text-align: left;
+        cursor: pointer;
+        transition: .15s ease;
+      }
+      .option:hover { border-color: #aeb8ff; background: #fafaff; transform: translateY(-1px); }
+      .option-letter { display: grid; place-items: center; width: 41px; height: 41px; border-radius: 12px; color: #68738b; background: #f1f3f8; font-weight: 900; }
+      .option-check { width: 18px; height: 18px; border: 2px solid #d6dce7; border-radius: 50%; }
+      .option.selected { border-color: var(--blue); background: #f5f6ff; box-shadow: 0 0 0 3px rgba(82,103,247,.08); }
+      .option.selected .option-letter { color: white; background: var(--blue); }
+      .option.selected .option-check { border: 5px solid var(--blue); background: white; }
+      .option.correct { border-color: var(--good); background: #eefaf5; }
+      .option.correct .option-letter { color: white; background: var(--good); }
+      .option.wrong { border-color: var(--bad); background: #fff3f4; }
+      .option.wrong .option-letter { color: white; background: var(--bad); }
+      .question-actions { display: flex; justify-content: flex-end; margin-top: 22px; }
+      .question-actions .action-button { min-width: 180px; height: 49px; padding: 0 22px; }
+      .question-loading, .complete-state { padding: 100px 20px; color: var(--muted); text-align: center; }
+      .loader { width: 36px; height: 36px; margin: 0 auto 16px; border: 4px solid #e8ebf3; border-top-color: var(--blue); border-radius: 50%; animation: spin .8s linear infinite; }
+      @keyframes spin { to { transform: rotate(360deg); } }
+      .complete-state strong { display: block; margin-bottom: 8px; color: var(--good); font-size: 27px; }
+      .result-box { margin-top: 20px; padding: 18px; border-radius: 16px; background: #f5f7fb; }
+      .result-box.good { color: #176c4d; background: #e8f8f1; }
+      .result-box.bad { color: #983440; background: #fff0f1; }
+      .result-box h3 { margin: 0 0 7px; font-size: 16px; }
+      .result-box p { margin: 5px 0 0; font-size: 13px; line-height: 1.55; }
+      .next-row { display: flex; justify-content: flex-end; margin-top: 13px; }
+      .next-button { min-height: 43px; padding: 0 17px; border: 1px solid #dfe4ef; border-radius: 13px; color: var(--blue); background: white; font-weight: 850; cursor: pointer; }
+      .learning-side { display: grid; align-content: start; gap: 18px; }
+      .focus-card { color: white; background: linear-gradient(145deg, #182750, #263a70); }
+      .focus-card h3 { margin: 0; font-size: 17px; }
+      .focus-card p { margin: 8px 0 20px; color: #aeb9d2; font-size: 12px; line-height: 1.55; }
+      .focus-ring {
+        display: grid;
+        place-items: center;
+        width: 128px;
+        height: 128px;
+        margin: 5px auto;
+        border: 10px solid rgba(255,255,255,.1);
+        border-top-color: var(--lime);
+        border-right-color: var(--cyan);
+        border-radius: 50%;
+      }
+      .focus-ring strong { font-size: 24px; }
+      .focus-ring span { display: block; color: #9eabc8; font-size: 9px; text-align: center; }
+      .tip-card h3 { margin: 0 0 10px; font-size: 15px; }
+      .tip-card p { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.6; }
+      .mobile-nav { display: none; }
+
+      @media (max-width: 1060px) {
+        .personal-route-grid { grid-template-columns: 1fr; }
+        .daily-route-step { min-height: 0; }
+        .stat-grid { grid-template-columns: repeat(2, 1fr); }
+        .roadmap { grid-template-columns: repeat(2, 1fr); }
+        .assigned-content-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+        .holistic-grid { grid-template-columns: repeat(2, 1fr); }
+        .learning-layout { grid-template-columns: 1fr; }
+        .learning-side { grid-template-columns: 1fr 1fr; }
+      }
+      @media (max-width: 850px) {
+        .login-page { grid-template-columns: 1fr; }
+        .login-showcase { display: none; }
+        .login-side { min-height: 100vh; padding: 28px 20px; }
+        .mobile-brand { display: flex; align-items: center; gap: 12px; }
+        .campus { display: block; }
+        .sidebar { display: none; }
+        .topbar { min-height: 70px; padding: 0 20px; }
+        .content { padding: 22px 18px 104px; }
+        .hero { grid-template-columns: 1fr; }
+        .hero-visual { display: none; }
+        .dashboard-grid { grid-template-columns: 1fr; }
+        .badge-row { grid-template-columns: repeat(3, 1fr); }
+        .skill-campus-hero { grid-template-columns: 1fr; }
+        .profile-orbit { display: none; }
+        .skill-campus-toolbar { align-items: flex-start; flex-direction: column; }
+        .category-filters { justify-content: flex-start; }
+        .onboarding-layout { grid-template-columns: 1fr; }
+        .onboarding-brand { min-height: 220px; }
+        .onboarding-brand h2 { margin-top: 35px; }
+        .mobile-nav {
+          position: fixed;
+          z-index: 40;
+          right: 12px;
+          bottom: 12px;
+          left: 12px;
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          padding: 7px;
+          border: 1px solid rgba(226,230,240,.9);
+          border-radius: 20px;
+          background: rgba(255,255,255,.94);
+          box-shadow: 0 14px 45px rgba(26, 39, 77, .16);
+          backdrop-filter: blur(18px);
+        }
+        .mobile-nav .nav-button { justify-content: center; min-height: 48px; padding: 0; color: #8490a8; }
+        .mobile-nav .nav-button span:last-child { display: none; }
+        .mobile-nav .nav-button.active { color: white; }
+      }
+      @media (max-width: 580px) {
+        .login-card h2 { font-size: 29px; }
+        .login-intro { font-size: 14px; }
+        .topbar .welcome { max-width: 185px; }
+        .level-chip { display: none; }
+        .hero { min-height: 0; padding: 27px 23px; border-radius: 22px; }
+        .hero h1 { font-size: 30px; }
+        .profile-banner { grid-template-columns: 60px 1fr; }
+        .profile-banner-score { width: 54px; height: 54px; border-width: 6px; font-size: 13px; }
+        .profile-banner .action-button { grid-column: 1 / -1; width: 100%; }
+        .educator-assessment-status { grid-template-columns: 42px 1fr; }
+        .educator-assessment-badge { grid-column: 1 / -1; justify-self: start; }
+        .daily-route { padding: 20px 17px; border-radius: 20px; }
+        .daily-route-head { align-items: flex-start; }
+        .daily-route h2 { font-size: 20px; }
+        .daily-route-progress { width: 66px; height: 66px; border-width: 6px; }
+        .daily-route-progress strong { font-size: 15px; }
+        .route-connection { align-items: flex-start; line-height: 1.45; }
+        .stat-grid { gap: 10px; }
+        .stat-card { padding: 15px; border-radius: 17px; }
+        .stat-value { font-size: 22px; }
+        .dashboard-grid { gap: 12px; }
+        .profile-strip { grid-template-columns: 1fr; }
+        .holistic-grid { grid-template-columns: 1fr; }
+        .modal-overlay { padding: 10px; }
+        .modal-head, .modal-body { padding-left: 21px; padding-right: 21px; }
+        .content-stop { grid-template-columns: 34px 1fr; }
+        .content-state { grid-column: 2; justify-self: start; }
+        .onboarding-main { padding: 27px 21px; }
+        .onboarding-brand { padding: 28px 21px; }
+        .onboarding-brand h2 { font-size: 30px; }
+        .intro-profile { grid-template-columns: 1fr; }
+        .intro-steps { grid-template-columns: 1fr; }
+        .panel { padding: 19px; border-radius: 20px; }
+        .week-chart { gap: 5px; }
+        .roadmap { grid-template-columns: 1fr; }
+        .assigned-content-grid { grid-template-columns: 1fr; }
+        .badge-row { grid-template-columns: repeat(2, 1fr); }
+        .learning-side { grid-template-columns: 1fr; }
+        .question-panel { padding: 20px 16px; }
+        .question-text { font-size: 20px; }
+        .option { grid-template-columns: 38px 1fr 18px; min-height: 59px; padding-right: 11px; }
+        .option-letter { width: 38px; height: 38px; }
+        .question-actions .action-button { width: 100%; }
+      }
+      /* Workshop pilot: same campus, real server-backed sessions. */
+      .ws-hero { padding: 30px; border-radius: 24px; color: white; background: linear-gradient(125deg,#152447,#2b3f80); }
+      .ws-hero small { color: #c5ed9b; font-weight: 800; letter-spacing: .08em; }
+      .ws-hero h1 { margin: 12px 0; font-size: clamp(26px,4vw,38px); }
+      .ws-hero p { max-width: 700px; color: #d5def5; line-height: 1.65; }
+      .ws-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 16px; margin: 18px 0; }
+      .ws-card { min-width: 0; padding: 24px; border: 1px solid var(--line); border-radius: 20px; background: white; }
+      .ws-card h3 { margin: 12px 0; font-size: 20px; }
+      .ws-card p, .ws-note { color: #586680; font-size: 14px; line-height: 1.7; }
+      .ws-tag { display: inline-block; padding: 6px 10px; border-radius: 8px; background: #e6f7ef; color: #166345; font-size: 11px; font-weight: 800; }
+      .ws-planned { background: #f8f9fd; }
+      .ws-planned .ws-tag { background: #e8ecf5; color: #596680; }
+      .ws-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+      .ws-button { min-height: 46px; padding: 11px 17px; border: 1px solid #cbd3e5; border-radius: 12px; background: white; color: #263454; cursor: pointer; font-weight: 700; }
+      .ws-button.primary { background: #465bed; border-color: #465bed; color: white; }
+      .ws-button.danger { color: #9f3942; }
+      .ws-button:disabled { opacity: .55; cursor: wait; }
+      .ws-status { margin: 14px 0; color: #953d21; line-height: 1.6; }
+      .ws-status:empty { display: none; }
+      .ws-player { margin-top: 20px; padding: clamp(20px,4vw,38px); background: white; border: 1px solid var(--line); border-radius: 24px; scroll-margin-top: 100px; }
+      .ws-player:focus-visible { outline: 3px solid #bdc6fc; outline-offset: 3px; }
+      .ws-player h2 { margin: 10px 0; font-size: 26px; }
+      .ws-topline { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+      .ws-clock { padding: 9px 14px; background: #eef2fd; border-radius: 12px; font-variant-numeric: tabular-nums; font-weight: 800; }
+      .ws-text { max-width: 68ch; margin: 28px auto; font-size: 19px; line-height: 1.95; }
+      .ws-text.large { font-size: 23px; }
+      .ws-text p { margin: 0 0 1.2em; }
+      .ws-quiz { min-width: 0; margin: 22px 0; padding: 20px; border: 1px solid var(--line); border-radius: 16px; }
+      .ws-quiz legend { max-width: 100%; padding: 0 6px; font-weight: 750; line-height: 1.65; }
+      .ws-choice { display: flex; align-items: flex-start; gap: 12px; padding: 13px; margin-top: 9px; background: #f5f7fc; border-radius: 10px; cursor: pointer; line-height: 1.55; }
+      .ws-choice:has(input:checked) { background: #e9edff; outline: 2px solid #5267f7; }
+      .ws-choice input { flex-shrink: 0; margin-top: 5px; accent-color: #465bed; }
+      .ws-results { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 12px; margin: 24px 0; }
+      .ws-result { padding: 18px; border-radius: 16px; background: #edf2fb; }
+      .ws-result strong { display: block; font-size: 28px; margin-top: 9px; }
+      .ws-result span { font-size: 12px; color: #4a5874; }
+      .ws-review { padding: 16px 0; border-top: 1px solid var(--line); }
+      .ws-review p { margin-bottom: 0; line-height: 1.7; color: #56647e; }
+      .ws-entry { padding: 16px 0; border-bottom: 1px solid var(--line); }
+      .ws-entry p { margin: 8px 0; }
+      .ws-entry strong { overflow-wrap: anywhere; }
+      .ws-shortcut { display: flex; justify-content: space-between; align-items: center; gap: 18px; flex-wrap: wrap; margin-top: 22px; padding: 20px 24px; background: #eaf3f5; border: 1px solid #d5e6ea; border-radius: 20px; }
+      .ws-shortcut p { margin: 5px 0 0; }
+      .anzan-lab { display: grid; grid-template-columns: minmax(280px,.9fr) minmax(0,1.1fr); gap: 20px; margin-top: 22px; }
+      .soroban-panel, .anzan-panel { padding: 22px; border: 1px solid #dfe5f1; border-radius: 20px; background: #f8faff; }
+      .soroban-target { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 16px 0; padding: 14px 16px; border-radius: 15px; background: #17264c; color: white; }
+      .soroban-target strong { font-size: 30px; font-variant-numeric: tabular-nums; }
+      .soroban-board { position: relative; display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; min-height: 310px; padding: 20px 16px; border: 9px solid #70441f; border-radius: 19px; background: linear-gradient(145deg,#e9bd72,#c88b3f); box-shadow: inset 0 0 0 3px rgba(255,255,255,.25); }
+      .soroban-board::after { content: ''; position: absolute; left: 0; right: 0; top: 112px; height: 14px; background: #70441f; box-shadow: 0 2px 0 rgba(255,255,255,.25); }
+      .soroban-rod { position: relative; z-index: 1; display: grid; grid-template-rows: auto 48px 18px 1fr auto; justify-items: center; gap: 6px; }
+      .soroban-rod::before { content: ''; position: absolute; top: 27px; bottom: 33px; width: 5px; border-radius: 99px; background: #f4dfb9; }
+      .soroban-place { position: relative; z-index: 2; padding: 4px 8px; border-radius: 7px; background: rgba(255,255,255,.78); color: #67401f; font-size: 10px; font-weight: 900; }
+      .soroban-bead { position: relative; z-index: 2; width: 64px; min-height: 30px; border: 0; border-radius: 50%; background: linear-gradient(#6f82ff,#3348ca); box-shadow: inset 0 -5px 0 rgba(0,0,0,.18), 0 2px 5px rgba(45,38,69,.22); color: white; font-weight: 900; transition: transform .18s ease, filter .18s ease; }
+      .soroban-bead.heaven { align-self: end; transform: translateY(-8px); }
+      .soroban-bead.heaven.active { transform: translateY(10px); filter: brightness(1.15); }
+      .soroban-earth { position: relative; z-index: 2; display: grid; gap: 5px; align-self: start; }
+      .soroban-bead.earth { background: linear-gradient(#ffbb63,#e4772f); transform: translateY(12px); }
+      .soroban-bead.earth.active { transform: translateY(-5px); filter: brightness(1.12); }
+      .soroban-digit { position: relative; z-index: 2; width: 38px; padding: 5px; border-radius: 9px; background: rgba(255,255,255,.84); text-align: center; font-weight: 900; }
+      .anzan-rounds { display: grid; gap: 12px; margin-top: 18px; }
+      .anzan-round { display: grid; grid-template-columns: minmax(0,1fr) auto minmax(120px,.55fr); gap: 10px; align-items: center; padding: 14px; border: 1px solid #dfe4f0; border-radius: 15px; background: white; }
+      .anzan-round strong, .anzan-round small { display: block; }
+      .anzan-round small { margin-top: 4px; color: #69758d; }
+      .anzan-round input { width: 100%; min-height: 44px; padding: 9px 12px; border: 1px solid #cbd3e5; border-radius: 10px; font-size: 19px; font-weight: 800; text-align: center; }
+      .anzan-flash { min-height: 250px; display: grid; place-items: center; margin: 18px 0; border: 1px solid rgba(255,255,255,.13); border-radius: 22px; background: rgba(4,9,22,.56); color: #fff; font-size: clamp(64px,14vw,126px); font-weight: 950; line-height: 1; letter-spacing: -.05em; font-variant-numeric: tabular-nums; box-shadow: inset 0 1px 0 rgba(255,255,255,.08); }
+      .anzan-flash.ready { color: #a9baff; font-size: clamp(21px,4vw,30px); letter-spacing: -.02em; }
+      .anzan-flash.is-showing.transition-fade { animation: anzanFadeIn .18s ease-out both; }
+      .anzan-flash.is-showing.transition-scale { animation: anzanScaleIn .2s ease-out both; }
+      @keyframes anzanFadeIn { from { opacity: .25; } to { opacity: 1; } }
+      @keyframes anzanScaleIn { from { opacity: .25; transform: scale(.82); } to { opacity: 1; transform: scale(1); } }
+      .anzan-review { display: grid; grid-template-columns: 1fr auto; gap: 12px; padding: 13px 0; border-top: 1px solid var(--line); }
+      .anzan-config { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 18px; }
+      .anzan-chip { padding: 7px 10px; border: 1px solid #d8e0f2; border-radius: 999px; background: white; color: #344263; font-size: 11px; font-weight: 850; }
+      .anzan-stage-panel { max-width: 820px; margin: 18px auto 0; padding: 22px; border: 1px solid #293a61; border-radius: 24px; color: #eef3ff; background: radial-gradient(circle at 84% 4%,rgba(70,99,192,.42),transparent 30%),linear-gradient(145deg,#10182c,#192642); box-shadow: 0 28px 65px rgba(18,29,58,.26); }
+      .anzan-stage-panel.theme-focus-light { border-color: #dce3f2; color: #1c2947; background: linear-gradient(145deg,#fff,#eef3ff); }
+      .anzan-stage-panel.theme-focus-light .anzan-flash { border-color: #dbe3f3; color: #17213a; background: white; }
+      .anzan-stage-panel.theme-focus-light .anzan-flash.ready { color: #4b61dc; }
+      .anzan-stage-panel.theme-high-contrast { border: 3px solid #fff; color: #fff; background: #000; }
+      .anzan-stage-panel.theme-high-contrast .anzan-flash { border: 3px solid #fff; color: #fff; background: #000; }
+      .anzan-stage-panel.theme-high-contrast .anzan-flash.ready { color: #ffeb3b; }
+      .anzan-stage-header { display: flex; justify-content: space-between; gap: 18px; align-items: flex-start; margin-bottom: 15px; }
+      .anzan-stage-header small, .anzan-stage-header strong { display: block; }
+      .anzan-stage-header small { color: #91a3ca; font-size: 10px; font-weight: 850; letter-spacing: .08em; text-transform: uppercase; }
+      .anzan-stage-header strong { margin-top: 5px; font-size: 18px; }
+      .anzan-stage-prescription { max-width: 360px; color: #aebddd; font-size: 11px; font-weight: 750; line-height: 1.55; text-align: right; }
+      .theme-focus-light .anzan-stage-prescription, .theme-focus-light .anzan-stage-header small { color: #64718a; }
+      .anzan-focus-note { display: flex; gap: 9px; align-items: center; margin: 14px 0 0; padding: 10px 12px; border: 1px solid rgba(255,255,255,.12); border-radius: 12px; color: #bdc9e4; background: rgba(255,255,255,.04); font-size: 11px; line-height: 1.45; }
+      .theme-focus-light .anzan-focus-note { border-color: #dce3f1; color: #53617a; background: #f7f9ff; }
+      .anzan-progress-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+      .anzan-progress-head strong { font-size: 17px; }
+      .anzan-progress { height: 8px; overflow: hidden; border-radius: 99px; background: #dfe5f4; }
+      .anzan-progress i { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg,#5267f7,#8b5cf6); transition: width .25s ease; }
+      .anzan-current-answer { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 10px; align-items: center; margin: 14px 0; }
+      .anzan-current-answer input { width: 100%; min-height: 58px; padding: 10px 14px; border: 2px solid #cbd3e5; border-radius: 14px; background: white; color: #1d2a48; font-size: 30px; font-weight: 900; text-align: center; }
+      .anzan-keypad { display: grid; grid-template-columns: repeat(6,1fr); gap: 8px; margin: 12px 0 18px; }
+      .anzan-key { min-height: 45px; border: 1px solid #cfd8ec; border-radius: 11px; background: white; color: #253555; font-size: 18px; font-weight: 900; }
+      .anzan-key.function { color: #8a4b10; background: #fff8ec; }
+      .anzan-recommendation { margin-top: 18px; padding: 17px; border: 1px solid #cbd8ff; border-radius: 16px; background: #f1f5ff; }
+      .anzan-recommendation strong, .anzan-recommendation span { display: block; }
+      .anzan-recommendation span { margin-top: 6px; color: #4f5d78; line-height: 1.55; }
+      @media (prefers-reduced-motion: reduce) {
+        .anzan-flash.is-showing, .anzan-progress i { animation: none !important; transition: none !important; }
+      }
+      @media (max-width: 850px) {
+        .mobile-nav { grid-template-columns: repeat(4,1fr); }
+        .mobile-nav .nav-button { flex-direction: column; gap: 3px; color: #53607c; padding: 6px 0; }
+        .mobile-nav .nav-button span:last-child { display: block; font-size: 10px; }
+        .anzan-lab { grid-template-columns: 1fr; }
+      }
+      @media (max-width: 580px) {
+        .ws-grid { grid-template-columns: 1fr; }
+        .ws-results { grid-template-columns: 1fr; gap: 8px; }
+        .ws-result { display: flex; justify-content: space-between; align-items: center; }
+        .ws-result strong { margin: 0; font-size: 24px; }
+        .ws-hero { padding: 24px; }
+        .ws-text { font-size: 18px; }
+        .ws-actions .ws-button { flex: 1 1 150px; }
+        .ws-quiz { padding: 14px; }
+        .anzan-round { grid-template-columns: 1fr; }
+        .anzan-current-answer { grid-template-columns: 1fr; }
+        .anzan-keypad { grid-template-columns: repeat(3,1fr); }
+        .anzan-stage-panel { padding: 15px; border-radius: 19px; }
+        .anzan-stage-header { display: grid; }
+        .anzan-stage-prescription { text-align: left; }
+        .anzan-flash { min-height: 210px; }
+        .soroban-board { min-height: 290px; padding-left: 8px; padding-right: 8px; }
+        .soroban-bead { width: 54px; }
+      }
+    </style>
+  </head>
+  <body>
+    <section id="loginView" class="login-page">
+      <div class="login-showcase">
+        <div class="brand-lockup">
+          <div class="brand-mark">CZA</div>
+          <div class="brand-copy">
+            <strong>CZA Dijital Akademi</strong>
+            <span>Kişisel öğrenme kampüsün</span>
+          </div>
+        </div>
+        <div class="showcase-copy">
+          <div class="showcase-kicker"><i></i> Her öğrenciye özel rota</div>
+          <h1>Potansiyelini keşfet, <em>kendi hızında</em> ilerle.</h1>
+          <p>Eksiklerini görünür kılan, doğru kazanıma yönlendiren ve her adımını başarıya dönüştüren kişisel çalışma alanın.</p>
+        </div>
+        <div class="showcase-features">
+          <span>✦ Akıllı kazanım rotası</span>
+          <span>◎ Anlık geri bildirim</span>
+          <span>↗ Ölçülebilir gelişim</span>
+        </div>
+      </div>
+
+      <div class="login-side">
+        <div class="login-card">
+          <div class="mobile-brand brand-lockup">
+            <div class="brand-mark">CZA</div>
+            <div class="brand-copy">
+              <strong>CZA Dijital Akademi</strong>
+              <span>Öğrenci Kampüsü</span>
+            </div>
+          </div>
+          <h2>Kampüsüne hoş geldin</h2>
+          <p class="login-intro">Bugünkü öğrenme rotan hazır. Devam etmek için öğrenci bilgilerinle giriş yap.</p>
+          <form id="loginForm">
+            <div class="field">
+              <label for="studentCode"><span>Öğrenci kodu</span><small>Sana özel kod</small></label>
+              <div class="input-wrap">
+                <span class="input-icon">◎</span>
+                <input id="studentCode" autocomplete="username" placeholder="Örn. CZA-1042" required>
+              </div>
+            </div>
+            <div class="field">
+              <label for="studentPin"><span>6 haneli giriş PIN’i</span><small>••••••</small></label>
+              <div class="input-wrap">
+                <span class="input-icon">⌑</span>
+                <input id="studentPin" inputmode="numeric" maxlength="6" pattern="[0-9]{6}" autocomplete="current-password" placeholder="6 haneli PIN" required>
+              </div>
+            </div>
+            <button id="loginButton" class="login-button" type="submit">
+              <span>Kampüse Gir</span><span>→</span>
+            </button>
+            <div id="loginError" class="login-error" role="alert"></div>
+          </form>
+          <div class="secure-note"><span>⌾</span> Güvenli öğrenci oturumu</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="appView" class="campus hidden">
+      <aside class="sidebar">
+        <div class="side-brand brand-lockup">
+          <div class="brand-mark">CZA</div>
+          <div class="brand-copy">
+            <strong>CZA Akademi</strong>
+            <span>Öğrenci Kampüsü</span>
+          </div>
+        </div>
+        <nav class="side-nav" aria-label="Ana menü">
+          <button class="nav-button active" type="button" data-view="dashboard"><span class="nav-icon">⌂</span><span>Ana Kampüs</span></button>
+          <button class="nav-button" type="button" data-view="learning"><span class="nav-icon">▶</span><span>Çalışma Alanı</span></button>
+          <button class="nav-button" type="button" data-view="workshops"><span class="nav-icon" aria-hidden="true">✧</span><span>Atölyeler</span></button>
+          <button class="nav-button" type="button" data-view="skills"><span class="nav-icon">◫</span><span>Beceri Kampüsü</span></button>
+          <button class="nav-button" type="button" data-scroll="badges"><span class="nav-icon">✦</span><span>Başarılarım</span></button>
+        </nav>
+        <div class="sidebar-spacer"></div>
+        <div class="mini-profile">
+          <div id="sideInitials" class="mini-avatar">Ö</div>
+          <div><strong id="sideName">Öğrenci</strong><span id="sideCode">CZA Kampüsü</span></div>
+        </div>
+      </aside>
+
+      <div class="main-column">
+        <header class="topbar">
+          <div class="welcome">
+            CZA Öğrenci Kampüsü
+            <strong id="welcomeName">Merhaba, Öğrenci</strong>
+          </div>
+          <div class="top-actions">
+            <div class="level-chip"><span>⚡</span><span>Seviye <b id="topLevel">1</b></span></div>
+            <button id="logoutButton" class="icon-button" type="button" title="Çıkış yap" aria-label="Çıkış yap">↪</button>
+          </div>
+        </header>
+
+        <main class="content">
+          <section id="dashboardView" class="view">
+            <article class="hero">
+              <div class="hero-copy">
+                <div class="hero-kicker">Bugünün öğrenme rotası</div>
+                <h1 id="heroTitle">Bir sonraki kazanımın seni bekliyor.</h1>
+                <p id="heroText">CZA motoru cevaplarına göre sıradaki en doğru çalışmayı senin için seçti.</p>
+                <button id="heroStartButton" class="action-button" type="button"><span id="heroStartLabel">Çalışmaya Başla</span><span>→</span></button>
+              </div>
+              <div class="hero-visual" aria-hidden="true">
+                <div class="route-orbit">
+                  <div class="orbit-dot one"></div>
+                  <div class="route-core" id="heroProgress">0%</div>
+                  <div class="orbit-dot two"></div>
+                </div>
+              </div>
+            </article>
+
+            <article id="workshopShortcut" class="ws-shortcut">
+              <div><strong id="workshopShortcutTitle">Okuma Atölyesi • Pilot</strong><p id="workshopShortcutText" class="ws-note">Metni oku, anlamanı kontrol et, sonucunu eğitimcinle takip et.</p></div>
+              <button id="workshopShortcutButton" class="ws-button primary" type="button" data-view="workshops">Atölyelere Git →</button>
+            </article>
+
+            <article class="profile-banner">
+              <div id="dashboardProfileScore" class="profile-banner-score">—</div>
+              <div>
+                <small>14 becerilik bütüncül profilin</small>
+                <strong id="dashboardProfileStrength">Güçlü öğrenme kaynakların hazırlanıyor.</strong>
+                <p id="dashboardProfilePriority">Gelişim önceliklerin değerlendirme sonuçlarından belirlenecek.</p>
+              </div>
+              <button class="action-button" type="button" data-view="skills">Beceri Haritamı Aç →</button>
+            </article>
+
+            <article id="educatorAssessmentStatus" class="educator-assessment-status">
+              <div class="educator-assessment-icon">◎</div>
+              <div><small>Yapılandırılmış eğitimci gözlemi</small><strong id="educatorAssessmentTitle">Eğitmen değerlendirmesi bekleniyor</strong><p id="educatorAssessmentText">Standart görevler uygulandığında değerlendirme durumun burada görünecek.</p></div>
+              <span id="educatorAssessmentBadge" class="educator-assessment-badge">BEKLİYOR</span>
+            </article>
+
+            <section id="dailyRoutePanel" class="daily-route hidden" aria-labelledby="dailyRouteTitle">
+              <div class="daily-route-head">
+                <div>
+                  <div id="dailyRouteDate" class="daily-route-date">Bugünün kişisel planı</div>
+                  <h2 id="dailyRouteTitle">Güçlü yönünden güç alan bugünkü rota</h2>
+                  <p id="dailyRouteSummary" class="daily-route-summary"></p>
+                </div>
+                <div id="dailyRouteProgress" class="daily-route-progress" aria-label="Günlük rota ilerlemesi">
+                  <div><strong id="dailyRoutePercent">%0</strong><span id="dailyRouteDuration">20 dakikalık rota</span></div>
+                </div>
+              </div>
+              <div id="routeConnection" class="route-connection"></div>
+              <div id="dailyRouteSteps" class="personal-route-grid"></div>
+            </section>
+
+            <div class="stat-grid">
+              <article class="stat-card">
+                <div class="stat-top"><span class="stat-icon">⚡</span><span class="stat-label">Seviye</span></div>
+                <div id="levelValue" class="stat-value">1</div>
+                <div id="levelCaption" class="stat-caption">Sonraki seviyeye 250 XP</div>
+                <div class="mini-progress"><i id="levelProgress" style="width:0%"></i></div>
+              </article>
+              <article class="stat-card">
+                <div class="stat-top"><span class="stat-icon">✦</span><span class="stat-label">Toplam XP</span></div>
+                <div id="xpValue" class="stat-value">0</div>
+                <div class="stat-caption">Her doğru cevap yeni güç</div>
+              </article>
+              <article class="stat-card">
+                <div class="stat-top"><span class="stat-icon">🔥</span><span class="stat-label">Çalışma Serisi</span></div>
+                <div id="streakValue" class="stat-value">0 gün</div>
+                <div class="stat-caption">Düzenli çalışma, kalıcı başarı</div>
+              </article>
+              <article class="stat-card">
+                <div class="stat-top"><span class="stat-icon">◎</span><span class="stat-label">Doğruluk</span></div>
+                <div id="accuracyValue" class="stat-value">%0</div>
+                <div id="accuracyCaption" class="stat-caption">Henüz cevap bulunmuyor</div>
+              </article>
+            </div>
+
+            <div class="dashboard-grid">
+              <article class="panel">
+                <div class="panel-header">
+                  <div><h2 class="panel-title">Haftalık hareketin</h2><p class="panel-subtitle">Son 7 gündeki çözdüğün soru sayısı</p></div>
+                  <button class="soft-link" type="button" data-start>Bugün devam et →</button>
+                </div>
+                <div id="weekChart" class="week-chart"></div>
+              </article>
+
+              <article class="panel mission">
+                <div class="mission-label">Günün görevi</div>
+                <h3 id="missionTitle">5 soru ile ritmini kur</h3>
+                <p id="missionText">Bugünkü hedefini tamamla ve öğrenme serini güçlendir.</p>
+                <div class="mission-progress-label"><span>İlerleme</span><strong id="missionCount">0 / 5</strong></div>
+                <div class="mission-progress"><i id="missionProgress" style="width:0%"></i></div>
+                <button class="action-button" type="button" data-start>Göreve Devam Et</button>
+              </article>
+            </div>
+
+            <section id="assignedContentSection" class="hidden">
+              <div class="section-heading">
+                <div><h2>Eğitimcinden gelen içerikler</h2><p>Sınıfına, paketine veya kişisel gelişim rotana özel kaynaklar</p></div>
+              </div>
+              <div id="assignedContentGrid" class="assigned-content-grid"></div>
+            </section>
+
+            <div id="roadmap" class="section-heading">
+              <div><h2>Kazanım haritan</h2><p>CZA motorunun gerçek cevaplarından oluşan kişisel yol haritan</p></div>
+              <button class="soft-link" type="button" data-start>Odak çalışmasına geç →</button>
+            </div>
+            <div id="roadmapGrid" class="roadmap"></div>
+
+            <div id="badges" class="section-heading">
+              <div><h2>Başarı koleksiyonun</h2><p>Çalıştıkça açılan kişisel kilometre taşların</p></div>
+            </div>
+            <div id="badgeRow" class="badge-row"></div>
+          </section>
+
+          <section id="skillCampusView" class="view hidden">
+            <div id="skillCampusLoading" class="panel skill-campus-loading">
+              <div class="loader"></div>
+              <span>Bütüncül beceri haritan hazırlanıyor…</span>
+            </div>
+            <div id="skillCampusContent" class="hidden">
+              <article class="skill-campus-hero">
+                <div>
+                  <div class="hero-kicker">CZA Bütüncül Gelişim Haritası</div>
+                  <h1>14 beceri, tek ve kişisel bir gelişim yolculuğu.</h1>
+                  <p id="holisticHeroText">Akademik öğrenmeden zihinsel potansiyele, öz yönetimden değer gelişimine kadar bütün alanların birbirini desteklediği kampüs.</p>
+                </div>
+                <div class="profile-orbit" aria-hidden="true">
+                  <div class="profile-score"><div><strong id="holisticAverage">—</strong><span>Genel Profil / 5</span></div></div>
+                </div>
+              </article>
+
+              <div class="profile-strip">
+                <article class="profile-card accent"><small>Profil durumun</small><strong id="holisticProfileLabel">Değerlendirme hazırlanıyor</strong></article>
+                <article class="profile-card"><small>Güçlü öğrenme kaynakların</small><strong id="holisticStrengths">—</strong></article>
+                <article class="profile-card"><small>İlk gelişim önceliklerin</small><strong id="holisticPriorities">—</strong></article>
+              </div>
+
+              <div class="skill-campus-toolbar">
+                <div><h2>Beceri alanların</h2><p>Her alanın düzeyini, yöntemlerini ve dört aşamalı içerik yolculuğunu incele.</p></div>
+                <div id="categoryFilters" class="category-filters"></div>
+              </div>
+              <div id="holisticGrid" class="holistic-grid"></div>
+            </div>
+          </section>
+
+          <section id="workshopsView" class="view hidden" aria-labelledby="workshopsTitle">
+            <header class="ws-hero">
+              <small>BECERİ ATÖLYELERİ / ÇALIŞAN PİLOTLAR</small>
+              <h1 id="workshopsTitle">Oku. Anla. Hesapla. Kendini geliştir.</h1>
+              <p>Okuma çalışmasını tamamla veya dijital abaküsle Soroban–Anzan seansına gir. Kaydedilen sonuçlarını eğitimcin de görebilir.</p>
+            </header>
+            <p class="ws-note">Bu örnek içerikler serbest alıştırmadır; kişiselleştirilmiş rota veya standart seviye testi değildir. 14 becerilik değerlendirme puanlarını değiştirmez. Sınıfa ve yönteme özel içerikler eğitimciyle hazırlanacak.</p>
+            <div class="ws-actions"><button id="workshopsRefresh" class="ws-button" type="button">Kayıtları Yenile</button></div>
+            <div id="workshopsMessage" class="ws-status" role="status" aria-live="polite"></div>
+            <div id="workshopPlayer" class="ws-player hidden" tabindex="-1"></div>
+            <div id="workshopCatalog"></div>
+            <section class="ws-card" style="margin-top:22px" aria-labelledby="workshopHistoryTitle">
+              <h2 id="workshopHistoryTitle">Çalışma geçmişin</h2>
+              <p class="ws-note">Son 10 seansın. Hız ve anlama ayrı göstergelerdir; farklı metinler doğrudan karşılaştırılmaz.</p>
+              <div id="workshopHistory"></div>
+            </section>
+          </section>
+
+          <section id="learningView" class="view hidden">
+            <div class="learning-layout">
+              <article class="panel question-panel">
+                <div class="question-toolbar">
+                  <button class="back-button" type="button" data-view="dashboard">← Ana kampüse dön</button>
+                  <div id="timer" class="timer">◷ 00:00</div>
+                </div>
+                <div id="questionLoading" class="question-loading">
+                  <div class="loader"></div>
+                  <span>Kişisel çalışma hazırlanıyor…</span>
+                </div>
+                <div id="questionContent" class="hidden">
+                  <div class="question-meta">
+                    <span id="questionLesson" class="meta-pill">Matematik</span>
+                    <span id="questionSkill" class="meta-pill">Kazanım</span>
+                    <span id="questionLevel" class="meta-pill level">Seviye</span>
+                  </div>
+                  <div class="question-number">Odak sorusu</div>
+                  <div id="questionPrompt" class="question-text"></div>
+                  <div id="options" class="options"></div>
+                  <div class="question-actions">
+                    <button id="submitButton" class="action-button" type="button" disabled>Cevabı Kontrol Et <span>→</span></button>
+                  </div>
+                  <div id="resultBox" class="result-box hidden" aria-live="polite"></div>
+                  <div id="nextRow" class="next-row hidden">
+                    <button id="nextButton" class="next-button" type="button">Sıradaki soruya geç →</button>
+                  </div>
+                </div>
+                <div id="completeView" class="complete-state hidden">
+                  <strong>Harika iş!</strong>
+                  <span>Tüm etkin kazanımları 3/3 hedefiyle tamamladın.</span>
+                </div>
+              </article>
+
+              <aside class="learning-side">
+                <article class="panel focus-card">
+                  <h3>Bugünkü odak</h3>
+                  <p>Kısa ve düzenli çalışmalar öğrenme kalıcılığını güçlendirir.</p>
+                  <div class="focus-ring">
+                    <div><strong id="focusCount">0/5</strong><span>günlük soru</span></div>
+                  </div>
+                </article>
+                <article class="panel tip-card">
+                  <h3>💡 CZA çalışma ipucu</h3>
+                  <p>Önce sorunun senden ne istediğini belirle. Sonra verilen bilgileri tek tek eşleştir; hızdan önce doğruluğu hedefle.</p>
+                </article>
+              </aside>
+            </div>
+          </section>
+        </main>
+      </div>
+
+      <nav class="mobile-nav" aria-label="Mobil menü">
+        <button class="nav-button active" type="button" data-view="dashboard"><span class="nav-icon">⌂</span><span>Ana Kampüs</span></button>
+        <button class="nav-button" type="button" data-view="learning"><span class="nav-icon">▶</span><span>Çalış</span></button>
+        <button class="nav-button" type="button" data-view="workshops"><span class="nav-icon" aria-hidden="true">✧</span><span>Atölyeler</span></button>
+        <button class="nav-button" type="button" data-view="skills"><span class="nav-icon">◫</span><span>Beceriler</span></button>
+      </nav>
+    </section>
+
+    <div id="skillDetailModal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="skillDetailTitle">
+      <article id="skillDetailCard" class="modal-card">
+        <header id="skillDetailHead" class="modal-head">
+          <button id="skillDetailClose" class="modal-close" type="button" aria-label="Kapat">×</button>
+          <small id="skillDetailCategory">Beceri alanı</small>
+          <h2 id="skillDetailTitle">Beceri</h2>
+          <p id="skillDetailDescription"></p>
+        </header>
+        <div class="modal-body">
+          <div id="skillDetailMethod" class="method-box"></div>
+          <div id="skillContentJourney" class="content-journey"></div>
+        </div>
+      </article>
+    </div>
+
+    <div id="onboardingModal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="onboardingTitle">
+      <article class="onboarding-card">
+        <div class="onboarding-layout">
+          <aside class="onboarding-brand">
+            <div class="brand-lockup">
+              <div class="brand-mark">CZA</div>
+              <div class="brand-copy"><strong>CZA Akademi</strong><span>Kişisel öğrenme kampüsün</span></div>
+            </div>
+            <h2>Bu kampüs senin için düşünüyor.</h2>
+            <p>Değerlendirmelerin, cevapların ve gelişim ritmin birlikte ele alınır; sana her gün doğru sonraki adım gösterilir.</p>
+          </aside>
+          <div class="onboarding-main">
+            <div class="hero-kicker">İlk kampüs buluşman</div>
+            <h3 id="onboardingTitle">Seni tanıyoruz.</h3>
+            <p id="onboardingText">CZA değerlendirme sonuçların kişisel gelişim rotana bağlandı.</p>
+            <div class="intro-profile">
+              <div class="intro-score"><div><strong id="introAverage">—</strong><span>14 beceri profili</span></div></div>
+              <div class="intro-lists">
+                <div class="intro-list"><small>Güçlü kaynakların</small><strong id="introStrengths">—</strong></div>
+                <div class="intro-list"><small>İlk önceliklerin</small><strong id="introPriorities">—</strong></div>
+              </div>
+            </div>
+            <div class="intro-steps">
+              <div class="intro-step"><b>1</b><strong>Rotanı gör</strong><span>Sistem bugün yapacağın çalışmayı seçer.</span></div>
+              <div class="intro-step"><b>2</b><strong>Uygula</strong><span>Kısa ve odaklı görevlerle ilerlersin.</span></div>
+              <div class="intro-step"><b>3</b><strong>Gelişimini izle</strong><span>14 beceride değişimini görünür kılarsın.</span></div>
+            </div>
+            <button id="completeOnboardingButton" class="action-button" type="button">Kişisel Kampüsümü Aç <span>→</span></button>
+          </div>
+        </div>
+      </article>
+    </div>
+
+    <script>
+      const state = {
+        token: sessionStorage.getItem('czaToken') || '',
+        student: null,
+        dashboard: null,
+        skillCampus: null,
+        skillFilter: 'Tümü',
+        question: null,
+        selectedAnswer: '',
+        startedAt: 0,
+        submitting: false,
+        timerId: null,
+        activeView: 'dashboard',
+        workshops: null, reading: null, readingAnswers: {}, workshopBusy: false,
+        workshopTimer: null, readingSyncedAt: 0, workshopStartRequest: null,
+        anzan: null, anzanAnswers: {}, anzanPlayed: {}, anzanStartRequest: null, anzanLab: false,
+        anzanSelectedContentId: '', anzanSelectedAssignmentId: '', anzanRoundIndex: 0,
+        anzanFlashTimer: null, anzanFlashRunning: false, abacusDigits: [0,0,0], abacusTargetIndex: 0,
+      };
+
+      const byId = (id) => document.getElementById(id);
+      const clampPercent = (value) => Math.max(0, Math.min(100, Math.round((Number(value) || 0) * 100)));
+      const escapeText = (value) => String(value == null ? '' : value);
+
+      function server(functionName, ...args) {
+        return new Promise((resolve, reject) => {
+          google.script.run
+            .withSuccessHandler(resolve)
+            .withFailureHandler((error) => reject(new Error(error && error.message ? error.message : String(error))))
+            [functionName](...args);
+        });
+      }
+
+      function initials(name) {
+        const parts = escapeText(name).trim().split(/\s+/).filter(Boolean);
+        return parts.slice(0, 2).map((part) => part.charAt(0)).join('').toLocaleUpperCase('tr-TR') || 'Ö';
+      }
+
+      function firstName(name) {
+        return escapeText(name).trim().split(/\s+/)[0] || 'Öğrenci';
+      }
+
+      function showLogin(message) {
+        stopTimer();
+        clearInterval(state.workshopTimer);
+        clearTimeout(state.anzanFlashTimer);
+        state.workshops = null; state.reading = null; state.readingAnswers = {};
+        state.workshopBusy = false; state.workshopStartRequest = null;
+        state.anzan = null; state.anzanAnswers = {}; state.anzanPlayed = {}; state.anzanStartRequest = null;
+        state.anzanLab = false; state.anzanSelectedContentId = ''; state.anzanSelectedAssignmentId = ''; state.anzanRoundIndex = 0;
+        state.anzanFlashRunning = false; state.abacusDigits = [0,0,0];
+        byId('workshopPlayer').replaceChildren();
+        byId('workshopHistory').replaceChildren();
+        byId('workshopCatalog').replaceChildren();
+        state.token = '';
+        state.student = null;
+        state.dashboard = null;
+        state.skillCampus = null;
+        byId('onboardingModal').classList.add('hidden');
+        byId('skillDetailModal').classList.add('hidden');
+        sessionStorage.removeItem('czaToken');
+        sessionStorage.removeItem('czaStudent');
+        byId('appView').classList.add('hidden');
+        byId('loginView').classList.remove('hidden');
+        byId('loginError').textContent = message || '';
+      }
+
+      function showApp() {
+        byId('loginView').classList.add('hidden');
+        byId('appView').classList.remove('hidden');
+        const name = state.student.name || state.student.code || 'Öğrenci';
+        byId('welcomeName').textContent = 'Merhaba, ' + firstName(name);
+        byId('sideName').textContent = name;
+        byId('sideCode').textContent = [state.student.code, state.student.grade].filter(Boolean).join(' • ');
+        byId('sideInitials').textContent = initials(name);
+      }
+
+      function navigate(viewName) {
+        if (state.workshopBusy) return;
+        if (viewName !== 'workshops' && state.reading && state.reading.phase === 'READING' && !state.reading.paused) {
+          changeReading('pause').then((saved) => { if (saved) navigate(viewName); });
+          return;
+        }
+        state.activeView = viewName;
+        byId('workshopsView').classList.toggle('hidden', viewName !== 'workshops');
+        const learning = viewName === 'learning';
+        const skills = viewName === 'skills';
+        byId('dashboardView').classList.toggle('hidden', viewName !== 'dashboard');
+        byId('learningView').classList.toggle('hidden', !learning);
+        byId('skillCampusView').classList.toggle('hidden', !skills);
+        document.querySelectorAll('[data-view]').forEach((button) => {
+          button.classList.toggle('active', button.dataset.view === viewName);
+        });
+        if (learning) {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+          if (!state.question && !byId('completeView').classList.contains('hidden')) return;
+          if (!state.question) loadNextQuestion();
+          else startTimer();
+        } else if (viewName === 'workshops') {
+          stopTimer();
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+          loadWorkshops();
+        } else if (skills) {
+          stopTimer();
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+          if (!state.skillCampus) loadSkillCampus();
+        } else {
+          stopTimer();
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      }
+
+      function workshopNode(tag, text, className) {
+        const node = document.createElement(tag);
+        if (text != null) node.textContent = String(text);
+        if (className) node.className = className;
+        return node;
+      }
+
+      function workshopButton(label, action, style) {
+        const button = workshopNode('button', label, 'ws-button ' + (style || ''));
+        button.type = 'button';
+        button.addEventListener('click', action);
+        return button;
+      }
+
+      function workshopBusy(value, message) {
+        state.workshopBusy = value;
+        byId('workshopsView').setAttribute('aria-busy', String(value));
+        byId('workshopsView').querySelectorAll('button, input').forEach((node) => {
+          if (value && !node.disabled) { node.dataset.workshopBusyOwned = '1'; node.disabled = true; }
+          if (!value && node.dataset.workshopBusyOwned === '1') { delete node.dataset.workshopBusyOwned; node.disabled = false; }
+        });
+        if (message !== undefined) byId('workshopsMessage').textContent = message;
+      }
+
+      function workshopError(error) {
+        if (/oturum/i.test(error.message)) { showLogin(error.message); return; }
+        byId('workshopsMessage').textContent = error.message + ' İşlem onaylanmadı. Kayıtları yenileyerek durumunu kontrol edebilir veya aynı işlemi yeniden deneyebilirsin.';
+      }
+
+      function setReadingSession(session) {
+        if (!state.reading || !session || state.reading.id !== session.id || session.phase !== 'QUIZ') state.readingAnswers = {};
+        state.reading = session; state.readingSyncedAt = Date.now();
+        if (state.workshops && session) {
+          state.workshops.history = [session, ...(state.workshops.history || []).filter((item) => item.id !== session.id)].sort((a,b) => new Date(b.startedAt) - new Date(a.startedAt)).slice(0,10);
+          const assignment = (state.workshops.assignments || []).find((item) => item.id === session.assignmentId);
+          if (assignment) {
+            assignment.sessionId = session.id;
+            assignment.session = session;
+            assignment.status = session.phase === 'COMPLETED'
+              ? 'TAMAMLANDI'
+              : (['READING','QUIZ'].includes(session.phase) ? 'DEVAM EDİYOR' : 'BEKLİYOR');
+          }
+        }
+        renderWorkshops();
+      }
+
+      function setAnzanSession(session) {
+        if (!state.anzan || !session || state.anzan.id !== session.id) {
+          state.anzanAnswers = {};
+          state.anzanPlayed = {};
+          state.anzanRoundIndex = 0;
+        }
+        state.anzan = session;
+        state.anzanLab = !!session;
+        if (session) {
+          state.anzanSelectedContentId = session.contentId;
+          state.anzanSelectedAssignmentId = session.assignmentId || '';
+        }
+        if (session) state.reading = null;
+        if (state.workshops && session) {
+          state.workshops.anzanHistory = [
+            session,
+            ...(state.workshops.anzanHistory || []).filter((item) => item.id !== session.id),
+          ].sort((a,b) => new Date(b.startedAt) - new Date(a.startedAt)).slice(0,10);
+          const assignment = (state.workshops.assignments || []).find((item) => item.id === session.assignmentId);
+          if (assignment) {
+            const previousPhase = assignment.session && assignment.session.phase;
+            assignment.sessionId = session.id;
+            assignment.session = session;
+            if (session.phase === 'COMPLETED' && previousPhase !== 'COMPLETED') {
+              assignment.completedCount = Math.min(assignment.repeatTarget || 1, (assignment.completedCount || 0) + 1);
+            }
+            assignment.remainingCount = Math.max(0, (assignment.repeatTarget || 1) - (assignment.completedCount || 0));
+            assignment.status = session.phase === 'ACTIVE'
+              ? 'DEVAM EDİYOR'
+              : (session.phase === 'COMPLETED' && assignment.remainingCount === 0 ? 'TAMAMLANDI' : 'BEKLİYOR');
+          }
+        }
+        renderWorkshops();
+      }
+
+      function openAnzanLab(contentId) {
+        if (state.workshopBusy || (state.reading && ['READING','QUIZ'].includes(state.reading.phase))) return;
+        state.anzanLab = true;
+        state.anzanSelectedContentId = contentId || state.anzanSelectedContentId || ((((state.workshops || {}).anzanCatalog || [])[0] || {}).id || '');
+        state.anzanSelectedAssignmentId = '';
+        state.anzanRoundIndex = 0;
+        state.reading = null;
+        state.abacusDigits = [0,0,0];
+        state.abacusTargetIndex = 0;
+        renderWorkshops();
+        focusReadingPlayer();
+      }
+
+      async function beginAnzan(contentId, assignmentId) {
+        if (state.workshopBusy) return;
+        const token = state.token;
+        const assignedId = assignmentId || '';
+        state.anzanSelectedContentId = contentId;
+        state.anzanSelectedAssignmentId = assignedId;
+        if (!state.anzanStartRequest || state.anzanStartRequest.contentId !== contentId
+            || state.anzanStartRequest.assignmentId !== assignedId) {
+          state.anzanStartRequest = { contentId, assignmentId: assignedId, id: crypto.randomUUID() };
+        }
+        workshopBusy(true, 'Soroban–Anzan seansı güvenli biçimde açılıyor…');
+        try {
+          const session = await server('startAnzanSession', token, contentId, state.anzanStartRequest.id, assignedId);
+          if (state.token !== token) return;
+          state.anzanStartRequest = null;
+          setAnzanSession(session);
+          byId('workshopsMessage').textContent = '';
+          focusReadingPlayer();
+        } catch (error) { if (state.token === token) workshopError(error); }
+        finally { if (state.token === token) workshopBusy(false); }
+      }
+
+      async function changeAnzan(action) {
+        if (state.workshopBusy || !state.anzan) return false;
+        const token = state.token;
+        const session = state.anzan;
+        workshopBusy(true, action === 'submit' ? 'Anzan sonuçların sunucuda kontrol ediliyor…' : 'Seans sonlandırılıyor…');
+        try {
+          const response = await server(
+            'updateAnzanSession', token, session.id, session.revision, action,
+            action === 'submit' ? state.anzanAnswers : null
+          );
+          if (state.token !== token) return false;
+          setAnzanSession(response.session);
+          byId('workshopsMessage').textContent = response.stale
+            ? 'Seans başka bir işlemde güncellenmiş. En son kayıt yüklendi.' : '';
+          if (response.session.phase === 'COMPLETED') focusReadingPlayer();
+          return !response.stale;
+        } catch (error) { if (state.token === token) workshopError(error); return false; }
+        finally { if (state.token === token) workshopBusy(false); }
+      }
+
+      async function openAnzanResult(id) {
+        if (state.workshopBusy) return;
+        const token = state.token;
+        workshopBusy(true, 'Soroban–Anzan sonucu yükleniyor…');
+        try {
+          const session = await server('getAnzanSession', token, id);
+          if (state.token !== token) return;
+          setAnzanSession(session);
+          byId('workshopsMessage').textContent = '';
+          focusReadingPlayer();
+        } catch (error) { if (state.token === token) workshopError(error); }
+        finally { if (state.token === token) workshopBusy(false); }
+      }
+
+      function anzanWait(ms) {
+        return new Promise((resolve) => { state.anzanFlashTimer = setTimeout(resolve, ms); });
+      }
+
+      function formatAnzanValues(values) {
+        return (values || []).map((value, index) => {
+          if (!index) return String(value);
+          return value < 0 ? '− ' + Math.abs(value) : '+ ' + value;
+        }).join(' ');
+      }
+
+      function speakAnzanValue(value, intervalMs) {
+        if (!('speechSynthesis' in window) || typeof SpeechSynthesisUtterance === 'undefined') return false;
+        const utterance = new SpeechSynthesisUtterance(value < 0 ? 'eksi ' + Math.abs(value) : String(value));
+        utterance.lang = 'tr-TR';
+        utterance.rate = Math.max(.82, Math.min(1.45, 1250 / Math.max(700, intervalMs)));
+        utterance.pitch = 1;
+        window.speechSynthesis.cancel();
+        window.speechSynthesis.speak(utterance);
+        return true;
+      }
+
+      function setAnzanAnswer(roundId, rawValue) {
+        const input = byId('anzanAnswer-' + roundId);
+        const value = String(rawValue == null ? '' : rawValue).replace(/[^0-9-]/g, '').slice(0, 6);
+        if (input && input.value !== value) input.value = value;
+        if (value === '' || value === '-') delete state.anzanAnswers[roundId];
+        else state.anzanAnswers[roundId] = Number(value);
+        const next = byId('anzanNextButton');
+        const submit = byId('anzanSubmitButton');
+        const ready = Object.prototype.hasOwnProperty.call(state.anzanAnswers, roundId);
+        if (next) next.disabled = !ready;
+        if (submit) submit.disabled = Object.keys(state.anzanAnswers).length !== state.anzan.rounds.length;
+      }
+
+      function enterAnzanKey(roundId, key) {
+        const input = byId('anzanAnswer-' + roundId);
+        if (!input || input.disabled) return;
+        let value = input.value;
+        if (key === 'clear') value = '';
+        else if (key === 'back') value = value.slice(0, -1);
+        else if (key === 'sign') value = value.startsWith('-') ? value.slice(1) : '-' + value;
+        else if (value.replace('-', '').length < 5) value += key;
+        setAnzanAnswer(roundId, value);
+        input.focus();
+      }
+
+      function moveAnzanRound(delta) {
+        if (!state.anzan) return;
+        state.anzanRoundIndex = Math.max(0, Math.min(state.anzan.rounds.length - 1, state.anzanRoundIndex + delta));
+        renderWorkshops();
+        focusReadingPlayer();
+      }
+
+      async function playAnzanRound(round) {
+        if (state.workshopBusy || state.anzanFlashRunning || state.anzanPlayed[round.id]) return;
+        const stage = byId('anzanFlashStage');
+        if (!stage) return;
+        state.anzanFlashRunning = true;
+        state.anzanPlayed[round.id] = true;
+        byId('workshopPlayer').querySelectorAll('.anzan-stage-panel button, .anzan-stage-panel input').forEach((node) => { node.disabled = true; });
+        const presentationMode = state.anzan.presentationMode || 'FLASH';
+        const transitionClass = state.anzan.transitionMode === 'SCALE'
+          ? 'transition-scale' : (state.anzan.transitionMode === 'FADE' ? 'transition-fade' : '');
+        const audioRequested = presentationMode === 'AUDIO' || presentationMode === 'FLASH_AUDIO';
+        const audioAvailable = 'speechSynthesis' in window && typeof SpeechSynthesisUtterance !== 'undefined';
+        if (audioAvailable) window.speechSynthesis.cancel();
+        for (let count = state.anzan.countdownSeconds || 3; count > 0; count -= 1) {
+          stage.className = 'anzan-flash ready';
+          stage.textContent = String(count);
+          await anzanWait(1000);
+        }
+        const gapMs = Math.min(120, Math.max(45, Math.round(state.anzan.intervalMs * .12)));
+        for (const value of round.values) {
+          stage.className = 'anzan-flash ' + transitionClass;
+          stage.textContent = presentationMode === 'AUDIO' && audioAvailable ? '♪' : String(value);
+          void stage.offsetWidth;
+          stage.classList.add('is-showing');
+          if (audioRequested) speakAnzanValue(value, state.anzan.intervalMs);
+          await anzanWait(Math.max(80, state.anzan.intervalMs - gapMs));
+          stage.className = 'anzan-flash';
+          stage.textContent = '•';
+          await anzanWait(gapMs);
+        }
+        if (audioAvailable) window.speechSynthesis.cancel();
+        stage.className = 'anzan-flash ready';
+        stage.textContent = 'Sonucu yaz';
+        state.anzanFlashRunning = false;
+        byId('workshopPlayer').querySelectorAll('.anzan-stage-panel button, .anzan-stage-panel input').forEach((node) => { node.disabled = false; });
+        const replay = byId('anzanPlayButton');
+        if (replay) replay.disabled = true;
+        const input = byId('anzanAnswer-' + round.id);
+        if (input) { input.disabled = false; input.focus(); }
+        byId('workshopPlayer').querySelectorAll('.anzan-key').forEach((node) => { node.disabled = false; });
+        const previous = byId('anzanPreviousButton');
+        if (previous) previous.disabled = state.anzanRoundIndex === 0;
+        setAnzanAnswer(round.id, input ? input.value : '');
+      }
+
+      function focusReadingPlayer() {
+        byId('workshopPlayer').focus({ preventScroll: true });
+        byId('workshopPlayer').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+
+      async function loadWorkshops() {
+        if (state.workshopBusy) return;
+        const token = state.token;
+        workshopBusy(true, 'Atölye kayıtların yükleniyor…');
+        try {
+          const data = await server('getStudentWorkshops', token);
+          if (state.token !== token) return;
+          state.workshops = data;
+          const saved = data.activeSession || null;
+          state.anzan = data.activeAnzan || null;
+          state.anzanSelectedContentId = state.anzan ? state.anzan.contentId : ((((data.anzanCatalog || [])[0] || {}).id) || '');
+          state.anzanSelectedAssignmentId = state.anzan ? (state.anzan.assignmentId || '') : '';
+          state.anzanRoundIndex = 0;
+          state.anzanLab = !!state.anzan;
+          state.anzanAnswers = {};
+          state.anzanPlayed = {};
+          setReadingSession(saved);
+          byId('workshopsMessage').textContent = saved
+            ? 'Kaldığın okuma seansı yüklendi. Okuma sürüyorsa mola verebilirsin.'
+            : (state.anzan ? 'Kaldığın Soroban–Anzan seansı yüklendi.' : '');
+        } catch (error) { if (state.token === token) workshopError(error); }
+        finally { if (state.token === token) { workshopBusy(false); pauseHiddenReading(); } }
+      }
+
+      async function beginReading(contentId, assignmentId) {
+        if (state.workshopBusy) return;
+        const token = state.token;
+        // Retain the start key on uncertainty, including repeated taps after a lost response.
+        const assignedId = assignmentId || '';
+        if (!state.workshopStartRequest || state.workshopStartRequest.contentId !== contentId
+            || state.workshopStartRequest.assignmentId !== assignedId) {
+          state.workshopStartRequest = { contentId, assignmentId: assignedId, id: crypto.randomUUID() };
+        }
+        workshopBusy(true, 'Seans açılıyor; metin birazdan görünecek…');
+        try {
+          const session = await server(
+            'startReadingSession', token, contentId, state.workshopStartRequest.id, assignedId
+          );
+          if (state.token !== token) return;
+          state.workshopStartRequest = null;
+          state.anzan = null; state.anzanLab = false;
+          setReadingSession(session);
+          byId('workshopsMessage').textContent = '';
+          focusReadingPlayer();
+        } catch (error) { if (state.token === token) workshopError(error); }
+        finally {
+          if (state.token === token) { workshopBusy(false); pauseHiddenReading(); }
+        }
+      }
+
+      async function changeReading(action) {
+        if (state.workshopBusy || !state.reading) return false;
+        const token = state.token;
+        const session = state.reading;
+        workshopBusy(true, action === 'submit' ? 'Yanıtlar kontrol ediliyor ve sonuç kaydediliyor…' : 'Seans durumu kaydediliyor…');
+        let saved = false;
+        try {
+          const response = await server('updateReadingSession', token, session.id, session.revision, action, action === 'submit' ? state.readingAnswers : null);
+          if (state.token !== token) return false;
+          setReadingSession(response.session);
+          byId('workshopsMessage').textContent = response.stale ? 'Seans başka bir işlemde güncellenmiş. En son kayıt yüklendi; gerekiyorsa işlemini yeniden seç.' : '';
+          saved = !response.stale;
+          if ((action === 'submit' && response.session.phase === 'COMPLETED') || action === 'finishReading') focusReadingPlayer();
+          if (action === 'submit' && response.session.phase === 'COMPLETED') saved = true;
+        } catch (error) { if (state.token === token) workshopError(error); }
+        finally {
+          if (state.token === token) { workshopBusy(false); if (action !== 'pause') pauseHiddenReading(); }
+        }
+        return saved;
+      }
+
+      function pauseHiddenReading() {
+        if (document.hidden && !state.workshopBusy && state.reading && state.reading.phase === 'READING' && !state.reading.paused) changeReading('pause');
+      }
+
+      async function openReadingResult(id) {
+        if (state.workshopBusy) return;
+        const token = state.token;
+        workshopBusy(true, 'Seans yükleniyor…');
+        try {
+          const session = await server('getReadingSession', token, id);
+          if (state.token !== token) return;
+          state.anzan = null; state.anzanLab = false;
+          setReadingSession(session); byId('workshopsMessage').textContent = '';
+          focusReadingPlayer();
+        } catch (error) { if (state.token === token) workshopError(error); }
+        finally { if (state.token === token) workshopBusy(false); }
+      }
+
+      function readingDuration(ms) {
+        const seconds = Math.max(0, Math.floor(ms / 1000));
+        return String(Math.floor(seconds / 60)).padStart(2,'0') + ':' + String(seconds % 60).padStart(2,'0');
+      }
+
+      function readingDate(value) {
+        return new Date(value).toLocaleString('tr-TR', { dateStyle: 'short', timeStyle: 'short', timeZone: 'Europe/Istanbul' });
+      }
+
+      function buildSorobanBoard() {
+        const wrap = workshopNode('div');
+        const targets = [6, 14, 23, 48, 105];
+        const target = targets[state.abacusTargetIndex % targets.length];
+        const targetBox = workshopNode('div', null, 'soroban-target');
+        targetBox.append(workshopNode('span', 'Abaküste bu sayıyı kur'), workshopNode('strong', target));
+        const board = workshopNode('div', null, 'soroban-board');
+        const places = ['YÜZLER', 'ONLAR', 'BİRLER'];
+        const digitLabels = [];
+        const heavenButtons = [];
+        const earthButtons = [];
+        places.forEach((place, placeIndex) => {
+          const rod = workshopNode('div', null, 'soroban-rod');
+          rod.appendChild(workshopNode('span', place, 'soroban-place'));
+          const heaven = workshopNode('button', '5', 'soroban-bead heaven');
+          heaven.type = 'button';
+          heaven.setAttribute('aria-label', place + ' beşlik boncuğu');
+          heaven.addEventListener('click', () => {
+            const digit = state.abacusDigits[placeIndex];
+            state.abacusDigits[placeIndex] = digit >= 5 ? digit - 5 : digit + 5;
+            refresh();
+          });
+          heavenButtons.push(heaven); rod.appendChild(heaven);
+          rod.appendChild(workshopNode('span', '', 'soroban-beam-space'));
+          const earth = workshopNode('div', null, 'soroban-earth');
+          const buttons = [];
+          [1,2,3,4].forEach((count) => {
+            const bead = workshopNode('button', '1', 'soroban-bead earth');
+            bead.type = 'button'; bead.setAttribute('aria-label', place + ' ' + count + '. birlik boncuğu');
+            bead.addEventListener('click', () => {
+              const five = state.abacusDigits[placeIndex] >= 5 ? 5 : 0;
+              const current = state.abacusDigits[placeIndex] % 5;
+              state.abacusDigits[placeIndex] = five + (current === count ? count - 1 : count);
+              refresh();
+            });
+            buttons.push(bead); earth.appendChild(bead);
+          });
+          earthButtons.push(buttons); rod.appendChild(earth);
+          const digit = workshopNode('span', '0', 'soroban-digit'); digitLabels.push(digit); rod.appendChild(digit);
+          board.appendChild(rod);
+        });
+        const message = workshopNode('p', 'Beşlik ve birlik boncuklarını çizgiye yaklaştır. Her çubuk bir basamağı temsil eder.', 'ws-note');
+        function value() { return state.abacusDigits[0] * 100 + state.abacusDigits[1] * 10 + state.abacusDigits[2]; }
+        function refresh() {
+          state.abacusDigits.forEach((digit, index) => {
+            heavenButtons[index].classList.toggle('active', digit >= 5);
+            earthButtons[index].forEach((button, beadIndex) => button.classList.toggle('active', beadIndex < digit % 5));
+            digitLabels[index].textContent = String(digit);
+          });
+        }
+        const actions = workshopNode('div', null, 'ws-actions');
+        actions.append(
+          workshopButton('Kontrol Et', () => {
+            const current = value();
+            message.textContent = current === target
+              ? 'Doğru: ' + target + ' sayısını yüzler, onlar ve birler basamaklarıyla kurdun.'
+              : 'Şu an ' + current + ' görünüyor. Hedef ' + target + '; basamakları yeniden kontrol et.';
+            message.className = current === target ? 'ws-note good' : 'ws-status';
+          }, 'primary'),
+          workshopButton('Yeni Sayı', () => {
+            state.abacusTargetIndex = (state.abacusTargetIndex + 1) % targets.length;
+            state.abacusDigits = [0,0,0];
+            renderWorkshops();
+          })
+        );
+        refresh(); wrap.append(targetBox, board, message, actions); return wrap;
+      }
+
+      function renderAnzanPlayer(root) {
+        root.classList.remove('hidden');
+        const session = state.anzan;
+        const topline = workshopNode('div', null, 'ws-topline');
+        topline.appendChild(workshopNode('span', session ? (session.phase === 'ACTIVE' ? 'ANZAN SEANSI • AKTİF' : session.phase === 'COMPLETED' ? 'KAYDEDİLEN SONUÇ' : 'SEANS SONLANDIRILDI') : 'SOROBAN ÖĞRENME ALANI', 'ws-tag'));
+        root.append(
+          topline,
+          workshopNode('h2', session ? session.title : 'Soroban–Anzan Atölyesi'),
+          workshopNode('p', session
+            ? 'ZI01 • Zihinsel İşlem Hızı • Seviye ' + session.level + ' • ' + session.operationLabel
+            : 'ZI01 • Zihinsel İşlem Hızı • doğruluk öncelikli, kademeli gelişim', 'ws-note')
+        );
+        if (!session) {
+          const catalog = ((state.workshops || {}).anzanCatalog || []);
+          const item = catalog.find((entry) => entry.id === state.anzanSelectedContentId) || catalog[0];
+          root.appendChild(workshopNode('p', 'Önce dijital abaküste sayı kur. Ardından seçilen profesyonel çalışma düzeyinde sayıların sırayla parladığı Anzan seansına geç.', 'ws-note'));
+          const lab = workshopNode('div', null, 'anzan-lab');
+          const soroban = workshopNode('section', null, 'soroban-panel');
+          soroban.append(workshopNode('h3', '1 • Soroban ile sayı kur'), buildSorobanBoard());
+          const anzan = workshopNode('section', null, 'anzan-panel');
+          anzan.append(
+            workshopNode('h3', '2 • Anzan başlangıç seansı'),
+            workshopNode('p', 'Her turda üç sayı 1,2 saniye arayla görünür. Sayıları zihninde topla; bütün turları bitirince sonuç sunucuda kontrol edilir.', 'ws-note')
+          );
+          if (item) {
+            anzan.appendChild(workshopNode('strong', item.title));
+            anzan.appendChild(workshopNode('p', item.description, 'ws-note'));
+            const config = workshopNode('div', null, 'anzan-config');
+            [
+              'Seviye ' + item.level,
+              item.operationLabel,
+              item.digitMin === item.digitMax ? item.digitMin + ' basamak' : item.digitMin + '–' + item.digitMax + ' basamak',
+              item.itemCount + ' sayı / tur',
+              item.roundCount + ' tur',
+              (item.intervalMs / 1000).toLocaleString('tr-TR') + ' sn hız',
+            ].forEach((label) => config.appendChild(workshopNode('span', label, 'anzan-chip')));
+            anzan.appendChild(config);
+            anzan.appendChild(workshopButton('Anzan Seansını Başlat →', () => beginAnzan(item.id), 'primary'));
+          }
+          lab.append(soroban, anzan); root.appendChild(lab); return;
+        }
+        if (session.phase === 'ACTIVE') {
+          const roundIndex = Math.max(0, Math.min(session.rounds.length - 1, state.anzanRoundIndex));
+          state.anzanRoundIndex = roundIndex;
+          const round = session.rounds[roundIndex];
+          const hasPlayed = !!state.anzanPlayed[round.id];
+          const hasAnswer = Object.prototype.hasOwnProperty.call(state.anzanAnswers, round.id);
+          root.appendChild(workshopNode('p', 'Her dizi yalnız bir kez açılır. Sayılar bittikten sonra sonucu yaz; cevap anahtarı bütün seans tamamlanana kadar gösterilmez.', 'ws-note'));
+          const config = workshopNode('div', null, 'anzan-config');
+          [
+            session.presentationLabel,
+            session.operationLabel,
+            session.digitMin === session.digitMax ? session.digitMin + ' basamak' : session.digitMin + '–' + session.digitMax + ' basamak',
+            session.roundCount + ' tur × ' + session.itemCount + ' sayı',
+            (session.intervalMs / 1000).toLocaleString('tr-TR') + ' sn • ' + session.tempoPerMinute + ' sayı/dk',
+          ].forEach((label) => config.appendChild(workshopNode('span', label, 'anzan-chip')));
+          root.appendChild(config);
+          const themeClass = session.theme === 'FOCUS_LIGHT' ? 'theme-focus-light'
+            : (session.theme === 'HIGH_CONTRAST' ? 'theme-high-contrast' : 'theme-focus-dark');
+          const panel = workshopNode('section', null, 'anzan-stage-panel ' + themeClass);
+          const stageHeader = workshopNode('div', null, 'anzan-stage-header');
+          const stageTitle = workshopNode('div');
+          stageTitle.append(workshopNode('small', 'Performans kokpiti'), workshopNode('strong', 'Doğruluk öncelikli odak seansı'));
+          stageHeader.append(
+            stageTitle,
+            workshopNode('div', session.presentationLabel + ' • ' + session.roundCount + ' tur • '
+              + (session.roundCount * session.itemCount) + ' uyaran • ' + session.tempoPerMinute + ' sayı/dk', 'anzan-stage-prescription')
+          );
+          const progressHead = workshopNode('div', null, 'anzan-progress-head');
+          progressHead.append(workshopNode('strong', (roundIndex + 1) + '. tur'), workshopNode('span', (roundIndex + 1) + ' / ' + session.rounds.length));
+          const progress = workshopNode('div', null, 'anzan-progress');
+          const progressBar = workshopNode('i'); progressBar.style.width = Math.round((roundIndex + 1) * 100 / session.rounds.length) + '%'; progress.appendChild(progressBar);
+          const flash = workshopNode('div', hasPlayed ? 'Dizi gösterildi • sonucunu yaz' : 'Hazır olduğunda diziyi göster', 'anzan-flash ready');
+          flash.id = 'anzanFlashStage'; flash.setAttribute('aria-live', 'off');
+          const play = workshopButton(hasPlayed ? 'Dizi Bir Kez Gösterildi' : 'Diziyi Göster →', () => playAnzanRound(round), 'primary');
+          play.id = 'anzanPlayButton';
+          play.disabled = hasPlayed;
+          const answerRow = workshopNode('div', null, 'anzan-current-answer');
+          const input = workshopNode('input'); input.id = 'anzanAnswer-' + round.id; input.type = 'number'; input.inputMode = 'numeric'; input.placeholder = 'Sonuç'; input.disabled = !hasPlayed;
+          if (hasAnswer) input.value = state.anzanAnswers[round.id];
+          input.setAttribute('aria-label', (roundIndex + 1) + '. tur sonucu');
+          input.addEventListener('input', () => setAnzanAnswer(round.id, input.value));
+          answerRow.append(input, play);
+          const keypad = workshopNode('div', null, 'anzan-keypad');
+          ['1','2','3','4','5','6','7','8','9','0'].forEach((key) => {
+            const button = workshopNode('button', key, 'anzan-key'); button.type = 'button'; button.disabled = !hasPlayed;
+            button.addEventListener('click', () => enterAnzanKey(round.id, key)); keypad.appendChild(button);
+          });
+          [['sign','±'],['back','⌫'],['clear','Temizle']].forEach(([key, label]) => {
+            const button = workshopNode('button', label, 'anzan-key function'); button.type = 'button'; button.disabled = !hasPlayed;
+            button.addEventListener('click', () => enterAnzanKey(round.id, key)); keypad.appendChild(button);
+          });
+          const actions = workshopNode('div', null, 'ws-actions');
+          const previous = workshopButton('← Önceki Tur', () => moveAnzanRound(-1)); previous.id = 'anzanPreviousButton'; previous.disabled = roundIndex === 0;
+          actions.appendChild(previous);
+          if (roundIndex < session.rounds.length - 1) {
+            const next = workshopButton('Sonraki Tur →', () => moveAnzanRound(1), 'primary'); next.id = 'anzanNextButton'; next.disabled = !hasAnswer; actions.appendChild(next);
+          } else {
+            const submit = workshopButton('Sonuçları Gönder ve İncele →', () => changeAnzan('submit'), 'primary');
+            submit.id = 'anzanSubmitButton'; submit.disabled = Object.keys(state.anzanAnswers).length !== session.rounds.length; actions.appendChild(submit);
+          }
+          actions.appendChild(workshopButton('Seansı Sonlandır', () => { if (confirm('Bu Anzan seansı sonuç üretilmeden sonlandırılsın mı?')) changeAnzan('cancel'); }, 'danger'));
+          panel.append(stageHeader, progressHead, progress, flash);
+          if (session.showSorobanCue) panel.appendChild(workshopNode('div', '◉ Sayı geçerken boncukların hareketini zihninde canlandır; hızlanmadan önce doğru görüntüyü koru.', 'anzan-focus-note'));
+          panel.append(answerRow, keypad, actions); root.appendChild(panel); return;
+        }
+        if (session.phase === 'COMPLETED') {
+          const result = session.result || {};
+          const metrics = workshopNode('div', null, 'ws-results');
+          [['Doğru tur', result.correct + ' / ' + result.total], ['Doğruluk', '%' + result.accuracyPercent], ['İşlenen uyaran', (result.roundCount * result.itemCount)], ['Reçete temposu', result.tempoPerMinute + '/dk'], ['Toplam süre', result.durationSeconds + ' sn']].forEach(([label, value]) => {
+            const card = workshopNode('div', null, 'ws-result'); card.append(workshopNode('span', label), workshopNode('strong', value)); metrics.appendChild(card);
+          });
+          root.append(metrics, workshopNode('p', result.timingNote, 'ws-note'));
+          if (result.recommendation) {
+            const recommendation = workshopNode('div', null, 'anzan-recommendation');
+            recommendation.append(
+              workshopNode('strong', 'CZA önerisi • ' + result.recommendation.label),
+              workshopNode('span', result.recommendation.message)
+            );
+            root.appendChild(recommendation);
+          }
+          (session.review || []).forEach((item) => {
+            const review = workshopNode('div', null, 'anzan-review');
+            review.append(workshopNode('span', (item.isCorrect ? 'Doğru • ' : 'Birlikte inceleyelim • ') + formatAnzanValues(item.values)), workshopNode('strong', item.selected + ' / ' + item.correct)); root.appendChild(review);
+          });
+        } else root.appendChild(workshopNode('p', 'Seans sonlandırıldı; sonuç veya beceri puanı üretilmedi.', 'ws-note'));
+        root.appendChild(workshopButton('Atölye Seçimine Dön', () => { state.anzan = null; state.anzanLab = false; state.anzanAnswers = {}; state.anzanPlayed = {}; state.anzanSelectedAssignmentId = ''; state.anzanRoundIndex = 0; renderWorkshops(); }));
+      }
+
+      function renderWorkshops() {
+        const data = state.workshops || { catalog: [], history: [] };
+        const session = state.reading;
+        const activeReading = session && ['READING','QUIZ'].includes(session.phase);
+        const activeAnzan = state.anzan && state.anzan.phase === 'ACTIVE';
+        const active = activeReading || activeAnzan || state.anzanLab;
+        const catalog = byId('workshopCatalog'); catalog.replaceChildren();
+        catalog.classList.toggle('hidden', !!active);
+        const assignments = data.assignments || [];
+        if (assignments.length) {
+          catalog.appendChild(workshopNode('h2', 'Eğitimcinden atanan atölyeler'));
+          catalog.appendChild(workshopNode('p', 'Okuma ve Soroban–Anzan görevlerin kişisel rotana eğitimcin tarafından eklenir. Her tamamlanan seans Öğrenci 360 ekranına bağlanır.', 'ws-note'));
+          const assignedGrid = workshopNode('div', null, 'ws-grid');
+          assignments.forEach((item) => {
+            const isAnzan = item.moduleId === 'soroban_anzan';
+            const card = workshopNode('article', null, 'ws-card');
+            const details = isAnzan
+              ? [
+                item.professionalConfig ? 'V3 kişisel reçete' : 'Hazır seviye ' + item.level,
+                item.presentationLabel,
+                item.operationLabel,
+                item.roundCount + ' tur × ' + item.itemCount + ' sayı',
+                item.digitMin === item.digitMax ? item.digitMin + ' basamak' : item.digitMin + '–' + item.digitMax + ' basamak',
+                (item.intervalMs / 1000).toLocaleString('tr-TR') + ' sn • ' + item.tempoPerMinute + ' sayı/dk',
+                (item.completedCount || 0) + '/' + (item.repeatTarget || 1) + ' seans',
+                item.dueAt ? 'Son tarih ' + item.dueAt : 'Süre sınırı yok',
+              ]
+              : [item.wordCount + ' kelime', item.questionCount + ' anlama sorusu', item.dueAt ? 'Son tarih ' + item.dueAt : 'Süre sınırı yok'];
+            card.append(
+              workshopNode('span', 'KİŞİSEL ' + (isAnzan ? 'SOROBAN–ANZAN' : 'OKUMA') + ' ATAMASI • ' + item.status, 'ws-tag'),
+              workshopNode('h3', item.title),
+              workshopNode('p', item.note || item.description),
+              workshopNode('p', details.join(' • '), 'ws-note')
+            );
+            let button;
+            if (item.status === 'TAMAMLANDI' && item.sessionId) {
+              button = workshopButton('Sonucu İncele', () => isAnzan ? openAnzanResult(item.sessionId) : openReadingResult(item.sessionId));
+            } else if (item.status === 'DEVAM EDİYOR' && item.sessionId) {
+              button = workshopButton('Çalışmaya Devam Et →', () => isAnzan ? openAnzanResult(item.sessionId) : openReadingResult(item.sessionId), 'primary');
+            } else {
+              button = workshopButton(
+                isAnzan && (item.completedCount || 0) > 0 ? 'Sıradaki Seansı Başlat →' : 'Atanan Çalışmayı Başlat →',
+                () => isAnzan ? beginAnzan(item.contentId, item.id) : beginReading(item.contentId, item.id),
+                'primary'
+              );
+              if (item.status === 'PLANLANDI' || item.status === 'SÜRESİ DOLDU' || item.status === 'KAPATILDI') {
+                button.disabled = true;
+              }
+            }
+            card.appendChild(button); assignedGrid.appendChild(card);
+          });
+          catalog.appendChild(assignedGrid);
+        }
+        catalog.appendChild(workshopNode('h2', assignments.length ? 'Serbest okuma pilotları' : 'Okuma ve anlama'));
+        catalog.appendChild(workshopNode('p', 'Hazır olduğunda başlat. Metin açıldıktan sonra okuma süresi işler; sorulara geçince metin kapanır. Aynı metni tekrar okumak sonucu etkiler.', 'ws-note'));
+        const grid = workshopNode('div', null, 'ws-grid');
+        data.catalog.forEach((item) => {
+          const card = workshopNode('article', null, 'ws-card');
+          card.append(workshopNode('span', 'ÇALIŞAN PİLOT • ÖZGÜN ÖRNEK', 'ws-tag'), workshopNode('h3', item.title), workshopNode('p', item.description), workshopNode('p', item.wordCount + ' kelime • ' + item.questionCount + ' anlama sorusu • içerik v' + item.version, 'ws-note'));
+          card.appendChild(workshopButton('Serbest Okumayı Başlat →', () => beginReading(item.id, ''), 'primary')); grid.appendChild(card);
+        });
+        catalog.appendChild(grid);
+        catalog.appendChild(workshopNode('h2', 'Soroban ve Anzan • V3 temel çalışma alanı'));
+        catalog.appendChild(workshopNode('p', 'Eğitimcin kişisel reçeteni tur, işlem yükü, basamak ve sunum biçimine göre düzenleyebilir. Buradaki hazır seviyeler serbest temel çalışma içindir.', 'ws-note'));
+        const anzanGrid = workshopNode('div', null, 'ws-grid');
+        (data.anzanCatalog || []).forEach((item) => {
+          const card = workshopNode('article', null, 'ws-card');
+          card.append(
+            workshopNode('span', 'V3 TEMEL ÇALIŞMA • ZI01 • SEVİYE ' + item.level, 'ws-tag'),
+            workshopNode('h3', item.title),
+            workshopNode('p', item.description),
+            workshopNode('p', item.operationLabel + ' • ' + item.roundCount + ' tur • ' + item.itemCount + ' sayı • ' + (item.intervalMs / 1000).toLocaleString('tr-TR') + ' sn', 'ws-note')
+          );
+          card.appendChild(workshopButton('Bu Seviyeyi Aç →', () => openAnzanLab(item.id), 'primary')); anzanGrid.appendChild(card);
+        });
+        catalog.appendChild(anzanGrid);
+        catalog.appendChild(workshopNode('h2', 'Sıradaki atölyeler'));
+        const planned = workshopNode('div', null, 'ws-grid');
+        [
+          ['Mega Hafıza', 'Eşleştirme, sıra hatırlama ve aralıklı tekrar çalışmaları.'],
+          ['Dikkat, görsel ve işitsel', 'Odak, örüntü, yön ve dinleyerek uygulama egzersizleri.'],
+          ['Öz yönetim ve değerler', 'Plan, hedef ve günlük yaşam üzerine eğitimci rehberli etkinlikler.'],
+        ].forEach(([title, description]) => {
+          const card = workshopNode('article', null, 'ws-card ws-planned');
+          card.append(workshopNode('span', 'PLANLANDI • HENÜZ AÇILMADI', 'ws-tag'), workshopNode('h3', title), workshopNode('p', description)); planned.appendChild(card);
+        });
+        catalog.append(planned, workshopNode('p', 'Mevcut ders soruların Çalışma Alanı’nda, 14 becerinin tamamı Beceri Kampüsü’nde. Diğer atölyeler yöntem ve içerik onayıyla sırayla açılacak.', 'ws-note'));
+        renderReadingPlayer();
+        const history = byId('workshopHistory'); history.replaceChildren();
+        const allHistory = [...(data.history || []), ...(data.anzanHistory || [])].sort((a,b) => new Date(b.startedAt) - new Date(a.startedAt)).slice(0,10);
+        if (!allHistory.length) history.appendChild(workshopNode('p', 'Henüz atölye seansın yok. Okuma veya Soroban–Anzan çalışmasından başlayabilirsin.', 'ws-note'));
+        allHistory.forEach((item) => {
+          const row = workshopNode('article', null, 'ws-entry');
+          row.append(workshopNode('strong', item.title + ' • Pilot v' + item.contentVersion + (item.assignmentId ? ' • Eğitimci ataması' : ' • Serbest çalışma')), workshopNode('p', readingDate(item.startedAt), 'ws-note'));
+          if (item.moduleId === 'soroban_anzan' && item.phase === 'COMPLETED' && item.result) {
+            row.appendChild(workshopNode('p', 'Anzan: ' + item.result.correct + '/' + item.result.total + ' (%' + item.result.accuracyPercent + ') • Seviye ' + item.result.level + ' • ' + item.result.operationLabel + ' • ' + item.result.durationSeconds + ' sn', 'ws-note'));
+            if (!active) row.appendChild(workshopButton('Sonucu İncele', () => openAnzanResult(item.id)));
+          } else if (item.moduleId === 'soroban_anzan') {
+            row.appendChild(workshopNode('p', item.phase === 'CANCELLED' ? 'Sonlandırıldı • Sonuç üretilmedi' : 'Anzan seansı sürüyor', 'ws-note'));
+            if (item.phase === 'ACTIVE' && !activeReading) row.appendChild(workshopButton('Çalışmaya Devam Et →', () => openAnzanResult(item.id), 'primary'));
+          } else if (item.phase === 'COMPLETED' && item.result) {
+            row.appendChild(workshopNode('p', 'Anlama: ' + item.result.correct + '/' + item.result.total + ' (%' + item.result.comprehensionPercent + ') • Okuma: ' + item.result.wordsPerMinute + ' kelime/dk', 'ws-note'));
+            // Do not replace an active reading session with a history result.
+            if (!active) row.appendChild(workshopButton('Sonucu İncele', () => openReadingResult(item.id)));
+          } else row.appendChild(workshopNode('p', item.phase === 'CANCELLED' ? 'Sonlandırıldı • Sonuç üretilmedi' : item.phase === 'QUIZ' ? 'Anlama soruları bekliyor' : item.paused ? 'Okuma molada' : 'Okuma sürüyor', 'ws-note'));
+          history.appendChild(row);
+        });
+      }
+
+      function renderReadingPlayer() {
+        clearInterval(state.workshopTimer);
+        const root = byId('workshopPlayer'); root.replaceChildren();
+        if (state.anzanLab || state.anzan) { renderAnzanPlayer(root); return; }
+        const session = state.reading;
+        root.classList.toggle('hidden', !session);
+        if (!session) return;
+        const step = session.phase === 'READING' ? '1 / 3 • OKUMA' : session.phase === 'QUIZ' ? '2 / 3 • ANLAMA' : session.phase === 'COMPLETED' ? '3 / 3 • KAYDEDİLEN SONUÇ' : 'SEANS SONLANDIRILDI';
+        const topline = workshopNode('div', null, 'ws-topline');
+        topline.appendChild(workshopNode('span', step, 'ws-tag'));
+        root.append(topline, workshopNode('h2', session.title), workshopNode('p', 'Pilot • ' + session.wordCount + ' kelime • Okuma Becerisi (AO02) • içerik v' + session.contentVersion, 'ws-note'));
+        if (session.phase === 'READING') {
+          const clock = workshopNode('div', '', 'ws-clock'); clock.setAttribute('aria-label', 'Mola dışı geçen okuma süresi'); topline.appendChild(clock);
+          const tick = () => { clock.textContent = (session.paused ? 'Mola • ' : 'Süre • ') + readingDuration(session.elapsedMs + (!session.paused ? Math.max(0, Date.now() - state.readingSyncedAt) : 0)); };
+          tick(); state.workshopTimer = setInterval(tick, 1000);
+          root.appendChild(workshopNode('p', 'Kendi hızında oku; anlamadan hızlanmaya çalışma. Bitirince metin kapanacak ve dört soruya geçeceksin. Sayfayı kapatmadan önce “Mola ver”i kullan.', 'ws-note'));
+          const actions = workshopNode('div', null, 'ws-actions');
+          if (session.paused) {
+            root.appendChild(workshopNode('p', 'Mola kaydedildi. Metin ve süre, devam ettiğinde açılacak.', 'ws-note'));
+            actions.appendChild(workshopButton('Okumaya Devam Et', () => changeReading('resume'), 'primary'));
+          } else {
+            const text = workshopNode('div', null, 'ws-text');
+            (session.paragraphs || []).forEach((paragraph) => text.appendChild(workshopNode('p', paragraph)));
+            const fontButton = workshopButton('Büyük Yazı', () => { const large = text.classList.toggle('large'); fontButton.textContent = large ? 'Normal Yazı' : 'Büyük Yazı'; fontButton.setAttribute('aria-pressed', String(large)); });
+            fontButton.setAttribute('aria-pressed', 'false'); root.append(fontButton, text);
+            actions.appendChild(workshopButton('Mola Ver', () => changeReading('pause')));
+          }
+          if (session.timingExpired) root.appendChild(workshopNode('p', '30 dakikalık pilot süre sınırı aşıldı. Bu seansı sonlandırıp yeni bir çalışma aç.', 'ws-status'));
+          else actions.appendChild(workshopButton('Okudum, Sorulara Geç →', () => changeReading('finishReading'), 'primary'));
+          actions.appendChild(workshopButton('Seansı Sonlandır', () => {
+            if (window.confirm('Bu seans tamamlanmadan sonlandırılsın mı? Kayıt kalır, başarı sonucu üretilmez.')) changeReading('cancel');
+          }, 'danger'));
+          root.append(actions, workshopNode('p', 'Süre sunucu saatine dayanır; bağlantı gecikmesi ve kaydedilmeyen molalar süreye eklenebilir. Sekme gizlenince mola kaydetmeyi deneriz; bağlantı yoksa kayıt garanti değildir.', 'ws-note'));
+        } else if (session.phase === 'QUIZ') {
+          root.appendChild(workshopNode('p', 'Metni hatırlayarak yanıtla. Doğru/yanlış bilgisi, bütün cevaplarını gönderdiğinde gösterilecek. Henüz gönderilmeyen seçimler sayfa kapanırsa korunmayabilir.', 'ws-note'));
+          const form = workshopNode('form');
+          (session.questions || []).forEach((question, index) => {
+            const fieldset = workshopNode('fieldset', null, 'ws-quiz');
+            fieldset.appendChild(workshopNode('legend', (index + 1) + '. ' + question.prompt));
+            question.options.forEach((option, optionIndex) => {
+              const label = workshopNode('label', null, 'ws-choice');
+              const radio = document.createElement('input'); radio.type = 'radio'; radio.name = question.id; radio.value = String(optionIndex); radio.required = true;
+              radio.checked = state.readingAnswers[question.id] === optionIndex;
+              radio.addEventListener('change', () => { state.readingAnswers[question.id] = optionIndex; });
+              label.append(radio, workshopNode('span', option)); fieldset.appendChild(label);
+            }); form.appendChild(fieldset);
+          });
+          const submit = workshopNode('button', 'Cevapları Gönder ve Sonucumu Gör →', 'ws-button primary'); submit.type = 'submit'; form.appendChild(submit);
+          form.addEventListener('submit', (event) => { event.preventDefault(); changeReading('submit'); }); root.appendChild(form);
+          const actions = workshopNode('div', null, 'ws-actions'); actions.appendChild(workshopButton('Seansı Sonlandır', () => {
+            if (window.confirm('Yanıtları göndermeden sonlandırılsın mı? Başarı sonucu üretilmez.')) changeReading('cancel');
+          }, 'danger')); root.appendChild(actions);
+        } else if (session.phase === 'COMPLETED') {
+          const result = session.result;
+          root.appendChild(workshopNode('p', 'Çalışman kaydedildi. Eğitimcin Öğrenci 360 ekranından bu seansı görebilir.', 'ws-note'));
+          const metrics = workshopNode('div', null, 'ws-results');
+          [['Anlama • ' + result.correct + '/' + result.total, '%' + result.comprehensionPercent], ['Okuma • kelime/dakika', result.wordsPerMinute], ['Mola dışı süre • saniye', result.readingSeconds]].forEach(([label, value]) => {
+            const card = workshopNode('div', null, 'ws-result'); card.append(workshopNode('span', label), workshopNode('strong', value)); metrics.appendChild(card);
+          }); root.appendChild(metrics);
+          root.appendChild(workshopNode('p', result.correct === result.total ? 'Bu metindeki bütün anlama sorularını doğru yanıtladın. Yeni metinde de anlamayı önceliklendir.' : 'Aşağıdaki açıklamaları incele. Bir sonraki çalışmada hızını artırmadan önce metindeki nedenlere ve ana düşünceye odaklan.', 'ws-note'));
+          root.appendChild(workshopNode('p', result.timingNote + ' Aynı metni yeniden çalışmak aşinalık yaratır; farklı metinlerdeki hızlar eşdeğer kabul edilmez.', 'ws-note'));
+          (session.review || []).forEach((item) => {
+            const review = workshopNode('div', null, 'ws-review'); review.append(workshopNode('strong', (item.isCorrect ? 'Doğru • ' : 'Birlikte inceleyelim • ') + item.prompt), workshopNode('p', 'Seçimin: ' + item.selected + ' | Doğru cevap: ' + item.correct), workshopNode('p', item.explanation)); root.appendChild(review);
+          });
+          root.appendChild(workshopButton('Metin Seçimine Dön', () => { setReadingSession(null); byId('workshopCatalog').scrollIntoView({ behavior: 'smooth' }); }));
+        } else root.appendChild(workshopNode('p', 'Seans kaydı saklandı, başarı sonucu üretilmedi. Yeni bir metinle başlayabilirsin.', 'ws-note'));
+      }
+
+      function renderDashboard(dashboard) {
+        state.dashboard = dashboard || {};
+        const data = state.dashboard;
+        const total = Number(data.totalSkills) || 0;
+        const completed = Number(data.completedSkills) || 0;
+        const progress = clampPercent(data.progress);
+        const accuracy = clampPercent(data.accuracy);
+        const first = firstName(state.student && state.student.name);
+
+        byId('topLevel').textContent = data.level || 1;
+        byId('levelValue').textContent = data.level || 1;
+        byId('xpValue').textContent = Number(data.xp || 0).toLocaleString('tr-TR');
+        byId('streakValue').textContent = (data.streak || 0) + ' gün';
+        byId('accuracyValue').textContent = '%' + accuracy;
+        byId('levelCaption').textContent = 'Sonraki seviyeye ' + (data.xpToNextLevel || 250) + ' XP';
+        byId('levelProgress').style.width = clampPercent(data.levelProgress) + '%';
+        byId('accuracyCaption').textContent = data.totalAnswers
+          ? (data.totalCorrect || 0) + ' doğru / ' + data.totalAnswers + ' cevap'
+          : 'İlk sorunu çözerek başla';
+        byId('heroProgress').textContent = '%' + progress;
+
+        const route = data.dailyRoute || {};
+        byId('heroStartLabel').textContent = route.assessmentRequired ? 'Başlangıç adımını gör' : 'Çalışmaya Başla';
+        if (route.assessmentRequired) {
+          byId('heroTitle').textContent = first + ', önce seni tanıyalım.';
+          byId('heroText').textContent = route.summary;
+        } else if (route.ready) {
+          byId('heroTitle').textContent = first + ', bugünkü 3 adımlı rotan hazır.';
+          byId('heroText').textContent = route.summary;
+        } else if (data.nextSkill) {
+          byId('heroTitle').textContent = first + ', sıradaki durağın hazır.';
+          byId('heroText').textContent = data.nextSkill.lesson + ' • ' + data.nextSkill.skill
+            + ' kazanımında ilerlemeye devam edeceksin. Tamamlanan rota: ' + completed + '/' + total + '.';
+        } else {
+          byId('heroTitle').textContent = first + ', rotanı tamamladın!';
+          byId('heroText').textContent = 'Etkin kazanımların tamamlandı. Yeni çalışmalar eklendiğinde kişisel rotanda görünecek.';
+        }
+
+        const holistic = data.holisticProfile || {};
+        byId('dashboardProfileScore').textContent = holistic.hasAssessment
+          ? Number(holistic.average || 0).toFixed(2)
+          : '—';
+        byId('dashboardProfileStrength').textContent = holistic.assessmentComplete
+          ? 'Güçlü kaynakların: ' + skillSummary(holistic.strengths)
+          : 'Başlangıç değerlendirmesi bekleniyor veya henüz tamamlanmadı.';
+        byId('dashboardProfilePriority').textContent = holistic.assessmentComplete
+          ? 'İlk gelişim odağın: ' + skillSummary((holistic.priorities || []).slice(0, 2))
+          : 'Eğitimcinle değerlendirmeyi tamamladığında kişisel rotan belirlenecek.';
+        const educatorAssessment = data.educatorAssessmentStatus || {};
+        const assessmentStatus = byId('educatorAssessmentStatus');
+        assessmentStatus.classList.toggle('in-progress', educatorAssessment.code === 'SÜRÜYOR');
+        assessmentStatus.classList.toggle('completed', educatorAssessment.code === 'TAMAMLANDI');
+        byId('educatorAssessmentTitle').textContent = educatorAssessment.label || 'Eğitmen değerlendirmesi bekleniyor';
+        byId('educatorAssessmentText').textContent = educatorAssessment.message || 'Standart görevler uygulandığında değerlendirme durumun burada görünecek.';
+        byId('educatorAssessmentBadge').textContent = educatorAssessment.code || 'BEKLİYOR';
+        renderDailyRoute(route);
+
+        const today = Number(data.todayAnswers) || 0;
+        const goal = Number(data.dailyGoal) || 5;
+        byId('missionCount').textContent = Math.min(today, goal) + ' / ' + goal;
+        byId('focusCount').textContent = Math.min(today, goal) + '/' + goal;
+        byId('missionProgress').style.width = clampPercent(data.dailyProgress) + '%';
+        byId('missionTitle').textContent = today >= goal ? 'Günün görevini tamamladın!' : (goal - today) + ' soru ile hedefi tamamla';
+        byId('missionText').textContent = today >= goal
+          ? 'Harika ritim! İstersen rotanda ilerlemeye devam edebilirsin.'
+          : 'Bugün ' + today + ' soru çözdün. Kısa bir odak çalışmasıyla günlük hedefini bitir.';
+
+        renderWeek(data.weeklyActivity || []);
+        renderWorkshopShortcut(data.assignedWorkshops || []);
+        renderAssignedContent(data.assignedContent || []);
+        renderRoadmap(data.skills || []);
+        renderBadges(data);
+        maybeShowOnboarding(data);
+      }
+
+      function renderWorkshopShortcut(items) {
+        const assignments = items || [];
+        const current = assignments.find((item) => item.status === 'DEVAM EDİYOR')
+          || assignments.find((item) => item.status === 'BEKLİYOR')
+          || assignments.find((item) => item.status === 'PLANLANDI');
+        if (!current) {
+          byId('workshopShortcutTitle').textContent = 'Atölyeler • Okuma ve Soroban–Anzan';
+          byId('workshopShortcutText').textContent = 'Metni anla, dijital abaküste çalış ve zihinsel işlem sonucunu takip et.';
+          byId('workshopShortcutButton').textContent = 'Atölyelere Git →';
+          return;
+        }
+        byId('workshopShortcutTitle').textContent = 'Eğitimcinden görev • ' + current.title;
+        const progress = current.moduleId === 'soroban_anzan'
+          ? ' • ' + (current.completedCount || 0) + '/' + (current.repeatTarget || 1) + ' seans'
+          : '';
+        byId('workshopShortcutText').textContent = (current.note || 'Kişisel atölye rotana yeni bir çalışma eklendi.')
+          + progress + (current.dueAt ? ' • Son tarih: ' + current.dueAt : '');
+        byId('workshopShortcutButton').textContent = current.status === 'DEVAM EDİYOR'
+          ? 'Çalışmaya Devam Et →' : (current.status === 'PLANLANDI' ? 'Planı Gör →' : 'Görevi Başlat →');
+      }
+
+      function renderDailyRoute(route) {
+        const panel = byId('dailyRoutePanel');
+        const assessmentRequired = Boolean(route && route.assessmentRequired);
+        if (!assessmentRequired && (!route || !route.ready || !(route.steps || []).length)) {
+          panel.classList.add('hidden');
+          byId('dailyRouteSteps').replaceChildren();
+          return;
+        }
+        panel.classList.remove('hidden');
+        byId('dailyRouteDate').textContent = assessmentRequired ? 'İlk adım • Başlangıç değerlendirmesi' : (route.dateLabel || 'Bugünün kişisel planı');
+        byId('dailyRouteTitle').textContent = route.title || 'Bugünkü kişisel rota';
+        byId('dailyRouteSummary').textContent = route.summary || '';
+        byId('routeConnection').textContent = route.connection || '';
+        byId('routeConnection').classList.toggle('hidden', assessmentRequired);
+        byId('dailyRouteProgress').classList.toggle('hidden', assessmentRequired);
+        byId('dailyRoutePercent').textContent = '%' + clampPercent(route.progress);
+        byId('dailyRouteDuration').textContent = (route.totalMinutes || 20) + ' dakikalık rota';
+
+        const grid = byId('dailyRouteSteps');
+        grid.replaceChildren();
+        if (assessmentRequired) {
+          const guidance = document.createElement('p');
+          guidance.className = 'daily-route-summary';
+          guidance.style.gridColumn = '1 / -1';
+          guidance.textContent = route.guidance || 'Başlangıç değerlendirmesini eğitimcinle tamamla.';
+          grid.appendChild(guidance);
+          return;
+        }
+        route.steps.forEach((step) => {
+          const card = document.createElement('article');
+          card.className = 'daily-route-step ' + (step.kind || 'focus');
+
+          const top = document.createElement('div');
+          top.className = 'route-step-top';
+          const number = document.createElement('span');
+          number.className = 'route-step-number';
+          number.textContent = String(step.number || '');
+          const eyebrow = document.createElement('span');
+          eyebrow.className = 'route-step-eyebrow';
+          eyebrow.textContent = step.eyebrow || '';
+          top.append(number, eyebrow);
+
+          const title = document.createElement('h3');
+          title.textContent = step.title || '';
+          const description = document.createElement('p');
+          description.textContent = step.description || '';
+          const meta = document.createElement('div');
+          meta.className = 'route-step-meta';
+          meta.textContent = step.meta || '';
+          card.append(top, title, description, meta);
+
+          if (step.progress != null) {
+            const progress = document.createElement('div');
+            progress.className = 'route-step-progress';
+            const fill = document.createElement('i');
+            fill.style.width = clampPercent(step.progress) + '%';
+            progress.appendChild(fill);
+            card.appendChild(progress);
+          }
+
+          const button = document.createElement('button');
+          button.type = 'button';
+          button.className = 'route-step-button';
+          button.textContent = (step.actionLabel || 'Adımı aç') + ' →';
+          button.addEventListener('click', () => openRouteStep(step));
+          card.appendChild(button);
+          grid.appendChild(card);
+        });
+      }
+
+      function openDashboardPrimaryAction() {
+        if (state.dashboard && state.dashboard.dailyRoute && state.dashboard.dailyRoute.assessmentRequired) {
+          byId('dailyRoutePanel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+          return;
+        }
+        navigate('learning');
+      }
+
+      function renderAssignedContent(items) {
+        const section = byId('assignedContentSection');
+        const grid = byId('assignedContentGrid');
+        grid.replaceChildren();
+        if (!items.length) {
+          section.classList.add('hidden');
+          return;
+        }
+        section.classList.remove('hidden');
+        items.forEach((item) => {
+          const card = document.createElement('article'); card.className = 'assigned-content-card';
+          const stage = document.createElement('span'); stage.className = 'assigned-stage'; stage.textContent = item.stage || 'İÇERİK';
+          const title = document.createElement('h3'); title.textContent = item.title;
+          const outcome = document.createElement('p'); outcome.textContent = item.outcome || item.description || 'Eğitimcin tarafından kişisel rotana eklendi.';
+          const meta = document.createElement('div'); meta.className = 'assigned-meta';
+          meta.textContent = [item.lesson, item.topic, item.skillName, (item.duration || 0) + ' dk'].filter(Boolean).join(' • ');
+          const progressStatus = item.progress && item.progress.status || 'BEKLİYOR';
+          const statePill = document.createElement('span');
+          statePill.className = 'assigned-state'
+            + (progressStatus === 'AÇILDI' ? ' opened' : '')
+            + (progressStatus === 'TAMAMLANDI' ? ' completed' : '');
+          statePill.textContent = progressStatus === 'TAMAMLANDI'
+            ? 'TAMAMLANDI ✓'
+            : (progressStatus === 'AÇILDI' ? 'AÇILDI' : 'YENİ ATAMA');
+          const actions = document.createElement('div'); actions.className = 'assigned-actions';
+          const openButton = document.createElement('button');
+          openButton.type = 'button'; openButton.className = 'assigned-open';
+          openButton.textContent = progressStatus === 'BEKLİYOR' ? 'İçeriği Aç →' : 'Yeniden Aç →';
+          const completeButton = document.createElement('button');
+          completeButton.type = 'button'; completeButton.className = 'assigned-complete';
+          completeButton.disabled = progressStatus === 'BEKLİYOR' || progressStatus === 'TAMAMLANDI';
+          completeButton.textContent = progressStatus === 'TAMAMLANDI'
+            ? 'Tamamlandı ✓'
+            : (progressStatus === 'BEKLİYOR' ? 'Önce içeriği aç' : 'Tamamladım');
+          openButton.addEventListener('click', () => openAssignedContent(
+            item, openButton, completeButton, statePill
+          ));
+          completeButton.addEventListener('click', () => markAssignedContentComplete(
+            item, completeButton, statePill
+          ));
+          actions.append(openButton, completeButton);
+          card.append(stage, title, outcome, meta, statePill, actions); grid.appendChild(card);
+        });
+      }
+
+      function base64ToBlobUrl(base64, mimeType) {
+        const binary = atob(base64);
+        const bytes = new Uint8Array(binary.length);
+        for (let index = 0; index < binary.length; index += 1) bytes[index] = binary.charCodeAt(index);
+        return URL.createObjectURL(new Blob([bytes], { type: mimeType || 'application/octet-stream' }));
+      }
+
+      function openTemporaryLink(url, name, preview) {
+        const link = document.createElement('a');
+        link.href = url;
+        link.rel = 'noopener';
+        if (preview) link.target = '_blank';
+        else link.download = name || 'CZA-icerik';
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+      }
+
+      async function openAssignedContent(item, button, completeButton, statePill) {
+        const original = button.textContent;
+        button.disabled = true;
+        button.textContent = 'İçerik hazırlanıyor…';
+        try {
+          const file = await server('getAssignedContentFile', state.token, item.id);
+          if (file.sourceType === 'BAĞLANTI') {
+            openTemporaryLink(file.externalUrl, file.name, true);
+          } else {
+            const url = base64ToBlobUrl(file.base64, file.mimeType);
+            const preview = /^application\/pdf$|^image\//i.test(file.mimeType || '');
+            openTemporaryLink(url, file.name, preview);
+            setTimeout(() => URL.revokeObjectURL(url), 60000);
+          }
+          item.progress = file.progress || { status: 'AÇILDI', openCount: 1 };
+          if (item.progress.status !== 'TAMAMLANDI') {
+            statePill.className = 'assigned-state opened';
+            statePill.textContent = 'AÇILDI';
+            completeButton.disabled = false;
+            completeButton.textContent = 'Tamamladım';
+          }
+          button.textContent = 'Açıldı ✓';
+          setTimeout(() => { button.textContent = original; }, 1300);
+        } catch (error) {
+          if (/Oturum/.test(error.message)) return showLogin(error.message);
+          button.textContent = error.message;
+          setTimeout(() => { button.textContent = original; }, 2200);
+        } finally { button.disabled = false; }
+      }
+
+      async function markAssignedContentComplete(item, button, statePill) {
+        button.disabled = true;
+        button.textContent = 'Kaydediliyor…';
+        try {
+          const response = await server('completeAssignedContent', state.token, item.id);
+          if (state.dashboard) state.dashboard.assignedContent = response.assignedContent || [];
+          statePill.className = 'assigned-state completed';
+          statePill.textContent = 'TAMAMLANDI ✓';
+          renderAssignedContent(response.assignedContent || []);
+        } catch (error) {
+          if (/Oturum/.test(error.message)) return showLogin(error.message);
+          button.textContent = error.message;
+          setTimeout(() => { button.textContent = 'Tamamladım'; button.disabled = false; }, 2200);
+        }
+      }
+
+      async function openRouteStep(step) {
+        if (step.action === 'learning') {
+          navigate('learning');
+          return;
+        }
+        navigate('skills');
+        if (!state.skillCampus) await loadSkillCampus();
+        const skill = state.skillCampus && (state.skillCampus.skills || [])
+          .find((item) => item.id === step.skillId);
+        if (skill) openSkillDetail(skill);
+      }
+
+      function renderWeek(days) {
+        const chart = byId('weekChart');
+        chart.replaceChildren();
+        const max = Math.max(5, ...days.map((day) => Number(day.count) || 0));
+        days.forEach((day, index) => {
+          const item = document.createElement('div');
+          item.className = 'week-day' + (index === days.length - 1 ? ' today' : '');
+          const space = document.createElement('div');
+          space.className = 'bar-space';
+          const bar = document.createElement('div');
+          bar.className = 'week-bar';
+          bar.style.height = Math.max(7, Math.round(((Number(day.count) || 0) / max) * 106)) + 'px';
+          space.appendChild(bar);
+          const count = document.createElement('div');
+          count.className = 'week-count';
+          count.textContent = day.count || 0;
+          const label = document.createElement('div');
+          label.className = 'week-label';
+          label.textContent = day.label || '';
+          item.append(space, count, label);
+          chart.appendChild(item);
+        });
+      }
+
+      function renderRoadmap(skills) {
+        const grid = byId('roadmapGrid');
+        grid.replaceChildren();
+        if (!skills.length) {
+          const empty = document.createElement('article');
+          empty.className = 'skill-card';
+          empty.textContent = 'Kazanım rotası hazırlanıyor.';
+          grid.appendChild(empty);
+          return;
+        }
+        skills.forEach((skill, index) => {
+          const card = document.createElement('article');
+          const done = skill.status === 'Tamamlandı';
+          const repair = skill.status === 'Telafi gerekli';
+          card.className = 'skill-card' + (done ? ' done' : '') + (repair ? ' repair' : '');
+          const number = document.createElement('div');
+          number.className = 'skill-index';
+          number.textContent = done ? '✓' : String(index + 1).padStart(2, '0');
+          const title = document.createElement('h3');
+          title.textContent = skill.skill;
+          const lesson = document.createElement('p');
+          lesson.textContent = skill.lesson + (skill.total ? ' • son ' + skill.total + ' çalışma' : '');
+          const status = document.createElement('div');
+          status.className = 'skill-status';
+          const dot = document.createElement('i');
+          const statusText = document.createElement('span');
+          statusText.textContent = skill.status || 'Başlanmadı';
+          status.append(dot, statusText);
+          card.append(number, title, lesson, status);
+          grid.appendChild(card);
+        });
+      }
+
+      function renderBadges(data) {
+        const badges = [
+          { icon: '🚀', title: 'İlk Adım', text: 'İlk sorunu tamamla', earned: data.totalAnswers >= 1 },
+          { icon: '🎯', title: 'Keskin Nişancı', text: '5 soruda %80 doğruluk', earned: data.totalAnswers >= 5 && data.accuracy >= .8 },
+          { icon: '🔥', title: 'Ritim Ustası', text: '3 günlük seri', earned: data.streak >= 3 },
+          { icon: '⚡', title: 'XP Avcısı', text: '250 XP kazan', earned: data.xp >= 250 },
+          { icon: '🏆', title: 'Kazanım Ustası', text: 'Bir kazanımı tamamla', earned: data.completedSkills >= 1 },
+        ];
+        const row = byId('badgeRow');
+        row.replaceChildren();
+        badges.forEach((badge) => {
+          const card = document.createElement('article');
+          card.className = 'badge-card' + (badge.earned ? '' : ' locked');
+          const medal = document.createElement('div');
+          medal.className = 'badge-medal';
+          medal.textContent = badge.earned ? badge.icon : '🔒';
+          const title = document.createElement('strong');
+          title.textContent = badge.title;
+          const text = document.createElement('span');
+          text.textContent = badge.earned ? 'Kazanıldı' : badge.text;
+          card.append(medal, title, text);
+          row.appendChild(card);
+        });
+      }
+
+      function skillSummary(skills) {
+        return (skills || []).map((skill) => skill.name + ' (' + skill.score + '/5)').join(' • ') || 'Değerlendirme bekliyor';
+      }
+
+      function maybeShowOnboarding(data) {
+        if (!data.campusState || data.campusState.onboardingCompleted) return;
+        const profile = data.holisticProfile || {};
+        const first = firstName(state.student && state.student.name);
+        if (profile.assessmentComplete) {
+          byId('onboardingTitle').textContent = first + ', seni tanıyoruz.';
+          byId('onboardingText').textContent = 'CZA değerlendirmendeki ' + (profile.totalSkills || 14)
+            + ' beceri alanı kişisel kampüs rotana bağlandı.';
+          byId('introAverage').textContent = Number(profile.average || 0).toFixed(2) + '/5';
+          byId('introStrengths').textContent = skillSummary(profile.strengths);
+          byId('introPriorities').textContent = skillSummary(profile.priorities);
+        } else {
+          byId('onboardingTitle').textContent = first + ', seni tanımaya başlayalım.';
+          byId('onboardingText').textContent = 'Başlangıç değerlendirmesini eğitimcinle tamamladığında güçlü yönlerin ve kişisel gelişim önceliklerin belirlenecek.';
+          byId('introAverage').textContent = 'Yeni';
+          byId('introStrengths').textContent = 'Değerlendirme tamamlandıktan sonra belirlenecek';
+          byId('introPriorities').textContent = 'Değerlendirme tamamlandıktan sonra belirlenecek';
+        }
+        byId('onboardingModal').classList.remove('hidden');
+      }
+
+      async function loadSkillCampus() {
+        byId('skillCampusLoading').classList.remove('hidden');
+        byId('skillCampusContent').classList.add('hidden');
+        try {
+          state.skillCampus = await server('getSkillCampus', state.token);
+          renderSkillCampus(state.skillCampus);
+          byId('skillCampusLoading').classList.add('hidden');
+          byId('skillCampusContent').classList.remove('hidden');
+        } catch (error) {
+          if (/Oturum/.test(error.message)) return showLogin(error.message);
+          byId('skillCampusLoading').replaceChildren();
+          const message = document.createElement('span');
+          message.textContent = error.message;
+          byId('skillCampusLoading').appendChild(message);
+        }
+      }
+
+      function renderSkillCampus(profile) {
+        byId('holisticAverage').textContent = profile.hasAssessment
+          ? Number(profile.average || 0).toFixed(2)
+          : '—';
+        byId('holisticProfileLabel').textContent = profile.assessmentComplete ? (profile.profileLabel || 'Değerlendirme tamamlandı') : 'Başlangıç değerlendirmesi bekliyor veya eksik';
+        byId('holisticStrengths').textContent = profile.assessmentComplete ? skillSummary(profile.strengths) : 'Değerlendirme tamamlandığında belirlenecek';
+        byId('holisticPriorities').textContent = profile.assessmentComplete ? skillSummary(profile.priorities) : 'Değerlendirme tamamlandığında belirlenecek';
+        byId('holisticHeroText').textContent = profile.assessmentComplete
+          ? 'Değerlendirme sonuçların, CZA yöntemleri ve içerik durakları tek haritada birleşti. Güçlü alanların yeni öğrenmelerde kaldıraç olarak kullanılacak.'
+          : 'Akademik öğrenmeden zihinsel potansiyele, öz yönetimden değer gelişimine kadar bütün alanların birbirini desteklediği kampüs.';
+
+        const filters = byId('categoryFilters');
+        filters.replaceChildren();
+        ['Tümü', ...(profile.categories || []).map((category) => category.name)].forEach((name) => {
+          const button = document.createElement('button');
+          button.type = 'button';
+          button.className = 'filter-chip' + (state.skillFilter === name ? ' active' : '');
+          button.textContent = name;
+          button.addEventListener('click', () => {
+            state.skillFilter = name;
+            renderSkillCampus(profile);
+          });
+          filters.appendChild(button);
+        });
+        renderHolisticGrid(profile.skills || []);
+      }
+
+      function renderHolisticGrid(skills) {
+        const grid = byId('holisticGrid');
+        grid.replaceChildren();
+        const visible = state.skillFilter === 'Tümü'
+          ? skills
+          : skills.filter((skill) => skill.category === state.skillFilter);
+        visible.forEach((skill) => {
+          const card = document.createElement('button');
+          card.type = 'button';
+          card.className = 'holistic-card';
+          card.style.setProperty('--skill-color', skill.color || '#5267F7');
+          const top = document.createElement('div');
+          top.className = 'holistic-top';
+          const number = document.createElement('span');
+          number.className = 'holistic-number';
+          number.textContent = String(skill.order).padStart(2, '0') + ' • ' + skill.category;
+          const score = document.createElement('span');
+          score.className = 'score-pill';
+          score.textContent = skill.score ? skill.score + '/5' : '—/5';
+          top.append(number, score);
+          const body = document.createElement('div');
+          const title = document.createElement('h3');
+          title.textContent = skill.name;
+          const description = document.createElement('p');
+          description.textContent = skill.description;
+          body.append(title, description);
+          const footer = document.createElement('div');
+          footer.className = 'holistic-footer';
+          const status = document.createElement('span');
+          status.className = 'holistic-status';
+          status.textContent = skill.status;
+          const count = document.createElement('span');
+          count.className = 'holistic-content-count';
+          count.textContent = skill.contentCount + ' içerik durağı →';
+          footer.append(status, count);
+          card.append(top, body, footer);
+          card.addEventListener('click', () => openSkillDetail(skill));
+          grid.appendChild(card);
+        });
+      }
+
+      function openSkillDetail(skill) {
+        byId('skillDetailHead').style.setProperty('--modal-color', skill.color || '#5267F7');
+        byId('skillDetailCategory').textContent = skill.category + ' • ' + (skill.score ? skill.score + '/5 ' + skill.status : skill.status);
+        byId('skillDetailTitle').textContent = skill.name;
+        byId('skillDetailDescription').textContent = skill.description;
+        byId('skillDetailMethod').textContent = 'CZA yaklaşımı: ' + skill.methods + ' • Önerilen akış: ' + skill.modules;
+        const journey = byId('skillContentJourney');
+        journey.replaceChildren();
+        (skill.content || []).forEach((item, index) => {
+          const stop = document.createElement('div');
+          stop.className = 'content-stop';
+          const number = document.createElement('div');
+          number.className = 'stop-number';
+          number.textContent = String(index + 1).padStart(2, '0');
+          const copy = document.createElement('div');
+          const title = document.createElement('strong');
+          title.textContent = item.title;
+          const meta = document.createElement('span');
+          meta.textContent = item.stage + ' • ' + item.type + ' • ' + item.duration + ' dk • ' + item.module;
+          copy.append(title, meta);
+          if (item.status === 'AKTİF') {
+            const action = document.createElement('button');
+            action.type = 'button';
+            action.className = 'content-state active';
+            action.textContent = 'Şimdi çalış';
+            action.addEventListener('click', () => {
+              byId('skillDetailModal').classList.add('hidden');
+              navigate('learning');
+            });
+            stop.append(number, copy, action);
+          } else {
+            const status = document.createElement('span');
+            status.className = 'content-state';
+            status.textContent = item.status;
+            stop.append(number, copy, status);
+          }
+          journey.appendChild(stop);
+        });
+        byId('skillDetailModal').classList.remove('hidden');
+      }
+
+      async function loadNextQuestion() {
+        resetQuestionView();
+        try {
+          const response = await server('getNextQuestion', state.token);
+          byId('questionLoading').classList.add('hidden');
+          if (response.completed) {
+            byId('completeView').classList.remove('hidden');
+            return;
+          }
+          state.question = response.question;
+          state.startedAt = Date.now();
+          renderQuestion(response.question);
+          if (!byId('learningView').classList.contains('hidden')) startTimer();
+        } catch (error) {
+          if (/Oturum/.test(error.message)) return showLogin(error.message);
+          byId('questionLoading').innerHTML = '';
+          const message = document.createElement('span');
+          message.textContent = error.message;
+          byId('questionLoading').appendChild(message);
+        }
+      }
+
+      function resetQuestionView() {
+        stopTimer();
+        state.question = null;
+        state.selectedAnswer = '';
+        state.submitting = false;
+        byId('questionLoading').replaceChildren();
+        const loader = document.createElement('div');
+        loader.className = 'loader';
+        const text = document.createElement('span');
+        text.textContent = 'Kişisel çalışma hazırlanıyor…';
+        byId('questionLoading').append(loader, text);
+        byId('questionLoading').classList.remove('hidden');
+        byId('questionContent').classList.add('hidden');
+        byId('completeView').classList.add('hidden');
+        byId('resultBox').classList.add('hidden');
+        byId('nextRow').classList.add('hidden');
+        byId('submitButton').disabled = true;
+      }
+
+      function renderQuestion(question) {
+        byId('questionContent').classList.remove('hidden');
+        byId('questionLesson').textContent = question.lesson;
+        byId('questionSkill').textContent = question.skill;
+        byId('questionLevel').textContent = question.level;
+        byId('questionPrompt').textContent = question.prompt;
+        const options = byId('options');
+        options.replaceChildren();
+
+        Object.entries(question.options).forEach(([letter, text]) => {
+          const button = document.createElement('button');
+          button.type = 'button';
+          button.className = 'option';
+          button.dataset.answer = letter;
+          button.setAttribute('aria-label', letter + ' seçeneği: ' + text);
+          const badge = document.createElement('span');
+          badge.className = 'option-letter';
+          badge.textContent = letter;
+          const label = document.createElement('span');
+          label.textContent = text;
+          const check = document.createElement('span');
+          check.className = 'option-check';
+          button.append(badge, label, check);
+          button.addEventListener('click', () => selectAnswer(letter));
+          options.appendChild(button);
+        });
+      }
+
+      function selectAnswer(letter) {
+        if (state.submitting) return;
+        state.selectedAnswer = letter;
+        document.querySelectorAll('#options .option').forEach((button) => {
+          button.classList.toggle('selected', button.dataset.answer === letter);
+        });
+        byId('submitButton').disabled = false;
+      }
+
+      async function submitSelectedAnswer() {
+        if (!state.question || !state.selectedAnswer || state.submitting) return;
+        state.submitting = true;
+        stopTimer();
+        byId('submitButton').disabled = true;
+        const duration = Math.round((Date.now() - state.startedAt) / 1000);
+        try {
+          const response = await server('submitAnswer', state.token, state.question.id, state.selectedAnswer, duration);
+          renderDashboard(response.dashboard);
+          showResult(response);
+        } catch (error) {
+          state.submitting = false;
+          byId('submitButton').disabled = false;
+          if (/Oturum/.test(error.message)) return showLogin(error.message);
+          showResult({ correct: false, correctAnswer: '', explanation: error.message, systemError: true });
+        }
+      }
+
+      function showResult(response) {
+        document.querySelectorAll('#options .option').forEach((button) => {
+          button.disabled = true;
+          button.classList.remove('selected');
+          if (!response.systemError && button.dataset.answer === response.correctAnswer) button.classList.add('correct');
+          if (!response.correct && button.dataset.answer === response.selectedAnswer) button.classList.add('wrong');
+        });
+        const box = byId('resultBox');
+        box.replaceChildren();
+        box.className = 'result-box ' + (response.correct ? 'good' : 'bad');
+        const heading = document.createElement('h3');
+        heading.textContent = response.systemError
+          ? 'İşlem tamamlanamadı'
+          : (response.correct ? 'Harika, doğru cevap!' : 'Bu adımı birlikte güçlendireceğiz');
+        const answer = document.createElement('p');
+        answer.textContent = response.systemError ? '' : 'Doğru seçenek: ' + response.correctAnswer;
+        const explanation = document.createElement('p');
+        explanation.textContent = response.explanation || '';
+        box.append(heading, answer, explanation);
+        box.classList.remove('hidden');
+        if (!response.systemError) byId('nextRow').classList.remove('hidden');
+      }
+
+      function startTimer() {
+        stopTimer();
+        if (!state.startedAt || state.submitting) return;
+        const tick = () => {
+          const seconds = Math.max(0, Math.floor((Date.now() - state.startedAt) / 1000));
+          const minutes = String(Math.floor(seconds / 60)).padStart(2, '0');
+          const rest = String(seconds % 60).padStart(2, '0');
+          byId('timer').textContent = '◷ ' + minutes + ':' + rest;
+        };
+        tick();
+        state.timerId = setInterval(tick, 1000);
+      }
+
+      function stopTimer() {
+        if (state.timerId) clearInterval(state.timerId);
+        state.timerId = null;
+      }
+
+      byId('loginForm').addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const button = byId('loginButton');
+        button.disabled = true;
+        byId('loginError').textContent = '';
+        try {
+          const response = await server('loginStudent', byId('studentCode').value, byId('studentPin').value);
+          state.token = response.token;
+          state.student = response.student;
+          sessionStorage.setItem('czaToken', response.token);
+          sessionStorage.setItem('czaStudent', JSON.stringify(response.student));
+          showApp();
+          renderDashboard(response.dashboard);
+          navigate('dashboard');
+          await loadNextQuestion();
+        } catch (error) {
+          byId('loginError').textContent = error.message;
+        } finally {
+          button.disabled = false;
+        }
+      });
+
+      document.querySelectorAll('[data-view]').forEach((button) => {
+        button.addEventListener('click', () => navigate(button.dataset.view));
+      });
+      document.querySelectorAll('[data-start]').forEach((button) => {
+        button.addEventListener('click', () => navigate('learning'));
+      });
+      byId('heroStartButton').addEventListener('click', openDashboardPrimaryAction);
+      byId('workshopsRefresh').addEventListener('click', loadWorkshops);
+      document.addEventListener('visibilitychange', pauseHiddenReading);
+      document.querySelectorAll('[data-scroll]').forEach((button) => {
+        button.addEventListener('click', () => {
+          navigate('dashboard');
+          setTimeout(() => byId(button.dataset.scroll).scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
+        });
+      });
+      byId('submitButton').addEventListener('click', submitSelectedAnswer);
+      byId('nextButton').addEventListener('click', loadNextQuestion);
+      byId('skillDetailClose').addEventListener('click', () => {
+        byId('skillDetailModal').classList.add('hidden');
+      });
+      byId('skillDetailModal').addEventListener('click', (event) => {
+        if (event.target === byId('skillDetailModal')) byId('skillDetailModal').classList.add('hidden');
+      });
+      byId('completeOnboardingButton').addEventListener('click', async () => {
+        const button = byId('completeOnboardingButton');
+        button.disabled = true;
+        try {
+          await server('completeOnboarding', state.token);
+          if (state.dashboard && state.dashboard.campusState) {
+            state.dashboard.campusState.onboardingCompleted = true;
+          }
+          byId('onboardingModal').classList.add('hidden');
+          navigate('dashboard');
+        } catch (error) {
+          byId('onboardingText').textContent = error.message;
+        } finally {
+          button.disabled = false;
+        }
+      });
+      byId('logoutButton').addEventListener('click', async () => {
+        if (state.workshopBusy) return;
+        if (state.reading && state.reading.phase === 'READING' && !state.reading.paused) {
+          if (!await changeReading('pause')) return;
+        }
+        try { await server('logoutStudent', state.token); } catch (_) {}
+        showLogin('');
+      });
+
+      (async function restoreSession() {
+        if (!state.token) return;
+        try {
+          const dashboard = await server('getDashboard', state.token);
+          const storedStudent = sessionStorage.getItem('czaStudent');
+          state.student = storedStudent
+            ? JSON.parse(storedStudent)
+            : { code: '', name: 'Öğrenci', grade: '', packageName: '' };
+          showApp();
+          renderDashboard(dashboard);
+          navigate('dashboard');
+          await loadNextQuestion();
+        } catch (_) {
+          showLogin('Oturum süresi doldu. Lütfen yeniden giriş yapın.');
+        }
+      })();
+    </script>
+  </body>
+</html>
+
