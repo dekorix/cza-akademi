@@ -36,6 +36,9 @@ jobs:
       - name: Build
         run: pnpm build
 
+      - name: Targeted CZA Core integration tests
+        run: node --test tests/core-records.test.mjs tests/work-student-id-integration.test.mjs
+
       - name: Start built app
         run: |
           pnpm exec wrangler dev --config dist/server/wrangler.json --port 8787 > /tmp/cza-preview.log 2>&1 &
