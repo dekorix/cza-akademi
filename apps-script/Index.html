@@ -1134,7 +1134,7 @@
 
             <article id="workshopShortcut" class="ws-shortcut">
               <div><strong id="workshopShortcutTitle">Okuma Atölyesi • Pilot</strong><p id="workshopShortcutText" class="ws-note">Metni oku, anlamanı kontrol et, sonucunu eğitimcinle takip et.</p></div>
-              <button id="workshopShortcutButton" class="ws-button primary" type="button" data-view="workshops">Atölyelere Git →</button>
+              <button id="workshopShortcutButton" class="ws-button primary" type="button">Atölyelere Git →</button>
             </article>
 
             <article class="profile-banner">
@@ -2391,6 +2391,26 @@
         });
       }
 
+      async function openWorkPanel() {
+        const button = byId('workshopShortcutButton');
+        if (!state.token || !button || button.disabled) return;
+        const previousLabel = button.textContent;
+        button.disabled = true;
+        button.textContent = 'Çalışma Paneli açılıyor…';
+        try {
+          const handoff = await server('createWorkPanelHandoff', state.token);
+          if (!handoff || handoff.ok !== true || !handoff.url) {
+            throw new Error('Güvenli panel geçişi hazırlanamadı.');
+          }
+          window.location.assign(handoff.url);
+        } catch (error) {
+          if (/Oturum/i.test(error.message)) return showLogin(error.message);
+          byId('workshopShortcutText').textContent = error.message + ' Lütfen yeniden dene.';
+          button.disabled = false;
+          button.textContent = previousLabel;
+        }
+      }
+
       function openDashboardPrimaryAction() {
         if (state.dashboard && state.dashboard.dailyRoute && state.dashboard.dailyRoute.assessmentRequired) {
           byId('dailyRoutePanel').scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -2918,6 +2938,7 @@
       document.querySelectorAll('[data-start]').forEach((button) => {
         button.addEventListener('click', () => navigate('learning'));
       });
+      byId('workshopShortcutButton').addEventListener('click', openWorkPanel);
       byId('heroStartButton').addEventListener('click', openDashboardPrimaryAction);
       byId('workshopsRefresh').addEventListener('click', loadWorkshops);
       document.addEventListener('visibilitychange', pauseHiddenReading);
