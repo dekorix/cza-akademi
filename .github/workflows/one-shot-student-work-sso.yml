@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   patch-and-test:
-    if: github.actor != 'github-actions[bot]'
+    if: ${{ github.actor != 'github-actions[bot]' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout fix branch
@@ -19,6 +19,7 @@ jobs:
           ref: fix/student-work-sso
 
       - name: Patch Apps Script student shortcut
+        shell: bash
         run: |
           python - <<'PY'
           from pathlib import Path
@@ -35,27 +36,29 @@ jobs:
           anchor = '      function openDashboardPrimaryAction() {'
           if anchor not in text:
               raise SystemExit('openDashboardPrimaryAction anchor not found')
-          bridge = '''      async function openWorkPanel() {
-        const button = byId('workshopShortcutButton');
-        if (!state.token || !button || button.disabled) return;
-        const previousLabel = button.textContent;
-        button.disabled = true;
-        button.textContent = 'Çalışma Paneli açılıyor…';
-        try {
-          const handoff = await server('createWorkPanelHandoff', state.token);
-          if (!handoff || handoff.ok !== true || !handoff.url) {
-            throw new Error('Güvenli panel geçişi hazırlanamadı.');
-          }
-          window.location.assign(handoff.url);
-        } catch (error) {
-          if (/Oturum/i.test(error.message)) return showLogin(error.message);
-          byId('workshopShortcutText').textContent = error.message + ' Lütfen yeniden dene.';
-          button.disabled = false;
-          button.textContent = previousLabel;
-        }
-      }
 
-'''
+          bridge_lines = [
+              '      async function openWorkPanel() {',
+              "        const button = byId('workshopShortcutButton');",
+              '        if (!state.token || !button || button.disabled) return;',
+              '        const previousLabel = button.textContent;',
+              '        button.disabled = true;',
+              "        button.textContent = 'Çalışma Paneli açılıyor…';",
+              '        try {',
+              "          const handoff = await server('createWorkPanelHandoff', state.token);",
+              '          if (!handoff || handoff.ok !== true || !handoff.url) {',
+              "            throw new Error('Güvenli panel geçişi hazırlanamadı.');",
+              '          }',
+              '          window.location.assign(handoff.url);',
+              '        } catch (error) {',
+              '          if (/Oturum/i.test(error.message)) return showLogin(error.message);',
+              "          byId('workshopShortcutText').textContent = error.message + ' Lütfen yeniden dene.';",
+              '          button.disabled = false;',
+              '          button.textContent = previousLabel;',
+              '        }',
+              '      }',
+          ]
+          bridge = '\n'.join(bridge_lines) + '\n\n'
           text = text.replace(anchor, bridge + anchor, 1)
 
           listener_anchor = "      byId('heroStartButton').addEventListener('click', openDashboardPrimaryAction);"
