@@ -14,7 +14,8 @@ test('work panel uses the authenticated CZA Core session for start, attempts and
 });
 
 test('educator work reports resolve by central student id and read attempts by student_id', () => {
-  assert.match(reportRoute, /const studentId = typeof body\.studentId === 'string'/);
+  assert.match(reportRoute, /const explicitStudentId = typeof body\.studentId === 'string'/);
+  assert.match(reportRoute, /UUID_PATTERN\.test\(studentReference\) \? studentReference : ''/);
   assert.match(reportRoute, /s\.id = \$\{studentId\}::uuid/);
   assert.match(reportRoute, /question_attempts WHERE student_id=\$\{student\.id\}/);
   assert.match(reportRoute, /teacher_student_links/);
