@@ -33,10 +33,14 @@ export async function POST(request: Request) {
     return json({ ok: false, error: 'invalid_request' }, 400);
   }
 
-  const studentId = typeof body.studentId === 'string' ? body.studentId.trim() : '';
-  const code = typeof body.studentCode === 'string' ? body.studentCode.trim() : '';
+  const explicitStudentId = typeof body.studentId === 'string' ? body.studentId.trim() : '';
+  const studentReference = typeof body.studentCode === 'string' ? body.studentCode.trim() : '';
+  if (explicitStudentId && !UUID_PATTERN.test(explicitStudentId)) {
+    return json({ ok: false, error: 'invalid_student_id' }, 400);
+  }
+  const studentId = explicitStudentId || (UUID_PATTERN.test(studentReference) ? studentReference : '');
+  const code = studentId === studentReference && !explicitStudentId ? '' : studentReference;
   if (!studentId && !code) return json({ ok: false, error: 'student_reference_required' }, 400);
-  if (studentId && !UUID_PATTERN.test(studentId)) return json({ ok: false, error: 'invalid_student_id' }, 400);
   if (!process.env.DATABASE_URL) return json({ ok: false, error: 'database_unavailable' }, 503);
 
   const sql = neon(process.env.DATABASE_URL);
