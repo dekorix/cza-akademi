@@ -6,8 +6,20 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { educatorAuthRequest, educatorAuthError } from '@/lib/educator-auth-client';
 
+type WorkRecommendation = {
+  id: string;
+  moduleCode: string;
+  moduleLabel: string;
+  priority: 'HIGH' | 'MEDIUM' | 'MAINTAIN';
+  sourceSkills: string[];
+  reason: string;
+  suggestedSettings: Record<string, string | number | boolean>;
+  launchPath: string;
+  educatorApprovalRequired: true;
+};
+
 type Report = {
-  student: { campusCode: string; name: string };
+  student: { id?: string; campusCode: string; name: string };
   summary: {
     total: number;
     correct: number;
@@ -27,6 +39,14 @@ type Report = {
     created_at: string;
     metadata?: { sequence?: number[] };
   }[];
+  assessmentRouting?: null | {
+    sessionId: string;
+    templateCode: string;
+    completedAt: string | null;
+    evidenceCoverage: number;
+    recommendations: WorkRecommendation[];
+    note: string;
+  };
 };
 const labels: Record<string, string> = {
   flash_anzan: 'Flash Anzan',
@@ -37,6 +57,7 @@ const labels: Record<string, string> = {
   finger_press: 'Parmak Basma',
   arithmetic: 'Toplama / Çıkarma',
 };
+const priorityLabels = { HIGH: 'Öncelikli destek', MEDIUM: 'Güçlendir', MAINTAIN: 'Gücü koru' } as const;
 function message(code: string) {
   if (
     code === 'educator_session_required' ||
@@ -50,6 +71,13 @@ function message(code: string) {
   if (code === 'rate_limited')
     return 'Çok fazla rapor isteği yapıldı. Lütfen kısa süre sonra yeniden dene.';
   return 'Merkezi rapor şu anda açılamadı.';
+}
+function settingValue(key: string, value: string | number | boolean) {
+  if (key === 'practiceMode') return value === 'guided_practice' ? 'Rehberli çalışma' : value === 'performance' ? 'Performans' : String(value);
+  if (key === 'countdownEnabled') return value ? 'Açık' : 'Kapalı';
+  if (key.endsWith('Ms') && typeof value === 'number') return `${value} ms`;
+  if (key === 'speechRate' && typeof value === 'number') return `${value}×`;
+  return String(value);
 }
 
 export function CentralStudentReport({ children, initialCode = '' }: { children?: ReactNode; initialCode?: string } = {}) {
@@ -199,7 +227,7 @@ export function CentralStudentReport({ children, initialCode = '' }: { children?
         <div className="flex flex-wrap items-end gap-4">
           <div className="min-w-[180px] flex-1">
             <label htmlFor="studentCode" className="text-xs font-semibold">
-              Öğrenci kodu
+              Öğrenci kodu / Student ID
             </label>
             <Input
               id="studentCode"
@@ -231,7 +259,7 @@ export function CentralStudentReport({ children, initialCode = '' }: { children?
                   {report.student.name}
                 </h2>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  Öğrenci kodu {report.student.campusCode}
+                  {report.student.campusCode ? `Öğrenci kodu ${report.student.campusCode}` : 'Merkezi Student ID ile bağlı'}
                 </p>
               </div>
               <div className="grid grid-cols-4 gap-3 text-center">
@@ -270,6 +298,47 @@ export function CentralStudentReport({ children, initialCode = '' }: { children?
               )}
             </div>
           </section>
+
+          {report.assessmentRouting && (
+            <section className="rounded-xl border border-[#c9d9d1] bg-[#f5faf7] p-6">
+              <div className="flex flex-wrap items-start justify-between gap-4">
+                <div>
+                  <p className="eyebrow text-primary">Değerlendirme → çalışma köprüsü</p>
+                  <h3 className="mt-2 text-lg font-semibold">Önerilen sonraki çalışmalar</h3>
+                  <p className="mt-2 max-w-3xl text-xs leading-5 text-muted-foreground">{report.assessmentRouting.note}</p>
+                </div>
+                <span className="rounded-full border border-[#bad5c8] bg-white px-3 py-1 text-xs font-semibold text-[#315f50]">
+                  Kanıt kapsamı %{report.assessmentRouting.evidenceCoverage}
+                </span>
+              </div>
+              {report.assessmentRouting.recommendations.length ? (
+                <div className="mt-5 grid gap-4 lg:grid-cols-2">
+                  {report.assessmentRouting.recommendations.map((recommendation) => (
+                    <article key={recommendation.id} className="rounded-lg border border-[#d6e4dc] bg-white p-5">
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="text-[10px] font-bold uppercase tracking-wide text-primary">{priorityLabels[recommendation.priority]}</p>
+                          <h4 className="mt-1 font-semibold">{recommendation.moduleLabel}</h4>
+                        </div>
+                        <a href={recommendation.launchPath} className="shrink-0 rounded-md bg-primary px-3 py-2 text-xs font-semibold text-white">Atölyeyi aç</a>
+                      </div>
+                      <p className="mt-3 text-xs leading-5 text-muted-foreground">{recommendation.reason}</p>
+                      <p className="mt-3 text-[11px] font-semibold">Kanıt: {recommendation.sourceSkills.join(', ')}</p>
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {Object.entries(recommendation.suggestedSettings).map(([key, value]) => (
+                          <span key={key} className="rounded-md bg-secondary/60 px-2 py-1 text-[10px] text-muted-foreground">{key}: {settingValue(key, value)}</span>
+                        ))}
+                      </div>
+                      <p className="mt-3 text-[10px] text-muted-foreground">Eğitimci onayı gerekir · otomatik atama yapılmaz.</p>
+                    </article>
+                  ))}
+                </div>
+              ) : (
+                <p className="mt-5 rounded-lg bg-white p-4 text-sm text-muted-foreground">Bu değerlendirmeden mevcut Çalışma Paneli modüllerine güvenli yönlendirme üretecek kadar uygun kanıt oluşmadı.</p>
+              )}
+            </section>
+          )}
+
           <section className="overflow-hidden rounded-xl border border-border bg-white">
             <div className="border-b border-border p-5">
               <h3 className="font-semibold">Son soru kayıtları</h3>
