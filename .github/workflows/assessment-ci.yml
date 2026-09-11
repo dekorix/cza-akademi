@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - cza-assessment-engine-v1
+      - cza-core-integration-v1
   pull_request:
     branches:
       - main
