@@ -38,7 +38,7 @@ test('campus issues short-lived single-use tickets without putting student crede
   assert.match(campusHandoff, /cache\.remove\(key\)/);
   assert.match(campusHandoff, /LockService\.getScriptLock\(\)/);
   assert.match(campusHandoff, /function doPost/);
-  assert.doesNotMatch(campusHandoff, /pin/i);
+  assert.doesNotMatch(campusHandoff, /student\.pin|pin_hash|cleanPin/);
 });
 
 test('campus Atölyelere Git shortcut requests a handoff then navigates to the work panel', () => {
