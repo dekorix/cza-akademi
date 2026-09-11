@@ -37,7 +37,7 @@ jobs:
         run: pnpm build
 
       - name: Targeted CZA Core integration tests
-        run: node --test tests/core-records.test.mjs tests/work-student-id-integration.test.mjs
+        run: node --test tests/core-records.test.mjs tests/work-student-id-integration.test.mjs tests/cza-work-recommendations.test.mjs
 
       - name: Start built app
         run: |
@@ -69,7 +69,9 @@ jobs:
           pnpm exec oxlint --format unix
           app/assessment
           app/educator/assessment
+          app/api/educator-report/route.ts
           components/assessment-report.tsx
+          components/central-student-report.tsx
           lib/assessment-engine.ts
           lib/assessment-routing.ts
           lib/assessment-math.ts
@@ -78,4 +80,5 @@ jobs:
           lib/assessment-cognitive.ts
           lib/assessment-learning-response.ts
           lib/assessment-report.ts
+          lib/cza-work-recommendations.ts
           types/http-json.d.ts
