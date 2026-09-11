@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 
 type Student = { id: string; name: string; code: string | null; username: string | null };
 
-export function EducatorStudents({ onReport }: { onReport: (code: string) => void }) {
+export function EducatorStudents({ onReport }: { onReport: (studentId: string) => void }) {
   const [students, setStudents] = useState<Student[]>([]);
   const [page, setPage] = useState(0);
   const [retry, setRetry] = useState(0);
@@ -64,7 +64,7 @@ export function EducatorStudents({ onReport }: { onReport: (code: string) => voi
         return <div key={student.id} className="flex flex-wrap items-center justify-between gap-4 py-4">
           <div className="min-w-[220px] flex-1"><h3 className="font-semibold">{student.name}</h3><p className="text-sm text-muted-foreground">{student.code ? `Öğrenci kodu: ${student.code}` : 'Kampüs kodu eşleştirmesi bekleniyor'}</p><p className="mt-1 break-all text-[10px] text-muted-foreground">Student ID: {student.id}</p></div>
           <div className="flex flex-wrap items-center gap-2">
-            <Button disabled={!student.code} onClick={() => { if (student.code) onReport(student.code); }}>Çalışma raporu</Button>
+            <Button onClick={() => onReport(student.id)}>Çalışma raporu</Button>
             <Button variant="outline" disabled={Boolean(assessmentBusyId)} onClick={() => void startLinkedAssessment(student)}>{assessmentBusyId === student.id ? 'Bağlanıyor…' : 'Değerlendirme başlat'}</Button>
             {assessmentSessionId && <a className="rounded-md border border-[#c9d9d1] bg-white px-3 py-2 text-sm font-semibold text-[#315f50]" href={`/educator/assessment/report?session=${encodeURIComponent(assessmentSessionId)}`} target="_blank" rel="noreferrer">Değerlendirme raporu</a>}
             {student.username && <a className="font-semibold text-primary" href={`/paritmetik?from=educator&username=${encodeURIComponent(student.username)}`}>Öğrenci girişini aç</a>}
