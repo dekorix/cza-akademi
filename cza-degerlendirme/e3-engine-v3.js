@@ -29,15 +29,23 @@
     return 'supported';
   }
 
-  function facetCoverage(domainId,evidence={}){
-    const d=domainById(domainId);if(!d)return {covered:0,total:0,ratio:0,facets:{}};
-    const map=Object.fromEntries(d.facets.map(f=>[f,0]));
+  function activeFacets(domainId,age=null){
+    const d=domainById(domainId);if(!d)return [];
+    if(age==null)return [...d.facets];
+    const set=new Set(eligible(domainId,age).flatMap(t=>t.facets||[]));
+    return d.facets.filter(f=>set.has(f));
+  }
+
+  function facetCoverage(domainId,evidence={},age=null){
+    const d=domainById(domainId);if(!d)return {covered:0,total:0,ratio:0,facets:{},activeFacets:[]};
+    const active=activeFacets(domainId,age);
+    const map=Object.fromEntries(active.map(f=>[f,0]));
     completedEvidence(domainId,evidence).forEach(ev=>{
       if(classifyEvidence(ev)==='neutral')return;
       const t=taskById(ev.taskId);(t?.facets||[]).forEach(f=>{if(f in map)map[f]++});
     });
     const covered=Object.values(map).filter(v=>v>0).length;
-    return {covered,total:d.facets.length,ratio:d.facets.length?covered/d.facets.length:0,facets:map};
+    return {covered,total:active.length,ratio:active.length?covered/active.length:0,facets:map,activeFacets:active};
   }
 
   function evidenceStats(domainId,evidence={}){
@@ -55,12 +63,13 @@
   }
 
   function candidateScore(task,domainId,evidence,mode,age){
-    const coverage=facetCoverage(domainId,evidence);
+    const coverage=facetCoverage(domainId,evidence,age);
     const uncovered=(task.facets||[]).filter(f=>(coverage.facets[f]||0)===0).length;
-    const sparse=(task.facets||[]).reduce((s,f)=>s+Math.max(0,2-(coverage.facets[f]||0)),0);
+    const sparse=(task.facets||[]).reduce((s,f)=>s+(f in coverage.facets?Math.max(0,2-(coverage.facets[f]||0)):0),0);
     const ageTier=ageBand(age)?.tier||1;
     const tierDistance=Math.abs((task.tier||1)-ageTier);
-    return roleRank(task.role,mode)*100+tierDistance*12-uncovered*18-sparse*4+(task.neutral?60:0);
+    const methodBonus=task.modality&&completedEvidence(domainId,evidence).some(e=>taskById(e.taskId)?.modality===task.modality)?0:-6;
+    return roleRank(task.role,mode)*100+tierDistance*12-uncovered*18-sparse*4+methodBonus+(task.neutral?60:0);
   }
 
   function selectNext(domainId,age,evidence={}){
@@ -69,7 +78,7 @@
     const done=new Set(completedEvidence(domainId,evidence).map(e=>e.taskId));
     const candidates=eligible(domainId,age).filter(t=>!done.has(t.id));
     if(!candidates.length)return null;
-    const stats=evidenceStats(domainId,evidence);const coverage=facetCoverage(domainId,evidence);
+    const stats=evidenceStats(domainId,evidence);const coverage=facetCoverage(domainId,evidence,age);
     const completed=stats.rows.length;
     if(completed>=band.maxTasks)return null;
 
@@ -94,7 +103,7 @@
 
   function recommendedRoute(domainId,age,evidence={}){
     const virtual={...evidence};const route=[];let guard=0;
-    while(guard++<20){
+    while(guard++<24){
       const next=selectNext(domainId,age,virtual);if(!next)break;
       route.push(next);
       virtual[next.id]={taskId:next.id,support:'INDEPENDENT',firstMatch:next.scoring==='accuracy'?true:null,flags:[],neutral:!!next.neutral,synthetic:true};
@@ -102,8 +111,8 @@
     return route;
   }
 
-  function domainSummary(domainId,evidence={}){
-    const stats=evidenceStats(domainId,evidence);const coverage=facetCoverage(domainId,evidence);
+  function domainSummary(domainId,evidence={},age=null){
+    const stats=evidenceStats(domainId,evidence);const coverage=facetCoverage(domainId,evidence,age);
     let status='Kanıt yetersiz',code='INSUFFICIENT';
     if(stats.decisive>=4&&coverage.ratio>=0.5){
       if(stats.strongRate>=0.68){status='Göreli güçlü kanıt';code='RELATIVE_STRENGTH'}
@@ -114,7 +123,7 @@
   }
 
   function sessionProgress(age,evidence={}){
-    const rows=bank().domains.map(d=>({domain:d,...domainSummary(d.id,evidence)}));
+    const rows=bank().domains.map(d=>({domain:d,...domainSummary(d.id,evidence,age)}));
     const complete=rows.filter(r=>selectNext(r.domain.id,age,evidence)===null&&r.completed>0).length;
     return {domains:rows,complete,total:rows.length,percent:Math.round((complete/rows.length)*100)};
   }
@@ -133,7 +142,7 @@
     return {valid:errors.length===0,errors};
   }
 
-  const api={SUPPORT,SUPPORT_LABELS,OBS_FLAGS,BAND,ageBand,domainById,taskById,eligible,classifyEvidence,facetCoverage,evidenceStats,selectNext,recommendedRoute,domainSummary,sessionProgress,createEvidence,validateSession};
+  const api={SUPPORT,SUPPORT_LABELS,OBS_FLAGS,BAND,ageBand,domainById,taskById,eligible,completedEvidence,classifyEvidence,activeFacets,facetCoverage,evidenceStats,selectNext,recommendedRoute,domainSummary,sessionProgress,createEvidence,validateSession};
   root.E3_ENGINE=api;
   if(typeof module!=='undefined'&&module.exports)module.exports=api;
 })(typeof globalThis!=='undefined'?globalThis:this);
