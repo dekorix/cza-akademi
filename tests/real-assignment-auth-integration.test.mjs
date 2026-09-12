@@ -9,6 +9,7 @@ const studio = fs.readFileSync(new URL('../app/studio/page.tsx', import.meta.url
 const students = fs.readFileSync(new URL('../components/educator-students.tsx', import.meta.url), 'utf8');
 const educatorAuth = fs.readFileSync(new URL('../lib/educator-auth.ts', import.meta.url), 'utf8');
 const educatorAuthRoute = fs.readFileSync(new URL('../app/api/educator-auth/route.ts', import.meta.url), 'utf8');
+const resetPage = fs.readFileSync(new URL('../app/educator/reset-password/page.tsx', import.meta.url), 'utf8');
 const educatorReport = fs.readFileSync(new URL('../app/api/educator-report/route.ts', import.meta.url), 'utf8');
 const trainingRecipes = fs.readFileSync(new URL('../lib/training-recipes.ts', import.meta.url), 'utf8');
 const prescriptionPage = fs.readFileSync(new URL('../app/educator/assessment/prescription/page.tsx', import.meta.url), 'utf8');
@@ -81,4 +82,15 @@ test('educator login verifies the current Neon Auth credential hash locally and 
   assert.match(educatorAuthRoute, /createLocalEducatorSession\(request\)/);
   assert.match(educatorAuthRoute, /educatorCookie\(local\.cookieValue/);
   assert.doesNotMatch(educatorAuthRoute, /authUrl\('\/sign-in\/email'\)/);
+});
+
+test('password reset is also a secure educator sign-in fallback and exposes a deploy fingerprint', () => {
+  assert.match(educatorAuthRoute, /AUTH_BUILD = '2026-09-12-reset-autologin-v1'/);
+  assert.match(educatorAuthRoute, /export async function GET\(\)/);
+  assert.match(educatorAuthRoute, /if \(action === 'reset'\)/);
+  assert.match(educatorAuthRoute, /signedIn:true/);
+  assert.match(educatorAuthRoute, /set-cookie/);
+  assert.match(resetPage, /Parolayı kaydet ve giriş yap/);
+  assert.match(resetPage, /window\.location\.replace\('\/educator\?tab=students&auth=reset'\)/);
+  assert.match(resetPage, /CZA Auth · reset-autologin-v1/);
 });
