@@ -33,13 +33,12 @@ export const e3BehaviorFlags: Array<{ value: E3BehaviorFlag; label: string }> = 
 export const e3SectionProtocols: Record<E3SectionId, E3SectionProtocol> = {
   visual_concepts: {
     sectionId: 'visual_concepts', shortLabel: 'Görsel Kavram',
-    setup: 'Az uyaranlı, yüksek kontrastlı ve tanıdık görsellerle başla; seçenek sayısını yaş ve göreve göre artır.',
-    primaryEvidence: ['ilk seçim', 'kategori kuralı', 'parça-bütün', 'iki özelliği birlikte kullanma'],
-    materials: ['nesne/fotoğraf kartları', 'temel şekil ve renk kartları'],
-    educatorRules: ['İlk seçimi düzeltmeden kaydet.', 'Seçimin yeşil görünmesi yalnız seçildi anlamına gelir.', '45+ tavan görevini zayıflık hesabına katma.'],
-    pauseRule: 'Arka arkaya iki kaçınma/yorgunluk belirtisinde bölümü durdur ve başka oturuma bırak.',
-  },
-  receptive_language: {
+    setup: 'Tanıdık ve az uyaranlı eşleme ile başla; kategori/parça-bütün/mekân ilişkisine ilerle. Sonraki görevlerde strateji, model sonrası öğrenme ve yeni örneğe transferi görünür kıl.',
+    primaryEvidence: ['ilk seçim ve gecikme', 'kategori/parça-bütün ilişkisi', 'strateji açıklaması veya işareti', 'model sonrası değişim', 'yakın ve uzak transfer'],
+    materials: ['foto-gerçekçi nesne kartları', 'kategori alanları', 'temel şekil ve renk kartları'],
+    educatorRules: ['İlk seçimi düzeltmeden kaydet.', 'Strateji sorusunu sözel sınava dönüştürme; bakış/işaret de kanıttır.', 'Model gerekiyorsa yalnız bir açık örnek göster ve model sonrası YENİ örnek kullan.', 'Transfer görevinde kuralı yeniden söylemeden önce bağımsız denemeyi kaydet.', 'Seçimin yeşil görünmesi yalnız seçildi anlamına gelir.', '45+ tavan görevini zayıflık hesabına katma.'],
+    pauseRule: 'Arka arkaya iki kaçınma/yorgunluk belirtisinde bölümü durdur; öğrenme/transfer kanıtını yorgunluk altında zorlamadan başka oturuma bırak.',
+  },  receptive_language: {
     sectionId: 'receptive_language', shortLabel: 'Alıcı Dil',
     setup: 'Gerçek nesne ve doğal yönergeler kullan; yönergeyi gereksiz tekrar ederek işitsel yükü değiştirme.',
     primaryEvidence: ['tek aşamalı yönerge', 'konum sözcükleri', 'nitelik', 'iki aşamalı yönerge'],
