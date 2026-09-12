@@ -57,11 +57,11 @@ export const e3SectionProtocols: Record<E3SectionId, E3SectionProtocol> = {
   },
   early_math: {
     sectionId: 'early_math', shortLabel: 'Erken Matematik',
-    setup: 'İşlem sembolü yerine nesne, nicelik, karşılaştırma ve örüntü kullan.',
-    primaryEvidence: ['bir-bir eşleme', 'nicelik karşılaştırma', 'örüntü', 'değişimi fark etme'],
-    materials: ['küp/blok', 'tabaklar', 'renkli çubuklar', 'küçük nesne grupları'],
-    educatorRules: ['Ezbere sayma ile gerçek niceliği ayır.', 'Parmak kullanımı stratejidir; hata olarak işaretleme.', '45+ keşif görevini norm gibi yorumlama.'],
-    pauseRule: 'Sayısal kaygı veya kaçınma görünürse gerçek oyun bağlamına dön ve oturumu kısalt.',
+    setup: 'Gerçek nesne ve belirgin nicelik karşılaştırmasıyla başla; sayı sözcüğü, küçük nicelik ve ölçü stratejisine ilerle. Sonra örüntüde model sonrası öğrenme, ekleme-eksiltme ve yeni kural keşfini gözle.',
+    primaryEvidence: ['nicelik karşılaştırma', 'sayı sözcüğü-nicelik eşleme', 'küçük nicelik stratejisi', 'ölçü karşılaştırma yöntemi', 'model sonrası örüntü öğrenme', 'ekleme/eksiltme değişim takibi', 'kural keşfi'],
+    materials: ['aynı tür küçük nesne grupları', 'özdeş küpler', 'eş renk/kalınlıkta farklı uzunluk çubukları', 'renk ve şekil örüntü kartları', 'örtü veya küçük kutu'],
+    educatorRules: ['İşlem sembolü ve görünür puan kullanma; niceliği gerçek nesne üzerinden gözle.', 'Ezbere sayma ile toplam niceliği ayır ama parmakla/tek tek saymayı hata sayma.', 'Strateji sorusunu yetişkin dili sınavına dönüştürme; işaret veya nesneyi yeniden düzenleme de kanıttır.', 'Örüntü öğrenmesinde öğretim örneği ile test örneğini farklı tut ve model öncesi/sonrası değişimi ayır.', 'Ekleme ve eksiltmede kullanılan yöntemi kaydet; tek stratejiyi üstün kabul etme.', '45+ yeni örüntü kuralını nötr tavan olarak koru.'],
+    pauseRule: 'Sayısal kaçınma, yorgunluk veya performans baskısı belirtisi artarsa gerçek oyun bağlamına dön; art arda zor görevlerle sürdürmeden bölümü kısalt veya başka oturuma bırak.',
   },
   memory: {
     sectionId: 'memory', shortLabel: 'Bellek',
