@@ -117,12 +117,20 @@ export async function POST(request: Request) {
         assessmentTasks,
         learningResponse,
       );
+      const recommendations = buildCzaWorkRecommendations(assessmentReport).map(recommendation => {
+        const query = new URLSearchParams({
+          studentId: student.id,
+          assessmentSessionId: assessment.id,
+          recommendationId: recommendation.id,
+        });
+        return { ...recommendation, launchPath: `/educator/assessment/prescription?${query.toString()}` };
+      });
       assessmentRouting = {
         sessionId: assessment.id,
         templateCode: assessment.template_code,
         completedAt: assessment.completed_at,
         evidenceCoverage: assessmentReport.evidenceCoverage,
-        recommendations: buildCzaWorkRecommendations(assessmentReport),
+        recommendations,
         note: 'Bu öneriler norm veya tanı değildir. Değerlendirme kanıtını mevcut CZA atölyelerine yönlendiren eğitimsel rota önerileridir ve eğitimci onayı gerektirir.',
       };
     }
