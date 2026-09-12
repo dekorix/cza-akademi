@@ -51,7 +51,7 @@ assert.notEqual(nextSupport.role,'ceiling','Zorlanma varken tavan görevi öne a
 
 const strongEvidence={};
 for(const id of ['VC01','VC02','VC03','VC04','VC05','VC06','VC07','VC08'])strongEvidence[id]=engine.createEvidence(id,{support:'INDEPENDENT',firstMatch:true});
-const summary=engine.domainSummary('VC',45,strongEvidence);
+const summary=engine.domainSummary('VC',strongEvidence);
 assert.ok(['Göreli güçlü kanıt','Gelişen / karışık profil'].includes(summary.status),'Alan özeti normatif olmayan etiket üretmeli');
 
 assert.equal(engine.validateSession(35,{}).valid,false,'35 ay E3 dışında olmalı');
