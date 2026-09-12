@@ -68,12 +68,17 @@ test('assessment prescriptions are recomputed server-side and require explicit e
   assert.doesNotMatch(prescriptionPage, /suggestedSettings/);
 });
 
-test('educator password login creates a local CZA session instead of depending on an upstream cookie', () => {
+test('educator login verifies the current Neon Auth credential hash locally and creates the CZA session', () => {
+  assert.match(educatorAuth, /FROM neon_auth\.account a/);
+  assert.match(educatorAuth, /a\."providerId" = 'credential'/);
+  assert.match(educatorAuth, /N: 16384, r: 16, p: 1/);
+  assert.match(educatorAuth, /password\.normalize\('NFKC'\)/);
+  assert.match(educatorAuth, /timingSafeEqual/);
   assert.match(educatorAuth, /INSERT INTO public\.educator_sessions/);
   assert.match(educatorAuth, /randomBytes\(32\)/);
   assert.match(educatorAuth, /tokenHash\(token\)/);
-  assert.match(educatorAuth, /revoked_at IS NULL/);
+  assert.match(educatorAuthRoute, /verifyEducatorPassword\(password\)/);
   assert.match(educatorAuthRoute, /createLocalEducatorSession\(request\)/);
   assert.match(educatorAuthRoute, /educatorCookie\(local\.cookieValue/);
-  assert.doesNotMatch(educatorAuthRoute, /upstream\.headers\.get\('set-cookie'\)/);
+  assert.doesNotMatch(educatorAuthRoute, /authUrl\('\/sign-in\/email'\)/);
 });
