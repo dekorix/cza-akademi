@@ -9,6 +9,9 @@ const studio = fs.readFileSync(new URL('../app/studio/page.tsx', import.meta.url
 const students = fs.readFileSync(new URL('../components/educator-students.tsx', import.meta.url), 'utf8');
 const educatorAuth = fs.readFileSync(new URL('../lib/educator-auth.ts', import.meta.url), 'utf8');
 const educatorAuthRoute = fs.readFileSync(new URL('../app/api/educator-auth/route.ts', import.meta.url), 'utf8');
+const educatorReport = fs.readFileSync(new URL('../app/api/educator-report/route.ts', import.meta.url), 'utf8');
+const trainingRecipes = fs.readFileSync(new URL('../lib/training-recipes.ts', import.meta.url), 'utf8');
+const prescriptionPage = fs.readFileSync(new URL('../app/educator/assessment/prescription/page.tsx', import.meta.url), 'utf8');
 
 test('educator assignment creation reuses central student identity and existing training_recipes', () => {
   assert.match(educatorAssignments, /teacher_student_links/);
@@ -45,6 +48,24 @@ test('assigned studio settings are loaded and locked for the assigned session', 
   assert.match(studio, /disabled=\{active \|\| Boolean\(assignmentId\)\}/);
   assert.match(students, /action: 'create', studentId: student\.id, moduleCode/);
   assert.match(students, /Öğrenciye ata/);
+});
+
+test('assessment prescriptions are recomputed server-side and require explicit educator approval', () => {
+  assert.match(educatorAssignments, /action === 'create_from_assessment'/);
+  assert.match(educatorAssignments, /assessment_sessions/);
+  assert.match(educatorAssignments, /student_id = \$\{studentId\}::uuid/);
+  assert.match(educatorAssignments, /status = 'completed'/);
+  assert.match(educatorAssignments, /template_code = 'CZA_1_TO_2_V1'/);
+  assert.match(educatorAssignments, /buildCzaWorkRecommendations\(assessmentReport, 8\)/);
+  assert.match(educatorAssignments, /recipeSettingsFromRecommendation/);
+  assert.match(trainingRecipes, /recommendationKeys/);
+  assert.match(trainingRecipes, /validateConfig\(next\)/);
+  assert.match(trainingRecipes, /feedbackModeFor/);
+  assert.match(educatorReport, /\/educator\/assessment\/prescription\?/);
+  assert.match(educatorReport, /recommendationId: recommendation\.id/);
+  assert.match(prescriptionPage, /action: 'create_from_assessment'/);
+  assert.match(prescriptionPage, /Öneriyi onayla ve öğrenciye ata/);
+  assert.doesNotMatch(prescriptionPage, /suggestedSettings/);
 });
 
 test('educator password login creates a local CZA session instead of depending on an upstream cookie', () => {
