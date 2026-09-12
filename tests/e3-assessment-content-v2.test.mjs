@@ -39,7 +39,7 @@ test('E3 child flow records support, behavior, self-correction and neutral skip 
   assert.match(childPage, /Görevi nötr geç · değerlendirilemedi/);
   assert.match(childPage, /Doğru\/yanlış rengi, puan, geri sayım veya performans baskısı gösterilmez/);
   assert.match(childPage, /Bu bir keşif\/tavan görevidir/);
-  assert.match(protocol, /Tek oturumda bitirme zorunluluğu yoktur/);
+  assert.match(protocol, /tek oturumda bitirme zorunluluğu yoktur/i);
 });
 
 test('E3 remains an assessment system and does not directly assign CZA training recipes', () => {
