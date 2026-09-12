@@ -1,5 +1,4 @@
 import { createHash, randomBytes, scrypt as nodeScrypt, timingSafeEqual } from 'node:crypto';
-import { promisify } from 'node:util';
 import { neon } from '@neondatabase/serverless';
 
 const AUTH_BASE = process.env.CZA_NEON_AUTH_BASE_URL || 'https://ep-delicate-sky-b2fyqu4m.neonauth.c-6.eu-central-1.aws.neon.tech/cza_learning/auth';
@@ -8,8 +7,16 @@ const SITE_OWNER_EMAIL = 'habipcann65@gmail.com';
 export const EDUCATOR_EMAIL = 'celikzihin.akademisi@gmail.com';
 export const EDUCATOR_AUTH_USER_ID = '47c90485-e057-4ebe-a25c-9d7f236c5bd6';
 const LOCAL_PREFIX = 'local.';
-const scryptAsync = promisify(nodeScrypt);
 const SCRYPT_OPTIONS = { N: 16384, r: 16, p: 1, maxmem: 128 * 16384 * 16 * 2 } as const;
+
+function derivePasswordKey(password: string, salt: string) {
+  return new Promise<Buffer>((resolve, reject) => {
+    nodeScrypt(password.normalize('NFKC'), salt, 64, SCRYPT_OPTIONS, (error, key) => {
+      if (error) reject(error);
+      else resolve(key as Buffer);
+    });
+  });
+}
 
 export function readCookie(request: Request, name: string) {
   const value = (request.headers.get('cookie') || '').split(';').map(v=>v.trim()).find(v=>v.startsWith(`${name}=`));
@@ -54,7 +61,7 @@ export async function verifyEducatorPassword(password: string) {
   const stored = typeof rows[0]?.password === 'string' ? rows[0].password : '';
   const [salt, keyHex, extra] = stored.split(':');
   if (extra !== undefined || !/^[0-9a-f]{32}$/i.test(salt || '') || !/^[0-9a-f]{128}$/i.test(keyHex || '')) return false;
-  const derived = await scryptAsync(password.normalize('NFKC'), salt, 64, SCRYPT_OPTIONS) as Buffer;
+  const derived = await derivePasswordKey(password, salt);
   const expected = Buffer.from(keyHex, 'hex');
   return derived.length === expected.length && timingSafeEqual(derived, expected);
 }
