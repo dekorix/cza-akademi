@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { BookOpenCheck, ChevronDown, ChevronUp } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 
 type Assignment = {
   id: string;
@@ -47,7 +46,7 @@ export function AssignedWorkBanner() {
         <p className="text-xs font-bold uppercase tracking-wide text-primary">{item.module_name || item.module_code}</p>
         <h3 className="mt-1 font-semibold">{item.name}</h3>
         <p className="mt-2 text-xs text-muted-foreground">{Number(item.session_count || 0) > 0 ? `${item.session_count} seans kaydı var` : 'Henüz başlanmadı'}</p>
-        <Button asChild className="mt-3 w-full"><a href={`/assignment?recipe=${encodeURIComponent(item.id)}`}>Çalışmayı aç</a></Button>
+        <a className="mt-3 inline-flex min-h-10 w-full items-center justify-center rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground transition hover:bg-primary/80" href={`/assignment?recipe=${encodeURIComponent(item.id)}`}>Çalışmayı aç</a>
       </div>)}
     </div>}
   </section>;
