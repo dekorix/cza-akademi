@@ -5,6 +5,7 @@ on:
     branches:
       - cza-assessment-engine-v1
       - cza-core-integration-v1
+      - cza-e3-36-48-v1
   pull_request:
     branches:
       - main
@@ -37,7 +38,7 @@ jobs:
         run: pnpm build
 
       - name: Targeted CZA Core integration tests
-        run: node --test tests/core-records.test.mjs tests/work-student-id-integration.test.mjs tests/cza-work-recommendations.test.mjs tests/real-assignment-auth-integration.test.mjs
+        run: node --test tests/core-records.test.mjs tests/work-student-id-integration.test.mjs tests/cza-work-recommendations.test.mjs tests/real-assignment-auth-integration.test.mjs tests/e3-development-assessment.test.mjs
 
       - name: Start built app
         run: |
@@ -55,13 +56,17 @@ jobs:
       - name: Smoke test assessment routes
         run: |
           curl -fsS http://127.0.0.1:8787/assessment > /tmp/assessment-student.html
+          curl -fsS http://127.0.0.1:8787/assessment/e3 > /tmp/assessment-e3.html
           curl -fsS http://127.0.0.1:8787/educator/assessment > /tmp/assessment-educator.html
           curl -fsS http://127.0.0.1:8787/educator/assessment/report > /tmp/assessment-report.html
+          curl -fsS http://127.0.0.1:8787/educator/assessment/e3/report > /tmp/assessment-e3-report.html
           curl -fsS http://127.0.0.1:8787/work > /tmp/work.html
           curl -fsS http://127.0.0.1:8787/educator > /tmp/educator.html
           test -s /tmp/assessment-student.html
+          test -s /tmp/assessment-e3.html
           test -s /tmp/assessment-educator.html
           test -s /tmp/assessment-report.html
+          test -s /tmp/assessment-e3-report.html
           test -s /tmp/work.html
           test -s /tmp/educator.html
 
@@ -75,6 +80,8 @@ jobs:
           app/educator/assessment
           app/assignment
           app/api/core
+          app/api/assessment-e3
+          app/api/assessment-e3-linked
           app/api/educator-auth
           app/api/educator-assignments
           app/api/educator-report/route.ts
@@ -92,6 +99,7 @@ jobs:
           lib/assessment-cognitive.ts
           lib/assessment-learning-response.ts
           lib/assessment-report.ts
+          lib/preschool-e3.ts
           lib/cza-work-recommendations.ts
           lib/assigned-session.ts
           lib/educator-auth.ts
