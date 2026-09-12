@@ -49,11 +49,11 @@ export const e3SectionProtocols: Record<E3SectionId, E3SectionProtocol> = {
   },
   expressive_language: {
     sectionId: 'expressive_language', shortLabel: 'İfade Edici Dil',
-    setup: 'Sınav sorusu tonu yerine doğal sohbet, resim anlatma ve oyun bağlamı oluştur.',
-    primaryEvidence: ['kendiliğinden başlatma', 'eylem anlatımı', 'olay sırası', 'iletişim onarımı'],
-    materials: ['olay sıralı resimler', 'tanıdık oyuncak sahnesi'],
-    educatorRules: ['Tek bir gramer hatasını başarısızlık sayma.', 'Anlaşılabilir yaklaşık üretimleri not et.', 'Çocuğun kendi cümlesini yetişkin cümlesine zorla dönüştürme.'],
-    pauseRule: 'Çocuk konuşmak istemiyorsa zorlamadan başka modaliteye geç; sessizlik otomatik yanlış değildir.',
+    setup: 'Doğal istek ve tek-sahne anlatımıyla başla; kişisel olay, neden açıklaması ve iletişim onarımına ilerle. Sonra iki/üç sahneli anlatı ve açık uçlu hikâye genişletme kullan.',
+    primaryEvidence: ['kendiliğinden sözel başlatma', 'eylem ve olay anlatımı', 'neden/gerekçe', 'iletişim onarımı', 'model sonrası yeniden ifade', 'olay sırası ve anlatı bütünlüğü', 'öngörü/yaratıcı genişletme'],
+    materials: ['2 tanıdık oyuncak', 'tek eylemli foto-gerçekçi sahne', 'neden-sonuç sahnesi', 'iki ve üç parçalı olay dizileri', 'model için farklı eylem kartı'],
+    educatorRules: ['Çocuğun ilk üretimini yetişkin cümlesine dönüştürmeden aynen kaydet.', 'Tek bir gramer hatasını başarısızlık sayma; anlam ve iletişim işlevine bak.', 'Açık uçlu takip sorusunu en fazla bir kez kullan ve içerik vermeyen biçimde sor.', 'İletişim onarımında önce bağımsız yeniden ifade fırsatı ver; model gerekirse farklı örnek kullan.', 'Sözel çekingenlik veya sessizlikte zorlamayı sürdürme; NOT_ASSESSED seçeneğini kullanabilirsin.', '45+ hikâye genişletmeyi nötr tavan olarak koru.'],
+    pauseRule: 'Konuşma isteği azalır, çocuk gerilir ya da yorgunluk belirginleşirse anlatı uzunluğunu artırma; oyun/gerçek nesneye dön veya bölümü başka oturuma bırak.',
   },
   early_math: {
     sectionId: 'early_math', shortLabel: 'Erken Matematik',
