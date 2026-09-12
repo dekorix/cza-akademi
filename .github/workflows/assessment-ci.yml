@@ -39,7 +39,7 @@ jobs:
         run: pnpm build
 
       - name: Targeted CZA Core integration tests
-        run: node --test tests/core-records.test.mjs tests/work-student-id-integration.test.mjs tests/cza-work-recommendations.test.mjs tests/real-assignment-auth-integration.test.mjs tests/e3-development-assessment.test.mjs tests/e3-assessment-content-v2.test.mjs
+        run: node --test tests/core-records.test.mjs tests/work-student-id-integration.test.mjs tests/cza-work-recommendations.test.mjs tests/real-assignment-auth-integration.test.mjs tests/educator-auth-route.test.mjs tests/e3-development-assessment.test.mjs tests/e3-assessment-content-v2.test.mjs
 
       - name: Start built app
         run: |
@@ -54,7 +54,7 @@ jobs:
           cat /tmp/cza-preview.log
           exit 1
 
-      - name: Smoke test assessment routes
+      - name: Smoke test assessment and educator auth routes
         run: |
           curl -fsS http://127.0.0.1:8787/assessment > /tmp/assessment-student.html
           curl -fsS http://127.0.0.1:8787/assessment/e3 > /tmp/assessment-e3.html
@@ -63,6 +63,7 @@ jobs:
           curl -fsS http://127.0.0.1:8787/educator/assessment/e3/report > /tmp/assessment-e3-report.html
           curl -fsS http://127.0.0.1:8787/work > /tmp/work.html
           curl -fsS http://127.0.0.1:8787/educator > /tmp/educator.html
+          curl -fsS http://127.0.0.1:8787/api/educator-auth > /tmp/educator-auth.json
           test -s /tmp/assessment-student.html
           test -s /tmp/assessment-e3.html
           test -s /tmp/assessment-educator.html
@@ -70,6 +71,9 @@ jobs:
           test -s /tmp/assessment-e3-report.html
           test -s /tmp/work.html
           test -s /tmp/educator.html
+          grep -F '"ok":true' /tmp/educator-auth.json
+          grep -F '"service":"cza-educator-auth"' /tmp/educator-auth.json
+          grep -F '"build":"2026-09-12-reset-autologin-v1"' /tmp/educator-auth.json
 
       # The repository has existing lint debt. Keep integration-only lint visible while
       # typecheck, production build and runtime smoke tests remain the merge blockers.
