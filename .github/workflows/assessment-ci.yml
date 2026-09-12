@@ -37,7 +37,7 @@ jobs:
         run: pnpm build
 
       - name: Targeted CZA Core integration tests
-        run: node --test tests/core-records.test.mjs tests/work-student-id-integration.test.mjs tests/cza-work-recommendations.test.mjs
+        run: node --test tests/core-records.test.mjs tests/work-student-id-integration.test.mjs tests/cza-work-recommendations.test.mjs tests/real-assignment-auth-integration.test.mjs
 
       - name: Start built app
         run: |
@@ -57,21 +57,33 @@ jobs:
           curl -fsS http://127.0.0.1:8787/assessment > /tmp/assessment-student.html
           curl -fsS http://127.0.0.1:8787/educator/assessment > /tmp/assessment-educator.html
           curl -fsS http://127.0.0.1:8787/educator/assessment/report > /tmp/assessment-report.html
+          curl -fsS http://127.0.0.1:8787/work > /tmp/work.html
+          curl -fsS http://127.0.0.1:8787/educator > /tmp/educator.html
           test -s /tmp/assessment-student.html
           test -s /tmp/assessment-educator.html
           test -s /tmp/assessment-report.html
+          test -s /tmp/work.html
+          test -s /tmp/educator.html
 
-      # The repository has existing lint debt. Keep assessment-only lint visible while
+      # The repository has existing lint debt. Keep integration-only lint visible while
       # typecheck, production build and runtime smoke tests remain the merge blockers.
-      - name: Lint assessment changes
+      - name: Lint integration changes
         continue-on-error: true
         run: >-
           pnpm exec oxlint --format unix
           app/assessment
           app/educator/assessment
+          app/assignment
+          app/api/core
+          app/api/educator-auth
+          app/api/educator-assignments
           app/api/educator-report/route.ts
+          app/studio/page.tsx
+          app/work/page.tsx
           components/assessment-report.tsx
+          components/assigned-work-banner.tsx
           components/central-student-report.tsx
+          components/educator-students.tsx
           lib/assessment-engine.ts
           lib/assessment-routing.ts
           lib/assessment-math.ts
@@ -81,4 +93,8 @@ jobs:
           lib/assessment-learning-response.ts
           lib/assessment-report.ts
           lib/cza-work-recommendations.ts
+          lib/assigned-session.ts
+          lib/educator-auth.ts
+          lib/student-session.ts
+          lib/training-recipes.ts
           types/http-json.d.ts
