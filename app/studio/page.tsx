@@ -15,6 +15,7 @@ import { createQuestion, defaultConfig, modeLabels, score, validateConfig, type 
 import { numberPattern } from '@/lib/finger-engine';
 import { durationLabel, progressionSuggestion } from '@/lib/timed-stimulus';
 import { readDemoProgram, saveDemoResult } from '@/lib/demo-session';
+import { readAssignedProgram } from '@/lib/assigned-session';
 import { registerAcademyTools } from '@/lib/webmcp';
 import { core, coreStudent, friendlyCoreError, studentName, type CoreStudent } from '@/lib/core-client';
 import { attemptPayload, moduleCodeByMode, trainingSettings } from '@/lib/core-records';
@@ -32,6 +33,7 @@ export default function Studio() {
   const [pin, setPin] = useState('');
   const [loginError, setLoginError] = useState('');
   const [sessionId, setSessionId] = useState<string | null>(null);
+  const [assignmentId, setAssignmentId] = useState('');
   const [sync, setSync] = useState<'ready' | 'saving' | 'error'>('ready');
   const [savingAttempt, setSavingAttempt] = useState(false);
   const [config, setConfig] = useState<ExerciseConfig>({...defaultConfig});
@@ -93,12 +95,25 @@ export default function Studio() {
   }, []);
 
   useEffect(() => {
-    const mode = new URLSearchParams(window.location.search).get('mode');
+    const params = new URLSearchParams(window.location.search);
+    const mode = params.get('mode');
     if (mode === 'flash' || mode === 'audio') setConfig(c => ({...c, mode, digits: 1}));
     if (mode === 'fingers') setConfig(c => ({...c, mode: 'finger-read', digits: Math.min(2,c.digits), minDigits: 1, maxDigits: Math.min(2,c.digits)}));
-    if (new URLSearchParams(window.location.search).get('program') === 'demo') {
+    if (params.get('program') === 'demo') {
       const program = readDemoProgram();
       if (program) { setConfig(program); setInfo('Eğitimci ekranında hazırladığın deneme programı yüklendi. Bu, gerçek bir öğrenci ataması değildir.'); }
+    }
+    if (params.get('program') === 'assigned') {
+      const recipeId = params.get('recipe') || '';
+      const program = recipeId ? readAssignedProgram(recipeId) : null;
+      if (program) {
+        setConfig(program);
+        setAssignmentId(recipeId);
+        setSettingsOpen(false);
+        setInfo('Eğitimcinin sana atadığı çalışma reçetesi yüklendi. Ayarlar bu seans için kilitlidir ve sonuçların merkezi öğrenci dosyana kaydedilir.');
+      } else {
+        setError('Atanan çalışma ayarları bulunamadı. Çalışma merkezinden yeniden aç.');
+      }
     }
     return registerAcademyTools([
       { name: 'read_exercise_setup', title: 'Egzersiz ayarlarını oku', description: 'Seçili egzersiz ayarlarını ve akış durumunu okur; aktif sorunun doğru cevabını vermez.', inputSchema: {type:'object',properties:{},additionalProperties:false}, annotations:{readOnlyHint:true,untrustedContentHint:false}, execute: () => snapshot.current },
@@ -290,10 +305,10 @@ export default function Studio() {
   return <div className="min-h-screen bg-background">
     <header className="border-b border-border bg-white px-5 md:px-9"><div className="mx-auto flex min-h-20 max-w-[1400px] items-center justify-between gap-4 py-3"><a href="/" className="inline-flex min-h-11 items-center gap-3 rounded-xl border-2 border-[#b9d7c9] bg-[#edf7f1] px-4 font-bold text-[#205e50] shadow-sm transition hover:bg-[#dff0e7]"><ArrowLeft size={19}/><span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#182739] text-[10px] font-black text-[#d8eeac]">CZA</span><span>Çalışma merkezim</span></a><div className="flex items-center gap-4"><span className={`hidden items-center gap-1 text-[11px] sm:flex ${sync==='error'?'text-red-700':'text-muted-foreground'}`}>{sync==='saving'?<Loader2 size={13} className="animate-spin"/>:sync==='error'?<WifiOff size={13}/>:<Wifi size={13}/>} {sync==='saving'?'Kaydediliyor':sync==='error'?'Kayıt bekliyor':'Merkezi kayıt etkin'}</span><span className="text-xs font-semibold">{studentName(student)}{student.grade?` · ${student.grade}`:''}</span><Button variant="ghost" size="sm" onClick={logout}><LogOut/> Çıkış</Button></div></div></header>
     <main data-focus-mode={phase === 'countdown' || phase === 'prepare'} className="mx-auto max-w-[1480px] px-5 py-7 md:px-9">
-      <div className="mb-6 flex flex-wrap items-end justify-between gap-4"><div><p className="eyebrow mb-2 text-primary">Odaklan · uygula · gelişimini gör</p><h1 className="text-3xl font-semibold tracking-tight">Kendi ritminde, doğru teknikle.</h1></div><Button variant="outline" className="h-10 lg:hidden" onClick={() => setSettingsOpen(v=>!v)}><Settings2 /> Çalışma ayarları</Button></div>
+      <div className="mb-6 flex flex-wrap items-end justify-between gap-4"><div><p className="eyebrow mb-2 text-primary">Odaklan · uygula · gelişimini gör</p><h1 className="text-3xl font-semibold tracking-tight">Kendi ritminde, doğru teknikle.</h1></div><Button variant="outline" className="h-10 lg:hidden" disabled={Boolean(assignmentId)} onClick={() => setSettingsOpen(v=>!v)}><Settings2 /> {assignmentId ? 'Atanan reçete' : 'Çalışma ayarları'}</Button></div>
       {info && <div role="status" className="mb-5 rounded-lg border border-[#dfd5bd] bg-[#fbf6e9] px-4 py-3 text-xs leading-5 text-[#786337]">{info}</div>}
       <div className="grid items-start gap-6 lg:grid-cols-[310px_1fr]">
-        <aside className={`rounded-xl border border-border bg-white p-6 ${settingsOpen ? '' : 'hidden lg:block'}`}><div className="mb-6 flex items-center gap-2"><Settings2 size={17} className="text-primary" /><h2 className="font-semibold">Çalışma reçetesi</h2></div><ExerciseSettings config={config} onChange={setConfig} disabled={active} /><div className="mt-5 rounded-lg bg-secondary/60 p-3 text-[11px] leading-5 text-[#437369]">Her cevap merkezi öğrenci kaydına işlenir. Doğru cevap, girilen cevap, işlem dizisi, süre ve çalışma ayarları eğitimci raporunda birlikte tutulur.</div></aside>
+        <aside className={`rounded-xl border border-border bg-white p-6 ${settingsOpen ? '' : 'hidden lg:block'}`}><div className="mb-6 flex items-center gap-2"><Settings2 size={17} className="text-primary" /><h2 className="font-semibold">Çalışma reçetesi</h2></div><ExerciseSettings config={config} onChange={setConfig} disabled={active || Boolean(assignmentId)} /><div className="mt-5 rounded-lg bg-secondary/60 p-3 text-[11px] leading-5 text-[#437369]">Her cevap merkezi öğrenci kaydına işlenir. Doğru cevap, girilen cevap, işlem dizisi, süre ve çalışma ayarları eğitimci raporunda birlikte tutulur.</div></aside>
         <div className="space-y-5">
           <div ref={stageRef} style={active && (runConfig.mode === 'flash' || runConfig.mode === 'audio') ? { backgroundColor: anzanTheme.background, color: anzanTheme.foreground } : undefined} className={`overflow-hidden rounded-2xl border ${active&&mental?'anzan-focus-stage ':''}${darkStage ? 'border-[#273c51] bg-[#182739] text-white' : 'border-border bg-white'}`}>
             <div className={`flex items-center justify-between gap-3 border-b px-5 py-4 ${darkStage ? 'border-white/10' : 'border-border'}`}><div className="flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-[#91baa5]" /><span className="text-xs font-semibold">{modeLabels[active || phase === 'finished' ? runConfig.mode : config.mode]}</span></div><div className="flex gap-1"><Button variant="ghost" size="icon" aria-label={darkStage ? 'Açık çalışma alanı' : 'Koyu çalışma alanı'} onClick={()=>setDarkStage(v=>!v)}>{darkStage ? <Sun /> : <Moon />}</Button><Button variant="ghost" size="icon" aria-label="Tam ekran" onClick={() => { if (stageRef.current?.requestFullscreen) void stageRef.current.requestFullscreen().catch(()=>setError('Tam ekran bu ortamda desteklenmiyor.')); else setError('Tam ekran bu ortamda desteklenmiyor.'); }}><Maximize2 /></Button></div></div>

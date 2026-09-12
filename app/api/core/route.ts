@@ -1,6 +1,8 @@
 const DEFAULT_CORE_URL =
   'https://br-aged-bird-b2ml5crw-czastudent.compute.c-6.eu-central-1.aws.neon.tech/';
+import { neon } from '@neondatabase/serverless';
 import { allowRequest, rateLimited } from '@/lib/request-guard';
+import { authenticatedStudent, readRequestCookie } from '@/lib/student-session';
 
 const ALLOWED_ACTIONS = new Set([
   'login',
@@ -13,14 +15,11 @@ const ALLOWED_ACTIONS = new Set([
 ]);
 
 const COOKIE_NAME = 'cza_student_session';
+const ASSIGNMENT_COOKIE = 'cza_assignment_recipe';
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 function readCookie(request: Request, name: string) {
-  const cookies = request.headers.get('cookie') || '';
-  const pair = cookies
-    .split(';')
-    .map((value) => value.trim())
-    .find((value) => value.startsWith(`${name}=`));
-  return pair ? decodeURIComponent(pair.slice(name.length + 1)) : '';
+  return readRequestCookie(request, name);
 }
 
 function sessionCookie(value: string, maxAge: number, secure: boolean) {
@@ -34,9 +33,21 @@ function sessionCookie(value: string, maxAge: number, secure: boolean) {
   ].join('; ');
 }
 
+function assignmentCookie(value: string, maxAge: number, secure: boolean) {
+  return [
+    `${ASSIGNMENT_COOKIE}=${encodeURIComponent(value)}`,
+    'Path=/api/core',
+    'HttpOnly',
+    ...(secure ? ['Secure'] : []),
+    'SameSite=Lax',
+    `Max-Age=${maxAge}`,
+  ].join('; ');
+}
+
 function json(body: unknown, status = 200, headers?: HeadersInit) {
   const responseHeaders = new Headers(headers);
   responseHeaders.set('content-type', 'application/json; charset=utf-8');
+  responseHeaders.set('cache-control', 'no-store');
   return new Response(JSON.stringify(body), {
     status,
     headers: responseHeaders,
@@ -76,6 +87,37 @@ export async function POST(request: Request) {
   delete payload.sessionToken;
   if (action !== 'login') payload.sessionToken = sessionToken;
 
+  let launchedAssignment = false;
+  if (action === 'start') {
+    const recipeId = readCookie(request, ASSIGNMENT_COOKIE);
+    if (recipeId) {
+      if (!UUID_PATTERN.test(recipeId)) return json({ ok: false, error: 'invalid_assignment_id' }, 400);
+      if (!process.env.DATABASE_URL) return json({ ok: false, error: 'database_unavailable' }, 503);
+      const student = await authenticatedStudent(request);
+      if (!student) return json({ ok: false, error: 'session_required' }, 401);
+      const sql = neon(process.env.DATABASE_URL);
+      const recipes = await sql`
+        SELECT id, module_code, settings
+        FROM public.training_recipes
+        WHERE id = ${recipeId}::uuid
+          AND student_id = ${student.student_id}::uuid
+          AND academy_id = ${student.academy_id}::uuid
+          AND source = 'teacher_assignment'
+          AND is_active = true
+          AND (starts_at IS NULL OR starts_at <= now())
+          AND (expires_at IS NULL OR expires_at > now())
+        LIMIT 1
+      `;
+      if (!recipes.length) return json({ ok: false, error: 'assignment_not_found' }, 404);
+      const recipe = recipes[0] as { id: string; module_code: string; settings: Record<string, unknown> };
+      payload.recipeId = recipe.id;
+      payload.moduleCode = recipe.module_code;
+      payload.source = 'teacher_assignment';
+      payload.settings = recipe.settings;
+      launchedAssignment = true;
+    }
+  }
+
   const coreUrl = process.env.CZA_CORE_API_URL || DEFAULT_CORE_URL;
 
   try {
@@ -101,6 +143,10 @@ export async function POST(request: Request) {
 
     if (action === 'logout') {
       return json(result, 200, { 'set-cookie': sessionCookie('', 0, secureCookie) });
+    }
+
+    if (launchedAssignment) {
+      return json(result, 200, { 'set-cookie': assignmentCookie('', 0, secureCookie) });
     }
 
     return json(result);
