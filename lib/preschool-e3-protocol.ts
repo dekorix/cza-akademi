@@ -38,13 +38,14 @@ export const e3SectionProtocols: Record<E3SectionId, E3SectionProtocol> = {
     materials: ['foto-gerçekçi nesne kartları', 'kategori alanları', 'temel şekil ve renk kartları'],
     educatorRules: ['İlk seçimi düzeltmeden kaydet.', 'Strateji sorusunu sözel sınava dönüştürme; bakış/işaret de kanıttır.', 'Model gerekiyorsa yalnız bir açık örnek göster ve model sonrası YENİ örnek kullan.', 'Transfer görevinde kuralı yeniden söylemeden önce bağımsız denemeyi kaydet.', 'Seçimin yeşil görünmesi yalnız seçildi anlamına gelir.', '45+ tavan görevini zayıflık hesabına katma.'],
     pauseRule: 'Arka arkaya iki kaçınma/yorgunluk belirtisinde bölümü durdur; öğrenme/transfer kanıtını yorgunluk altında zorlamadan başka oturuma bırak.',
-  },  receptive_language: {
+  },
+  receptive_language: {
     sectionId: 'receptive_language', shortLabel: 'Alıcı Dil',
-    setup: 'Gerçek nesne ve doğal yönergeler kullan; yönergeyi gereksiz tekrar ederek işitsel yükü değiştirme.',
-    primaryEvidence: ['tek aşamalı yönerge', 'konum sözcükleri', 'nitelik', 'iki aşamalı yönerge'],
-    materials: ['top', 'kutu', 'küp', 'kaşık', 'boyut/renk karşıtlığı olan nesneler'],
-    educatorRules: ['İlk yönergeyi bir kez ver.', 'Tekrar gerekiyorsa destek düzeyine işle.', 'Konuşma üretimini değil anlama davranışını değerlendir.'],
-    pauseRule: 'Dil yükü nedeniyle huzursuzluk artarsa gerçek nesneli daha kısa göreve dön veya mola ver.',
+    setup: 'Tanıdık tek aşamalı yönergeyle başla; işlev, konum ve nitelik dilini gerçek nesnelerle derinleştir. Sonra model sonrası öğrenme, iki aşamalı yönerge ve sıra sözcüklerine geç.',
+    primaryEvidence: ['ilk sözel yönergeye tepki', 'işlev/konum/nitelik sözcükleri', 'tekrar-jest-model gereksinimi', 'model sonrası değişim', 'iki aşamalı ve sıralı anlama', 'çoklu sözel özellik'],
+    materials: ['top ve çeldirici nesne', 'bardak/ayakkabı/yastık', 'oyuncak araba', 'kutu', 'uzun-kısa kalem', 'küp', 'kaşık', 'renk-boyut karşıtlığı olan toplar'],
+    educatorRules: ['İlk yönergeyi doğal sesle bir kez ver ve ilk tepkiyi kaydet.', 'Yönerge tekrarı VERBAL_PROMPT, jest/işaret VISUAL_PROMPT, açık örnek MODELED olarak kaydedilir.', 'Konuşma üretimini değil anlama davranışını değerlendir; sözel açıklamayı zorunlu tutma.', 'Model sonrası görevde model nesnesi ile test nesnesini farklı tut.', 'İki aşamalı yönergede içerik hatası ile sıra/çalışma belleği hatasını ayrı not et.', '45+ çoklu özellik görevini nötr tavan olarak koru.'],
+    pauseRule: 'Dil yükü, yorgunluk veya huzursuzluk artarsa daha kısa gerçek-nesne görevine dön; tekrarlı başarısız denemelerle çocuğu zorlamadan bölümü başka oturuma bırak.',
   },
   expressive_language: {
     sectionId: 'expressive_language', shortLabel: 'İfade Edici Dil',
