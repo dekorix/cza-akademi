@@ -106,14 +106,14 @@ function evidenceFromRows(rows: Record<string, unknown>[]): E3Evidence[] {
   });
 }
 
-async function sessionBundle(sql: ReturnType<typeof neon>, sessionId: string) {
+async function sessionBundle(sql: any, sessionId: string) {
   const sessions = await sql`
     SELECT id, student_id, template_code, student_label, status, current_task_code,
            started_at, completed_at, metadata
     FROM public.assessment_sessions
     WHERE id = ${sessionId}::uuid AND template_code = ${E3_TEMPLATE_CODE}
     LIMIT 1
-  `;
+  ` as Record<string, unknown>[];
   if (!sessions.length) return null;
   const attempts = await sql`
     SELECT id, task_code, answer_text, answer_payload, support_level, response_latency_ms,
@@ -121,8 +121,8 @@ async function sessionBundle(sql: ReturnType<typeof neon>, sessionId: string) {
     FROM public.assessment_attempts
     WHERE session_id = ${sessionId}::uuid
     ORDER BY created_at ASC
-  `;
-  return { session: sessions[0] as Record<string, unknown>, attempts: attempts as Record<string, unknown>[] };
+  ` as Record<string, unknown>[];
+  return { session: sessions[0], attempts };
 }
 
 function currentContent(currentTaskCode: string | null) {
