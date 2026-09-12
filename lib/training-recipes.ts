@@ -20,7 +20,7 @@ export function defaultRecipeSettings(moduleCode: AssignableModuleCode): Exercis
     ...defaultConfig,
     mode,
     practiceMode: 'guided_practice',
-    feedbackMode: 'summary',
+    feedbackMode: 'immediate',
     rounds: 10,
     countdownEnabled: false,
     answerDurationMs: 0,
