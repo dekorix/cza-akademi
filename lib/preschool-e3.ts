@@ -22,6 +22,15 @@ export type E3SupportLevel =
 
 export type E3Band = '36-38' | '39-41' | '42-44' | '45-47';
 export type E3ProfileStatus = 'RELATIVE_STRENGTH' | 'DEVELOPING' | 'WATCH_SUPPORT' | 'INSUFFICIENT';
+export type E3TaskPhase =
+  | 'WARMUP'
+  | 'CORE'
+  | 'DEEPEN'
+  | 'STRATEGY'
+  | 'LEARNING_RESPONSE'
+  | 'NEAR_TRANSFER'
+  | 'FAR_TRANSFER'
+  | 'CEILING';
 
 export interface E3Task {
   id: string;
@@ -29,6 +38,9 @@ export interface E3Task {
   order: number;
   minMonth: 36 | 39 | 42 | 45;
   neutralProbe?: boolean;
+  phase?: E3TaskPhase;
+  educatorFollowUp?: string;
+  visualSpec?: string;
   title: string;
   childInstruction: string;
   educatorInstruction: string;
@@ -97,16 +109,15 @@ function sectionTasks(
 }
 
 const visualConceptTasks = sectionTasks('visual_concepts', [
-  { title: 'Aynısını Bul', childInstruction: 'Bu resmin aynısını bulur musun?', educatorInstruction: 'Üç seçenek sun. İlk seçimi ve yardım düzeyini kaydet.', responseMode: 'SELECT', options: ['🐶 Köpek', '🚗 Araba', '🍎 Elma'], expected: ['🐶 Köpek'], evidenceFocus: ['görsel eşleme', 'ilk seçim'] },
-  { title: 'Birlikte Olanlar', childInstruction: 'Hangileri aynı gruba ait?', educatorInstruction: 'İki hayvan ve bir araç gibi açık kategori karşıtlığı kullan.', responseMode: 'SELECT', options: ['🐱 + 🐶', '🐱 + 🚗', '🍎 + 🚗'], expected: ['🐱 + 🐶'], evidenceFocus: ['kategori', 'genelleme'] },
-  { title: 'Farklı Olan', childInstruction: 'Hangisi diğerlerinden farklı?', educatorInstruction: 'Üç tanıdık nesnede kategori dışı olanı sor.', responseMode: 'SELECT', options: ['🍌', '🍎', '🚲'], expected: ['🚲'], evidenceFocus: ['ayırt etme', 'kategori dışlama'] },
-  { title: 'Büyük-Küçük', childInstruction: 'Bana büyük olanı göster.', educatorInstruction: 'Aynı nesnenin belirgin iki boyutunu kullan; dil yükünü düşük tut.', responseMode: 'SELECT', options: ['Büyük top', 'Küçük top'], expected: ['Büyük top'], evidenceFocus: ['boyut kavramı'] },
-  { title: 'Parça Nereye Ait?', childInstruction: 'Bu parça hangi resme ait olabilir?', educatorInstruction: 'Çok açık parça-bütün ilişkisi kullan.', responseMode: 'SELECT', options: ['Araba tekeri → araba', 'Araba tekeri → elma', 'Araba tekeri → kedi'], expected: ['Araba tekeri → araba'], evidenceFocus: ['parça-bütün'] },
-  { title: 'Nerede?', childInstruction: 'Oyuncak kutunun altında olan resmi göster.', educatorInstruction: 'İçinde/üstünde/altında karşıtlıklarından birini kullan.', responseMode: 'SELECT', options: ['Kutunun içinde', 'Kutunun üstünde', 'Kutunun altında'], expected: ['Kutunun altında'], evidenceFocus: ['mekânsal ilişki'] },
-  { title: 'İki Özelliğe Göre', childInstruction: 'Kırmızı ve yuvarlak olanı bul.', educatorInstruction: 'Renk + şekil gibi iki özelliği aynı anda tutmayı gözle.', responseMode: 'SELECT', options: ['Kırmızı daire', 'Kırmızı kare', 'Mavi daire'], expected: ['Kırmızı daire'], evidenceFocus: ['iki özellik', 'seçici dikkat'] },
-  { title: 'Yeni Kategori Keşfi', childInstruction: 'Bunlardan hangisi bu gruba en iyi uyar? Neden?', educatorInstruction: '45+ ay için tavan/keşif kanıtıdır. Başarısızlığı zayıflık sayma.', responseMode: 'SPEAK', evidenceFocus: ['soyutlama', 'gerekçe'] },
+  { phase: 'WARMUP', title: 'Aynısını Bul', childInstruction: 'Bu resmin aynısını bulur musun?', educatorInstruction: 'Tanıdık tek hedef + iki belirgin çeldirici sun. İlk seçimi düzeltmeden kaydet.', educatorFollowUp: 'Seçimden sonra yalnız gerekirse “Bunu nasıl buldun?” diye sor; açıklamayı zorunlu tutma.', visualSpec: 'Yüksek kontrastlı, foto-gerçekçi tek köpek hedefi; aynı köpeğin eş görseli + araba + elma. Metin/emoji yerine gerçek görsel kart.', responseMode: 'SELECT', options: ['Köpek eş görseli', 'Araba', 'Elma'], expected: ['Köpek eş görseli'], evidenceFocus: ['görsel eşleme', 'ilk seçim', 'yanıt gecikmesi'] },
+  { phase: 'CORE', title: 'Aynı Aileyi Bul', childInstruction: 'Hangileri birlikte olur?', educatorInstruction: 'İki tanıdık hayvan ve bir araç kullan. Kategori adını söylemeden ilk sınıflamayı gözle.', educatorFollowUp: 'Çocuk isterse “Bunlar neden birlikte?” diye kısa gerekçe al; sözel üretimi şart koşma.', visualSpec: 'Gerçekçi kedi, köpek ve otomobil kartları; üçlü sade düzen, arka plan dikkat dağıtmayan.', responseMode: 'SELECT', options: ['Kedi + Köpek', 'Kedi + Araba', 'Köpek + Araba'], expected: ['Kedi + Köpek'], evidenceFocus: ['kategori', 'genelleme', 'ilk strateji'] },
+  { phase: 'DEEPEN', title: 'Parça Bütünü Tamamla', childInstruction: 'Bu parça hangi resme ait olabilir?', educatorInstruction: 'Tanıdık bir bütünün belirgin parçasını göster. Çocuğun parçadan bütüne ilişki kurmasını gözle.', educatorFollowUp: 'Yanıt sonrası “Nereden anladın?” sorusu isteğe bağlıdır; bakış/işaret de strateji kanıtı olabilir.', visualSpec: 'Yakın plan araba tekeri hedef parça; seçeneklerde gerçekçi araba, elma ve kedi.', responseMode: 'SELECT', options: ['Araba', 'Elma', 'Kedi'], expected: ['Araba'], evidenceFocus: ['parça-bütün', 'görsel çıkarım', 'strateji ipucu'] },
+  { phase: 'STRATEGY', title: 'Nerede Olduğunu Bul', childInstruction: 'Oyuncak kutunun altında olan resmi göster.', educatorInstruction: 'İçinde/üstünde/altında ilişkisini üç net görselle sun. İlk seçimden sonra stratejiyi kısa notla görünür kıl.', educatorFollowUp: '“Neye baktın da bunu seçtin?” diye sor; sözel yanıt yoksa işaret ettiği konumsal ipucunu kaydet.', visualSpec: 'Aynı oyuncak ve aynı kutu ile üç sahne: içinde, üstünde, altında; kamera açısı ve ölçek sabit.', responseMode: 'SELECT', options: ['Kutunun içinde', 'Kutunun üstünde', 'Kutunun altında'], expected: ['Kutunun altında'], evidenceFocus: ['mekânsal ilişki', 'strateji', 'öz-açıklama başlangıcı'] },
+  { phase: 'LEARNING_RESPONSE', title: 'Kuralı Gör ve Yeniden Dene', childInstruction: 'Bak, ben birini birlikte olan yere koyacağım. Şimdi sen de diğerini koyar mısın?', educatorInstruction: 'Önce bağımsız kısa deneme fırsatı ver. Gerekirse tek bir açık model göster; modelden SONRA yeni örnekle tekrar denet ve yardım düzeyini MODELLED olarak kaydet.', educatorFollowUp: 'Notta model öncesi davranış ile model sonrası değişimi ayrı yaz: değişmedi / kısmen değişti / yeni örneğe aktardı.', visualSpec: 'İki kategori kutusu ve dört gerçekçi kart: iki hayvan, iki taşıt. Model örneği ile test örneği farklı kart olmalı.', responseMode: 'MANIPULATIVE', materials: ['2 kategori alanı', '4 görsel kart'], evidenceFocus: ['öğrenmeye tepki', 'modelden öğrenme', 'destek sonrası değişim'] },
+  { phase: 'NEAR_TRANSFER', title: 'Aynı Kural, Yeni Resimler', childInstruction: 'Şimdi başka resimlerle aynı oyunu yapalım. Hangileri birlikte?', educatorInstruction: '39+ ay için bir önceki sınıflama kuralını yeni yüzey örnekleriyle sun; kuralı yeniden söyleme.', educatorFollowUp: 'Kuralın hatırlatılmadan korunup korunmadığını ve ilk stratejiyi not et.', visualSpec: 'Önceki görevde kullanılmayan kuş, balık, otobüs gibi yeni gerçekçi kartlar; aynı sade düzen.', responseMode: 'SELECT', options: ['Kuş + Balık', 'Kuş + Otobüs', 'Balık + Otobüs'], expected: ['Kuş + Balık'], evidenceFocus: ['yakın transfer', 'kural koruma', 'genelleme'] },
+  { phase: 'FAR_TRANSFER', title: 'İki Özelliği Birlikte Kullan', childInstruction: 'Hem kırmızı hem yuvarlak olanı bul.', educatorInstruction: '42+ ay için renk + şekil bilgisini aynı anda tutmayı iste. Tek özelliğe göre seçerse hangi ipucunu kullandığını not et.', educatorFollowUp: 'İlk seçimden sonra gerekirse “İkisini birden düşünürsek hangisi?” diyerek ikinci denemeyi destek düzeyiyle kaydet.', visualSpec: 'Aynı boyutta üç sade şekil: kırmızı daire, kırmızı kare, mavi daire; yüksek kontrast ve eşit yerleşim.', responseMode: 'SELECT', options: ['Kırmızı daire', 'Kırmızı kare', 'Mavi daire'], expected: ['Kırmızı daire'], evidenceFocus: ['iki özellik', 'uzak transfer', 'seçici dikkat', 'öz-düzeltme'] },
+  { phase: 'CEILING', title: 'Yeni Kuralı Keşfet', childInstruction: 'Sence hangisi bu gruba en iyi uyar? İstersen nedenini de söyleyebilirsin.', educatorInstruction: '45+ ay nötr keşif/tavan görevidir. Açık öğretilmemiş yeni bir görsel ilişki kullan; ortaya çıkmaması alan puanını düşürmez.', educatorFollowUp: 'Tek doğru gerekçe arama. Seçim, bakış, deneme ve açıklama biçimini keşif kanıtı olarak kaydet.', visualSpec: 'Tanıdık ama yeni kurala göre gruplanabilir 4 gerçekçi nesne; kategori cevabı yüzeyden hemen görünmemeli, yine de yaşa uygun olmalı.', responseMode: 'SPEAK', evidenceFocus: ['kural keşfi', 'soyutlama', 'gerekçe', 'nötr tavan'] },
 ]);
-
 const receptiveLanguageTasks = sectionTasks('receptive_language', [
   { title: 'Tek Adımlı Yönerge', childInstruction: 'Topu bana ver.', educatorInstruction: 'Gerçek nesne ile tek aşamalı yönerge ver.', responseMode: 'MANIPULATIVE', materials: ['top'], evidenceFocus: ['tek yönerge'] },
   { title: 'İşlevi Bul', childInstruction: 'Hangisiyle su içeriz?', educatorInstruction: 'İşlev bilgisini görsel seçimle ölç.', responseMode: 'SELECT', options: ['Bardak', 'Ayakkabı', 'Yastık'], expected: ['Bardak'], evidenceFocus: ['işlev anlama'] },
