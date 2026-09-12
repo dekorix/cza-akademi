@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 
 const context=vm.createContext({console,Date,Math,JSON,Set,Map,globalThis:null,module:{exports:{}},exports:{}});
 context.globalThis=context;
-for(const file of ['e3-bank-v3.js','e3-bank-v3-foundation.js','e3-engine-v3.js']){
+for(const file of ['e3-bank-v3.js','e3-bank-v3-foundation.js','e3-bank-v3-depth.js','e3-engine-v3.js']){
   const code=fs.readFileSync(new URL(`./${file}`,import.meta.url),'utf8');
   vm.runInContext(code,context,{filename:file});
 }
@@ -13,15 +13,15 @@ const engine=context.E3_ENGINE;
 assert.ok(bank,'E3_BANK yüklenmeli');
 assert.ok(engine,'E3_ENGINE yüklenmeli');
 assert.equal(bank.domains.length,10,'10 gelişim alanı olmalı');
-assert.equal(bank.allTasks.length,140,'Toplam görev bankası 140 görev olmalı');
+assert.equal(bank.allTasks.length,150,'Toplam görev bankası 150 görev olmalı');
 assert.equal(bank.caregiver.length,30,'Bakımveren bankası 30 madde olmalı');
 
 const ids=bank.allTasks.map(t=>t.id);
 assert.equal(new Set(ids).size,ids.length,'Görev kimlikleri benzersiz olmalı');
 for(const d of bank.domains){
-  assert.equal(d.tasks.length,14,`${d.id} alanında 14 görev olmalı`);
+  assert.equal(d.tasks.length,15,`${d.id} alanında 15 görev olmalı`);
   assert.ok(d.facets.length>=4,`${d.id} çok boyutlu kanıt üretmeli`);
-  assert.ok(d.tasks.filter(t=>t.minAge<=36).length>=6,`${d.id} 36–38 ay için en az 6 uygun görev içermeli`);
+  assert.ok(d.tasks.filter(t=>t.minAge<=36).length>=7,`${d.id} 36–38 ay için en az 7 uygun görev içermeli`);
   const cg=bank.caregiver.filter(q=>q.domainId===d.id);
   assert.equal(cg.length,3,`${d.id} için 3 bakımveren maddesi olmalı`);
   for(const t of d.tasks){
