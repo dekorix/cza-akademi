@@ -8,6 +8,7 @@ import {
   EDUCATOR_EMAIL,
   readCookie,
   revokeLocalEducatorSession,
+  verifyEducatorPassword,
 } from '@/lib/educator-auth';
 
 function json(body: unknown, status = 200, headers?: HeadersInit) {
@@ -15,6 +16,13 @@ function json(body: unknown, status = 200, headers?: HeadersInit) {
   h.set('content-type','application/json; charset=utf-8');
   h.set('cache-control','no-store');
   return new Response(JSON.stringify(body),{status,headers:h});
+}
+
+async function authFetch(url: string, init: RequestInit) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 10000);
+  try { return await fetch(url, { ...init, signal: controller.signal }); }
+  finally { clearTimeout(timeout); }
 }
 
 export async function POST(request: Request) {
@@ -53,7 +61,7 @@ export async function POST(request: Request) {
     if (email !== EDUCATOR_EMAIL) return json({ok:false,error:'invalid_credentials'},401);
     const redirectTo = `${new URL(request.url).origin}/educator/reset-password`;
     try {
-      const upstream = await fetch(authUrl('/request-password-reset'), {
+      const upstream = await authFetch(authUrl('/request-password-reset'), {
         method:'POST',
         headers:{'content-type':'application/json',origin:new URL(request.url).origin},
         body:JSON.stringify({email,redirectTo}),
@@ -68,9 +76,9 @@ export async function POST(request: Request) {
   if (action === 'reset') {
     const token = typeof body.token === 'string' ? body.token : '';
     const newPassword = typeof body.newPassword === 'string' ? body.newPassword : '';
-    if (!token || newPassword.length < 8) return json({ok:false,error:'invalid_reset'},400);
+    if (!token || newPassword.length < 8 || newPassword.length > 128) return json({ok:false,error:'invalid_reset'},400);
     try {
-      const upstream = await fetch(authUrl('/reset-password'), {
+      const upstream = await authFetch(authUrl('/reset-password'), {
         method:'POST',
         headers:{'content-type':'application/json',origin:new URL(request.url).origin},
         body:JSON.stringify({token,newPassword}),
@@ -89,18 +97,11 @@ export async function POST(request: Request) {
   if (action !== 'login') return json({ok:false,error:'invalid_action'},400);
   if (email !== EDUCATOR_EMAIL) return json({ok:false,error:'invalid_credentials'},401);
   const password = typeof body.password === 'string' ? body.password : '';
-  if (password.length < 8) return json({ok:false,error:'invalid_credentials'},401);
+  if (password.length < 8 || password.length > 128) return json({ok:false,error:'invalid_credentials'},401);
 
   try {
-    const upstream = await fetch(authUrl('/sign-in/email'), {
-      method:'POST',
-      headers:{'content-type':'application/json',origin:new URL(request.url).origin},
-      body:JSON.stringify({email,password,rememberMe:false}),
-    });
-    if (!upstream.ok) return json({ok:false,error:'invalid_credentials'},401);
-    const result = await upstream.json().catch(()=>({})) as { user?: { id?: string; email?: string } };
-    const upstreamEmail = (result.user?.email || '').trim().toLowerCase();
-    if (upstreamEmail && upstreamEmail !== EDUCATOR_EMAIL) return json({ok:false,error:'invalid_credentials'},401);
+    const valid = await verifyEducatorPassword(password);
+    if (!valid) return json({ok:false,error:'invalid_credentials'},401);
     const local = await createLocalEducatorSession(request);
     return json({ok:true,user:local.user},200,{'set-cookie':educatorCookie(local.cookieValue,60*60*8,secure)});
   } catch (error) {

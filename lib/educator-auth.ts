@@ -1,4 +1,4 @@
-import { createHash, randomBytes } from 'node:crypto';
+import { createHash, randomBytes, scrypt as nodeScrypt, timingSafeEqual } from 'node:crypto';
 import { neon } from '@neondatabase/serverless';
 
 const AUTH_BASE = process.env.CZA_NEON_AUTH_BASE_URL || 'https://ep-delicate-sky-b2fyqu4m.neonauth.c-6.eu-central-1.aws.neon.tech/cza_learning/auth';
@@ -7,6 +7,16 @@ const SITE_OWNER_EMAIL = 'habipcann65@gmail.com';
 export const EDUCATOR_EMAIL = 'celikzihin.akademisi@gmail.com';
 export const EDUCATOR_AUTH_USER_ID = '47c90485-e057-4ebe-a25c-9d7f236c5bd6';
 const LOCAL_PREFIX = 'local.';
+const SCRYPT_OPTIONS = { N: 16384, r: 16, p: 1, maxmem: 128 * 16384 * 16 * 2 } as const;
+
+function derivePasswordKey(password: string, salt: string) {
+  return new Promise<Buffer>((resolve, reject) => {
+    nodeScrypt(password.normalize('NFKC'), salt, 64, SCRYPT_OPTIONS, (error, key) => {
+      if (error) reject(error);
+      else resolve(key as Buffer);
+    });
+  });
+}
 
 export function readCookie(request: Request, name: string) {
   const value = (request.headers.get('cookie') || '').split(';').map(v=>v.trim()).find(v=>v.startsWith(`${name}=`));
@@ -33,6 +43,27 @@ async function educatorDbUser() {
     LIMIT 1
   `;
   return rows[0] as { id: string; academy_id: string; auth_user_id: string; email: string | null; display_name: string } | undefined;
+}
+
+export async function verifyEducatorPassword(password: string) {
+  if (!process.env.DATABASE_URL) throw new Error('database_unavailable');
+  if (password.length < 8 || password.length > 128) return false;
+  const sql = neon(process.env.DATABASE_URL);
+  const rows = await sql`
+    SELECT a.password
+    FROM neon_auth.account a
+    JOIN neon_auth."user" au ON au.id = a."userId"
+    WHERE au.id = ${EDUCATOR_AUTH_USER_ID}
+      AND lower(au.email) = lower(${EDUCATOR_EMAIL})
+      AND a."providerId" = 'credential'
+    LIMIT 1
+  `;
+  const stored = typeof rows[0]?.password === 'string' ? rows[0].password : '';
+  const [salt, keyHex, extra] = stored.split(':');
+  if (extra !== undefined || !/^[0-9a-f]{32}$/i.test(salt || '') || !/^[0-9a-f]{128}$/i.test(keyHex || '')) return false;
+  const derived = await derivePasswordKey(password, salt);
+  const expected = Buffer.from(keyHex, 'hex');
+  return derived.length === expected.length && timingSafeEqual(derived, expected);
 }
 
 export async function createLocalEducatorSession(request: Request) {
@@ -96,11 +127,19 @@ export async function authenticatedEducator(request: Request) {
   const local = await localEducator(sessionCookie);
   if (local) return local;
 
-  const response = await fetch(`${AUTH_BASE}/get-session`,{headers:{cookie:sessionCookie},cache:'no-store'});
-  if (!response.ok) return null;
-  const data = await response.json() as {user?:{id?:string;email?:string;name?:string}};
-  const userEmail = (data.user?.email || '').trim().toLowerCase();
-  return data.user?.id === EDUCATOR_AUTH_USER_ID && userEmail === EDUCATOR_EMAIL ? data.user : null;
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 5000);
+  try {
+    const response = await fetch(`${AUTH_BASE}/get-session`,{headers:{cookie:sessionCookie},cache:'no-store',signal:controller.signal});
+    if (!response.ok) return null;
+    const data = await response.json() as {user?:{id?:string;email?:string;name?:string}};
+    const userEmail = (data.user?.email || '').trim().toLowerCase();
+    return data.user?.id === EDUCATOR_AUTH_USER_ID && userEmail === EDUCATOR_EMAIL ? data.user : null;
+  } catch {
+    return null;
+  } finally {
+    clearTimeout(timeout);
+  }
 }
 
 export function authUrl(path: string) { return `${AUTH_BASE}${path}`; }
