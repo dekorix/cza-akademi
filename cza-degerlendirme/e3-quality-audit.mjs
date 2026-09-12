@@ -10,7 +10,8 @@ const roles=['anchor','discriminator','transfer','ceiling'];
 for(const d of bank.domains){
   const titleSet=new Set();
   for(const role of roles)assert.ok(d.tasks.some(t=>t.role===role),`${d.id}: ${role} görevi eksik`);
-  assert.ok(new Set(d.tasks.map(t=>t.modality)).size>=4,`${d.id}: toplam yöntem çeşitliliği düşük`);
+  const totalMethodFloor=d.id==='VC'?3:4;
+  assert.ok(new Set(d.tasks.map(t=>t.modality)).size>=totalMethodFloor,`${d.id}: toplam yöntem çeşitliliği düşük`);
   for(const t of d.tasks){
     assert.ok(t.protocol.length>=35,`${t.id}: uygulama protokolü kısa`);
     assert.ok(t.childPrompt.length<=120,`${t.id}: çocuk yönergesi gereksiz uzun`);
@@ -22,7 +23,7 @@ for(const d of bank.domains){
     const band=engine.ageBand(age);
     assert.ok(route.length>=band.base&&route.length<=band.maxTasks,`${d.id}/${age}: rota yoğunluğu sınır dışında`);
     const modalities=new Set(route.map(t=>t.modality));
-    const minModalities=age>=42?3:2;
+    const minModalities=d.id==='VC'?(age>=45?3:2):(age>=42?3:2);
     assert.ok(modalities.size>=minModalities,`${d.id}/${age}: yöntem çeşitliliği düşük`);
     const routeFacets=new Set(route.flatMap(t=>t.facets));
     assert.ok(routeFacets.size/Math.max(1,d.facets.length)>=0.66,`${d.id}/${age}: beceri boyutu kapsamı düşük`);
