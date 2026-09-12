@@ -1,7 +1,11 @@
 import { neon } from '@neondatabase/serverless';
 import { authenticatedEducator } from '@/lib/educator-auth';
 import { allowRequest, rateLimited } from '@/lib/request-guard';
-import { assignableModules, defaultRecipeSettings, isAssignableModule } from '@/lib/training-recipes';
+import { assessmentTasks } from '@/lib/assessment-routing';
+import { calculateLearningResponse, type AssessmentAttemptRecord } from '@/lib/assessment-learning-response';
+import { generateAssessmentReport, type ReportAttempt, type ReportObservation } from '@/lib/assessment-report';
+import { buildCzaWorkRecommendations } from '@/lib/cza-work-recommendations';
+import { assignableModules, defaultRecipeSettings, isAssignableModule, recipeSettingsFromRecommendation } from '@/lib/training-recipes';
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
@@ -55,6 +59,90 @@ export async function POST(request: Request) {
       LIMIT 50
     `;
     return json({ ok: true, assignments: rows });
+  }
+
+  if (action === 'create_from_assessment') {
+    const assessmentSessionId = typeof input.assessmentSessionId === 'string' ? input.assessmentSessionId.trim() : '';
+    const recommendationId = typeof input.recommendationId === 'string' ? input.recommendationId.trim() : '';
+    if (!UUID_PATTERN.test(assessmentSessionId)) return json({ ok: false, error: 'invalid_assessment_session_id' }, 400);
+    if (!recommendationId || recommendationId.length > 180) return json({ ok: false, error: 'invalid_recommendation_id' }, 400);
+
+    const assessmentSessions = await sql`
+      SELECT id, template_code
+      FROM public.assessment_sessions
+      WHERE id = ${assessmentSessionId}::uuid
+        AND student_id = ${studentId}::uuid
+        AND status = 'completed'
+        AND template_code = 'CZA_1_TO_2_V1'
+      LIMIT 1
+    `;
+    if (!assessmentSessions.length) return json({ ok: false, error: 'assessment_not_found_for_student' }, 404);
+
+    const [assessmentAttempts, assessmentObservations] = await Promise.all([
+      sql`SELECT * FROM public.assessment_attempts WHERE session_id = ${assessmentSessionId}::uuid ORDER BY created_at ASC`,
+      sql`SELECT * FROM public.assessment_observations WHERE session_id = ${assessmentSessionId}::uuid ORDER BY created_at ASC`,
+    ]);
+    const learningResponse = calculateLearningResponse(assessmentAttempts as AssessmentAttemptRecord[], assessmentTasks);
+    const assessmentReport = generateAssessmentReport(
+      assessmentAttempts as ReportAttempt[],
+      assessmentObservations as ReportObservation[],
+      assessmentTasks,
+      learningResponse,
+    );
+    const recommendation = buildCzaWorkRecommendations(assessmentReport, 8).find(item => item.id === recommendationId);
+    if (!recommendation) return json({ ok: false, error: 'recommendation_not_found' }, 404);
+    if (!isAssignableModule(recommendation.moduleCode)) return json({ ok: false, error: 'module_not_assignable_yet' }, 409);
+
+    const existing = await sql`
+      SELECT id
+      FROM public.training_recipes
+      WHERE student_id = ${studentId}::uuid
+        AND module_code = ${recommendation.moduleCode}
+        AND source = 'teacher_assignment'
+        AND is_active = true
+        AND (expires_at IS NULL OR expires_at > now())
+      ORDER BY created_at DESC
+      LIMIT 1
+    `;
+    if (existing.length) return json({ ok: false, error: 'active_assignment_exists' }, 409);
+
+    let settings;
+    try {
+      settings = recipeSettingsFromRecommendation(recommendation.moduleCode, recommendation.suggestedSettings);
+    } catch {
+      return json({ ok: false, error: 'invalid_recommendation_settings' }, 400);
+    }
+
+    const title = `${assignableModules[recommendation.moduleCode].label} · Değerlendirme önerisi`;
+    const rows = await sql`
+      INSERT INTO public.training_recipes (
+        academy_id, student_id, module_code, assigned_by, source, name, settings,
+        is_active, starts_at, expires_at
+      ) VALUES (
+        ${link.academy_id}::uuid,
+        ${studentId}::uuid,
+        ${recommendation.moduleCode},
+        ${link.educator_user_id}::uuid,
+        'teacher_assignment',
+        ${title},
+        ${JSON.stringify(settings)}::jsonb,
+        true,
+        now(),
+        now() + interval '14 days'
+      )
+      RETURNING id, module_code, name, settings, starts_at, expires_at, is_active, created_at
+    `;
+    return json({
+      ok: true,
+      assignment: rows[0],
+      source: {
+        assessmentSessionId,
+        recommendationId: recommendation.id,
+        priority: recommendation.priority,
+        sourceSkills: recommendation.sourceSkills,
+        reason: recommendation.reason,
+      },
+    }, 201);
   }
 
   if (action === 'create') {
