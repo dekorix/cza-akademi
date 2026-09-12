@@ -6,7 +6,7 @@ on:
       - cza-assessment-engine-v1
       - cza-core-integration-v1
       - cza-e3-36-48-v1
-      - cza-e3-work-prescription-v1
+      - cza-assessment-e3-content-v2
   pull_request:
     branches:
       - main
@@ -39,7 +39,7 @@ jobs:
         run: pnpm build
 
       - name: Targeted CZA Core integration tests
-        run: node --test tests/core-records.test.mjs tests/work-student-id-integration.test.mjs tests/cza-work-recommendations.test.mjs tests/real-assignment-auth-integration.test.mjs tests/e3-development-assessment.test.mjs tests/e3-work-prescription.test.mjs
+        run: node --test tests/core-records.test.mjs tests/work-student-id-integration.test.mjs tests/cza-work-recommendations.test.mjs tests/real-assignment-auth-integration.test.mjs tests/e3-development-assessment.test.mjs tests/e3-assessment-content-v2.test.mjs
 
       - name: Start built app
         run: |
@@ -83,7 +83,6 @@ jobs:
           app/api/core
           app/api/assessment-e3
           app/api/assessment-e3-linked
-          app/api/educator-e3-assignments
           app/api/educator-auth
           app/api/educator-assignments
           app/api/educator-report/route.ts
@@ -102,7 +101,7 @@ jobs:
           lib/assessment-learning-response.ts
           lib/assessment-report.ts
           lib/preschool-e3.ts
-          lib/e3-work-recommendations.ts
+          lib/preschool-e3-protocol.ts
           lib/cza-work-recommendations.ts
           lib/assigned-session.ts
           lib/educator-auth.ts
