@@ -1,0 +1,14 @@
+/* CZA E3 v3 readability gate: child/educator UI contains no tiny operational text. */
+html,body{font-size:16px}
+button,input,select,textarea{font-size:14px}
+.brand-kicker,.eyebrow,.v3-badge,.section-heading span,.legend,.profile-tile small,.profile-tile>span,.meta-row span,.overall-progress span,.overall-progress small,.domain-title-row span,.domain-title-row em,.domain-body>p,.domain-metrics,.domain-action,.domain-label,.assessment-status>span,.assessment-status button,.rail-item b,.rail-item span,.task-role,.task-id,.child-safe-note,.console-head>span,.protocol-box b,.console-label,.facet-row span,.live-metrics small,.live-metrics b,.support-chip,.flag-chip,.console-actions button,.neutral-warning,.cg-scale button,.report-seal span,.report-domain span,.report-stats{font-size:12px!important}
+.profile-tile strong{font-size:16px}
+.domain-title-row h2,.cg-domain-head h2{font-size:18px}
+.protocol-step span,.protocol-panel p,.protocol-box p,.cg-item p,.report-domain p{font-size:13px}
+.material-stage p{font-size:16px}
+.form-grid-v3 label{font-size:14px}
+.boundary-note{font-size:13px}
+.child-canvas>h2{font-size:40px}
+.evidence-console textarea{font-size:14px;line-height:1.55}
+@media(max-width:900px){.child-canvas>h2{font-size:31px}.rail-item span{font-size:12px!important}.domain-action{font-size:13px!important}}
+@media(max-width:560px){.child-canvas>h2{font-size:27px}.brand-kicker,.eyebrow{font-size:12px!important}.profile-tile>span,.profile-tile small{font-size:12px!important}}
