@@ -1,0 +1,55 @@
+name: One-shot assigned studio patch
+
+on:
+  push:
+    branches:
+      - fix/educator-auth-real-assignments-v1
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/educator-auth-real-assignments-v1
+      - name: Patch assigned program flow
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('app/studio/page.tsx')
+          text = path.read_text()
+          text = text.replace(
+              "import { readDemoProgram, saveDemoResult } from '@/lib/demo-session';",
+              "import { readDemoProgram, saveDemoResult } from '@/lib/demo-session';\nimport { readAssignedProgram } from '@/lib/assigned-session';",
+          )
+          text = text.replace(
+              "  const [sessionId, setSessionId] = useState<string | null>(null);",
+              "  const [sessionId, setSessionId] = useState<string | null>(null);\n  const [assignmentId, setAssignmentId] = useState('');",
+          )
+          old = """  useEffect(() => {\n    const mode = new URLSearchParams(window.location.search).get('mode');\n    if (mode === 'flash' || mode === 'audio') setConfig(c => ({...c, mode, digits: 1}));\n    if (mode === 'fingers') setConfig(c => ({...c, mode: 'finger-read', digits: Math.min(2,c.digits), minDigits: 1, maxDigits: Math.min(2,c.digits)}));\n    if (new URLSearchParams(window.location.search).get('program') === 'demo') {\n      const program = readDemoProgram();\n      if (program) { setConfig(program); setInfo('Eğitimci ekranında hazırladığın deneme programı yüklendi. Bu, gerçek bir öğrenci ataması değildir.'); }\n    }\n"""
+          new = """  useEffect(() => {\n    const params = new URLSearchParams(window.location.search);\n    const mode = params.get('mode');\n    if (mode === 'flash' || mode === 'audio') setConfig(c => ({...c, mode, digits: 1}));\n    if (mode === 'fingers') setConfig(c => ({...c, mode: 'finger-read', digits: Math.min(2,c.digits), minDigits: 1, maxDigits: Math.min(2,c.digits)}));\n    if (params.get('program') === 'demo') {\n      const program = readDemoProgram();\n      if (program) { setConfig(program); setInfo('Eğitimci ekranında hazırladığın deneme programı yüklendi. Bu, gerçek bir öğrenci ataması değildir.'); }\n    }\n    if (params.get('program') === 'assigned') {\n      const recipeId = params.get('recipe') || '';\n      const program = recipeId ? readAssignedProgram(recipeId) : null;\n      if (program) {\n        setConfig(program);\n        setAssignmentId(recipeId);\n        setSettingsOpen(false);\n        setInfo('Eğitimcinin sana atadığı çalışma reçetesi yüklendi. Ayarlar bu seans için kilitlidir ve sonuçların merkezi öğrenci dosyana kaydedilir.');\n      } else {\n        setError('Atanan çalışma ayarları bulunamadı. Çalışma merkezinden yeniden aç.');\n      }\n    }\n"""
+          if old not in text:
+              raise SystemExit('studio program block not found')
+          text = text.replace(old, new)
+          text = text.replace(
+              "<Button variant=\"outline\" className=\"h-10 lg:hidden\" onClick={() => setSettingsOpen(v=>!v)}><Settings2 /> Çalışma ayarları</Button>",
+              "<Button variant=\"outline\" className=\"h-10 lg:hidden\" disabled={Boolean(assignmentId)} onClick={() => setSettingsOpen(v=>!v)}><Settings2 /> {assignmentId ? 'Atanan reçete' : 'Çalışma ayarları'}</Button>",
+          )
+          text = text.replace(
+              "<ExerciseSettings config={config} onChange={setConfig} disabled={active} />",
+              "<ExerciseSettings config={config} onChange={setConfig} disabled={active || Boolean(assignmentId)} />",
+          )
+          path.write_text(text)
+          PY
+      - name: Commit patch and remove one-shot workflow
+        run: |
+          rm .github/workflows/one-shot-assigned-studio.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app/studio/page.tsx .github/workflows/one-shot-assigned-studio.yml
+          git commit -m "Load and lock educator-assigned studio recipes"
+          git push origin HEAD:fix/educator-auth-real-assignments-v1
