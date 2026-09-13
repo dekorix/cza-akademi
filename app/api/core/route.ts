@@ -3,6 +3,8 @@ const DEFAULT_CORE_URL =
 import { neon } from '@neondatabase/serverless';
 import { allowRequest, rateLimited } from '@/lib/request-guard';
 import { authenticatedStudent, readRequestCookie } from '@/lib/student-session';
+import { LearningContractError, parseCanonicalLearningRecord } from '@/lib/learning-contract-server';
+import { CanonicalPersistenceError, persistCanonicalLearningRecord } from '@/lib/persistence/canonical-repository';
 
 const ALLOWED_ACTIONS = new Set([
   'login',
@@ -11,12 +13,14 @@ const ALLOWED_ACTIONS = new Set([
   'finish',
   'interaction',
   'attempt',
+  'module_record',
   'logout',
 ]);
 
 const COOKIE_NAME = 'cza_student_session';
 const ASSIGNMENT_COOKIE = 'cza_assignment_recipe';
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const MAX_REQUEST_BYTES = 64 * 1024;
 
 function readCookie(request: Request, name: string) {
   return readRequestCookie(request, name);
@@ -63,7 +67,15 @@ export async function POST(request: Request) {
 
   let input: Record<string, unknown>;
   try {
-    input = (await request.json()) as Record<string, unknown>;
+    const declaredLength = Number(request.headers.get('content-length') || '0');
+    if (Number.isFinite(declaredLength) && declaredLength > MAX_REQUEST_BYTES) {
+      return json({ ok: false, error: 'request_too_large' }, 413);
+    }
+    const rawBody = await request.text();
+    if (new TextEncoder().encode(rawBody).byteLength > MAX_REQUEST_BYTES) {
+      return json({ ok: false, error: 'request_too_large' }, 413);
+    }
+    input = JSON.parse(rawBody) as Record<string, unknown>;
   } catch {
     return json({ ok: false, error: 'invalid_request' }, 400);
   }
@@ -81,6 +93,35 @@ export async function POST(request: Request) {
   const sessionToken = readCookie(request, COOKIE_NAME);
   if (action !== 'login' && !sessionToken) {
     return json({ ok: false, error: 'session_required' }, 401);
+  }
+
+  if (action === 'module_record') {
+    const gate = allowRequest(request, 'module-record', 120, 60 * 1000);
+    if (!gate.allowed) return rateLimited(gate.retryAfterSeconds);
+
+    if (!process.env.DATABASE_URL) {
+      return json({ ok: false, error: 'database_unavailable' }, 503);
+    }
+
+    const student = await authenticatedStudent(request);
+    if (!student) return json({ ok: false, error: 'session_required' }, 401);
+
+    try {
+      const record = parseCanonicalLearningRecord(
+        input.record,
+        request.headers.get('x-cza-contract-version'),
+      );
+      const persisted = await persistCanonicalLearningRecord(student, record);
+      return json({ ok: true, ...persisted }, persisted.replayed ? 200 : 201);
+    } catch (error) {
+      if (error instanceof LearningContractError) {
+        return json({ ok: false, error: error.code }, 400);
+      }
+      if (error instanceof CanonicalPersistenceError) {
+        return json({ ok: false, error: error.code }, error.status);
+      }
+      return json({ ok: false, error: 'learning_persistence_unavailable' }, 503);
+    }
   }
 
   const payload = { ...input };
