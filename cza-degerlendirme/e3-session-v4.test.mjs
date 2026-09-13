@@ -9,7 +9,7 @@ for(const f of ['e3-bank-v3.js','e3-bank-v3-foundation.js','e3-bank-v3-depth.js'
 const {E3_SESSION:s,E3_ENGINE:e,E3_BANK:b}=c;
 assert.ok(s&&e&&b,'v4 bağımlılıkları yüklenmeli');
 
-function dateMonthsAgo(n){const d=new Date();d.setDate(15);d.setMonth(d.getMonth()-n);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-15`}
+function dateMonthsAgo(n){const d=new Date();d.setDate(1);d.setMonth(d.getMonth()-n);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-01`}
 s.reset();
 assert.equal(s.configureStudent({name:'Test',birth:dateMonthsAgo(35),assessor:'Eğitimci'}).ok,false,'35 ay reddedilmeli');
 assert.equal(s.configureStudent({name:'Test',birth:dateMonthsAgo(48),assessor:'Eğitimci'}).ok,false,'48 ay reddedilmeli');
