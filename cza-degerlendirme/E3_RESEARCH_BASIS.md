@@ -15,7 +15,7 @@ Bu doküman E3 görev bankasının kapsamını ve güvenlik sınırlarını tan�
 1. Tek bir sorudan karar verilmez; aynı beceri farklı görev ve bağlamlarda örneklenir.
 2. Sadece doğru/yanlış değil; bağımsızlık, yardım düzeyi, ilk tepki, öz-düzeltme, strateji, açıklama ve transfer kaydedilir.
 3. Ekran görevleri tek kanıt kaynağı değildir. Gerçek materyal gözlemi ve bakımveren bilgisi ayrı kanıt kanallarıdır.
-4. Çocuk 120 görevin tamamına zorlanmaz. Yaş ve performansa göre adaptif rota kullanılır.
+4. Çocuk 150 görevlik bankanın tamamına zorlanmaz. Yaş ve performansa göre adaptif rota kullanılır.
 5. 45–47 ay tavan/keşif görevleri nötrdür; yapılamaması alan sonucunu düşürmez.
 6. Dil görevlerinde çocuğun günlük kullandığı dil(ler), işitme/iletişim bağlamı ve değerlendirme dili göz önünde tutulur.
 7. Motor ve özbakım alanlarında gerçek materyal tercih edilir; yalnız dokunmatik ekran performansından motor sonuç çıkarılmaz.
@@ -33,4 +33,4 @@ AAP gelişimsel izlemi yalnız test sonucundan ibaret görmez; ebeveyn kaygılar
 4 yaş çevresinde sembolik oyun, akrana yönelme, başkasını rahatlatma, tehlikeden kaçınma, günlük bir olayı anlatma, basit işlev sorularını yanıtlama, renk bilgisi, öyküde sonraki olayı tahmin etme, insan çizimi, top yakalama ve düğme açma gibi gözlenebilir davranışlar alan kapsamını kontrol etmek için kullanılır. CDC materyallerinin standartlaştırılmış tarama testi olmadığı açıkça korunur.
 
 ## Sürüm politikası
-Bu belge E3-v3 için kalite kapısıdır. Yeni görev eklenirken yaş kapısı, görev rolü (anchor / discriminator / transfer / ceiling), beceri boyutları, uygulama protokolü ve nötrlük durumu zorunlu olarak belirtilir.
+Bu belge E3-v4 uygulama katmanı ve E3-v3.2 görev/rota çekirdeği için kalite kapısıdır. Yeni görev eklenirken yaş kapısı, görev rolü (anchor / discriminator / transfer / ceiling), beceri boyutları, uygulama protokolü ve nötrlük durumu zorunlu olarak belirtilir.
