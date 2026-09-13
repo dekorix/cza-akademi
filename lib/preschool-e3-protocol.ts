@@ -65,13 +65,12 @@ export const e3SectionProtocols: Record<E3SectionId, E3SectionProtocol> = {
   },
   memory: {
     sectionId: 'memory', shortLabel: 'Bellek',
-    setup: 'Uyaranı kısa ve temiz sun; tekrar sayısını sabit tut ve gecikmeyi gereksiz uzatma.',
-    primaryEvidence: ['görsel yer belleği', 'işitsel sıra', 'motor sıra', 'güncelleme'],
-    materials: ['iki kap', '3 tanıdık nesne', 'renk kartları'],
-    educatorRules: ['Tekrar edilen yönergeyi destek olarak kaydet.', 'Hatırlama ile tanımayı birbirine karıştırma.', 'Sıra hatasını içerik hatasından ayrı not et.'],
-    pauseRule: 'Yorgunluk bellek performansını belirgin etkiliyorsa bölümü aynı gün zorlamadan kapat.',
-  },
-  executive_attention: {
+    setup: 'Kısa ve temiz uyaranlarla başla; işitsel ve görsel bilgiyi ayrı dene. Serbest hatırlama, tanıma, sıra ve güncelleme görevlerini karıştırmadan ilerle; ardından model sonrası strateji öğrenmesini ve yeni örneğe aktarımı gözle.',
+    primaryEvidence: ['serbest hatırlama', 'görsel yer belleği', 'içerik-sıra ayrımı', 'kodlama stratejisi', 'model sonrası değişim', 'yakın ve uzak transfer', 'kural/çalışma belleği'],
+    materials: ['iki eş kap', 'tanıdık nesne kartları', '3 gerçek nesne', 'hareket dizileri', 'renk kartları'],
+    educatorRules: ['Uyaranı gereksiz tekrar etme; tekrar gerekiyorsa destek düzeyine işle.', 'Hatırlama ile tanımayı aynı beceri gibi yorumlama.', 'İçerik hatası ile sıra hatasını ayrı not et.', 'Strateji kullanımını yalnız sözel açıklamaya bağlama; bakış, adlandırma, gruplayarak bakma veya tekrar etme de kanıttır.', 'Model sonrası strateji görevinde öğretim kartları ile test kartlarını farklı tut.', 'Yorgunluk ve dikkat dağınıklığını bellek yetersizliği gibi yorumlama.', '45+ kural belleği görevini nötr tavan olarak koru.'],
+    pauseRule: 'Yorgunluk, kaçınma veya dikkat kopması belirginleşirse bellek yükünü artırma; kısa mola ver veya bölümü başka oturuma bırak. Tek oturumdaki zayıf hatırlama tanısal sonuç değildir.',
+  },  executive_attention: {
     sectionId: 'executive_attention', shortLabel: 'Dikkat / Yürütücü',
     setup: 'Kısa oyun turları kullan; süre baskısı ve görünür geri sayım gösterme.',
     primaryEvidence: ['seçici dikkat', 'bekleme', 'kural sürdürme', 'kural değiştirme'],
