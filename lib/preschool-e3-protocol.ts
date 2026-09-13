@@ -79,13 +79,12 @@ export const e3SectionProtocols: Record<E3SectionId, E3SectionProtocol> = {
     pauseRule: 'Kaçınma, aşırı hareketlenme, yorgunluk veya frustrasyon artarsa performansı zorlayarak sürdürme. Kısa hareket molası ver veya bölümü başka oturuma bırak; tek oturumdaki dalgalanma tanısal sonuç değildir.',
   },  social_emotion_play: {
     sectionId: 'social_emotion_play', shortLabel: 'Sosyal / Oyun',
-    setup: 'Gerçek etkileşim, rol oyunu ve sosyal senaryo kullan; tek doğru sosyal cevap arama.',
-    primaryEvidence: ['duygu tanıma', 'sıra alma', 'sembolik oyun', 'sosyal problem çözme'],
-    materials: ['bebek/figür', 'rol oyunu seti', 'duygu yüzleri', 'bloklar'],
-    educatorRules: ['Kültürel/ailevi farklılığı patoloji gibi yorumlama.', 'Sosyal cevabın işlevselliğine bak.', 'Bakış açısı görevleri keşif kanıtıdır.'],
-    pauseRule: 'Çocuk rol oyununa girmek istemiyorsa zorlamadan doğal oyun gözlemine dön.',
-  },
-  motor_graphomotor: {
+    setup: 'Belirgin duygu ipucuyla başla; sıra alma ve sembolik oyunu gerçek etkileşimde gözle. Sonra sosyal problem çözme, model sonrası sosyal giriş, farklı tercih, esneklik ve nötr zihinsel durum keşfine ilerle.',
+    primaryEvidence: ['duygu ipucu', 'sıra alma ve ortak dikkat', 'sembolik oyun', 'işlevsel sosyal çözüm', 'model sonrası sosyal başlatma', 'bakış açısı', 'sosyal esneklik', 'zihinsel durum çıkarımı'],
+    materials: ['bloklar', 'bebek/figür', 'rol oyunu seti', 'duygu ve sosyal sahne kartları'],
+    educatorRules: ['Tek bir sosyal cevabı “doğru karakter” ölçütü yapma.', 'Kültürel, ailevi ve iletişim tarzı farklılıklarını patoloji veya ahlaki yetersizlik gibi yorumlama.', 'Göz teması, fiziksel yakınlık veya belirli nezaket kalıplarını zorunlu başarı ölçütü yapma.', 'Sosyal cevabın işlevine ve bağlama uygunluğuna bak; alternatif çözümleri kabul et.', 'Model sonrası görevde model sahnesi ile test sahnesini farklı tut.', 'Rol oyununa katılmak istemeyen çocuğu zorlamadan doğal oyun gözlemine dön.', '45+ zihinsel durum görevini nötr tavan olarak koru.'],
+    pauseRule: 'Çocuk rol oyunu ya da sosyal senaryodan rahatsız olursa zorlamayı bırak; doğal etkileşim gözlemine veya başka bölüme geç. Tek bir sosyal yanıt kişilik, ahlak veya tanı göstergesi değildir.',
+  },  motor_graphomotor: {
     sectionId: 'motor_graphomotor', shortLabel: 'Motor / Grafomotor',
     setup: 'Ekran üzerinden motor beceri ölçme; gerçek materyal ve güvenli fiziksel ortam kullan.',
     primaryEvidence: ['iki el koordinasyonu', 'kalem/çizgi kontrolü', 'şekil taklidi', 'kaba motor koordinasyon'],
