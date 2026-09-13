@@ -1,0 +1,20 @@
+import fs from 'node:fs';
+import assert from 'node:assert/strict';
+
+const read=f=>fs.readFileSync(new URL(`./${f}`,import.meta.url),'utf8');
+const index=read('index-v4.html');
+const app=read('e3-app-v4.js');
+const session=read('e3-session-v4.js');
+const css=read('e3-v4.css');
+const required=['e3-bank-v3.js','e3-bank-v3-foundation.js','e3-bank-v3-depth.js','e3-bank-v3-quality.js','e3-engine-v3.js','e3-stimuli-v3.js','e3-session-v4.js','e3-app-v4.js','styles-v3.css','readability-v3.css','institutional-v3.css','stimuli-v3.css','e3-v4.css'];
+for(const asset of required)assert.ok(index.includes(asset),`v4 giriş noktası eksik: ${asset}`);
+assert.ok(index.indexOf('e3-engine-v3.js')<index.indexOf('e3-session-v4.js'),'Motor, oturum katmanından önce yüklenmeli');
+assert.ok(index.indexOf('e3-stimuli-v3.js')<index.indexOf('e3-app-v4.js'),'Uyaran kütüphanesi uygulamadan önce yüklenmeli');
+assert.ok(index.indexOf('e3-session-v4.js')<index.indexOf('e3-app-v4.js'),'Oturum katmanı uygulamadan önce yüklenmeli');
+for(const token of ['STIM.render(t.stimulus)','SESSION.recordChoice','SESSION.markResponse','SESSION.commitTask','BANK.allTasks.length','BANK.caregiver.length','ENGINE.domainSummary(d.id,s.evidence,s.student.age)'])assert.ok(app.includes(token),`v4 uygulama entegrasyonu eksik: ${token}`);
+assert.equal(app.includes('>120<'),false,'Görev sayısı sabit 120 olarak yazılmamalı');
+assert.ok(app.includes('Çocuğa puan, süre baskısı veya doğru/yanlış geri bildirimi gösterilmez.'),'Çocuk ekranı geri bildirim sınırı görünür olmalı');
+assert.ok(session.includes('firstResponseAt'),'İlk tepki zamanı oturum katmanında tutulmalı');
+assert.ok(session.includes('firstResponseAt-state.taskRuntime.startedAt'),'Gecikme ilk gerçek yanıt anından hesaplanmalı');
+assert.ok(css.includes('@media print'),'Rapor için yazdır/PDF düzeni olmalı');
+console.log('E3_V4_INTEGRATION_AUDIT_OK',JSON.stringify({assets:required.length,stimulusIntegration:true,adaptiveReport:true,firstResponseLatency:true}));
