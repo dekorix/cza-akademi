@@ -86,13 +86,12 @@ export const e3SectionProtocols: Record<E3SectionId, E3SectionProtocol> = {
     pauseRule: 'Çocuk rol oyunu ya da sosyal senaryodan rahatsız olursa zorlamayı bırak; doğal etkileşim gözlemine veya başka bölüme geç. Tek bir sosyal yanıt kişilik, ahlak veya tanı göstergesi değildir.',
   },  motor_graphomotor: {
     sectionId: 'motor_graphomotor', shortLabel: 'Motor / Grafomotor',
-    setup: 'Ekran üzerinden motor beceri ölçme; gerçek materyal ve güvenli fiziksel ortam kullan.',
-    primaryEvidence: ['iki el koordinasyonu', 'kalem/çizgi kontrolü', 'şekil taklidi', 'kaba motor koordinasyon'],
-    materials: ['kalın boya kalemi', 'kağıt', 'büyük boncuk/ip', 'yumuşak top', 'çocuk makası'],
-    educatorRules: ['Kalem tutuşunu görev sırasında zorla düzeltme.', 'Mükemmel şekil bekleme.', 'Makas ve hareket görevlerinde güvenlik önceliklidir.'],
-    pauseRule: 'Fiziksel yorgunluk veya huzursuzlukta görevi kes; tamamlamayı zorunlu kılma.',
-  },
-  daily_living_safety: {
+    setup: 'Gerçek materyal ve güvenli fiziksel ortam kullan. İnce motor, kaba motor ve grafomotor görevlerini kısa bloklara böl; hız, estetik veya “doğru kalem tutuşu” baskısı oluşturma.',
+    primaryEvidence: ['iki el koordinasyonu', 'kaba motor zamanlama', 'çizgi/şekil stratejisi', 'model sonrası motor öğrenme', 'yakın ve uzak transfer', 'araç kullanımı'],
+    materials: ['büyük boncuk ve kalın ip', 'büyük yumuşak top', 'kalın boya kalemi ve kağıt', 'iki farklı yol sayfası', 'büyük düğmeli çerçeve', 'çocuk makası'],
+    educatorRules: ['Kalem tutuşunu görev sırasında zorla düzeltme; işlevsel yaklaşımı betimle.', 'Mükemmel şekil veya çizgi bekleme; ürün kadar süreç ve stratejiyi kaydet.', 'Model gerekiyorsa farklı öğretim örneği kullan ve model sonrası yeni örnekle yeniden dene.', 'Kaba motor görevinde başarı sayısından çok hazırlık, zamanlama ve koordinasyonu gözle.', 'Makas, top ve hareket görevlerinde fiziksel güvenlik önceliklidir.', '45+ makas görevi nötr tavan kanıtıdır; başarısızlık alan puanını düşürmez.'],
+    pauseRule: 'Fiziksel yorgunluk, huzursuzluk, ağrı belirtisi veya güvenli olmayan hareket görülürse görevi hemen kes. Tamamlama zorunluluğu yoktur; motor kanıtı yorgunluk altında zorlanmaz.',
+  },  daily_living_safety: {
     sectionId: 'daily_living_safety', shortLabel: 'Özbakım / Güvenlik',
     setup: 'Mümkün olduğunda gerçek rutin ve bakımveren örneği kullan; korkutucu güvenlik senaryolarından kaçın.',
     primaryEvidence: ['giyinme', 'düzen/rutin', 'yardım isteme', 'temel güvenlik bilgisi'],
