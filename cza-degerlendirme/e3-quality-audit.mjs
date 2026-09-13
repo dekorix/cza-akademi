@@ -26,7 +26,9 @@ for(const d of bank.domains){
     const minModalities=d.id==='VC'?(age>=45?3:2):(age>=42?3:2);
     assert.ok(modalities.size>=minModalities,`${d.id}/${age}: yöntem çeşitliliği düşük`);
     const routeFacets=new Set(route.flatMap(t=>t.facets));
-    assert.ok(routeFacets.size/Math.max(1,d.facets.length)>=0.66,`${d.id}/${age}: beceri boyutu kapsamı düşük`);
+    const ageFacets=engine.activeFacets(d.id,age);
+    const coveredAgeFacets=ageFacets.filter(f=>routeFacets.has(f));
+    assert.ok(coveredAgeFacets.length/Math.max(1,ageFacets.length)>=0.66,`${d.id}/${age}: yaşa uygun beceri boyutu kapsamı düşük`);
     if(age<45)assert.equal(route.some(t=>t.role==='ceiling'),false,`${d.id}/${age}: erken tavan görevi açıldı`);
     assert.ok(route.filter(t=>t.role==='ceiling').length<=1,`${d.id}/${age}: birden fazla tavan görevi açıldı`);
   }
