@@ -3,7 +3,7 @@ import vm from 'node:vm';
 import assert from 'node:assert/strict';
 
 const c=vm.createContext({console,Date,Math,JSON,Set,Map,globalThis:null,module:{exports:{}},exports:{}});c.globalThis=c;
-for(const f of ['e3-bank-v3.js','e3-bank-v3-foundation.js','e3-bank-v3-depth.js','e3-engine-v3.js'])vm.runInContext(fs.readFileSync(new URL(`./${f}`,import.meta.url),'utf8'),c,{filename:f});
+for(const f of ['e3-bank-v3.js','e3-bank-v3-foundation.js','e3-bank-v3-depth.js','e3-bank-v3-quality.js','e3-engine-v3.js'])vm.runInContext(fs.readFileSync(new URL(`./${f}`,import.meta.url),'utf8'),c,{filename:f});
 const {E3_BANK:bank,E3_ENGINE:engine}=c;
 const forbidden=/zeka yaşı|gerilik|başarısız|tanı koy|normal değil|geri kaldı/i;
 const roles=['anchor','discriminator','transfer','ceiling'];
@@ -35,4 +35,4 @@ for(const d of bank.domains){
 }
 const scales=new Set(bank.caregiver.flatMap(q=>q.responseScale));
 assert.deepEqual([...scales],['Sık görülür','Bazen görülür','Henüz gözlenmedi','Emin değilim'],'Bakımveren ölçeği tutarlı olmalı');
-console.log('E3_V3_QUALITY_AUDIT_OK',JSON.stringify({domains:bank.domains.length,tasks:bank.allTasks.length,caregiver:bank.caregiver.length,version:bank.meta.version}));
+console.log('E3_V3_QUALITY_AUDIT_OK',JSON.stringify({domains:bank.domains.length,tasks:bank.allTasks.length,caregiver:bank.caregiver.length,version:bank.meta.version,qualityPatch:bank.meta.qualityPatch}));
