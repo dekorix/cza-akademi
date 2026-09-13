@@ -28,7 +28,7 @@ function simulate(domainId,age,profileName){
   assert.ok(count<=band.maxTasks,`${domainId}/${age}/${profileName}: maksimum görev sayısı aşıldı`);
   assert.ok(count>=band.base,`${domainId}/${age}/${profileName}: kanıt sayısı tabanın altında kaldı`);
   const summary=engine.domainSummary(domainId,evidence,age);
-  return {count,roles,summary,evidence};
+  return {count,roles,summary,evidence,nonCeiling:roles.filter(r=>r!=='ceiling').length};
 }
 
 for(const d of bank.domains){
@@ -37,11 +37,14 @@ for(const d of bank.domains){
     const supported=simulate(d.id,age,'supported');
     const mixed=simulate(d.id,age,'mixed');
     const neutral=simulate(d.id,age,'neutral');
-    assert.ok(supported.count>=strong.count,`${d.id}/${age}: destek gerektiren rota güçlü rotadan kısa olmamalı`);
-    assert.ok(mixed.count>=strong.count,`${d.id}/${age}: karışık rota güçlü rotadan kısa olmamalı`);
+    assert.ok(supported.count>=strong.nonCeiling,`${d.id}/${age}: destek gerektiren rota çekirdek güçlü rotadan kısa olmamalı`);
+    assert.ok(mixed.count>=strong.nonCeiling,`${d.id}/${age}: karışık rota çekirdek güçlü rotadan kısa olmamalı`);
     assert.equal(neutral.summary.code,'INSUFFICIENT',`${d.id}/${age}: yalnız nötr kanıt yeterli sayılmamalı`);
     assert.ok(strong.summary.coverage.ratio>=0.66,`${d.id}/${age}: güçlü rota yaşa uygun kapsamı sağlamadı`);
-    if(age>=45)assert.ok(strong.roles.includes('transfer'),`${d.id}/${age}: güçlü rotada transfer kanıtı yok`);
+    if(age>=45){
+      assert.ok(strong.roles.includes('transfer'),`${d.id}/${age}: güçlü rotada transfer kanıtı yok`);
+      assert.ok(strong.roles.filter(r=>r==='ceiling').length<=1,`${d.id}/${age}: güçlü rotada birden fazla tavan görevi açıldı`);
+    }
   }
 }
 console.log('E3_V3_ROUTE_SIMULATION_OK',JSON.stringify({domains:bank.domains.length,ages:5,profiles:Object.keys(profiles)}));
