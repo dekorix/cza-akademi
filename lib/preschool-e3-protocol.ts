@@ -100,13 +100,12 @@ export const e3SectionProtocols: Record<E3SectionId, E3SectionProtocol> = {
     pauseRule: 'Mahremiyet, utanç, huzursuzluk, korku veya güvenli olmayan durum oluşursa görevi hemen durdur. Çocuğu günlük yaşam becerisini kanıtlamaya zorlamak yerine bakımveren kaynağı ve başka oturum kanıtı kullan.',
   },  learning_transfer: {
     sectionId: 'learning_transfer', shortLabel: 'Öğrenme Tepkisi / Transfer',
-    setup: 'Önce bağımsız deneme, sonra küçük destek, ardından yeni örnek kullan; değişimi görünür kıl.',
-    primaryEvidence: ['modelden öğrenme', 'ipucuna tepki', 'strateji değiştirme', 'yakın/uzak transfer'],
-    materials: ['şekil kutusu', 'bloklar', 'iki farklı eşleme seti'],
-    educatorRules: ['İlk başarısızlığı sonuç değil başlangıç kanıtı olarak gör.', 'Destek sonrası değişimi özellikle kaydet.', 'Tek çözüm yolu dayatma.'],
-    pauseRule: 'Çocuk destekle toparlanmıyorsa yükü artırma; başka gün aynı ilkeyi farklı materyalle yeniden gözle.',
-  },
-};
+    setup: 'Her mümkün olduğunda önce bağımsız başlangıç kanıtı al; ardından tek ve tanımlı destek ver; destekten sonra yeni örnekle yeniden gözle. Amaç tek sonucun doğruluğu değil, çocuğun destekten nasıl yararlandığını ve kuralı ne kadar taşıdığını görünür kılmaktır.',
+    primaryEvidence: ['bağımsız başlangıç', 'strateji değiştirme', 'ipucuna tepki', 'model öncesi-sonrası değişim', 'planlama', 'yakın transfer', 'uzak transfer ve alternatif çözüm'],
+    materials: ['büyük bloklar', 'şekil kutusu', 'basit eşleme/sınıflama kartları', 'öğretim ve test için farklı materyal setleri', 'çok çözümlü basit problem'],
+    educatorRules: ['İlk başarısızlığı sonuç değil başlangıç kanıtı olarak kaydet.', 'Bir görevde verdiğin desteğin türünü ve sırasını değiştirmeden not et; çoklu ipuçlarıyla sonucu yapay biçimde yükseltme.', 'Model veya ipucundan sonra aynı örneği ezberletmek yerine yeni örnek kullan.', 'Model öncesi, model sonrası ve yeni örnek performansını mümkün olduğunca ayrı betimle.', 'Sözel planı zorunlu tutma; işaret, parça seçme ve eylem sırası da strateji kanıtıdır.', 'Tek çözüm yolu dayatma; işlevsel alternatifleri kabul et.', '45+ uzak transfer görevi nötr tavandır; yanıt vermemek alan puanını düşürmez.'],
+    pauseRule: 'Çocuk art arda desteklere rağmen zorlanıyor, kaçınıyor veya yoruluyorsa ipucu miktarını artırarak sonuca zorlamayı bırak. Öğrenmeye tepkiyi başka gün, daha düşük yükte ve farklı materyalle yeniden gözle.',
+  },};
 
 export function e3AgeBandLabel(ageMonths: number) {
   if (ageMonths <= 38) return '36–38 ay · temel kanıt';
