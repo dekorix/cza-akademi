@@ -30,12 +30,14 @@ assert.equal(saved.ok,true,'görev kanıtı kaydedilmeli');
 assert.ok(s.state().evidence[first.id],'kanıt oturum dosyasında tutulmalı');
 assert.equal(s.state().evidence[first.id].firstMatch,false);
 
-s.setCaregiver('CG-VC-1','Bazen görülür');
-assert.equal(s.state().caregiver['CG-VC-1'],'Bazen görülür');
+assert.equal(s.setCaregiver('CG-VC1','Bazen görülür').ok,true,'geçerli bakımveren yanıtı kaydedilmeli');
+assert.equal(s.state().caregiver['CG-VC1'],'Bazen görülür');
+assert.equal(s.setCaregiver('CG-VC-X','Bazen görülür').ok,false,'bilinmeyen bakımveren maddesi reddedilmeli');
+assert.equal(s.setCaregiver('CG-VC1','Geçersiz').ok,false,'ölçek dışı yanıt reddedilmeli');
 const exported=s.exportRecord();
 assert.equal(exported.version,'E3-v4');
 assert.equal(exported.student.name,'Deneme Öğrenci');
 assert.ok(exported.session.id);
 assert.ok(exported.progress.total===10);
 assert.ok(memory.has(s.STORAGE),'durum localStorage üzerinde saklanmalı');
-console.log('E3_V4_SESSION_TEST_OK',JSON.stringify({age:s.state().student.age,evidence:Object.keys(s.state().evidence).length,domains:exported.progress.total}));
+console.log('E3_V4_SESSION_TEST_OK',JSON.stringify({age:s.state().student.age,evidence:Object.keys(s.state().evidence).length,domains:exported.progress.total,caregiver:Object.keys(s.state().caregiver).length}));
