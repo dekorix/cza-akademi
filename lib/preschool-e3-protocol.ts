@@ -72,13 +72,12 @@ export const e3SectionProtocols: Record<E3SectionId, E3SectionProtocol> = {
     pauseRule: 'Yorgunluk, kaçınma veya dikkat kopması belirginleşirse bellek yükünü artırma; kısa mola ver veya bölümü başka oturuma bırak. Tek oturumdaki zayıf hatırlama tanısal sonuç değildir.',
   },  executive_attention: {
     sectionId: 'executive_attention', shortLabel: 'Dikkat / Yürütücü',
-    setup: 'Kısa oyun turları kullan; süre baskısı ve görünür geri sayım gösterme.',
-    primaryEvidence: ['seçici dikkat', 'bekleme', 'kural sürdürme', 'kural değiştirme'],
-    materials: ['renk/şekil kartları', 'müzik veya ritim', 'hedef-çeldirici görseller'],
-    educatorRules: ['5 saniye gecikmeyi otomatik yanlış sayma.', 'Dürtüsel ilk tepkiyi ayrıca not et.', 'Kural değişiminde eski kurala dönmeyi gözlem kanıtı olarak kaydet.'],
-    pauseRule: 'İnhibisyon görevleri üst üste gelmesin; kısa hareket molası ver.',
-  },
-  social_emotion_play: {
+    setup: 'Kısa ve oyun temelli turlarla başla; seçici dikkat, bekleme ve kural sürdürmeyi ayrı ayrı gözle. Sonra model sonrası kural öğrenme, hedef değiştirme, ters kural ve tek set değişimine ilerle.',
+    primaryEvidence: ['ilk yönelim ve seçici dikkat', 'bekleme/inhibisyon', 'kural sürdürme', 'strateji ve yanıt gecikmesi', 'model sonrası kural edinimi', 'eski kurala dönme', 'set değiştirme'],
+    materials: ['hedef-çeldirici görseller', 'renk/şekil kartları', 'top', 'müzik/ritim', 'güvenli hareket alanı'],
+    educatorRules: ['Görünür geri sayım, hız puanı veya kırmızı hata göstergesi kullanma.', 'Erken tepkiyi otomatik yanlış sayma; dürtüsel başlangıç olarak ayrı kaydet.', 'Yanıt gecikmesini tek başına düşük performans olarak yorumlama.', 'Kural değişiminde eski kurala dönmeyi perseverasyon kanıtı olarak not et; çocuğu üst üste uyarılarla yönlendirme.', 'Model sonrası görevde öğretim uyaranı ile test uyaranını farklı tut.', 'Dikkat kopması ile yönergeyi anlamamayı mümkün olduğunca ayrı değerlendir.', 'İnhibisyon görevlerini arka arkaya uzatma; hareket molası ver.', '45+ çift kural/set değiştirme görevini nötr tavan olarak koru.'],
+    pauseRule: 'Kaçınma, aşırı hareketlenme, yorgunluk veya frustrasyon artarsa performansı zorlayarak sürdürme. Kısa hareket molası ver veya bölümü başka oturuma bırak; tek oturumdaki dalgalanma tanısal sonuç değildir.',
+  },  social_emotion_play: {
     sectionId: 'social_emotion_play', shortLabel: 'Sosyal / Oyun',
     setup: 'Gerçek etkileşim, rol oyunu ve sosyal senaryo kullan; tek doğru sosyal cevap arama.',
     primaryEvidence: ['duygu tanıma', 'sıra alma', 'sembolik oyun', 'sosyal problem çözme'],
