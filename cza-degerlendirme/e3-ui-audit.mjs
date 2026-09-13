@@ -15,7 +15,7 @@ assert.ok(index.indexOf('institutional-v3.js')>index.indexOf('app-v3.js'),'Kurum
 assert.match(readable,/html,body\{font-size:16px\}/,'Temel punto 16px olmalı');
 assert.match(readable,/button,input,select,textarea\{font-size:15px\}/,'Kontroller 15px tabanında olmalı');
 assert.match(readable,/\.child-canvas>h2\{font-size:40px\}/,'Çocuk ana yönergesi masaüstünde güçlü olmalı');
-assert.match(readable,/max-width:560px[^}]*\}[\s\S]*?\.child-canvas>h2\{font-size:28px\}/,'Çocuk ana yönergesi mobilde küçülmemeli');
+assert.ok(readable.includes('@media(max-width:560px){.child-canvas>h2{font-size:28px}'),'Çocuk ana yönergesi mobilde 28px altına düşmemeli');
 assert.ok(!readable.includes('font-size:9px'),'Okunabilirlik katmanında 9px metin olmamalı');
 assert.ok(!readable.includes('font-size:10px'),'Okunabilirlik katmanında 10px metin olmamalı');
 assert.ok(!readable.includes('font-size:11px'),'Okunabilirlik katmanında 11px metin olmamalı');
