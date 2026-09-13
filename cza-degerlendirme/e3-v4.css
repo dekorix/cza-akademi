@@ -1,0 +1,6 @@
+/* CZA E3 v4 final development layer */
+.response-mark{width:100%;min-height:44px;margin:10px 0 4px;border:1.5px solid #9fb4c3;border-radius:11px;background:#f4f8fb;color:#35546d;font-size:14px;font-weight:900;cursor:pointer}
+.response-mark:hover{background:#eaf2f7}.response-mark:focus-visible{outline:3px solid rgba(77,127,232,.28);outline-offset:2px}
+.report-actions{padding-top:16px;border-top:1px solid #c7d5df}.report-actions button{min-height:46px}
+.caregiver-board{margin-top:14px}.cg-domain{border-width:1.5px!important}.cg-item p{line-height:1.55}
+@media print{.v3-global,.link-btn,.report-actions{display:none!important}.v3-shell{max-width:none;padding:0}.workspace-head,.report-domain,.report-warning{box-shadow:none!important;break-inside:avoid}.report-grid{grid-template-columns:1fr 1fr!important}}
