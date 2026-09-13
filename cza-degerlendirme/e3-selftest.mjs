@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 
 const context=vm.createContext({console,Date,Math,JSON,Set,Map,globalThis:null,module:{exports:{}},exports:{}});
 context.globalThis=context;
-for(const file of ['e3-bank-v3.js','e3-bank-v3-foundation.js','e3-bank-v3-depth.js','e3-engine-v3.js']){
+for(const file of ['e3-bank-v3.js','e3-bank-v3-foundation.js','e3-bank-v3-depth.js','e3-bank-v3-quality.js','e3-engine-v3.js']){
   const code=fs.readFileSync(new URL(`./${file}`,import.meta.url),'utf8');
   vm.runInContext(code,context,{filename:file});
 }
@@ -51,10 +51,10 @@ assert.notEqual(nextSupport.role,'ceiling','Zorlanma varken tavan görevi öne a
 
 const strongEvidence={};
 for(const id of ['VC01','VC02','VC03','VC04','VC05','VC06','VC07','VC08'])strongEvidence[id]=engine.createEvidence(id,{support:'INDEPENDENT',firstMatch:true});
-const summary=engine.domainSummary('VC',strongEvidence);
+const summary=engine.domainSummary('VC',strongEvidence,45);
 assert.ok(['Göreli güçlü kanıt','Gelişen / karışık profil'].includes(summary.status),'Alan özeti normatif olmayan etiket üretmeli');
 
 assert.equal(engine.validateSession(35,{}).valid,false,'35 ay E3 dışında olmalı');
 assert.equal(engine.validateSession(48,{}).valid,false,'48 ay E3 dışında olmalı');
 assert.equal(engine.validateSession(42,{}).valid,true,'42 ay geçerli olmalı');
-console.log('E3_V3_SELFTEST_OK',JSON.stringify({domains:bank.domains.length,tasks:bank.allTasks.length,caregiver:bank.caregiver.length,version:bank.meta.version}));
+console.log('E3_V3_SELFTEST_OK',JSON.stringify({domains:bank.domains.length,tasks:bank.allTasks.length,caregiver:bank.caregiver.length,version:bank.meta.version,qualityPatch:bank.meta.qualityPatch}));
