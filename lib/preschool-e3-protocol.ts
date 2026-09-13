@@ -93,13 +93,12 @@ export const e3SectionProtocols: Record<E3SectionId, E3SectionProtocol> = {
     pauseRule: 'Fiziksel yorgunluk, huzursuzluk, ağrı belirtisi veya güvenli olmayan hareket görülürse görevi hemen kes. Tamamlama zorunluluğu yoktur; motor kanıtı yorgunluk altında zorlanmaz.',
   },  daily_living_safety: {
     sectionId: 'daily_living_safety', shortLabel: 'Özbakım / Güvenlik',
-    setup: 'Mümkün olduğunda gerçek rutin ve bakımveren örneği kullan; korkutucu güvenlik senaryolarından kaçın.',
-    primaryEvidence: ['giyinme', 'düzen/rutin', 'yardım isteme', 'temel güvenlik bilgisi'],
-    materials: ['mont/giysi', 'oyuncak kutusu', 'mendil/çöp kutusu'],
-    educatorRules: ['Evde fırsat verilmemiş beceriyi çocuk yetersizliği sayma.', 'Bilgi ile gerçek bağımsız performansı ayır.', 'Güvenlik sorularında korkutma kullanma.'],
-    pauseRule: 'Özbakım görevi mahremiyet veya rahatsızlık doğuruyorsa bakımveren kaynağına geç.',
-  },
-  learning_transfer: {
+    setup: 'Mümkün olduğunda gerçek ve tanıdık günlük rutin kullan. Güvenlik görevlerini korkutucu senaryo, gerçek tehlike veya performans baskısı olmadan uygula; bakımveren bilgisini doğrudan gözlemin bağlamı olarak kullan.',
+    primaryEvidence: ['rutin başlatma ve sürdürme', 'giyinme/özbakım bağımsızlığı', 'işlevsel yardım isteme', 'model sonrası günlük rutin öğrenme', 'güvenlik planı ve gerekçe', 'yardım düzeyi'],
+    materials: ['tanıdık oyuncak ve saklama yeri', 'mont veya kolay giyilen giysi', 'lavabo/sabun/havlu ya da rutin kartları', 'güvenli kapaklı kap', 'temiz mendil ve çöp kutusu'],
+    educatorRules: ['Evde fırsat verilmemiş beceriyi çocuk yetersizliği sayma.', 'Bilgi, sözel anlatım ve gerçek bağımsız performansı birbirinden ayır.', 'Yardım istemede sözcük kadar işaret, bakış ve nesneyi uzatma gibi işlevsel yolları da kabul et.', 'Model gerekiyorsa farklı öğretim materyali kullan ve model sonrası yeni örnekle yeniden dene.', 'Mahremiyet gerektiren özbakım görevini doğrudan uygulamaya zorlama; bakımveren kaynağına geç.', 'Güvenlik görevlerinde korkutma, gerçek tehlike, suçlama veya tek aile kuralını evrensel doğru gibi puanlama kullanma.', '45+ güvenlik muhakemesi görevi nötr tavandır; başarısızlık alan puanını düşürmez.'],
+    pauseRule: 'Mahremiyet, utanç, huzursuzluk, korku veya güvenli olmayan durum oluşursa görevi hemen durdur. Çocuğu günlük yaşam becerisini kanıtlamaya zorlamak yerine bakımveren kaynağı ve başka oturum kanıtı kullan.',
+  },  learning_transfer: {
     sectionId: 'learning_transfer', shortLabel: 'Öğrenme Tepkisi / Transfer',
     setup: 'Önce bağımsız deneme, sonra küçük destek, ardından yeni örnek kullan; değişimi görünür kıl.',
     primaryEvidence: ['modelden öğrenme', 'ipucuna tepki', 'strateji değiştirme', 'yakın/uzak transfer'],
