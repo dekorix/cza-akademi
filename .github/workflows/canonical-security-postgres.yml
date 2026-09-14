@@ -78,6 +78,7 @@ jobs:
             echo "CZA_NEON_RECOVERY_DRILL_PUBLIC_KEY=$RUNNER_TEMP/cza-neon-recovery-drill-public.b64"
             echo "CZA_NEON_RECOVERY_DRILL_PRIVATE_KEY=$RUNNER_TEMP/cza-neon-recovery-drill-private.pem"
             echo "CZA_NEON_RECOVERY_DRILL_RESULT=$RUNNER_TEMP/cza-security-results/neon-recovery-drill.json"
+            echo "CZA_PROXY_E2E_ORIGIN_ENV_FILE=$RUNNER_TEMP/cza-proxy-origin.env"
           } >> "$GITHUB_ENV"
           public_key="security/recovery/cza-neon-cleanup-public.pem"
           expected_fingerprint="e5cf6c8fb09721b3c095ae767858d4c8684a885ae3e7bf35664e29c0e4d553f8"
@@ -196,8 +197,32 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+
+          function requiredEnvironment(name) {
+            const value = process.env[name]?.trim();
+            if (!value) throw new Error(`missing-environment:${name}`);
+            return value;
+          }
+
+          const environmentFile = requiredEnvironment(
+            'CZA_PROXY_E2E_ORIGIN_ENV_FILE',
+          );
+          const contents = [
+            `DATABASE_URL=${JSON.stringify(requiredEnvironment('DATABASE_URL'))}`,
+            `CZA_TRUSTED_PROXY_HMAC_SECRET=${JSON.stringify(
+              requiredEnvironment('CZA_TRUSTED_PROXY_HMAC_SECRET'),
+            )}`,
+          ].join('\n');
+          fs.writeFileSync(environmentFile, `${contents}\n`, {
+            mode: 0o600,
+            flag: 'wx',
+          });
+          NODE
           pnpm exec wrangler dev \
             --config dist/server/wrangler.json \
+            --env-file "$CZA_PROXY_E2E_ORIGIN_ENV_FILE" \
             --ip 127.0.0.1 \
             --port 8787 \
             >"$CZA_PROXY_E2E_ORIGIN_LOG" 2>&1 &
@@ -413,6 +438,7 @@ jobs:
             "$CZA_NEON_RECOVERY_DRILL_BUNDLE" \
             "$CZA_NEON_RECOVERY_DRILL_PUBLIC_KEY" \
             "$CZA_NEON_RECOVERY_DRILL_PRIVATE_KEY" \
+            "$CZA_PROXY_E2E_ORIGIN_ENV_FILE" \
             "$CZA_CLAIM_DIRECTORY" \
             "$CZA_NEON_CONFIG_DIR" <<'NODE'
           import fs from 'node:fs';
