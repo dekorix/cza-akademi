@@ -52,14 +52,15 @@ pnpm build
 
 `.github/workflows/canonical-security-postgres.yml` runs the local gates and
 then creates an isolated Claimable Neon project for the real PostgreSQL suite.
-`scripts/run-canonical-security-postgres-ci.mjs` validates the direct endpoint
-against the production owner's complete endpoint-fingerprint manifest before
-connecting, creates a synthetic `cza_security_test_*` database, redacts
-connection material from test output, and drops the database. A socket-level
-runtime audit is installed before the database orchestrator process starts. It
-therefore covers the administrator connection, test connections and cleanup
-connection, blocks every listed production hostname, and derives the
-`productionAccessed` result from observed connection hashes.
+`scripts/run-canonical-security-postgres-ci.mjs` reads the direct endpoint
+created by that same Claimable run, hashes its hostname, and starts the database
+orchestrator under a socket-level positive allowlist before importing the
+PostgreSQL driver. The allowlist permits exactly that one temporary hostname
+and rejects every other hostname fail-closed. It covers the administrator,
+test, and synthetic-database cleanup connections without requiring any
+production URL or fingerprint. The runner creates a synthetic
+`cza_security_test_*` database, redacts connection material, drops the database,
+and derives `productionAccessed` from the observed runtime connection hashes.
 
 The workflow uses the repository-locked Neon CLI and full action commit SHAs.
 It deletes the temporary Neon project and credential files in `always()`
@@ -82,27 +83,11 @@ fails the job.
 The workflow has no production database credential and performs no merge or
 deployment. Pull requests from forks cannot start the disposable Neon job.
 
-The production owner must configure the
-`CZA_PRODUCTION_DB_ENDPOINT_MANIFEST` Actions secret without disclosing URLs,
-hostnames, usernames or passwords. It must list `DATABASE_URL`,
-`DATABASE_URL_UNPOOLED`, and every other production PostgreSQL endpoint by
-environment-variable name and lowercase SHA-256 hostname fingerprint:
-
-```json
-{
-  "schemaVersion": 1,
-  "complete": true,
-  "endpoints": [
-    { "name": "DATABASE_URL", "sha256": "<64 lowercase hex>" },
-    { "name": "DATABASE_URL_UNPOOLED", "sha256": "<64 lowercase hex>" }
-  ]
-}
-```
-
-The recovery officer must generate an RSA key of at least 3072 bits, keep the
-private key offline with mode `0600`, and configure only the base64-encoded PEM
-public key as the `CZA_NEON_RECOVERY_PUBLIC_KEY_B64` repository variable. The
-private key must never be added to Actions, repository files or artifacts.
+The recovery public key is committed at
+`security/recovery/cza-neon-cleanup-public.pem` and pinned by its DER SHA-256
+fingerprint in the workflow. The recovery officer must keep the matching
+private key offline with mode `0600`. The private key must never be added to
+Actions, repository files, logs, or artifacts.
 
 If cleanup is reported as `orphaned`, download the encrypted recovery bundle
 and run the following from the audited commit before its recorded
@@ -121,13 +106,13 @@ node scripts/neon-cleanup-recovery.mjs recover-delete \
 
 True multi-connection races require a disposable PostgreSQL database whose name
 starts with `cza_security_test`. The connection must be direct (its hostname
-must not contain `-pooler`). For a manual disposable-only run, pass all approved
-production hostname fingerprints as a comma-separated guard list:
+must not contain `-pooler`). For a manual disposable-only run, pass the lowercase
+SHA-256 hash of that temporary hostname as the sole positive allowlist value:
 
 ```bash
 CZA_TEST_DATABASE_CONFIRM=ephemeral \
 CZA_TEST_DATABASE_URL="$DATABASE_URL_UNPOOLED" \
-CZA_KNOWN_PRODUCTION_HOST_HASHES="$PRODUCTION_DATABASE_HOST_SHA256" \
+CZA_ALLOWED_POSTGRES_HOST_SHA256="$TEMPORARY_DATABASE_HOST_SHA256" \
 pnpm test:security:postgres
 ```
 

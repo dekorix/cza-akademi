@@ -3,7 +3,6 @@ import { spawn } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { parseProductionEndpointManifest } from './production-endpoint-manifest.mjs';
 
 const POSTGRES_PROTOCOLS = new Set(['postgres:', 'postgresql:']);
 const NETWORK_AUDIT_MARKER = Symbol.for('cza.postgresNetworkAuditInstalled');
@@ -64,23 +63,40 @@ function redact(output, secrets) {
   return safe;
 }
 
-function guardedHashes() {
-  const hashes = (process.env.CZA_KNOWN_PRODUCTION_HOST_HASHES || '')
-    .split(',')
-    .map((value) => value.trim())
-    .filter(Boolean);
-  if (
-    hashes.length === 0 ||
-    hashes.some((value) => !/^[0-9a-f]{64}$/.test(value))
-  ) {
-    throw new Error('network-guard-hashes-invalid');
+function hostSha256(hostname) {
+  return createHash('sha256').update(hostname.toLowerCase()).digest('hex');
+}
+
+function directConnectionDetails() {
+  const neonEnvironment = readDotEnv(requiredEnvironment('CZA_NEON_ENV_FILE'));
+  const directConnection = neonEnvironment.DATABASE_URL_UNPOOLED;
+  if (!directConnection) throw new Error('direct-connection-missing');
+
+  const adminUrl = new URL(directConnection);
+  if (!POSTGRES_PROTOCOLS.has(adminUrl.protocol)) {
+    throw new Error('direct-connection-protocol-invalid');
   }
-  return new Set(hashes);
+  if (adminUrl.hostname.toLowerCase().includes('-pooler.')) {
+    throw new Error('pooled-connection-rejected');
+  }
+  return Object.freeze({
+    adminUrl,
+    directConnection,
+    temporaryHostSha256: hostSha256(adminUrl.hostname),
+  });
+}
+
+function guardedHostSha256() {
+  const value = (process.env.CZA_ALLOWED_POSTGRES_HOST_SHA256 || '').trim();
+  if (!/^[0-9a-f]{64}$/.test(value)) {
+    throw new Error('network-guard-host-invalid');
+  }
+  return value;
 }
 
 export function launchGuardedNode({
   script,
-  productionHostHashes,
+  allowedHostSha256,
   networkAuditFile,
   environment = {},
   stdio = 'inherit',
@@ -88,9 +104,7 @@ export function launchGuardedNode({
   if (
     !path.isAbsolute(script) ||
     !path.isAbsolute(networkAuditFile) ||
-    !Array.isArray(productionHostHashes) ||
-    productionHostHashes.length === 0 ||
-    productionHostHashes.some((hash) => !/^[0-9a-f]{64}$/.test(hash))
+    !/^[0-9a-f]{64}$/.test(allowedHostSha256)
   ) {
     throw new Error('guarded-runner-configuration-invalid');
   }
@@ -102,7 +116,7 @@ export function launchGuardedNode({
         env: {
           ...process.env,
           ...environment,
-          CZA_KNOWN_PRODUCTION_HOST_HASHES: productionHostHashes.join(','),
+          CZA_ALLOWED_POSTGRES_HOST_SHA256: allowedHostSha256,
           CZA_NETWORK_AUDIT_FILE: networkAuditFile,
         },
         stdio,
@@ -170,26 +184,22 @@ function readNetworkAudit(file) {
   return records;
 }
 
-export function summarizeNetworkAudit(
-  records,
-  temporaryHostSha256,
-  productionHostHashes,
-) {
+export function summarizeNetworkAudit(records, temporaryHostSha256) {
   const observedHostHashes = [
     ...new Set(records.map((record) => record.hostSha256)),
   ];
-  const productionMatches = observedHostHashes.filter((hash) =>
-    productionHostHashes.has(hash),
+  const nonTemporaryHostHashes = observedHostHashes.filter(
+    (hash) => hash !== temporaryHostSha256,
   );
   if (!observedHostHashes.includes(temporaryHostSha256)) {
     throw new Error('temporary-host-not-observed');
   }
   return Object.freeze({
-    source: 'runtime-net-socket-instrumentation',
+    source: 'runtime-temporary-host-allowlist',
     temporaryHostSha256,
     observedHostHashes: Object.freeze(observedHostHashes),
-    productionMatches: Object.freeze(productionMatches),
-    productionAccessed: productionMatches.length > 0,
+    nonTemporaryHostHashes: Object.freeze(nonTemporaryHostHashes),
+    productionAccessed: nonTemporaryHostHashes.length > 0,
   });
 }
 
@@ -213,47 +223,23 @@ async function main() {
   if (globalThis[NETWORK_AUDIT_MARKER] !== true) {
     throw new Error('network-guard-not-installed');
   }
-  const productionManifest = parseProductionEndpointManifest(
-    requiredEnvironment('CZA_PRODUCTION_DB_ENDPOINT_MANIFEST'),
-  );
-  const productionHostHashes = new Set(productionManifest.hashes);
-  const activeGuardHashes = guardedHashes();
-  if (
-    activeGuardHashes.size !== productionHostHashes.size ||
-    [...productionHostHashes].some((hash) => !activeGuardHashes.has(hash))
-  ) {
-    throw new Error('network-guard-manifest-mismatch');
-  }
+  const activeGuardHostSha256 = guardedHostSha256();
   const { default: postgres } = await import('postgres');
 
-  const neonEnvironmentFile = requiredEnvironment('CZA_NEON_ENV_FILE');
   const reportDirectory =
     process.env.CZA_SECURITY_REPORT_DIR ||
     path.join(process.cwd(), 'security-test-results');
   fs.mkdirSync(reportDirectory, { recursive: true, mode: 0o700 });
-  const neonEnvironment = readDotEnv(neonEnvironmentFile);
-  const directConnection = neonEnvironment.DATABASE_URL_UNPOOLED;
-  if (!directConnection) throw new Error('direct-connection-missing');
-
-  const adminUrl = new URL(directConnection);
-  if (!POSTGRES_PROTOCOLS.has(adminUrl.protocol)) {
-    throw new Error('direct-connection-protocol-invalid');
-  }
-  if (adminUrl.hostname.toLowerCase().includes('-pooler.')) {
-    throw new Error('pooled-connection-rejected');
+  const { adminUrl, directConnection, temporaryHostSha256 } =
+    directConnectionDetails();
+  if (activeGuardHostSha256 !== temporaryHostSha256) {
+    throw new Error('network-guard-temporary-host-mismatch');
   }
 
   maskForGitHub(directConnection);
   maskForGitHub(adminUrl.hostname);
   maskForGitHub(adminUrl.username);
   maskForGitHub(adminUrl.password);
-
-  const testHostHash = createHash('sha256')
-    .update(adminUrl.hostname.toLowerCase())
-    .digest('hex');
-  if (productionHostHashes.has(testHostHash)) {
-    throw new Error('production-test-host-collision');
-  }
 
   const runSuffix = (process.env.GITHUB_RUN_ID || 'local').replace(
     /[^a-zA-Z0-9]/g,
@@ -273,10 +259,9 @@ async function main() {
   const report = {
     schemaVersion: 1,
     productionAccessed: 'not-evaluated',
-    productionEndpointManifest: {
-      complete: productionManifest.complete,
-      endpointNames: productionManifest.endpoints.map((entry) => entry.name),
-      endpointCount: productionManifest.endpoints.length,
+    networkPolicy: {
+      mode: 'single-temporary-host-allowlist',
+      allowedHostSha256: temporaryHostSha256,
     },
     hostnameSeparation: 'passed',
     connectionAudit: 'not-started',
@@ -305,7 +290,7 @@ async function main() {
       {
         CZA_TEST_DATABASE_URL: testConnection,
         CZA_TEST_DATABASE_CONFIRM: 'ephemeral',
-        CZA_KNOWN_PRODUCTION_HOST_HASHES: [...productionHostHashes].join(','),
+        CZA_ALLOWED_POSTGRES_HOST_SHA256: temporaryHostSha256,
       },
       [
         directConnection,
@@ -338,8 +323,7 @@ async function main() {
     try {
       const connectionAudit = summarizeNetworkAudit(
         readNetworkAudit(networkAuditFile),
-        testHostHash,
-        productionHostHashes,
+        temporaryHostSha256,
       );
       report.connectionAudit = connectionAudit;
       report.productionAccessed = connectionAudit.productionAccessed;
@@ -365,9 +349,7 @@ async function entrypoint() {
     await main();
     return;
   }
-  const productionManifest = parseProductionEndpointManifest(
-    requiredEnvironment('CZA_PRODUCTION_DB_ENDPOINT_MANIFEST'),
-  );
+  const { temporaryHostSha256 } = directConnectionDetails();
   const reportDirectory =
     process.env.CZA_SECURITY_REPORT_DIR ||
     path.join(process.cwd(), 'security-test-results');
@@ -376,7 +358,7 @@ async function entrypoint() {
   fs.writeFileSync(networkAuditFile, '', { flag: 'wx', mode: 0o600 });
   const exitCode = await launchGuardedNode({
     script: SCRIPT_FILE,
-    productionHostHashes: productionManifest.hashes,
+    allowedHostSha256: temporaryHostSha256,
     networkAuditFile,
   });
   process.exitCode = exitCode;

@@ -6,20 +6,17 @@ import postgres from 'postgres';
 
 const connectionString = process.env.CZA_TEST_DATABASE_URL;
 const confirmation = process.env.CZA_TEST_DATABASE_CONFIRM;
-const knownProductionHostHashes = new Set(
-  (process.env.CZA_KNOWN_PRODUCTION_HOST_HASHES || '')
-    .split(',')
-    .map((value) => value.trim())
-    .filter(Boolean),
-);
+const allowedHostSha256 = (
+  process.env.CZA_ALLOWED_POSTGRES_HOST_SHA256 || ''
+).trim();
 
 if (
   !connectionString ||
   confirmation !== 'ephemeral' ||
-  knownProductionHostHashes.size === 0
+  !/^[0-9a-f]{64}$/.test(allowedHostSha256)
 ) {
   throw new Error(
-    'Disposable URL, explicit confirmation and production host hashes are required',
+    'Disposable URL, explicit confirmation and one allowed host hash are required',
   );
 }
 
@@ -36,8 +33,8 @@ if (testUrl.hostname.includes('-pooler.')) {
 const testHostHash = createHash('sha256')
   .update(testUrl.hostname.toLowerCase())
   .digest('hex');
-if (knownProductionHostHashes.has(testHostHash)) {
-  throw new Error('Disposable and production database hosts must differ');
+if (allowedHostSha256 !== testHostHash) {
+  throw new Error('Disposable database host must match the guarded host');
 }
 
 const migration = fs.readFileSync(
@@ -310,7 +307,8 @@ test('real PostgreSQL parallel limiter, idempotency and logout races', async () 
     );
 
     await assert.rejects(
-      withRuntimeRole((runtime) => runtime`
+      withRuntimeRole(
+        (runtime) => runtime`
         INSERT INTO public.learning_evidence (
           learning_record_id, academy_id, student_id, evidence_type,
           verification_status, verification_authority, skill_code,
@@ -321,25 +319,30 @@ test('real PostgreSQL parallel limiter, idempotency and logout races', async () 
           'runtime-forbidden', 'number_recognition', 'independent',
           ${completedAt}::timestamptz, '{}'::jsonb
         )
-      `),
+      `,
+      ),
       /permission denied/i,
     );
     await assert.rejects(
-      withRuntimeRole((runtime) => runtime`
+      withRuntimeRole(
+        (runtime) => runtime`
         SELECT public.cza_append_verified_evidence(
           ${idempotent[0][0].learning_record_id}::uuid,
           'skill_observation', 'number_recognition', 'independent',
           ${completedAt}::timestamptz, 'runtime-forbidden', '{}'::jsonb
         )
-      `),
+      `,
+      ),
       /permission denied/i,
     );
     await assert.rejects(
-      withRuntimeRole((runtime) => runtime`
+      withRuntimeRole(
+        (runtime) => runtime`
         UPDATE public.learning_records
         SET metadata = '{"tampered":true}'::jsonb
         WHERE id = ${idempotent[0][0].learning_record_id}::uuid
-      `),
+      `,
+      ),
       /permission denied/i,
     );
 

@@ -7,24 +7,16 @@ const net = require('node:net');
 // oxlint-enable typescript/no-require-imports
 
 const auditFile = process.env.CZA_NETWORK_AUDIT_FILE || '';
-const configuredHashes = (process.env.CZA_KNOWN_PRODUCTION_HOST_HASHES || '')
-  .split(',')
-  .map((value) => value.trim())
-  .filter(Boolean);
-const productionHashes = new Set(
-  configuredHashes.filter((value) => /^[0-9a-f]{64}$/.test(value)),
-);
+const allowedHostSha256 = (
+  process.env.CZA_ALLOWED_POSTGRES_HOST_SHA256 || ''
+).trim();
 const originalConnect = net.Socket.prototype.connect;
 const installationMarker = Symbol.for('cza.postgresNetworkAuditInstalled');
 
 if (globalThis[installationMarker]) {
   throw new Error('CZA_NETWORK_AUDIT_ALREADY_INSTALLED');
 }
-if (
-  !auditFile ||
-  productionHashes.size === 0 ||
-  productionHashes.size !== configuredHashes.length
-) {
+if (!auditFile || !/^[0-9a-f]{64}$/.test(allowedHostSha256)) {
   throw new Error('CZA_NETWORK_AUDIT_CONFIG_INVALID');
 }
 globalThis[installationMarker] = true;
@@ -41,7 +33,7 @@ net.Socket.prototype.connect = function auditedConnect(...args) {
   const host = connectionHost(args).trim().toLowerCase();
   if (host) {
     const hostSha256 = createHash('sha256').update(host).digest('hex');
-    const blocked = productionHashes.has(hostSha256);
+    const blocked = hostSha256 !== allowedHostSha256;
     if (auditFile) {
       fs.appendFileSync(
         auditFile,
@@ -50,8 +42,8 @@ net.Socket.prototype.connect = function auditedConnect(...args) {
       );
     }
     if (blocked) {
-      const error = new Error('CZA_PRODUCTION_NETWORK_BLOCKED');
-      error.code = 'CZA_PRODUCTION_NETWORK_BLOCKED';
+      const error = new Error('CZA_NON_TEMPORARY_NETWORK_BLOCKED');
+      error.code = 'CZA_NON_TEMPORARY_NETWORK_BLOCKED';
       throw error;
     }
   }

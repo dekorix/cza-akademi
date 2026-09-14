@@ -55,10 +55,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
-      # Maintained by the production owner. Contains only names and lowercase
-      # SHA-256 hostname fingerprints for every production database endpoint.
-      CZA_PRODUCTION_DB_ENDPOINT_MANIFEST: ${{ secrets.CZA_PRODUCTION_DB_ENDPOINT_MANIFEST }}
-      CZA_NEON_RECOVERY_PUBLIC_KEY_B64: ${{ vars.CZA_NEON_RECOVERY_PUBLIC_KEY_B64 }}
       CZA_NEON_BIN: ${{ github.workspace }}/node_modules/.bin/neon
     steps:
       - name: Checkout
@@ -83,6 +79,13 @@ jobs:
             echo "CZA_NEON_RECOVERY_DRILL_PRIVATE_KEY=$RUNNER_TEMP/cza-neon-recovery-drill-private.pem"
             echo "CZA_NEON_RECOVERY_DRILL_RESULT=$RUNNER_TEMP/cza-security-results/neon-recovery-drill.json"
           } >> "$GITHUB_ENV"
+          public_key="security/recovery/cza-neon-cleanup-public.pem"
+          expected_fingerprint="e5cf6c8fb09721b3c095ae767858d4c8684a885ae3e7bf35664e29c0e4d553f8"
+          actual_fingerprint="$(openssl pkey -pubin -in "$public_key" -outform DER | \
+            openssl dgst -sha256 -r | cut -d ' ' -f 1)"
+          test "$actual_fingerprint" = "$expected_fingerprint"
+          echo "CZA_NEON_RECOVERY_PUBLIC_KEY_B64=$(base64 -w 0 "$public_key")" \
+            >> "$GITHUB_ENV"
 
       - name: Enable Corepack
         run: corepack enable
@@ -96,9 +99,6 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-
-      - name: Validate complete production endpoint manifest
-        run: node scripts/production-endpoint-manifest.mjs
 
       - name: Validate cleanup recovery encryption key
         run: node scripts/neon-cleanup-recovery.mjs validate-public-key
@@ -156,7 +156,7 @@ jobs:
           test -s "$CZA_NEON_ENV_FILE"
           echo "Temporary Neon project created; credentials are sealed."
 
-      - name: Run real PostgreSQL security suite
+      - name: Run real PostgreSQL suite with single temporary PostgreSQL hostname
         run: node scripts/run-canonical-security-postgres-ci.mjs
 
       - name: Delete temporary Neon project

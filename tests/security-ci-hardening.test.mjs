@@ -11,7 +11,6 @@ import {
   captureRecoveryRecord,
   updateRecoveryStatus,
 } from '../scripts/claimable-neon-recovery.mjs';
-import { parseProductionEndpointManifest } from '../scripts/production-endpoint-manifest.mjs';
 import {
   launchGuardedNode,
   summarizeNetworkAudit,
@@ -23,55 +22,6 @@ import {
 } from '../scripts/neon-cleanup-recovery.mjs';
 
 const repositoryRoot = fileURLToPath(new URL('..', import.meta.url));
-
-function endpoint(name, seed) {
-  return {
-    name,
-    sha256: createHash('sha256').update(seed).digest('hex'),
-  };
-}
-
-test('production endpoint manifest requires pooled and unpooled fingerprints', () => {
-  const parsed = parseProductionEndpointManifest(
-    JSON.stringify({
-      schemaVersion: 1,
-      complete: true,
-      endpoints: [
-        endpoint('DATABASE_URL', 'pooled-production-host'),
-        endpoint('DATABASE_URL_UNPOOLED', 'direct-production-host'),
-        endpoint('ANALYTICS_DATABASE_URL', 'analytics-production-host'),
-      ],
-    }),
-  );
-  assert.equal(parsed.complete, true);
-  assert.equal(parsed.endpoints.length, 3);
-
-  assert.throws(
-    () =>
-      parseProductionEndpointManifest(
-        JSON.stringify({
-          schemaVersion: 1,
-          complete: true,
-          endpoints: [endpoint('DATABASE_URL', 'only-pooled-host')],
-        }),
-      ),
-    /production-endpoint-manifest-invalid/,
-  );
-  assert.throws(
-    () =>
-      parseProductionEndpointManifest(
-        JSON.stringify({
-          schemaVersion: 1,
-          complete: true,
-          endpoints: [
-            endpoint('DATABASE_URL', 'same-host'),
-            endpoint('DATABASE_URL_UNPOOLED', 'same-host'),
-          ],
-        }),
-      ),
-    /production-endpoint-manifest-duplicate/,
-  );
-});
 
 test('Neon recovery evidence retains only a project ID, expiry and cleanup state', () => {
   const recovery = captureRecoveryRecord({
@@ -108,14 +58,20 @@ test('Neon recovery evidence retains only a project ID, expiry and cleanup state
   );
 });
 
-test('runtime socket guard blocks a production hostname fingerprint', () => {
+test('runtime socket guard allows only the temporary hostname fingerprint', () => {
   const temporaryDirectory = fs.mkdtempSync(
     path.join(os.tmpdir(), 'cza-network-audit-'),
   );
   try {
     const auditFile = path.join(temporaryDirectory, 'audit.jsonl');
-    const hostname = '127.0.0.1';
-    const hostnameHash = createHash('sha256').update(hostname).digest('hex');
+    const allowedHostname = 'temporary.invalid';
+    const allowedHostSha256 = createHash('sha256')
+      .update(allowedHostname)
+      .digest('hex');
+    const blockedHostname = '127.0.0.1';
+    const blockedHostSha256 = createHash('sha256')
+      .update(blockedHostname)
+      .digest('hex');
     const preload = path.join(
       repositoryRoot,
       'scripts/postgres-network-audit.cjs',
@@ -133,14 +89,14 @@ test('runtime socket guard blocks a production hostname fingerprint', () => {
         env: {
           ...process.env,
           CZA_NETWORK_AUDIT_FILE: auditFile,
-          CZA_KNOWN_PRODUCTION_HOST_HASHES: hostnameHash,
+          CZA_ALLOWED_POSTGRES_HOST_SHA256: allowedHostSha256,
         },
       },
     );
     assert.notEqual(child.status, 0);
     assert.match(
       `${child.stdout}${child.stderr}`,
-      /CZA_PRODUCTION_NETWORK_BLOCKED/,
+      /CZA_NON_TEMPORARY_NETWORK_BLOCKED/,
     );
     assert.deepEqual(
       fs
@@ -148,7 +104,42 @@ test('runtime socket guard blocks a production hostname fingerprint', () => {
         .trim()
         .split(/\r?\n/)
         .map((line) => JSON.parse(line)),
-      [{ hostSha256: hostnameHash, blocked: true }],
+      [{ hostSha256: blockedHostSha256, blocked: true }],
+    );
+
+    const allowedAuditFile = path.join(
+      temporaryDirectory,
+      'allowed-audit.jsonl',
+    );
+    const allowedChild = spawnSync(
+      process.execPath,
+      [
+        '--require',
+        preload,
+        '--eval',
+        "require('node:net').createConnection({host:'127.0.0.1',port:9})",
+      ],
+      {
+        encoding: 'utf8',
+        env: {
+          ...process.env,
+          CZA_NETWORK_AUDIT_FILE: allowedAuditFile,
+          CZA_ALLOWED_POSTGRES_HOST_SHA256: blockedHostSha256,
+        },
+      },
+    );
+    assert.notEqual(allowedChild.status, 0);
+    assert.doesNotMatch(
+      `${allowedChild.stdout}${allowedChild.stderr}`,
+      /CZA_NON_TEMPORARY_NETWORK_BLOCKED/,
+    );
+    assert.deepEqual(
+      fs
+        .readFileSync(allowedAuditFile, 'utf8')
+        .trim()
+        .split(/\r?\n/)
+        .map((line) => JSON.parse(line)),
+      [{ hostSha256: blockedHostSha256, blocked: false }],
     );
   } finally {
     fs.rmSync(temporaryDirectory, { recursive: true, force: true });
@@ -160,8 +151,13 @@ test('guarded orchestrator blocks an immediate top-level PostgreSQL admin connec
     path.join(os.tmpdir(), 'cza-guarded-orchestrator-'),
   );
   try {
-    const hostname = '127.0.0.1';
-    const hostnameHash = createHash('sha256').update(hostname).digest('hex');
+    const attemptedHostname = '127.0.0.1';
+    const allowedHostSha256 = createHash('sha256')
+      .update('temporary.invalid')
+      .digest('hex');
+    const attemptedHostSha256 = createHash('sha256')
+      .update(attemptedHostname)
+      .digest('hex');
     const auditFile = path.join(temporaryDirectory, 'audit.jsonl');
     const probe = path.join(temporaryDirectory, 'admin-probe.mjs');
     const postgresModule = import.meta.resolve('postgres');
@@ -181,7 +177,7 @@ try {
     );
     const exitCode = await launchGuardedNode({
       script: probe,
-      productionHostHashes: [hostnameHash],
+      allowedHostSha256,
       networkAuditFile: auditFile,
       stdio: 'ignore',
     });
@@ -192,7 +188,7 @@ try {
         .trim()
         .split(/\r?\n/)
         .map((line) => JSON.parse(line)),
-      [{ hostSha256: hostnameHash, blocked: true }],
+      [{ hostSha256: attemptedHostSha256, blocked: true }],
     );
   } finally {
     fs.rmSync(temporaryDirectory, { recursive: true, force: true });
@@ -312,31 +308,51 @@ process.stdout.write(JSON.stringify({project_id: projectId, state: 'deleted'}));
   }
 });
 
-test('productionAccessed is derived from observed runtime connection hashes', () => {
+test('productionAccessed is derived from single-host runtime evidence', () => {
   const temporaryHash = createHash('sha256')
     .update('temporary-host')
     .digest('hex');
-  const productionHash = createHash('sha256')
-    .update('production-host')
-    .digest('hex');
+  const otherHash = createHash('sha256').update('other-host').digest('hex');
   const safe = summarizeNetworkAudit(
     [{ hostSha256: temporaryHash, blocked: false }],
     temporaryHash,
-    new Set([productionHash]),
   );
   assert.equal(safe.productionAccessed, false);
-  assert.deepEqual(safe.productionMatches, []);
+  assert.deepEqual(safe.nonTemporaryHostHashes, []);
 
   const blocked = summarizeNetworkAudit(
     [
       { hostSha256: temporaryHash, blocked: false },
-      { hostSha256: productionHash, blocked: true },
+      { hostSha256: otherHash, blocked: true },
     ],
     temporaryHash,
-    new Set([productionHash]),
   );
   assert.equal(blocked.productionAccessed, true);
-  assert.deepEqual(blocked.productionMatches, [productionHash]);
+  assert.deepEqual(blocked.nonTemporaryHostHashes, [otherHash]);
+});
+
+test('recovery officer public key is immutable and has no private counterpart', () => {
+  const recoveryPublicKey = fs.readFileSync(
+    path.join(repositoryRoot, 'security/recovery/cza-neon-cleanup-public.pem'),
+    'utf8',
+  );
+  const publicKeyDer = Buffer.from(
+    recoveryPublicKey.replace(/-----[^-]+-----/g, '').replace(/\s+/g, ''),
+    'base64',
+  );
+  assert.equal(
+    createHash('sha256').update(publicKeyDer).digest('hex'),
+    'e5cf6c8fb09721b3c095ae767858d4c8684a885ae3e7bf35664e29c0e4d553f8',
+  );
+  assert.equal(
+    fs.existsSync(
+      path.join(
+        repositoryRoot,
+        'security/recovery/cza-neon-cleanup-private.pem',
+      ),
+    ),
+    false,
+  );
 });
 
 test('security workflows use immutable action and local Neon CLI references', () => {
@@ -362,7 +378,9 @@ test('security workflows use immutable action and local Neon CLI references', ()
     }
   }
   assert.doesNotMatch(canonicalWorkflow, /\bnpx\b/);
-  assert.match(canonicalWorkflow, /CZA_PRODUCTION_DB_ENDPOINT_MANIFEST/);
+  assert.doesNotMatch(canonicalWorkflow, /CZA_PRODUCTION_DB_ENDPOINT_MANIFEST/);
+  assert.match(canonicalWorkflow, /single temporary PostgreSQL hostname/i);
+  assert.match(canonicalWorkflow, /cza-neon-cleanup-public\.pem/);
   assert.match(canonicalWorkflow, /neon-project-recovery\.json/);
   assert.match(canonicalWorkflow, /claimable-neon-recovery\.mjs/);
   assert.match(canonicalWorkflow, /neon-cleanup-recovery\.encrypted\.json/);
