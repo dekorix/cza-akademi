@@ -2,6 +2,9 @@ name: CZA Canonical PostgreSQL Security
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - security/educator-auth-ci-hardening-v2
   pull_request:
     branches:
       - main
@@ -51,6 +54,7 @@ jobs:
     needs: local-security
     if: >-
       github.event_name == 'workflow_dispatch' ||
+      github.event_name == 'push' ||
       github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     timeout-minutes: 20
