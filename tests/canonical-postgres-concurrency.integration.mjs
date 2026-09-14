@@ -81,6 +81,7 @@ async function bootstrap() {
   await sql.unsafe(`
     DROP SCHEMA IF EXISTS public CASCADE;
     CREATE SCHEMA public;
+    CREATE EXTENSION IF NOT EXISTS pgcrypto;
     CREATE TABLE public.academies (id uuid PRIMARY KEY);
     CREATE TABLE public.users (
       id uuid PRIMARY KEY,
@@ -117,7 +118,7 @@ async function bootstrap() {
       completed_at timestamptz NULL
     );
     CREATE TABLE public.learning_records (
-      id uuid PRIMARY KEY,
+      id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
       academy_id uuid NOT NULL REFERENCES public.academies(id) ON DELETE CASCADE,
       student_id uuid NOT NULL REFERENCES public.students(id) ON DELETE CASCADE,
       module_code text NOT NULL REFERENCES public.modules(code),
@@ -146,7 +147,7 @@ async function bootstrap() {
     CREATE INDEX idx_learning_records_module_student
       ON public.learning_records(module_code, student_id, completed_at DESC);
     CREATE TABLE public.learning_evidence (
-      id uuid PRIMARY KEY,
+      id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
       learning_record_id uuid NOT NULL,
       academy_id uuid NOT NULL,
       student_id uuid NOT NULL,
