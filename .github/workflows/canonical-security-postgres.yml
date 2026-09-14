@@ -1,0 +1,268 @@
+name: CZA Canonical PostgreSQL Security
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cza-canonical-security-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  local-security:
+    name: Local security checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Setup Node
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: '22.13.0'
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Security tests
+        run: pnpm test:security
+
+      - name: Type check
+        run: pnpm exec tsc --noEmit
+
+      - name: Production build
+        run: pnpm build
+
+  postgres-security:
+    name: Disposable Neon PostgreSQL security
+    needs: local-security
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      # Maintained by the production owner. Contains only names and lowercase
+      # SHA-256 hostname fingerprints for every production database endpoint.
+      CZA_PRODUCTION_DB_ENDPOINT_MANIFEST: ${{ secrets.CZA_PRODUCTION_DB_ENDPOINT_MANIFEST }}
+      CZA_NEON_ENV_FILE: ${{ runner.temp }}/cza-neon.env
+      CZA_SECURITY_REPORT_DIR: ${{ runner.temp }}/cza-security-results
+      CZA_CLAIM_DIRECTORY: ${{ runner.temp }}/cza-neon-claim
+      CZA_NEON_CONFIG_DIR: ${{ runner.temp }}/cza-neon-config
+      CZA_NEON_CONTEXT_FILE: ${{ runner.temp }}/cza-neon-claim/.neon
+      CZA_NEON_RECOVERY_FILE: ${{ runner.temp }}/cza-security-results/neon-project-recovery.json
+      CZA_NEON_RECOVERY_BUNDLE: ${{ runner.temp }}/cza-security-results/neon-cleanup-recovery.encrypted.json
+      CZA_NEON_RECOVERY_DRILL_BUNDLE: ${{ runner.temp }}/cza-neon-recovery-drill.encrypted.json
+      CZA_NEON_RECOVERY_DRILL_PUBLIC_KEY: ${{ runner.temp }}/cza-neon-recovery-drill-public.b64
+      CZA_NEON_RECOVERY_DRILL_PRIVATE_KEY: ${{ runner.temp }}/cza-neon-recovery-drill-private.pem
+      CZA_NEON_RECOVERY_DRILL_RESULT: ${{ runner.temp }}/cza-security-results/neon-recovery-drill.json
+      CZA_NEON_RECOVERY_PUBLIC_KEY_B64: ${{ vars.CZA_NEON_RECOVERY_PUBLIC_KEY_B64 }}
+      CZA_NEON_BIN: ${{ github.workspace }}/node_modules/.bin/neon
+    steps:
+      - name: Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Setup Node
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: '22.13.0'
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Validate complete production endpoint manifest
+        run: node scripts/production-endpoint-manifest.mjs
+
+      - name: Validate cleanup recovery encryption key
+        run: node scripts/neon-cleanup-recovery.mjs validate-public-key
+
+      - name: Create isolated Claimable Neon project
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p \
+            "$CZA_CLAIM_DIRECTORY" \
+            "$CZA_NEON_CONFIG_DIR" \
+            "$CZA_SECURITY_REPORT_DIR"
+          chmod 700 \
+            "$CZA_CLAIM_DIRECTORY" \
+            "$CZA_NEON_CONFIG_DIR" \
+            "$CZA_SECURITY_REPORT_DIR"
+          node "$GITHUB_WORKSPACE/scripts/neon-cleanup-recovery.mjs" \
+            generate-drill-key \
+            "$CZA_NEON_RECOVERY_DRILL_PUBLIC_KEY" \
+            "$CZA_NEON_RECOVERY_DRILL_PRIVATE_KEY"
+          cd "$CZA_CLAIM_DIRECTORY"
+          "$CZA_NEON_BIN" \
+            --no-analytics \
+            --no-color \
+            --output json \
+            --config-dir "$CZA_NEON_CONFIG_DIR" \
+            --context-file "$CZA_NEON_CONTEXT_FILE" \
+            claim create \
+            --service postgres \
+            --file "$CZA_NEON_ENV_FILE" \
+            >"$RUNNER_TEMP/cza-neon-create.json" \
+            2>"$RUNNER_TEMP/cza-neon-create.log"
+          node "$GITHUB_WORKSPACE/scripts/claimable-neon-recovery.mjs" \
+            capture \
+            "$RUNNER_TEMP/cza-neon-create.json" \
+            "$CZA_NEON_RECOVERY_FILE"
+          node "$GITHUB_WORKSPACE/scripts/neon-cleanup-recovery.mjs" \
+            seal \
+            "$CZA_NEON_RECOVERY_FILE" \
+            "$CZA_NEON_CONTEXT_FILE" \
+            "$CZA_NEON_CONFIG_DIR" \
+            "$CZA_NEON_RECOVERY_BUNDLE"
+          CZA_NEON_RECOVERY_PUBLIC_KEY_B64="$(tr -d '\r\n' < \
+            "$CZA_NEON_RECOVERY_DRILL_PUBLIC_KEY")" \
+            node "$GITHUB_WORKSPACE/scripts/neon-cleanup-recovery.mjs" \
+              seal \
+              "$CZA_NEON_RECOVERY_FILE" \
+              "$CZA_NEON_CONTEXT_FILE" \
+              "$CZA_NEON_CONFIG_DIR" \
+              "$CZA_NEON_RECOVERY_DRILL_BUNDLE"
+          test -s "$CZA_NEON_RECOVERY_BUNDLE"
+          test -s "$CZA_NEON_RECOVERY_DRILL_BUNDLE"
+          rm -rf "$CZA_CLAIM_DIRECTORY" "$CZA_NEON_CONFIG_DIR"
+          chmod 600 "$CZA_NEON_ENV_FILE"
+          test -s "$CZA_NEON_ENV_FILE"
+          echo "Temporary Neon project created; credentials are sealed."
+
+      - name: Run real PostgreSQL security suite
+        run: node scripts/run-canonical-security-postgres-ci.mjs
+
+      - name: Delete temporary Neon project
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ ! -f "$CZA_NEON_RECOVERY_FILE" && -f "$CZA_NEON_CONTEXT_FILE" ]]; then
+            node "$GITHUB_WORKSPACE/scripts/claimable-neon-recovery.mjs" \
+              capture-context \
+              "$CZA_NEON_CONTEXT_FILE" \
+              "$CZA_NEON_RECOVERY_FILE"
+          fi
+          if [[ -f "$CZA_NEON_RECOVERY_FILE" && \
+                -f "$CZA_NEON_CONTEXT_FILE" && \
+                ! -f "$CZA_NEON_RECOVERY_BUNDLE" ]]; then
+            node "$GITHUB_WORKSPACE/scripts/neon-cleanup-recovery.mjs" \
+              seal \
+              "$CZA_NEON_RECOVERY_FILE" \
+              "$CZA_NEON_CONTEXT_FILE" \
+              "$CZA_NEON_CONFIG_DIR" \
+              "$CZA_NEON_RECOVERY_BUNDLE"
+          fi
+          if [[ -f "$CZA_NEON_RECOVERY_FILE" && \
+                -f "$CZA_NEON_CONTEXT_FILE" && \
+                -f "$CZA_NEON_RECOVERY_DRILL_PUBLIC_KEY" && \
+                ! -f "$CZA_NEON_RECOVERY_DRILL_BUNDLE" ]]; then
+            CZA_NEON_RECOVERY_PUBLIC_KEY_B64="$(tr -d '\r\n' < \
+              "$CZA_NEON_RECOVERY_DRILL_PUBLIC_KEY")" \
+              node "$GITHUB_WORKSPACE/scripts/neon-cleanup-recovery.mjs" \
+                seal \
+                "$CZA_NEON_RECOVERY_FILE" \
+                "$CZA_NEON_CONTEXT_FILE" \
+                "$CZA_NEON_CONFIG_DIR" \
+                "$CZA_NEON_RECOVERY_DRILL_BUNDLE"
+          fi
+          if [[ -f "$CZA_NEON_RECOVERY_FILE" ]]; then
+            project_id="$(node "$GITHUB_WORKSPACE/scripts/claimable-neon-recovery.mjs" \
+              project-id "$CZA_NEON_RECOVERY_FILE")"
+            cleanup_confirmed=false
+            if [[ -f "$CZA_NEON_RECOVERY_DRILL_BUNDLE" && \
+                  -f "$CZA_NEON_RECOVERY_DRILL_PRIVATE_KEY" ]]; then
+              if node "$GITHUB_WORKSPACE/scripts/neon-cleanup-recovery.mjs" \
+                recover-delete \
+                "$CZA_NEON_RECOVERY_DRILL_BUNDLE" \
+                "$CZA_NEON_RECOVERY_DRILL_PRIVATE_KEY" \
+                "$CZA_NEON_BIN" \
+                >"$CZA_NEON_RECOVERY_DRILL_RESULT" \
+                2>"$RUNNER_TEMP/cza-neon-delete.log"; then
+                cleanup_confirmed=true
+              fi
+            elif [[ -f "$CZA_NEON_CONTEXT_FILE" ]]; then
+              if "$CZA_NEON_BIN" \
+                --no-analytics \
+                --no-color \
+                --output json \
+                --config-dir "$CZA_NEON_CONFIG_DIR" \
+                --context-file "$CZA_NEON_CONTEXT_FILE" \
+                claim delete "$project_id" --yes \
+                >"$RUNNER_TEMP/cza-neon-delete.json" \
+                2>"$RUNNER_TEMP/cza-neon-delete.log" && \
+                node "$GITHUB_WORKSPACE/scripts/neon-cleanup-recovery.mjs" \
+                  verify-delete \
+                  "$RUNNER_TEMP/cza-neon-delete.json" \
+                  "$project_id"; then
+                cleanup_confirmed=true
+              fi
+            fi
+            if [[ "$cleanup_confirmed" == true ]]; then
+              node "$GITHUB_WORKSPACE/scripts/claimable-neon-recovery.mjs" \
+                status "$CZA_NEON_RECOVERY_FILE" deleted
+              node "$GITHUB_WORKSPACE/scripts/neon-cleanup-recovery.mjs" \
+                discard "$CZA_NEON_RECOVERY_BUNDLE"
+              node "$GITHUB_WORKSPACE/scripts/neon-cleanup-recovery.mjs" \
+                discard "$CZA_NEON_RECOVERY_DRILL_BUNDLE"
+            else
+              node "$GITHUB_WORKSPACE/scripts/claimable-neon-recovery.mjs" \
+                status "$CZA_NEON_RECOVERY_FILE" orphaned
+              rm -f "$CZA_NEON_RECOVERY_DRILL_RESULT"
+              echo "Temporary Neon project deletion failed; recovery ID preserved in evidence." >&2
+              exit 1
+            fi
+            echo "Temporary Neon project deleted."
+          fi
+
+      - name: Remove temporary credentials
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module - \
+            "$CZA_NEON_ENV_FILE" \
+            "$RUNNER_TEMP/cza-neon-create.json" \
+            "$RUNNER_TEMP/cza-neon-create.log" \
+            "$RUNNER_TEMP/cza-neon-delete.json" \
+            "$RUNNER_TEMP/cza-neon-delete.log" \
+            "$CZA_NEON_RECOVERY_DRILL_BUNDLE" \
+            "$CZA_NEON_RECOVERY_DRILL_PUBLIC_KEY" \
+            "$CZA_NEON_RECOVERY_DRILL_PRIVATE_KEY" \
+            "$CZA_CLAIM_DIRECTORY" \
+            "$CZA_NEON_CONFIG_DIR" <<'NODE'
+          import fs from 'node:fs';
+          for (const target of process.argv.slice(2)) {
+            fs.rmSync(target, { force: true, recursive: true });
+          }
+          NODE
+          echo "Temporary credentials removed."
+
+      - name: Upload sanitized security evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: cza-canonical-postgres-security-${{ github.run_id }}
+          path: ${{ runner.temp }}/cza-security-results
+          if-no-files-found: warn
+          retention-days: 14

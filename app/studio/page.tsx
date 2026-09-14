@@ -218,7 +218,8 @@ export default function Studio() {
   }
   async function logout() {
     if (sessionId) { try { await core('finish',{sessionId}); } catch { /* Kaydedilmiş sorular sunucuda kalır. */ } }
-    try { await core('logout'); } catch { /* Sunucu rotası çerezi yine temizler. */ }
+    try { await core('logout'); }
+    catch (e) { setError(`${friendlyCoreError(e)} Güvenli çıkış tamamlanmadı; tekrar dene.`); return; }
     setStudent(null); setSessionId(null); setPhase('ready'); setAttempts([]);
   }
   async function start() {
@@ -353,4 +354,3 @@ export default function Studio() {
     </main>
   </div>;
 }
-

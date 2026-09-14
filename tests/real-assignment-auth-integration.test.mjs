@@ -2,17 +2,50 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
-const educatorAssignments = fs.readFileSync(new URL('../app/api/educator-assignments/route.ts', import.meta.url), 'utf8');
-const studentAssignments = fs.readFileSync(new URL('../app/api/core/assignments/route.ts', import.meta.url), 'utf8');
-const coreRoute = fs.readFileSync(new URL('../app/api/core/route.ts', import.meta.url), 'utf8');
-const studio = fs.readFileSync(new URL('../app/studio/page.tsx', import.meta.url), 'utf8');
-const students = fs.readFileSync(new URL('../components/educator-students.tsx', import.meta.url), 'utf8');
-const educatorAuth = fs.readFileSync(new URL('../lib/educator-auth.ts', import.meta.url), 'utf8');
-const educatorAuthRoute = fs.readFileSync(new URL('../app/api/educator-auth/route.ts', import.meta.url), 'utf8');
-const resetPage = fs.readFileSync(new URL('../app/educator/reset-password/page.tsx', import.meta.url), 'utf8');
-const educatorReport = fs.readFileSync(new URL('../app/api/educator-report/route.ts', import.meta.url), 'utf8');
-const trainingRecipes = fs.readFileSync(new URL('../lib/training-recipes.ts', import.meta.url), 'utf8');
-const prescriptionPage = fs.readFileSync(new URL('../app/educator/assessment/prescription/page.tsx', import.meta.url), 'utf8');
+const educatorAssignments = fs.readFileSync(
+  new URL('../app/api/educator-assignments/route.ts', import.meta.url),
+  'utf8',
+);
+const studentAssignments = fs.readFileSync(
+  new URL('../app/api/core/assignments/route.ts', import.meta.url),
+  'utf8',
+);
+const coreRoute = fs.readFileSync(
+  new URL('../app/api/core/route.ts', import.meta.url),
+  'utf8',
+);
+const studio = fs.readFileSync(
+  new URL('../app/studio/page.tsx', import.meta.url),
+  'utf8',
+);
+const students = fs.readFileSync(
+  new URL('../components/educator-students.tsx', import.meta.url),
+  'utf8',
+);
+const educatorAuth = fs.readFileSync(
+  new URL('../lib/educator-auth.ts', import.meta.url),
+  'utf8',
+);
+const educatorAuthRoute = fs.readFileSync(
+  new URL('../app/api/educator-auth/route.ts', import.meta.url),
+  'utf8',
+);
+const resetPage = fs.readFileSync(
+  new URL('../app/educator/reset-password/page.tsx', import.meta.url),
+  'utf8',
+);
+const educatorReport = fs.readFileSync(
+  new URL('../app/api/educator-report/route.ts', import.meta.url),
+  'utf8',
+);
+const trainingRecipes = fs.readFileSync(
+  new URL('../lib/training-recipes.ts', import.meta.url),
+  'utf8',
+);
+const prescriptionPage = fs.readFileSync(
+  new URL('../app/educator/assessment/prescription/page.tsx', import.meta.url),
+  'utf8',
+);
 
 test('educator assignment creation reuses central student identity and existing training_recipes', () => {
   assert.match(educatorAssignments, /teacher_student_links/);
@@ -26,8 +59,14 @@ test('educator assignment creation reuses central student identity and existing 
 
 test('student assignment queue is scoped to the authenticated student session', () => {
   assert.match(studentAssignments, /authenticatedStudent\(request\)/);
-  assert.match(studentAssignments, /tr\.student_id = \$\{student\.student_id\}::uuid/);
-  assert.match(studentAssignments, /tr\.academy_id = \$\{student\.academy_id\}::uuid/);
+  assert.match(
+    studentAssignments,
+    /tr\.student_id = \$\{student\.student_id\}::uuid/,
+  );
+  assert.match(
+    studentAssignments,
+    /tr\.academy_id = \$\{student\.academy_id\}::uuid/,
+  );
   assert.match(studentAssignments, /source = 'teacher_assignment'/);
   assert.match(studentAssignments, /cza_assignment_recipe/);
   assert.match(studentAssignments, /Path=\/api\/core/);
@@ -47,7 +86,10 @@ test('assigned studio settings are loaded and locked for the assigned session', 
   assert.match(studio, /readAssignedProgram/);
   assert.match(studio, /setAssignmentId\(recipeId\)/);
   assert.match(studio, /disabled=\{active \|\| Boolean\(assignmentId\)\}/);
-  assert.match(students, /action: 'create', studentId: student\.id, moduleCode/);
+  assert.match(
+    students,
+    /action: 'create', studentId: student\.id, moduleCode/,
+  );
   assert.match(students, /Öğrenciye ata/);
 });
 
@@ -57,7 +99,10 @@ test('assessment prescriptions are recomputed server-side and require explicit e
   assert.match(educatorAssignments, /student_id = \$\{studentId\}::uuid/);
   assert.match(educatorAssignments, /status = 'completed'/);
   assert.match(educatorAssignments, /template_code = 'CZA_1_TO_2_V1'/);
-  assert.match(educatorAssignments, /buildCzaWorkRecommendations\(assessmentReport, 8\)/);
+  assert.match(
+    educatorAssignments,
+    /buildCzaWorkRecommendations\(assessmentReport, 8\)/,
+  );
   assert.match(educatorAssignments, /recipeSettingsFromRecommendation/);
   assert.match(trainingRecipes, /recommendationKeys/);
   assert.match(trainingRecipes, /validateConfig\(next\)/);
@@ -85,12 +130,21 @@ test('educator login verifies the current Neon Auth credential hash locally and 
 });
 
 test('password reset is also a secure educator sign-in fallback and exposes a deploy fingerprint', () => {
-  assert.match(educatorAuthRoute, /AUTH_BUILD = '2026-09-12-reset-autologin-v1'/);
-  assert.match(educatorAuthRoute, /export async function GET\(\)/);
+  assert.match(
+    educatorAuthRoute,
+    /AUTH_BUILD = '2026-09-14-auth-hardening-v2\.2'/,
+  );
+  assert.match(
+    educatorAuthRoute,
+    /export async function GET\(request: Request\)/,
+  );
   assert.match(educatorAuthRoute, /if \(action === 'reset'\)/);
-  assert.match(educatorAuthRoute, /signedIn:true/);
+  assert.match(educatorAuthRoute, /signedIn:\s*true/);
   assert.match(educatorAuthRoute, /set-cookie/);
   assert.match(resetPage, /Parolayı kaydet ve giriş yap/);
-  assert.match(resetPage, /window\.location\.replace\('\/educator\?tab=students&auth=reset'\)/);
+  assert.match(
+    resetPage,
+    /window\.location\.replace\('\/educator\?tab=students&auth=reset'\)/,
+  );
   assert.match(resetPage, /CZA Auth · reset-autologin-v1/);
 });

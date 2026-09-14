@@ -1,5 +1,5 @@
 /*
- * CZA Core Init v1.0.0
+ * CZA Core Init v1.1.0
  * Registry, Learning Contract ve Transport katmanlarını tek public runtime'da bağlar.
  */
 
@@ -12,7 +12,7 @@ import {
   CzaCoreTransportAdapter
 } from "./cza-core-transport.js";
 
-const CZA_INIT_VERSION = "1.0.0";
+const CZA_INIT_VERSION = "1.1.0";
 const READY_EVENT = "cza:ready";
 const ERROR_EVENT = "cza:error";
 const MODULE_REGISTERED_EVENT = "cza:module-registered";

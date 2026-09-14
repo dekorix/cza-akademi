@@ -15,15 +15,19 @@ jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    env:
+      CZA_TRUSTED_PROXY_HMAC_SECRET: cza-ci-only-proxy-secret-with-at-least-32-bytes
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
 
       - name: Enable Corepack
         run: corepack enable
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
           node-version: '22.13.0'
           cache: pnpm
@@ -63,7 +67,42 @@ jobs:
           curl -fsS http://127.0.0.1:8787/educator/assessment/e3/report > /tmp/assessment-e3-report.html
           curl -fsS http://127.0.0.1:8787/work > /tmp/work.html
           curl -fsS http://127.0.0.1:8787/educator > /tmp/educator.html
-          curl -fsS http://127.0.0.1:8787/api/educator-auth > /tmp/educator-auth.json
+          forged_status=$(curl -sS -o /tmp/educator-auth-forged.json -w '%{http_code}' \
+            -H 'oai-authenticated-user-email: habipcann65@gmail.com' \
+            http://127.0.0.1:8787/api/educator-auth)
+          test "$forged_status" = '403'
+          grep -F '"error":"trusted_proxy_required"' /tmp/educator-auth-forged.json
+          read -r cza_proxy_timestamp cza_proxy_nonce cza_proxy_signature < <(node - <<'NODE'
+          const { createHash, createHmac, randomBytes } = require('node:crypto');
+          const timestamp = String(Math.floor(Date.now() / 1000));
+          const nonce = randomBytes(16).toString('hex');
+          const bodySha256 = createHash('sha256').update('').digest('hex');
+          const payload = [
+            'cza-educator-proxy-v2',
+            timestamp,
+            nonce,
+            'GET',
+            '/api/educator-auth',
+            bodySha256,
+            '',
+          ].join('\n');
+          const signature = createHmac(
+            'sha256',
+            process.env.CZA_TRUSTED_PROXY_HMAC_SECRET,
+          ).update(payload).digest('hex');
+          process.stdout.write(`${timestamp} ${nonce} ${signature}`);
+          NODE
+          )
+          signed_without_nonce_store_status=$(curl -sS \
+            -o /tmp/educator-auth-no-nonce-store.json \
+            -w '%{http_code}' \
+            -H "x-cza-proxy-timestamp: $cza_proxy_timestamp" \
+            -H "x-cza-proxy-nonce: $cza_proxy_nonce" \
+            -H "x-cza-proxy-signature: $cza_proxy_signature" \
+            http://127.0.0.1:8787/api/educator-auth)
+          test "$signed_without_nonce_store_status" = '403'
+          grep -F '"error":"trusted_proxy_required"' /tmp/educator-auth-no-nonce-store.json
+          grep -F '"build":"2026-09-14-auth-hardening-v2.2"' /tmp/educator-auth-no-nonce-store.json
           test -s /tmp/assessment-student.html
           test -s /tmp/assessment-e3.html
           test -s /tmp/assessment-educator.html
@@ -71,9 +110,6 @@ jobs:
           test -s /tmp/assessment-e3-report.html
           test -s /tmp/work.html
           test -s /tmp/educator.html
-          grep -F '"ok":true' /tmp/educator-auth.json
-          grep -F '"service":"cza-educator-auth"' /tmp/educator-auth.json
-          grep -F '"build":"2026-09-12-reset-autologin-v1"' /tmp/educator-auth.json
 
       # The repository has existing lint debt. Keep integration-only lint visible while
       # typecheck, production build and runtime smoke tests remain the merge blockers.

@@ -137,8 +137,8 @@ function caregiverRows(rows: Record<string, unknown>[]) {
 }
 
 export async function POST(request: Request) {
-  const gate = allowRequest(request, 'assessment-e3', 120, 10 * 60_000);
-  if (!gate.allowed) return rateLimited(gate.retryAfterSeconds);
+  const gate = await allowRequest(request, 'assessment-e3', 120, 10 * 60_000);
+  if (!gate.allowed) return rateLimited(gate);
 
   let input: Record<string, unknown>;
   try { input = await request.json() as Record<string, unknown>; }

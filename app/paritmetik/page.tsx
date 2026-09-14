@@ -273,7 +273,8 @@ export default function ParitmetikPage() {
     if (sessionId) {
       try { await flushInteractions(); await core('finish', { sessionId, activeDurationMs: Math.round(activeSeconds * 1000), questionCount: stats.total }); } catch { setSync('error'); setSaveError('Kayıt tamamlanamadığı için çıkış yapılmadı.'); return; }
     }
-    try { await core('logout'); } catch { /* Çerez sunucu yanıtında yine temizlenir. */ }
+    try { await core('logout'); }
+    catch (error) { setSaveError(`${friendlyError(error)} Güvenli çıkış tamamlanmadı; tekrar dene.`); return; }
     setStudent(null);
     setSessionId(null);
     setActiveSeconds(0);
