@@ -90,7 +90,7 @@ jobs:
             'sha256',
             process.env.CZA_TRUSTED_PROXY_HMAC_SECRET,
           ).update(payload).digest('hex');
-          process.stdout.write(`${timestamp} ${nonce} ${signature}`);
+          process.stdout.write(`${timestamp} ${nonce} ${signature}\n`);
           NODE
           )
           signed_without_nonce_store_status=$(curl -sS \
