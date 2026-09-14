@@ -1,9 +1,9 @@
 /*
- * CZA Core Runtime v1.0.0
+ * CZA Core Runtime v1.1.0
  * Tarayıcı tarafındaki modül kayıt defteri ve ortak öğrenme sözleşmesi.
  */
 
-const CZA_CONTRACT_VERSION = "1.0.0";
+const CZA_CONTRACT_VERSION = "1.1.0";
 const CZA_SCHEMA_VERSION = "CZA_MODULE_RECORD_V1";
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const MODULE_ID_PATTERN = /^[a-z0-9]+(?:[_-][a-z0-9]+)*$/;

@@ -1,0 +1,458 @@
+name: CZA Canonical PostgreSQL Security
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cza-canonical-security-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  local-security:
+    name: Local security checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Setup Node
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: '22.13.0'
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Security tests
+        run: pnpm test:security
+
+      - name: Type check
+        run: pnpm exec tsc --noEmit
+
+      - name: Production build
+        run: pnpm build
+
+  postgres-security:
+    name: Disposable Neon PostgreSQL security
+    needs: local-security
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      CZA_NEON_BIN: ${{ github.workspace }}/node_modules/.bin/neon
+    steps:
+      - name: Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+
+      - name: Initialize isolated runner paths
+        shell: bash
+        run: |
+          set -euo pipefail
+          {
+            echo "CZA_NEON_ENV_FILE=$RUNNER_TEMP/cza-neon.env"
+            echo "CZA_SECURITY_REPORT_DIR=$RUNNER_TEMP/cza-security-results"
+            echo "CZA_CLAIM_DIRECTORY=$RUNNER_TEMP/cza-neon-claim"
+            echo "CZA_NEON_CONFIG_DIR=$RUNNER_TEMP/cza-neon-config"
+            echo "CZA_NEON_CONTEXT_FILE=$RUNNER_TEMP/cza-neon-claim/.neon"
+            echo "CZA_NEON_RECOVERY_FILE=$RUNNER_TEMP/cza-security-results/neon-project-recovery.json"
+            echo "CZA_NEON_RECOVERY_BUNDLE=$RUNNER_TEMP/cza-security-results/neon-cleanup-recovery.encrypted.json"
+            echo "CZA_NEON_RECOVERY_DRILL_BUNDLE=$RUNNER_TEMP/cza-neon-recovery-drill.encrypted.json"
+            echo "CZA_NEON_RECOVERY_DRILL_PUBLIC_KEY=$RUNNER_TEMP/cza-neon-recovery-drill-public.b64"
+            echo "CZA_NEON_RECOVERY_DRILL_PRIVATE_KEY=$RUNNER_TEMP/cza-neon-recovery-drill-private.pem"
+            echo "CZA_NEON_RECOVERY_DRILL_RESULT=$RUNNER_TEMP/cza-security-results/neon-recovery-drill.json"
+            echo "CZA_PROXY_E2E_ORIGIN_ENV_FILE=$RUNNER_TEMP/cza-proxy-origin.env"
+          } >> "$GITHUB_ENV"
+          public_key="security/recovery/cza-neon-cleanup-public.pem"
+          expected_fingerprint="e5cf6c8fb09721b3c095ae767858d4c8684a885ae3e7bf35664e29c0e4d553f8"
+          actual_fingerprint="$(openssl pkey -pubin -in "$public_key" -outform DER | \
+            openssl dgst -sha256 -r | cut -d ' ' -f 1)"
+          test "$actual_fingerprint" = "$expected_fingerprint"
+          echo "CZA_NEON_RECOVERY_PUBLIC_KEY_B64=$(base64 -w 0 "$public_key")" \
+            >> "$GITHUB_ENV"
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Setup Node
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: '22.13.0'
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Validate cleanup recovery encryption key
+        run: node scripts/neon-cleanup-recovery.mjs validate-public-key
+
+      - name: Create isolated Claimable Neon project
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p \
+            "$CZA_CLAIM_DIRECTORY" \
+            "$CZA_NEON_CONFIG_DIR" \
+            "$CZA_SECURITY_REPORT_DIR"
+          chmod 700 \
+            "$CZA_CLAIM_DIRECTORY" \
+            "$CZA_NEON_CONFIG_DIR" \
+            "$CZA_SECURITY_REPORT_DIR"
+          node "$GITHUB_WORKSPACE/scripts/neon-cleanup-recovery.mjs" \
+            generate-drill-key \
+            "$CZA_NEON_RECOVERY_DRILL_PUBLIC_KEY" \
+            "$CZA_NEON_RECOVERY_DRILL_PRIVATE_KEY"
+          cd "$CZA_CLAIM_DIRECTORY"
+          "$CZA_NEON_BIN" \
+            --no-analytics \
+            --no-color \
+            --output json \
+            --config-dir "$CZA_NEON_CONFIG_DIR" \
+            --context-file "$CZA_NEON_CONTEXT_FILE" \
+            claim create \
+            --service postgres \
+            --file "$CZA_NEON_ENV_FILE" \
+            >"$RUNNER_TEMP/cza-neon-create.json" \
+            2>"$RUNNER_TEMP/cza-neon-create.log"
+          node "$GITHUB_WORKSPACE/scripts/claimable-neon-recovery.mjs" \
+            capture \
+            "$RUNNER_TEMP/cza-neon-create.json" \
+            "$CZA_NEON_RECOVERY_FILE"
+          node "$GITHUB_WORKSPACE/scripts/neon-cleanup-recovery.mjs" \
+            seal \
+            "$CZA_NEON_RECOVERY_FILE" \
+            "$CZA_NEON_CONTEXT_FILE" \
+            "$CZA_NEON_CONFIG_DIR" \
+            "$CZA_NEON_RECOVERY_BUNDLE"
+          CZA_NEON_RECOVERY_PUBLIC_KEY_B64="$(tr -d '\r\n' < \
+            "$CZA_NEON_RECOVERY_DRILL_PUBLIC_KEY")" \
+            node "$GITHUB_WORKSPACE/scripts/neon-cleanup-recovery.mjs" \
+              seal \
+              "$CZA_NEON_RECOVERY_FILE" \
+              "$CZA_NEON_CONTEXT_FILE" \
+              "$CZA_NEON_CONFIG_DIR" \
+              "$CZA_NEON_RECOVERY_DRILL_BUNDLE"
+          test -s "$CZA_NEON_RECOVERY_BUNDLE"
+          test -s "$CZA_NEON_RECOVERY_DRILL_BUNDLE"
+          rm -rf "$CZA_CLAIM_DIRECTORY" "$CZA_NEON_CONFIG_DIR"
+          chmod 600 "$CZA_NEON_ENV_FILE"
+          test -s "$CZA_NEON_ENV_FILE"
+          echo "Temporary Neon project created; credentials are sealed."
+
+      - name: Run real PostgreSQL suite with single temporary PostgreSQL hostname
+        run: node scripts/run-canonical-security-postgres-ci.mjs
+
+      - name: Configure isolated educator proxy E2E
+        run: node scripts/configure-educator-proxy-e2e-env.mjs
+
+      - name: Prepare real PostgreSQL nonce store
+        env:
+          NODE_OPTIONS: >-
+            --require=${{ github.workspace }}/scripts/postgres-network-audit.cjs
+        run: >-
+          CZA_NETWORK_AUDIT_FILE="$CZA_PROXY_E2E_NETWORK_AUDIT"
+          node scripts/prepare-educator-proxy-nonce-store.mjs
+
+      - name: Build isolated preview origin
+        run: pnpm build
+
+      - name: Install immutable Cloudflare tunnel binary
+        shell: bash
+        run: |
+          set -euo pipefail
+          cloudflared="$RUNNER_TEMP/cloudflared-2026.9.1-linux-amd64"
+          curl \
+            --fail \
+            --location \
+            --proto '=https' \
+            --tlsv1.2 \
+            --output "$cloudflared" \
+            https://github.com/cloudflare/cloudflared/releases/download/2026.9.1/cloudflared-linux-amd64
+          echo \
+            "03f1f25d1cc93b9ad6c60569d44060bc4f17ed97075760ed8cfca4b12dcd68cc  $cloudflared" \
+            | sha256sum --check --strict
+          chmod 700 "$cloudflared"
+          "$cloudflared" version
+          echo "CZA_CLOUDFLARED_BIN=$cloudflared" >> "$GITHUB_ENV"
+
+      - name: Start loopback-only origin and signing proxy
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+
+          function requiredEnvironment(name) {
+            const value = process.env[name]?.trim();
+            if (!value) throw new Error(`missing-environment:${name}`);
+            return value;
+          }
+
+          const environmentFile = requiredEnvironment(
+            'CZA_PROXY_E2E_ORIGIN_ENV_FILE',
+          );
+          const contents = [
+            `DATABASE_URL=${JSON.stringify(requiredEnvironment('DATABASE_URL'))}`,
+            `CZA_TRUSTED_PROXY_HMAC_SECRET=${JSON.stringify(
+              requiredEnvironment('CZA_TRUSTED_PROXY_HMAC_SECRET'),
+            )}`,
+          ].join('\n');
+          fs.writeFileSync(environmentFile, `${contents}\n`, {
+            mode: 0o600,
+            flag: 'wx',
+          });
+          NODE
+          pnpm exec wrangler dev \
+            --config dist/server/wrangler.json \
+            --env-file "$CZA_PROXY_E2E_ORIGIN_ENV_FILE" \
+            --ip 127.0.0.1 \
+            --port 8787 \
+            >"$CZA_PROXY_E2E_ORIGIN_LOG" 2>&1 &
+          echo $! > "$RUNNER_TEMP/cza-proxy-origin.pid"
+          for i in $(seq 1 45); do
+            status="$(curl --silent --output /dev/null --write-out '%{http_code}' \
+              "$CZA_PROXY_E2E_ORIGIN_URL/api/educator-auth" || true)"
+            if [[ "$status" == 403 ]]; then
+              break
+            fi
+            if [[ "$i" == 45 ]]; then
+              echo "Loopback preview origin failed to start." >&2
+              exit 1
+            fi
+            sleep 1
+          done
+
+          node scripts/educator-proxy-e2e-server.mjs \
+            >"$RUNNER_TEMP/cza-proxy-boundary.log" 2>&1 &
+          echo $! > "$RUNNER_TEMP/cza-proxy-boundary.pid"
+          for i in $(seq 1 30); do
+            if curl --fail --silent \
+              "$CZA_PROXY_E2E_PROXY_URL/__health" >/dev/null; then
+              break
+            fi
+            if [[ "$i" == 30 ]]; then
+              echo "Trusted signing proxy failed to start." >&2
+              exit 1
+            fi
+            sleep 1
+          done
+
+          listener_count="$(ss -H -ltn | awk \
+            '$4 == "127.0.0.1:8787" { count += 1 } END { print count + 0 }')"
+          wildcard_count="$(ss -H -ltn | awk \
+            '$4 ~ /(^|:)8787$/ && $4 != "127.0.0.1:8787" { count += 1 } END { print count + 0 }')"
+          test "$listener_count" = 1
+          test "$wildcard_count" = 0
+          echo "CZA_PROXY_E2E_LISTENER_EVIDENCE=127.0.0.1:8787" \
+            >> "$GITHUB_ENV"
+
+      - name: Start one-use Cloudflare Quick Tunnel
+        id: proxy_tunnel
+        shell: bash
+        run: |
+          set -euo pipefail
+          : > "$CZA_PROXY_E2E_CLOUDFLARED_LOG"
+          : > "$RUNNER_TEMP/cza-cloudflared.stdout"
+          "$CZA_CLOUDFLARED_BIN" tunnel \
+            --no-autoupdate \
+            --protocol http2 \
+            --url "$CZA_PROXY_E2E_PROXY_URL" \
+            --logfile "$CZA_PROXY_E2E_CLOUDFLARED_LOG" \
+            >"$RUNNER_TEMP/cza-cloudflared.stdout" 2>&1 &
+          echo $! > "$RUNNER_TEMP/cza-cloudflared.pid"
+
+          tunnel_url=''
+          for i in $(seq 1 60); do
+            tunnel_url="$(sed -nE \
+              's#.*(https://[a-z0-9-]+\.trycloudflare\.com).*#\1#p' \
+              "$CZA_PROXY_E2E_CLOUDFLARED_LOG" \
+              "$RUNNER_TEMP/cza-cloudflared.stdout" | tail -n 1)"
+            if [[ -n "$tunnel_url" ]] && \
+               curl --fail --silent --max-time 5 \
+                 "$tunnel_url/__health" >/dev/null; then
+              break
+            fi
+            tunnel_url=''
+            if [[ "$i" == 60 ]]; then
+              echo "Cloudflare Quick Tunnel failed closed; no fallback was used." >&2
+              exit 1
+            fi
+            sleep 1
+          done
+          echo "::add-mask::$tunnel_url"
+          delimiter="CZA_TUNNEL_$(openssl rand -hex 12)"
+          {
+            echo "CZA_PROXY_E2E_TUNNEL_URL<<$delimiter"
+            echo "$tunnel_url"
+            echo "$delimiter"
+          } >> "$GITHUB_ENV"
+          echo "Ephemeral Cloudflare route is ready; hostname is masked."
+
+      - name: Run external proxy E2E behavior suite
+        shell: bash
+        run: |
+          set -uo pipefail
+          set +e
+          node --test tests/educator-proxy-cloudflare.e2e.mjs \
+            2>&1 | tee "$CZA_PROXY_E2E_TEST_LOG"
+          status="${PIPESTATUS[0]}"
+          set -e
+          echo "CZA_PROXY_E2E_TEST_EXIT_CODE=$status" >> "$GITHUB_ENV"
+          exit "$status"
+
+      - name: Build sanitized external proxy evidence
+        if: always() && steps.proxy_tunnel.outcome == 'success'
+        run: node scripts/collect-educator-proxy-e2e-evidence.mjs
+
+      - name: Stop isolated preview and tunnel
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          for pid_file in \
+            "$RUNNER_TEMP/cza-cloudflared.pid" \
+            "$RUNNER_TEMP/cza-proxy-boundary.pid" \
+            "$RUNNER_TEMP/cza-proxy-origin.pid"; do
+            if [[ -f "$pid_file" ]]; then
+              pid="$(tr -cd '0-9' < "$pid_file")"
+              if [[ -n "$pid" ]]; then
+                kill "$pid" 2>/dev/null || true
+                wait "$pid" 2>/dev/null || true
+              fi
+            fi
+          done
+          echo "Ephemeral Cloudflare route and loopback preview stopped."
+
+      - name: Delete temporary Neon project
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ ! -f "$CZA_NEON_RECOVERY_FILE" && -f "$CZA_NEON_CONTEXT_FILE" ]]; then
+            node "$GITHUB_WORKSPACE/scripts/claimable-neon-recovery.mjs" \
+              capture-context \
+              "$CZA_NEON_CONTEXT_FILE" \
+              "$CZA_NEON_RECOVERY_FILE"
+          fi
+          if [[ -f "$CZA_NEON_RECOVERY_FILE" && \
+                -f "$CZA_NEON_CONTEXT_FILE" && \
+                ! -f "$CZA_NEON_RECOVERY_BUNDLE" ]]; then
+            node "$GITHUB_WORKSPACE/scripts/neon-cleanup-recovery.mjs" \
+              seal \
+              "$CZA_NEON_RECOVERY_FILE" \
+              "$CZA_NEON_CONTEXT_FILE" \
+              "$CZA_NEON_CONFIG_DIR" \
+              "$CZA_NEON_RECOVERY_BUNDLE"
+          fi
+          if [[ -f "$CZA_NEON_RECOVERY_FILE" && \
+                -f "$CZA_NEON_CONTEXT_FILE" && \
+                -f "$CZA_NEON_RECOVERY_DRILL_PUBLIC_KEY" && \
+                ! -f "$CZA_NEON_RECOVERY_DRILL_BUNDLE" ]]; then
+            CZA_NEON_RECOVERY_PUBLIC_KEY_B64="$(tr -d '\r\n' < \
+              "$CZA_NEON_RECOVERY_DRILL_PUBLIC_KEY")" \
+              node "$GITHUB_WORKSPACE/scripts/neon-cleanup-recovery.mjs" \
+                seal \
+                "$CZA_NEON_RECOVERY_FILE" \
+                "$CZA_NEON_CONTEXT_FILE" \
+                "$CZA_NEON_CONFIG_DIR" \
+                "$CZA_NEON_RECOVERY_DRILL_BUNDLE"
+          fi
+          if [[ -f "$CZA_NEON_RECOVERY_FILE" ]]; then
+            project_id="$(node "$GITHUB_WORKSPACE/scripts/claimable-neon-recovery.mjs" \
+              project-id "$CZA_NEON_RECOVERY_FILE")"
+            cleanup_confirmed=false
+            if [[ -f "$CZA_NEON_RECOVERY_DRILL_BUNDLE" && \
+                  -f "$CZA_NEON_RECOVERY_DRILL_PRIVATE_KEY" ]]; then
+              if node "$GITHUB_WORKSPACE/scripts/neon-cleanup-recovery.mjs" \
+                recover-delete \
+                "$CZA_NEON_RECOVERY_DRILL_BUNDLE" \
+                "$CZA_NEON_RECOVERY_DRILL_PRIVATE_KEY" \
+                "$CZA_NEON_BIN" \
+                >"$CZA_NEON_RECOVERY_DRILL_RESULT" \
+                2>"$RUNNER_TEMP/cza-neon-delete.log"; then
+                cleanup_confirmed=true
+              fi
+            elif [[ -f "$CZA_NEON_CONTEXT_FILE" ]]; then
+              if "$CZA_NEON_BIN" \
+                --no-analytics \
+                --no-color \
+                --output json \
+                --config-dir "$CZA_NEON_CONFIG_DIR" \
+                --context-file "$CZA_NEON_CONTEXT_FILE" \
+                claim delete "$project_id" --yes \
+                >"$RUNNER_TEMP/cza-neon-delete.json" \
+                2>"$RUNNER_TEMP/cza-neon-delete.log" && \
+                node "$GITHUB_WORKSPACE/scripts/neon-cleanup-recovery.mjs" \
+                  verify-delete \
+                  "$RUNNER_TEMP/cza-neon-delete.json" \
+                  "$project_id"; then
+                cleanup_confirmed=true
+              fi
+            fi
+            if [[ "$cleanup_confirmed" == true ]]; then
+              node "$GITHUB_WORKSPACE/scripts/claimable-neon-recovery.mjs" \
+                status "$CZA_NEON_RECOVERY_FILE" deleted
+              node "$GITHUB_WORKSPACE/scripts/neon-cleanup-recovery.mjs" \
+                discard "$CZA_NEON_RECOVERY_BUNDLE"
+              node "$GITHUB_WORKSPACE/scripts/neon-cleanup-recovery.mjs" \
+                discard "$CZA_NEON_RECOVERY_DRILL_BUNDLE"
+            else
+              node "$GITHUB_WORKSPACE/scripts/claimable-neon-recovery.mjs" \
+                status "$CZA_NEON_RECOVERY_FILE" orphaned
+              rm -f "$CZA_NEON_RECOVERY_DRILL_RESULT"
+              echo "Temporary Neon project deletion failed; recovery ID preserved in evidence." >&2
+              exit 1
+            fi
+            echo "Temporary Neon project deleted."
+          fi
+
+      - name: Remove temporary credentials
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module - \
+            "$CZA_NEON_ENV_FILE" \
+            "$RUNNER_TEMP/cza-neon-create.json" \
+            "$RUNNER_TEMP/cza-neon-create.log" \
+            "$RUNNER_TEMP/cza-neon-delete.json" \
+            "$RUNNER_TEMP/cza-neon-delete.log" \
+            "$CZA_NEON_RECOVERY_DRILL_BUNDLE" \
+            "$CZA_NEON_RECOVERY_DRILL_PUBLIC_KEY" \
+            "$CZA_NEON_RECOVERY_DRILL_PRIVATE_KEY" \
+            "$CZA_PROXY_E2E_ORIGIN_ENV_FILE" \
+            "$CZA_CLAIM_DIRECTORY" \
+            "$CZA_NEON_CONFIG_DIR" <<'NODE'
+          import fs from 'node:fs';
+          for (const target of process.argv.slice(2)) {
+            fs.rmSync(target, { force: true, recursive: true });
+          }
+          NODE
+          echo "Temporary credentials removed."
+
+      - name: Upload sanitized security evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: cza-canonical-postgres-security-${{ github.run_id }}
+          path: ${{ runner.temp }}/cza-security-results
+          if-no-files-found: warn
+          retention-days: 14
