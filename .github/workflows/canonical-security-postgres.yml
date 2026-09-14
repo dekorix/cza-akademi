@@ -62,17 +62,6 @@ jobs:
       # Maintained by the production owner. Contains only names and lowercase
       # SHA-256 hostname fingerprints for every production database endpoint.
       CZA_PRODUCTION_DB_ENDPOINT_MANIFEST: ${{ secrets.CZA_PRODUCTION_DB_ENDPOINT_MANIFEST }}
-      CZA_NEON_ENV_FILE: ${{ runner.temp }}/cza-neon.env
-      CZA_SECURITY_REPORT_DIR: ${{ runner.temp }}/cza-security-results
-      CZA_CLAIM_DIRECTORY: ${{ runner.temp }}/cza-neon-claim
-      CZA_NEON_CONFIG_DIR: ${{ runner.temp }}/cza-neon-config
-      CZA_NEON_CONTEXT_FILE: ${{ runner.temp }}/cza-neon-claim/.neon
-      CZA_NEON_RECOVERY_FILE: ${{ runner.temp }}/cza-security-results/neon-project-recovery.json
-      CZA_NEON_RECOVERY_BUNDLE: ${{ runner.temp }}/cza-security-results/neon-cleanup-recovery.encrypted.json
-      CZA_NEON_RECOVERY_DRILL_BUNDLE: ${{ runner.temp }}/cza-neon-recovery-drill.encrypted.json
-      CZA_NEON_RECOVERY_DRILL_PUBLIC_KEY: ${{ runner.temp }}/cza-neon-recovery-drill-public.b64
-      CZA_NEON_RECOVERY_DRILL_PRIVATE_KEY: ${{ runner.temp }}/cza-neon-recovery-drill-private.pem
-      CZA_NEON_RECOVERY_DRILL_RESULT: ${{ runner.temp }}/cza-security-results/neon-recovery-drill.json
       CZA_NEON_RECOVERY_PUBLIC_KEY_B64: ${{ vars.CZA_NEON_RECOVERY_PUBLIC_KEY_B64 }}
       CZA_NEON_BIN: ${{ github.workspace }}/node_modules/.bin/neon
     steps:
@@ -80,6 +69,24 @@ jobs:
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           persist-credentials: false
+
+      - name: Initialize isolated runner paths
+        shell: bash
+        run: |
+          set -euo pipefail
+          {
+            echo "CZA_NEON_ENV_FILE=$RUNNER_TEMP/cza-neon.env"
+            echo "CZA_SECURITY_REPORT_DIR=$RUNNER_TEMP/cza-security-results"
+            echo "CZA_CLAIM_DIRECTORY=$RUNNER_TEMP/cza-neon-claim"
+            echo "CZA_NEON_CONFIG_DIR=$RUNNER_TEMP/cza-neon-config"
+            echo "CZA_NEON_CONTEXT_FILE=$RUNNER_TEMP/cza-neon-claim/.neon"
+            echo "CZA_NEON_RECOVERY_FILE=$RUNNER_TEMP/cza-security-results/neon-project-recovery.json"
+            echo "CZA_NEON_RECOVERY_BUNDLE=$RUNNER_TEMP/cza-security-results/neon-cleanup-recovery.encrypted.json"
+            echo "CZA_NEON_RECOVERY_DRILL_BUNDLE=$RUNNER_TEMP/cza-neon-recovery-drill.encrypted.json"
+            echo "CZA_NEON_RECOVERY_DRILL_PUBLIC_KEY=$RUNNER_TEMP/cza-neon-recovery-drill-public.b64"
+            echo "CZA_NEON_RECOVERY_DRILL_PRIVATE_KEY=$RUNNER_TEMP/cza-neon-recovery-drill-private.pem"
+            echo "CZA_NEON_RECOVERY_DRILL_RESULT=$RUNNER_TEMP/cza-security-results/neon-recovery-drill.json"
+          } >> "$GITHUB_ENV"
 
       - name: Enable Corepack
         run: corepack enable
