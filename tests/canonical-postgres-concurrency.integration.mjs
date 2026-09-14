@@ -51,6 +51,15 @@ const sql = postgres(connectionString, {
   prepare: false,
 });
 
+async function runMigrationOnReservedConnection() {
+  const reserved = await sql.reserve();
+  try {
+    await reserved.unsafe(migration);
+  } finally {
+    reserved.release();
+  }
+}
+
 const ID = Object.freeze({
   academy: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
   user: '10000000-0000-4000-8000-000000000001',
@@ -194,7 +203,7 @@ async function bootstrap() {
       'independent', '${completedAt}', '{}'
     );
   `);
-  await sql.unsafe(migration);
+  await runMigrationOnReservedConnection();
   const afterFirstMigration = await sql`
     SELECT student_session_id, record_origin, verification_status
     FROM public.learning_records
@@ -214,7 +223,7 @@ async function bootstrap() {
     verification_authority: 'legacy_unverified_import',
   });
 
-  await sql.unsafe(migration);
+  await runMigrationOnReservedConnection();
   const afterSecondMigration = await sql`
     SELECT count(*)::integer AS count
     FROM public.learning_records
