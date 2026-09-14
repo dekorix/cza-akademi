@@ -239,7 +239,7 @@ async function withRuntimeRole(callback) {
   });
 }
 
-function ingest(connection, clientId, performance = '{"correct":8}') {
+function ingest(connection, clientId, correct = 8) {
   return connection`
     SELECT * FROM public.cza_student_record_learning(
       ${ID.academy}::uuid,
@@ -256,9 +256,9 @@ function ingest(connection, clientId, performance = '{"correct":8}') {
       ${startedAt}::timestamptz,
       ${completedAt}::timestamptz,
       'independent'::text,
-      ${performance}::jsonb,
-      '["number_recognition"]'::jsonb,
-      '{}'::jsonb
+      ${connection.json({ correct })}::jsonb,
+      ${connection.json(['number_recognition'])}::jsonb,
+      ${connection.json({})}::jsonb
     )
   `;
 }
@@ -299,8 +299,8 @@ test('real PostgreSQL parallel limiter, idempotency and logout races', async () 
     );
 
     const tamper = await Promise.allSettled([
-      ingest(sql, ID.tamperClient, '{"correct":8}'),
-      ingest(sql, ID.tamperClient, '{"correct":7}'),
+      ingest(sql, ID.tamperClient, 8),
+      ingest(sql, ID.tamperClient, 7),
     ]);
     assert.equal(
       tamper.filter((result) => result.status === 'fulfilled').length,
