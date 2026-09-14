@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { ArrowRight, AudioLines, BookOpenCheck, BrainCircuit, ChartNoAxesCombined, Check, ChevronRight, Clock3, Dumbbell, Flame, Hand, LayoutDashboard, Loader2, LogOut, Menu, Play, School, ShieldCheck, Sparkles, Target, X } from 'lucide-react';
+import { ArrowRight, AudioLines, BookOpenCheck, BrainCircuit, ChartNoAxesCombined, Check, ChevronRight, Clock3, Dumbbell, Eye, Flame, Hand, LayoutDashboard, Loader2, LogOut, Menu, Play, School, ShieldCheck, Sparkles, Target, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -14,6 +14,7 @@ const modules = [
   { title: 'Toplama / Çıkarma', detail: 'Soroban, parmak veya zihinden işlem çöz', icon: Target, color: '#e8f2fb', ink: '#315a83', level: 'Ayar kontrollü çalışma', progress: 0, href: '/arithmetic' },
   { title: 'Flash Anzan', detail: 'Zihnindeki abaküsü çalıştır', icon: Sparkles, color: '#eeedf9', ink: '#7765aa', level: 'Seviye 1', progress: 32, href: '/studio?mode=flash' },
   { title: 'Sesli Anzan', detail: 'Dinle, canlandır, hesapla', icon: AudioLines, color: '#eef1f4', ink: '#6c7b8d', level: 'Sıradaki adım', progress: 0, href: '/studio?mode=audio' },
+  { title: 'Hızlı Okuma', detail: 'Odaklan, görsel alanını genişlet ve anlamı yakala', icon: Eye, color: '#efeafd', ink: '#6755b3', level: 'Faz 2 önizleme', progress: 0, href: '/speed-reading' },
 ];
 
 const CAMPUS_V14_URL = 'https://script.google.com/macros/s/AKfycbwIS-o_6HB8GiA-pLhR-zK4aRZCqo_kz_dpUJFWA94NqMUT2E22tu6tThHPSAT0Ro92/exec?v=14';
