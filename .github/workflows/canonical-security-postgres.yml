@@ -159,6 +159,161 @@ jobs:
       - name: Run real PostgreSQL suite with single temporary PostgreSQL hostname
         run: node scripts/run-canonical-security-postgres-ci.mjs
 
+      - name: Configure isolated educator proxy E2E
+        run: node scripts/configure-educator-proxy-e2e-env.mjs
+
+      - name: Prepare real PostgreSQL nonce store
+        env:
+          NODE_OPTIONS: >-
+            --require=${{ github.workspace }}/scripts/postgres-network-audit.cjs
+        run: >-
+          CZA_NETWORK_AUDIT_FILE="$CZA_PROXY_E2E_NETWORK_AUDIT"
+          node scripts/prepare-educator-proxy-nonce-store.mjs
+
+      - name: Build isolated preview origin
+        run: pnpm build
+
+      - name: Install immutable Cloudflare tunnel binary
+        shell: bash
+        run: |
+          set -euo pipefail
+          cloudflared="$RUNNER_TEMP/cloudflared-2026.9.1-linux-amd64"
+          curl \
+            --fail \
+            --location \
+            --proto '=https' \
+            --tlsv1.2 \
+            --output "$cloudflared" \
+            https://github.com/cloudflare/cloudflared/releases/download/2026.9.1/cloudflared-linux-amd64
+          echo \
+            "03f1f25d1cc93b9ad6c60569d44060bc4f17ed97075760ed8cfca4b12dcd68cc  $cloudflared" \
+            | sha256sum --check --strict
+          chmod 700 "$cloudflared"
+          "$cloudflared" version
+          echo "CZA_CLOUDFLARED_BIN=$cloudflared" >> "$GITHUB_ENV"
+
+      - name: Start loopback-only origin and signing proxy
+        shell: bash
+        run: |
+          set -euo pipefail
+          pnpm exec wrangler dev \
+            --config dist/server/wrangler.json \
+            --ip 127.0.0.1 \
+            --port 8787 \
+            >"$CZA_PROXY_E2E_ORIGIN_LOG" 2>&1 &
+          echo $! > "$RUNNER_TEMP/cza-proxy-origin.pid"
+          for i in $(seq 1 45); do
+            status="$(curl --silent --output /dev/null --write-out '%{http_code}' \
+              "$CZA_PROXY_E2E_ORIGIN_URL/api/educator-auth" || true)"
+            if [[ "$status" == 403 ]]; then
+              break
+            fi
+            if [[ "$i" == 45 ]]; then
+              echo "Loopback preview origin failed to start." >&2
+              exit 1
+            fi
+            sleep 1
+          done
+
+          node scripts/educator-proxy-e2e-server.mjs \
+            >"$RUNNER_TEMP/cza-proxy-boundary.log" 2>&1 &
+          echo $! > "$RUNNER_TEMP/cza-proxy-boundary.pid"
+          for i in $(seq 1 30); do
+            if curl --fail --silent \
+              "$CZA_PROXY_E2E_PROXY_URL/__health" >/dev/null; then
+              break
+            fi
+            if [[ "$i" == 30 ]]; then
+              echo "Trusted signing proxy failed to start." >&2
+              exit 1
+            fi
+            sleep 1
+          done
+
+          listener_count="$(ss -H -ltn | awk \
+            '$4 == "127.0.0.1:8787" { count += 1 } END { print count + 0 }')"
+          wildcard_count="$(ss -H -ltn | awk \
+            '$4 ~ /(^|:)8787$/ && $4 != "127.0.0.1:8787" { count += 1 } END { print count + 0 }')"
+          test "$listener_count" = 1
+          test "$wildcard_count" = 0
+          echo "CZA_PROXY_E2E_LISTENER_EVIDENCE=127.0.0.1:8787" \
+            >> "$GITHUB_ENV"
+
+      - name: Start one-use Cloudflare Quick Tunnel
+        id: proxy_tunnel
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$CZA_CLOUDFLARED_BIN" tunnel \
+            --no-autoupdate \
+            --protocol http2 \
+            --url "$CZA_PROXY_E2E_PROXY_URL" \
+            --logfile "$CZA_PROXY_E2E_CLOUDFLARED_LOG" \
+            >"$RUNNER_TEMP/cza-cloudflared.stdout" 2>&1 &
+          echo $! > "$RUNNER_TEMP/cza-cloudflared.pid"
+
+          tunnel_url=''
+          for i in $(seq 1 60); do
+            tunnel_url="$(sed -nE \
+              's#.*(https://[a-z0-9-]+\.trycloudflare\.com).*#\1#p' \
+              "$CZA_PROXY_E2E_CLOUDFLARED_LOG" \
+              "$RUNNER_TEMP/cza-cloudflared.stdout" | tail -n 1)"
+            if [[ -n "$tunnel_url" ]] && \
+               curl --fail --silent --max-time 5 \
+                 "$tunnel_url/__health" >/dev/null; then
+              break
+            fi
+            tunnel_url=''
+            if [[ "$i" == 60 ]]; then
+              echo "Cloudflare Quick Tunnel failed closed; no fallback was used." >&2
+              exit 1
+            fi
+            sleep 1
+          done
+          echo "::add-mask::$tunnel_url"
+          delimiter="CZA_TUNNEL_$(openssl rand -hex 12)"
+          {
+            echo "CZA_PROXY_E2E_TUNNEL_URL<<$delimiter"
+            echo "$tunnel_url"
+            echo "$delimiter"
+          } >> "$GITHUB_ENV"
+          echo "Ephemeral Cloudflare route is ready; hostname is masked."
+
+      - name: Run external proxy E2E behavior suite
+        shell: bash
+        run: |
+          set -uo pipefail
+          set +e
+          node --test tests/educator-proxy-cloudflare.e2e.mjs \
+            2>&1 | tee "$CZA_PROXY_E2E_TEST_LOG"
+          status="${PIPESTATUS[0]}"
+          set -e
+          echo "CZA_PROXY_E2E_TEST_EXIT_CODE=$status" >> "$GITHUB_ENV"
+          exit "$status"
+
+      - name: Build sanitized external proxy evidence
+        if: always() && steps.proxy_tunnel.outcome == 'success'
+        run: node scripts/collect-educator-proxy-e2e-evidence.mjs
+
+      - name: Stop isolated preview and tunnel
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          for pid_file in \
+            "$RUNNER_TEMP/cza-cloudflared.pid" \
+            "$RUNNER_TEMP/cza-proxy-boundary.pid" \
+            "$RUNNER_TEMP/cza-proxy-origin.pid"; do
+            if [[ -f "$pid_file" ]]; then
+              pid="$(tr -cd '0-9' < "$pid_file")"
+              if [[ -n "$pid" ]]; then
+                kill "$pid" 2>/dev/null || true
+                wait "$pid" 2>/dev/null || true
+              fi
+            fi
+          done
+          echo "Ephemeral Cloudflare route and loopback preview stopped."
+
       - name: Delete temporary Neon project
         if: always()
         shell: bash
