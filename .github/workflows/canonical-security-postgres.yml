@@ -244,6 +244,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          : > "$CZA_PROXY_E2E_CLOUDFLARED_LOG"
+          : > "$RUNNER_TEMP/cza-cloudflared.stdout"
           "$CZA_CLOUDFLARED_BIN" tunnel \
             --no-autoupdate \
             --protocol http2 \
