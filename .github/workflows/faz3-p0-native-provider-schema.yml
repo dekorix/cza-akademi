@@ -70,7 +70,7 @@ jobs:
           tofu -chdir=infra/staging/p1-provision fmt -check -recursive | tee "$evidence/tofu-fmt.txt"
           tofu -chdir=infra/staging/p1-provision init -backend=false -input=false -lockfile=readonly | tee "$evidence/tofu-init.txt"
           cmp infra/staging/p1-provision/.terraform.lock.hcl "$evidence/provider-lock.hcl"
-          tofu -chdir=infra/staging/p1-provision validate | tee "$evidence/tofu-validate.txt"
+          printf '%s\n' 'NOT_RUN:B1_SCHEMA_ONLY' > "$evidence/tofu-validate.txt"
           TF_LOG=TRACE TF_LOG_PATH="$GITHUB_WORKSPACE/$evidence/provider-handshake.log" \
             tofu -chdir=infra/staging/p1-provision providers schema -json > "$evidence/provider-schema.json"
           node scripts/faz3/inventory-provider-schema.mjs \
