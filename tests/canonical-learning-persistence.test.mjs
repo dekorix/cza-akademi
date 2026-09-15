@@ -7,7 +7,10 @@ const serverSource = fs.readFileSync(
   'utf8',
 );
 const serverJs = ts.transpileModule(serverSource, {
-  compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 },
+  compilerOptions: {
+    module: ts.ModuleKind.ESNext,
+    target: ts.ScriptTarget.ES2022,
+  },
 }).outputText;
 const serverContract = await import(
   `data:text/javascript;base64,${Buffer.from(serverJs).toString('base64')}`
@@ -30,24 +33,29 @@ const canonicalRecord = {
   metadata: { level: 1 },
 };
 
-const parsed = serverContract.parseCanonicalLearningRecord(canonicalRecord, '1.0.0');
+const parsed = serverContract.parseCanonicalLearningRecord(
+  canonicalRecord,
+  '1.0.0',
+);
 assert.equal(parsed.moduleId, 'finger_read');
 assert.equal(parsed.trainingSessionId, canonicalRecord.trainingSessionId);
 assert.equal(parsed.startedAt, '2026-09-13T10:00:00.000Z');
 
 assert.throws(
-  () => serverContract.parseCanonicalLearningRecord(
-    { ...canonicalRecord, studentId: 'untrusted' },
-    '1.0.0',
-  ),
+  () =>
+    serverContract.parseCanonicalLearningRecord(
+      { ...canonicalRecord, studentId: 'untrusted' },
+      '1.0.0',
+    ),
   /cza_record_unknown_field/,
 );
 
 assert.throws(
-  () => serverContract.parseCanonicalLearningRecord(
-    { ...canonicalRecord, trainingSessionId: 'not-a-uuid' },
-    '1.0.0',
-  ),
+  () =>
+    serverContract.parseCanonicalLearningRecord(
+      { ...canonicalRecord, trainingSessionId: 'not-a-uuid' },
+      '1.0.0',
+    ),
   /cza_training_session_id_invalid/,
 );
 
@@ -72,28 +80,45 @@ const clientRecord = learning.createRecord({
   completedAt: canonicalRecord.completedAt,
 });
 assert.equal(clientRecord.moduleId, 'finger_read');
+assert.equal(clientRecord.contractVersion, '1.1.0');
 assert.ok(Object.isFrozen(clientRecord));
+assert.equal(
+  serverContract.parseCanonicalLearningRecord(clientRecord, '1.1.0')
+    .contractVersion,
+  '1.1.0',
+);
 
-const { CzaCoreTransportAdapter } = await import('../public/cza/core/cza-core-transport.js');
+const { CzaCoreTransportAdapter } =
+  await import('../public/cza/core/cza-core-transport.js');
 let requestBody;
+let requestHeaders;
 const transport = new CzaCoreTransportAdapter({
-  contractVersion: '1.0.0',
+  contractVersion: runtime.CZA_CONTRACT_VERSION,
   fetchImpl: async (_url, options) => {
     requestBody = JSON.parse(options.body);
+    requestHeaders = options.headers;
     return {
       ok: true,
       status: 201,
       headers: { get: () => 'application/json' },
-      json: async () => ({ ok: true, learningRecordId: 'record-1', replayed: false }),
+      json: async () => ({
+        ok: true,
+        learningRecordId: 'record-1',
+        replayed: false,
+      }),
     };
   },
 });
 await transport.publish(clientRecord);
 assert.equal(requestBody.action, 'module_record');
 assert.equal(requestBody.record.clientRecordId, canonicalRecord.clientRecordId);
+assert.equal(requestHeaders['x-cza-contract-version'], '1.1.0');
 
 const migration = fs.readFileSync(
-  new URL('../db/migrations/20260913_canonical_learning_ledger_v1.sql', import.meta.url),
+  new URL(
+    '../db/migrations/20260913_canonical_learning_ledger_v1.sql',
+    import.meta.url,
+  ),
   'utf8',
 );
 assert.match(migration, /UNIQUE \(academy_id, client_record_id\)/);
@@ -101,11 +126,26 @@ assert.match(migration, /IDEMPOTENCY_KEY_REUSED/);
 assert.match(migration, /CZA_SESSION_OWNERSHIP_INVALID/);
 assert.match(migration, /CREATE TABLE IF NOT EXISTS public\.learning_evidence/);
 
-const route = fs.readFileSync(new URL('../app/api/core/route.ts', import.meta.url), 'utf8');
-for (const existingAction of ['login', 'me', 'start', 'finish', 'interaction', 'attempt', 'logout']) {
-  assert.match(route, new RegExp(`'${existingAction}'`));
+const route = fs.readFileSync(
+  new URL('../app/api/core/route.ts', import.meta.url),
+  'utf8',
+);
+const requestSecurity = fs.readFileSync(
+  new URL('../lib/core-request-security.ts', import.meta.url),
+  'utf8',
+);
+for (const existingAction of [
+  'login',
+  'me',
+  'start',
+  'finish',
+  'interaction',
+  'attempt',
+  'logout',
+]) {
+  assert.match(requestSecurity, new RegExp(`'${existingAction}'`));
 }
-assert.match(route, /'module_record'/);
+assert.match(requestSecurity, /'module_record'/);
 assert.match(route, /authenticatedStudent\(request\)/);
 
 console.log('canonical learning persistence: 20 assertions passed');

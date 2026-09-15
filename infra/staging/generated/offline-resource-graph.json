@@ -1,0 +1,159 @@
+{
+  "schemaVersion": "CZA-FAZ3-OFFLINE-RESOURCE-GRAPH-V4",
+  "source": "GENERATED_FROM_HCL_AND_CONTROL_CLASSIFICATION",
+  "sourceSha256": "f5eb87e41d8dd221b9136a44ea216968a2b0ee80c016afa8d691ec8284c9f359",
+  "nodes": [
+    {
+      "kind": "resource",
+      "type": "cloudflare_dns_record",
+      "name": "transport",
+      "file": "infra/staging/modules/cloudflare/main.tf"
+    },
+    {
+      "kind": "resource",
+      "type": "cloudflare_ruleset",
+      "name": "request_firewall",
+      "file": "infra/staging/modules/cloudflare/main.tf"
+    },
+    {
+      "kind": "resource",
+      "type": "cloudflare_ruleset",
+      "name": "trusted_headers",
+      "file": "infra/staging/modules/cloudflare/main.tf"
+    },
+    {
+      "kind": "resource",
+      "type": "cloudflare_workers_route",
+      "name": "public",
+      "file": "infra/staging/modules/cloudflare/main.tf"
+    },
+    {
+      "kind": "resource",
+      "type": "cloudflare_workers_script",
+      "name": "signer",
+      "file": "infra/staging/modules/cloudflare/main.tf"
+    },
+    {
+      "kind": "resource",
+      "type": "cloudflare_zero_trust_access_application",
+      "name": "phase2",
+      "file": "infra/staging/modules/cloudflare/main.tf"
+    },
+    {
+      "kind": "resource",
+      "type": "cloudflare_zero_trust_access_policy",
+      "name": "educator_mfa",
+      "file": "infra/staging/modules/cloudflare/main.tf"
+    },
+    {
+      "kind": "resource",
+      "type": "cloudflare_zero_trust_tunnel_cloudflared_config",
+      "name": "origin",
+      "file": "infra/staging/modules/cloudflare/main.tf"
+    },
+    {
+      "kind": "resource",
+      "type": "cloudflare_zero_trust_tunnel_cloudflared",
+      "name": "origin",
+      "file": "infra/staging/modules/cloudflare/main.tf"
+    },
+    {
+      "kind": "resource",
+      "type": "neon_database",
+      "name": "security",
+      "file": "infra/staging/modules/neon/main.tf"
+    },
+    {
+      "kind": "resource",
+      "type": "neon_project",
+      "name": "staging",
+      "file": "infra/staging/modules/neon/main.tf"
+    },
+    {
+      "kind": "resource",
+      "type": "neon_role",
+      "name": "migrator",
+      "file": "infra/staging/modules/neon/main.tf"
+    },
+    {
+      "kind": "resource",
+      "type": "neon_role",
+      "name": "origin_runtime",
+      "file": "infra/staging/modules/neon/main.tf"
+    },
+    {
+      "kind": "module",
+      "type": "cloudflare",
+      "name": "cloudflare",
+      "file": "infra/staging/p1-provision/main.tf"
+    },
+    {
+      "kind": "module",
+      "type": "neon",
+      "name": "neon",
+      "file": "infra/staging/p1-provision/main.tf"
+    }
+  ],
+  "controls": [
+    {
+      "id": "waf-header-admission",
+      "class": "NATIVE_PROVIDER_RESOURCE",
+      "implementation": "cloudflare_ruleset.request_firewall"
+    },
+    {
+      "id": "edge-header-ownership",
+      "class": "NATIVE_PROVIDER_RESOURCE",
+      "implementation": "cloudflare_ruleset.trusted_headers"
+    },
+    {
+      "id": "access-mfa",
+      "class": "NATIVE_PROVIDER_RESOURCE",
+      "implementation": "cloudflare_zero_trust_access_policy.educator_mfa"
+    },
+    {
+      "id": "access-application",
+      "class": "NATIVE_PROVIDER_RESOURCE",
+      "implementation": "cloudflare_zero_trust_access_application.phase2"
+    },
+    {
+      "id": "worker-route",
+      "class": "NATIVE_PROVIDER_RESOURCE",
+      "implementation": "cloudflare_workers_script.signer + cloudflare_workers_route.public"
+    },
+    {
+      "id": "tunnel-transport",
+      "class": "NATIVE_PROVIDER_RESOURCE",
+      "implementation": "cloudflare_zero_trust_tunnel_cloudflared + cloudflare_zero_trust_tunnel_cloudflared_config"
+    },
+    {
+      "id": "transport-dns",
+      "class": "NATIVE_PROVIDER_RESOURCE",
+      "implementation": "cloudflare_dns_record.transport"
+    },
+    {
+      "id": "neon-project",
+      "class": "NATIVE_PROVIDER_RESOURCE",
+      "implementation": "neon_project.staging"
+    },
+    {
+      "id": "origin-verification",
+      "class": "EXTERNAL_ENFORCEMENT_REQUIRED",
+      "implementation": "lib/faz3-origin-verifier.ts"
+    },
+    {
+      "id": "nonce-replay-revocation",
+      "class": "EXTERNAL_ENFORCEMENT_REQUIRED",
+      "implementation": "infra/staging/modules/postgres-security/001_security_state.sql"
+    },
+    {
+      "id": "production-egress-deny",
+      "class": "EXTERNAL_ENFORCEMENT_REQUIRED",
+      "implementation": "scripts/faz3/production-egress-guard.mjs"
+    },
+    {
+      "id": "crash-consistent-recovery",
+      "class": "EXTERNAL_ENFORCEMENT_REQUIRED",
+      "implementation": "scripts/faz3/recovery-wal.mjs + scripts/faz3/reconcile-staging-v4.mjs + .github/workflows/faz3-p1-provision-reusable.yml"
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "schemaVersion": "CZA-RBAC-STATE-V4",
+  "states": ["draft", "review", "approved", "published", "withdrawn"],
+  "transitions": [
+    { "from": "draft", "to": "review", "role": "educator", "action": "submit_review" },
+    { "from": "review", "to": "draft", "role": "reviewer", "action": "request_changes" },
+    { "from": "review", "to": "approved", "role": "reviewer", "action": "approve" },
+    { "from": "approved", "to": "draft", "role": "educator", "action": "revise_approved_content", "invalidatesApproval": true },
+    { "from": "approved", "to": "published", "role": "publisher", "action": "publish" },
+    { "from": "published", "to": "withdrawn", "role": "publisher", "action": "withdraw" },
+    { "from": "withdrawn", "to": "draft", "role": "educator", "action": "create_new_revision" }
+  ],
+  "explicitlyForbidden": [
+    { "from": "approved", "to": "withdrawn", "reason": "withdrawn is exclusively post-publication" }
+  ],
+  "separationOfDuties": {
+    "selfApprovalForbidden": true,
+    "authorReviewerPublisherMustBeDistinct": true
+  },
+  "tenantBinding": {
+    "authority": "server-side-membership-record",
+    "crossTenantResult": "NOT_FOUND",
+    "clientAcademyIdIgnored": true
+  },
+  "hmacRoleMetadata": {
+    "authorizationAuthority": false,
+    "allowedValues": ["edge-authn-only"],
+    "mismatchResult": "ROLE_METADATA_MISMATCH"
+  }
+}

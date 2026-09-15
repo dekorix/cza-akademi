@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cza.invalid/schemas/oidc-trust-v4.json",
+  "type": "object",
+  "required": ["schemaVersion", "issuer", "matchingMode", "onAnyMismatch", "claims", "credential"],
+  "properties": {
+    "schemaVersion": { "const": "CZA-OIDC-TRUST-V4" },
+    "issuer": { "const": "https://token.actions.githubusercontent.com" },
+    "matchingMode": { "const": "EXACT_ALL" },
+    "onAnyMismatch": { "const": "DENY" },
+    "claims": {
+      "type": "object",
+      "required": ["aud", "repository_id", "repository_owner_id", "environment", "event_name", "ref", "head_ref", "base_ref", "workflow_sha", "job_workflow_ref", "job_workflow_sha", "sub"],
+      "properties": {
+        "aud": { "const": "urn:cza:staging:credential-broker:v1" },
+        "repository_id": { "const": "1359513274" },
+        "repository_owner_id": { "const": "219684352" },
+        "environment": { "const": "CZA-STAGING-SECURITY" },
+        "event_name": { "const": "workflow_dispatch" },
+        "ref": { "const": "refs/heads/feature/faz3-gate1b-v4" },
+        "head_ref": { "const": "" },
+        "base_ref": { "const": "" },
+        "workflow_sha": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+        "job_workflow_ref": { "type": "string", "pattern": "^dekorix/cza-akademi/\\.github/workflows/faz3-p1-provision-reusable\\.yml@[0-9a-f]{40}$" },
+        "job_workflow_sha": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+        "sub": { "const": "repo:dekorix@219684352/cza-akademi@1359513274:environment:CZA-STAGING-SECURITY" }
+      },
+      "additionalProperties": false
+    },
+    "credential": {
+      "type": "object",
+      "required": ["maxTtlSeconds", "scopes", "productionScopeForbidden"],
+      "properties": {
+        "maxTtlSeconds": { "const": 900 },
+        "scopes": { "type": "array", "items": { "type": "string" }, "minItems": 3, "maxItems": 3 },
+        "productionScopeForbidden": { "const": true }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

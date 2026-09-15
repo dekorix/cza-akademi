@@ -1,0 +1,286 @@
+name: Faz3 P1 provision reusable
+
+on:
+  workflow_call:
+    inputs:
+      authorize_p1:
+        type: boolean
+        required: true
+      p0c_attestation_sha256:
+        type: string
+        required: true
+      native_provider_proof_run_id:
+        type: string
+        required: true
+      native_provider_artifact_digest:
+        type: string
+        required: true
+
+permissions:
+  contents: read
+  actions: read
+  id-token: write
+
+jobs:
+  native-provider-proof-gate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - name: Checkout exact P1 source
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+      - name: Validate proof locator and immutable artifact digest
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          PROOF_RUN_ID: ${{ inputs.native_provider_proof_run_id }}
+          PROOF_DIGEST: ${{ inputs.native_provider_artifact_digest }}
+        run: |
+          set -euo pipefail
+          [[ "$PROOF_RUN_ID" =~ ^[1-9][0-9]*$ ]]
+          [[ "$PROOF_DIGEST" =~ ^[0-9a-f]{64}$ ]]
+          proof_name="faz3-native-provider-proof-${GITHUB_SHA}"
+          curl --proto '=https' --tlsv1.2 --fail --silent --show-error \
+            -H 'Accept: application/vnd.github+json' \
+            -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+            -H 'X-GitHub-Api-Version: 2022-11-28' \
+            "${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/actions/runs/${PROOF_RUN_ID}/artifacts?name=${proof_name}" \
+            > "$RUNNER_TEMP/b1-artifacts.json"
+          curl --proto '=https' --tlsv1.2 --fail --silent --show-error \
+            -H 'Accept: application/vnd.github+json' \
+            -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+            -H 'X-GitHub-Api-Version: 2022-11-28' \
+            "${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/actions/runs/${PROOF_RUN_ID}" \
+            > "$RUNNER_TEMP/b1-run.json"
+          node scripts/faz3/verify-b1-native-provider-proof.mjs \
+            --metadata="$RUNNER_TEMP/b1-artifacts.json" \
+            --run-metadata="$RUNNER_TEMP/b1-run.json" \
+            --expected-name="$proof_name" \
+            --expected-digest="$PROOF_DIGEST" \
+            --expected-commit="$GITHUB_SHA" \
+            --expected-repository="$GITHUB_REPOSITORY"
+      - name: Download exact-run native provider proof
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: faz3-native-provider-proof-${{ github.sha }}
+          path: ${{ runner.temp }}/b1-native-provider-proof
+          github-token: ${{ github.token }}
+          run-id: ${{ inputs.native_provider_proof_run_id }}
+      - name: Verify commit tree lock providers schema and handshake
+        shell: bash
+        run: |
+          set -euo pipefail
+          expected_tree="$(git rev-parse "${GITHUB_SHA}^{tree}")"
+          node scripts/faz3/verify-b1-native-provider-proof.mjs \
+            --root=. \
+            --evidence="$RUNNER_TEMP/b1-native-provider-proof" \
+            --expected-commit="$GITHUB_SHA" \
+            --expected-tree="$expected_tree"
+
+  provision:
+    needs: native-provider-proof-gate
+    if: inputs.authorize_p1 == true && needs.native-provider-proof-gate.result == 'success'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    environment: CZA-STAGING-SECURITY
+    steps:
+      - name: Checkout exact source
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+      - name: Create durable recovery identity before mutation
+        id: recovery
+        shell: bash
+        run: |
+          set -euo pipefail
+          run_id="$(node scripts/faz3/recovery-wal.mjs new-run-id /dev/null)"
+          journal="recovery/${run_id}.jsonl"
+          node scripts/faz3/recovery-wal.mjs init "$journal" --run-id="$run_id" --resource=staging-stack
+          echo "run_id=$run_id" >> "$GITHUB_OUTPUT"
+          echo "journal=$journal" >> "$GITHUB_OUTPUT"
+      - name: Persist PREPARED WAL externally
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: faz3-wal-prepared-${{ steps.recovery.outputs.run_id }}
+          path: ${{ steps.recovery.outputs.journal }}
+          if-no-files-found: error
+          retention-days: 30
+      - name: Re-read externally durable PREPARED WAL
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: faz3-wal-prepared-${{ steps.recovery.outputs.run_id }}
+          path: recovery/durable
+      - name: Mark WAL durable and request mutation
+        shell: bash
+        run: |
+          set -euo pipefail
+          durable="recovery/durable/$(basename '${{ steps.recovery.outputs.journal }}')"
+          node scripts/faz3/recovery-wal.mjs receipt "$durable" --out=recovery/prepared.receipt
+          node scripts/faz3/recovery-wal.mjs advance '${{ steps.recovery.outputs.journal }}' --state=WAL_DURABLE --receipt=recovery/prepared.receipt
+          node scripts/faz3/recovery-wal.mjs advance '${{ steps.recovery.outputs.journal }}' --state=REQUESTED
+      - name: Persist REQUESTED WAL externally
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: faz3-wal-requested-${{ steps.recovery.outputs.run_id }}
+          path: ${{ steps.recovery.outputs.journal }}
+          if-no-files-found: error
+          retention-days: 30
+      - name: Exchange exact-claim OIDC token for scoped P1 credential
+        id: broker
+        shell: bash
+        env:
+          BROKER_URL: ${{ vars.CZA_STAGING_CREDENTIAL_BROKER_URL }}
+          AUDIENCE: urn:cza:staging:credential-broker:v1
+          P0C_SHA: ${{ inputs.p0c_attestation_sha256 }}
+        run: |
+          set -euo pipefail
+          test -n "$BROKER_URL"
+          [[ "$P0C_SHA" =~ ^[0-9a-f]{64}$ ]]
+          token="$(curl --proto '=https' --tlsv1.2 --fail --silent --show-error \
+            -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=${AUDIENCE}" | node -pe 'JSON.parse(require("fs").readFileSync(0)).value')"
+          request="$(node -e 'process.stdout.write(JSON.stringify({scopes:["staging:create","staging:inspect","staging:delete"],ttlSeconds:900,p0cAttestationSha256:process.env.P0C_SHA}))')"
+          credential="$(curl --proto '=https' --tlsv1.2 --fail --silent --show-error \
+            -H "Authorization: Bearer ${token}" -H 'content-type: application/json' \
+            --data "$request" "$BROKER_URL")"
+          echo "::add-mask::$credential"
+          umask 077
+          printf '%s' "$credential" > recovery/scoped-credential.json
+      - name: Install checksum-pinned OpenTofu
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --proto '=https' --tlsv1.2 --fail --silent --show-error --location \
+            --output /tmp/tofu.deb \
+            https://packages.opentofu.org/opentofu/tofu/any/pool/any/main/t/tofu/tofu_1.12.0_amd64.deb
+          echo 'c2cd6876f06107c8e29abae34810bd7b557f7c44efd2cd71711e38e52bc534f9  /tmp/tofu.deb' | sha256sum --check --strict
+          sudo dpkg --install /tmp/tofu.deb
+      - name: Execute P1 only through the durable-WAL mutation wrapper
+        shell: bash
+        env:
+          P0C_SHA: ${{ inputs.p0c_attestation_sha256 }}
+        run: |
+          set -euo pipefail
+          tofu -chdir=infra/staging/p1-provision init -backend=false -input=false
+          node scripts/faz3/provider-mutation-wrapper.mjs \
+            --journal='${{ steps.recovery.outputs.journal }}' \
+            --credential-file=recovery/scoped-credential.json \
+            --p0c-sha256="$P0C_SHA"
+          node scripts/faz3/recovery-wal.mjs advance '${{ steps.recovery.outputs.journal }}' --state=OBSERVED --resource-id=tofu-state
+          node scripts/faz3/recovery-wal.mjs advance '${{ steps.recovery.outputs.journal }}' --state=RECONCILED --resource-id=tofu-state
+          state="$GITHUB_WORKSPACE/recovery/${{ steps.recovery.outputs.run_id }}.tfstate"
+          migrator_url="$(tofu -chdir=infra/staging/p1-provision output -state="$state" -json staging_contract | node -pe 'JSON.parse(require("fs").readFileSync(0)).migrator_database_url')"
+          echo "::add-mask::$migrator_url"
+          umask 077
+          printf '%s' "$migrator_url" > recovery/migrator-url.txt
+      - name: Prepare PostgreSQL security-state mutation WAL
+        id: postgres_recovery
+        shell: bash
+        run: |
+          set -euo pipefail
+          journal="recovery/${{ steps.recovery.outputs.run_id }}-postgres-security.jsonl"
+          node scripts/faz3/recovery-wal.mjs init "$journal" --run-id='${{ steps.recovery.outputs.run_id }}' --resource=postgres-security
+          echo "journal=$journal" >> "$GITHUB_OUTPUT"
+      - name: Persist PostgreSQL PREPARED WAL externally
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: faz3-wal-postgres-prepared-${{ steps.recovery.outputs.run_id }}
+          path: ${{ steps.postgres_recovery.outputs.journal }}
+          if-no-files-found: error
+          retention-days: 30
+      - name: Re-read PostgreSQL PREPARED WAL
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: faz3-wal-postgres-prepared-${{ steps.recovery.outputs.run_id }}
+          path: recovery/postgres-durable
+      - name: Mark PostgreSQL WAL durable and requested
+        shell: bash
+        run: |
+          set -euo pipefail
+          durable="recovery/postgres-durable/$(basename '${{ steps.postgres_recovery.outputs.journal }}')"
+          node scripts/faz3/recovery-wal.mjs receipt "$durable" --out=recovery/postgres-prepared.receipt
+          node scripts/faz3/recovery-wal.mjs advance '${{ steps.postgres_recovery.outputs.journal }}' --state=WAL_DURABLE --receipt=recovery/postgres-prepared.receipt
+          node scripts/faz3/recovery-wal.mjs advance '${{ steps.postgres_recovery.outputs.journal }}' --state=REQUESTED
+      - name: Persist PostgreSQL REQUESTED WAL externally
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: faz3-wal-postgres-requested-${{ steps.recovery.outputs.run_id }}
+          path: ${{ steps.postgres_recovery.outputs.journal }}
+          if-no-files-found: error
+          retention-days: 30
+      - name: Install PostgreSQL security state through durable WAL
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/faz3/apply-staging-security-sql.mjs --url-file=recovery/migrator-url.txt
+          node scripts/faz3/recovery-wal.mjs advance '${{ steps.postgres_recovery.outputs.journal }}' --state=OBSERVED --resource-id=cza-faz3-security-state-v4
+          node scripts/faz3/recovery-wal.mjs advance '${{ steps.postgres_recovery.outputs.journal }}' --state=RECONCILED --resource-id=cza-faz3-security-state-v4
+          rm -f recovery/migrator-url.txt
+      - name: Prepare cleanup mutation WAL
+        id: cleanup_recovery
+        if: always() && hashFiles('recovery/scoped-credential.json') != ''
+        shell: bash
+        run: |
+          set -euo pipefail
+          journal="recovery/${{ steps.recovery.outputs.run_id }}-cleanup.jsonl"
+          node scripts/faz3/recovery-wal.mjs init "$journal" --run-id='${{ steps.recovery.outputs.run_id }}' --resource=cleanup
+          echo "journal=$journal" >> "$GITHUB_OUTPUT"
+      - name: Persist cleanup PREPARED WAL externally
+        if: always() && steps.cleanup_recovery.outcome == 'success'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: faz3-wal-cleanup-prepared-${{ steps.recovery.outputs.run_id }}
+          path: ${{ steps.cleanup_recovery.outputs.journal }}
+          if-no-files-found: error
+          retention-days: 30
+      - name: Re-read cleanup PREPARED WAL
+        id: cleanup_download
+        if: always() && steps.cleanup_recovery.outcome == 'success'
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: faz3-wal-cleanup-prepared-${{ steps.recovery.outputs.run_id }}
+          path: recovery/cleanup-durable
+      - name: Mark cleanup WAL durable and requested
+        id: cleanup_requested
+        if: always() && steps.cleanup_download.outcome == 'success'
+        shell: bash
+        run: |
+          set -euo pipefail
+          durable="recovery/cleanup-durable/$(basename '${{ steps.cleanup_recovery.outputs.journal }}')"
+          node scripts/faz3/recovery-wal.mjs receipt "$durable" --out=recovery/cleanup-prepared.receipt
+          node scripts/faz3/recovery-wal.mjs advance '${{ steps.cleanup_recovery.outputs.journal }}' --state=WAL_DURABLE --receipt=recovery/cleanup-prepared.receipt
+          node scripts/faz3/recovery-wal.mjs advance '${{ steps.cleanup_recovery.outputs.journal }}' --state=REQUESTED
+      - name: Persist cleanup REQUESTED WAL externally
+        id: cleanup_requested_upload
+        if: always() && steps.cleanup_requested.outcome == 'success'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: faz3-wal-cleanup-requested-${{ steps.recovery.outputs.run_id }}
+          path: ${{ steps.cleanup_recovery.outputs.journal }}
+          if-no-files-found: error
+          retention-days: 30
+      - name: Reconcile by run_id and deterministic labels
+        if: always() && steps.cleanup_requested_upload.outcome == 'success'
+        shell: bash
+        env:
+          CZA_P1_RECOVERY_EXECUTE: 'true'
+        run: |
+          set -euo pipefail
+          node scripts/faz3/reconcile-staging-v4.mjs '${{ steps.recovery.outputs.journal }}' recovery/scoped-credential.json
+          node scripts/faz3/recovery-wal.mjs advance '${{ steps.cleanup_recovery.outputs.journal }}' --state=OBSERVED --resource-id=zero-live-resources
+          node scripts/faz3/recovery-wal.mjs advance '${{ steps.cleanup_recovery.outputs.journal }}' --state=RECONCILED --resource-id=zero-live-resources
+          rm -f recovery/scoped-credential.json recovery/migrator-url.txt
+      - name: Preserve non-secret recovery identity on every outcome
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: faz3-wal-final-${{ steps.recovery.outputs.run_id }}
+          path: |
+            recovery/*.jsonl
+            recovery/*.receipt
+          if-no-files-found: error
+          retention-days: 30

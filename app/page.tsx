@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { ArrowRight, AudioLines, BookOpenCheck, BrainCircuit, ChartNoAxesCombined, Check, ChevronRight, Clock3, Dumbbell, Flame, Hand, LayoutDashboard, Loader2, LogOut, Menu, Play, School, ShieldCheck, Sparkles, Target, X } from 'lucide-react';
+import { ArrowRight, AudioLines, BookOpenCheck, BrainCircuit, ChartNoAxesCombined, Check, ChevronRight, Clock3, Dumbbell, Eye, Flame, Hand, LayoutDashboard, Loader2, LogOut, Menu, Play, School, ShieldCheck, Sparkles, Target, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -14,6 +14,7 @@ const modules = [
   { title: 'Toplama / Çıkarma', detail: 'Soroban, parmak veya zihinden işlem çöz', icon: Target, color: '#e8f2fb', ink: '#315a83', level: 'Ayar kontrollü çalışma', progress: 0, href: '/arithmetic' },
   { title: 'Flash Anzan', detail: 'Zihnindeki abaküsü çalıştır', icon: Sparkles, color: '#eeedf9', ink: '#7765aa', level: 'Seviye 1', progress: 32, href: '/studio?mode=flash' },
   { title: 'Sesli Anzan', detail: 'Dinle, canlandır, hesapla', icon: AudioLines, color: '#eef1f4', ink: '#6c7b8d', level: 'Sıradaki adım', progress: 0, href: '/studio?mode=audio' },
+  { title: 'Hızlı Okuma', detail: 'Odaklan, görsel alanını genişlet ve anlamı yakala', icon: Eye, color: '#efeafd', ink: '#6755b3', level: 'Faz 2 önizleme', progress: 0, href: '/speed-reading' },
 ];
 
 const CAMPUS_V14_URL = 'https://script.google.com/macros/s/AKfycbwIS-o_6HB8GiA-pLhR-zK4aRZCqo_kz_dpUJFWA94NqMUT2E22tu6tThHPSAT0Ro92/exec?v=14';
@@ -70,7 +71,8 @@ export function StudentPortal({ area }: { area: 'main' | 'work' }) {
   }
 
   async function logout() {
-    try { await core('logout'); } finally { setStudent(null); setPin(''); }
+    try { await core('logout'); setStudent(null); setPin(''); setLoginError(''); }
+    catch (error) { setLoginError(`${friendlyCoreError(error)} Güvenli çıkışı yeniden deneyin.`); }
   }
 
   if (authLoading) return <div className="grid min-h-screen place-items-center bg-background text-sm text-muted-foreground">Öğrenci oturumu açılıyor…</div>;
@@ -79,6 +81,7 @@ export function StudentPortal({ area }: { area: 'main' | 'work' }) {
   if (area === 'main') return <div className="min-h-screen bg-background">
     <header className="border-b border-border bg-white"><div className="mx-auto flex h-20 max-w-6xl items-center justify-between gap-4 px-5"><div className="flex items-center gap-3"><span className="grid h-10 w-10 place-items-center rounded-xl bg-primary font-black text-white">CZA</span><div><p className="font-semibold">CZA Öğrenci Paneli</p><p className="text-xs text-muted-foreground">Ana gelişim merkezi</p></div></div><Button variant="outline" onClick={logout}><LogOut/> Güvenli çıkış</Button></div></header>
     <main className="mx-auto max-w-6xl px-5 py-9">
+      {loginError && <p role="alert" className="mb-5 rounded-xl bg-red-50 p-4 text-sm font-semibold text-red-800">{loginError}</p>}
       <div className="mb-8 flex flex-wrap items-end justify-between gap-4"><div><p className="eyebrow text-primary">TEK ÖĞRENCİ · TEK GELİŞİM GEÇMİŞİ</p><h1 className="mt-2 text-3xl font-semibold tracking-tight">Merhaba {displayName}, ana paneline hoş geldin.</h1><p className="mt-3 max-w-2xl text-base leading-7 text-muted-foreground">Akademik gelişimini ve beceri çalışmalarını iki sade alandan yönetebilirsin.</p></div><span className="inline-flex items-center gap-2 rounded-xl bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-800"><ShieldCheck size={18}/> Merkezî kayıt etkin</span></div>
       <section className="grid gap-5 md:grid-cols-2" aria-label="Öğrenci çalışma alanları">
         <a href={CAMPUS_V14_URL} className="group rounded-3xl border-2 border-[#315a83]/30 bg-[linear-gradient(145deg,#fff,#e8f2fb)] p-7 shadow-sm transition hover:-translate-y-1 hover:shadow-lg"><span className="grid h-14 w-14 place-items-center rounded-2xl bg-[#315a83] text-white"><School size={28}/></span><p className="mt-6 text-xs font-bold tracking-widest text-[#315a83]">ANA AKADEMİK PANEL</p><h2 className="mt-2 text-2xl font-bold">CZA Kampüs · Sürüm 14</h2><p className="mt-3 min-h-20 text-sm leading-7 text-muted-foreground">Değerlendirme sonuçların, okul derslerin, hedeflerin, eğitimci yönlendirmelerin ve gelişim yolun.</p><span className="mt-5 inline-flex items-center gap-2 font-semibold text-[#315a83]">Akademik panelimi aç <ArrowRight size={18} className="transition group-hover:translate-x-1"/></span></a>

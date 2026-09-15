@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "CZA-TOOLCHAIN-LOCK-V4",
+  "tools": [
+    {
+      "name": "node",
+      "version": "24.19.0",
+      "platform": "linux_amd64",
+      "sha256": "bc17c508ffeed0ec622934f9b7fa72f8e78da65350e63c3eceb56fa688aa5e12",
+      "scope": "P0-B offline test runtime"
+    },
+    {
+      "name": "git",
+      "version": "2.51.1",
+      "platform": "linux_amd64",
+      "sha256": "2dae8066ef4d6a926561b4b0eaca7b458d4f5b56bb83760656e6baa7fc3e974f",
+      "scope": "P0-B source identity"
+    },
+    {
+      "name": "pandoc",
+      "version": "3.1.3",
+      "platform": "linux_amd64",
+      "sha256": "3dd273647f0265cb439f22976d5366a54b071a3783f6fec50838b47fb53d701b",
+      "scope": "P0-B document rendering"
+    },
+    {
+      "name": "cloudflare-terraform-provider",
+      "version": "5.25.0",
+      "platform": "linux_amd64",
+      "sha256": "6e4a2f6ed105b5353c7b56962d00f923873dd68af6509b9b9f595057edba1915",
+      "source": "https://github.com/cloudflare/terraform-provider-cloudflare/releases/tag/v5.25.0"
+    },
+    {
+      "name": "neon-terraform-provider",
+      "version": "0.1.15",
+      "platform": "linux_amd64",
+      "sha256": "95ab8b76481b15ed44bbd3226ee3ba946bc1797371bf88c65833c7106da1aa0d",
+      "source": "https://registry.opentofu.org/v1/providers/terraform-community-providers/neon/0.1.15/download/linux/amd64",
+      "signatureStatus": "REGISTRY_HAS_NO_GPG_KEY"
+    },
+    {
+      "name": "opentofu",
+      "version": "1.12.0",
+      "platform": "linux_amd64",
+      "distributionSha256": "c2cd6876f06107c8e29abae34810bd7b557f7c44efd2cd71711e38e52bc534f9",
+      "binarySha256": "eb2197869be64083574ca00e6e30feea22bba9c8105592b2bb6101bd907be21b",
+      "source": "https://packages.opentofu.org/opentofu/tofu/any/"
+    }
+  ],
+  "p1AdditionalRequirements": {
+    "resolvedOidcClaims": "All exact claims are bound by the signed delivery overlay.",
+    "status": "P1_REQUIRES_INDEPENDENT_P0C_APPROVAL"
+  }
+}

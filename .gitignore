@@ -19,6 +19,7 @@
 # misc
 .DS_Store
 *.pem
+!security/recovery/cza-neon-cleanup-public.pem
 
 # debug
 npm-debug.log*

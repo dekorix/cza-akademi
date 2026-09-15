@@ -7,8 +7,8 @@ function json(body: unknown, status = 200) {
 }
 
 export async function GET(request: Request) {
-  const gate = allowRequest(request, 'educator-students', 30, 60000);
-  if (!gate.allowed) return rateLimited(gate.retryAfterSeconds);
+  const gate = await allowRequest(request, 'educator-students', 30, 60000);
+  if (!gate.allowed) return rateLimited(gate);
   try {
     const educator = await authenticatedEducator(request);
     if (!educator) return json({ ok: false, error: 'educator_session_required' }, 401);

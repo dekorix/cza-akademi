@@ -1,0 +1,129 @@
+name: Faz3 B1 native provider proof
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - feature/faz3-gate1b-v4
+    paths:
+      - .github/workflows/faz3-p0-native-provider-schema.yml
+      - .github/workflows/faz3-p1-provision-reusable.yml
+      - .github/workflows/faz3-p1-provision.yml
+      - infra/staging/p1-provision/**
+      - infra/staging/provider-lock.json
+      - scripts/faz3/collect-b1-native-provider-proof.mjs
+      - scripts/faz3/inventory-provider-schema.mjs
+      - scripts/faz3/verify-b1-native-provider-proof.mjs
+      - tests/faz3-native-provider-proof.test.mjs
+
+permissions:
+  contents: read
+
+jobs:
+  native-linux-provider-proof:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Checkout exact source without persisted credentials
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+      - name: Enforce clean GitHub-hosted native Linux runner
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_ACTIONS" = 'true'
+          test "$RUNNER_ENVIRONMENT" = 'github-hosted'
+          test "$RUNNER_OS" = 'Linux'
+          test "$RUNNER_ARCH" = 'X64'
+          test -n "$ImageOS"
+          test -n "$ImageVersion"
+          test ! -e "$HOME/.terraformrc"
+          test ! -e "$HOME/.tofurc"
+          for forbidden in TF_REATTACH_PROVIDERS TF_CLI_CONFIG_FILE TF_PLUGIN_CACHE_DIR TF_CLI_ARGS TF_CLI_ARGS_init TF_CLI_ARGS_providers; do
+            test -z "${!forbidden:-}"
+          done
+      - name: Install checksum-pinned OpenTofu
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --proto '=https' --tlsv1.2 --fail --silent --show-error --location \
+            --output /tmp/tofu.deb \
+            https://packages.opentofu.org/opentofu/tofu/any/pool/any/main/t/tofu/tofu_1.12.0_amd64.deb
+          echo 'c2cd6876f06107c8e29abae34810bd7b557f7c44efd2cd71711e38e52bc534f9  /tmp/tofu.deb' | sha256sum --check --strict
+          sudo dpkg --install /tmp/tofu.deb
+          test "$(tofu version -json | node -pe 'JSON.parse(require("fs").readFileSync(0)).terraform_version')" = '1.12.0'
+      - name: Initialize locked providers and execute native schema handshake
+        shell: bash
+        env:
+          CLOUDFLARE_API_TOKEN: ''
+          CLOUDFLARE_API_KEY: ''
+          NEON_API_KEY: ''
+        run: |
+          set -euo pipefail
+          evidence='infra/staging/validation/native-linux'
+          mkdir -p "$evidence"
+          test ! -e infra/staging/p1-provision/.terraform
+          cp infra/staging/p1-provision/.terraform.lock.hcl "$evidence/provider-lock.hcl"
+          cp /etc/os-release "$evidence/runner-os-release.txt"
+          tofu version -json > "$evidence/tofu-version.json"
+          tofu -chdir=infra/staging/p1-provision fmt -check -recursive | tee "$evidence/tofu-fmt.txt"
+          tofu -chdir=infra/staging/p1-provision init -backend=false -input=false -lockfile=readonly | tee "$evidence/tofu-init.txt"
+          cmp infra/staging/p1-provision/.terraform.lock.hcl "$evidence/provider-lock.hcl"
+          tofu -chdir=infra/staging/p1-provision validate | tee "$evidence/tofu-validate.txt"
+          TF_LOG=TRACE TF_LOG_PATH="$GITHUB_WORKSPACE/$evidence/provider-handshake.log" \
+            tofu -chdir=infra/staging/p1-provision providers schema -json > "$evidence/provider-schema.json"
+          node scripts/faz3/inventory-provider-schema.mjs \
+            "$evidence/provider-schema.json" \
+            "$evidence/provider-schema-inventory.json"
+          application_tree="$(git rev-parse "${GITHUB_SHA}^{tree}")"
+          CZA_TOFU_BIN="$(command -v tofu)" node scripts/faz3/collect-b1-native-provider-proof.mjs \
+            --root=. \
+            --application-commit="$GITHUB_SHA" \
+            --application-tree="$application_tree" \
+            --schema="$evidence/provider-schema.json" \
+            --inventory="$evidence/provider-schema-inventory.json" \
+            --handshake-log="$evidence/provider-handshake.log" \
+            --os-release="$evidence/runner-os-release.txt" \
+            --out="$evidence/native-provider-proof.json" \
+            --matrix="$evidence/B1-Kapanis-Matrisi.md"
+          (
+            cd "$evidence"
+            sha256sum \
+              B1-Kapanis-Matrisi.md \
+              native-provider-proof.json \
+              provider-handshake.log \
+              provider-lock.hcl \
+              provider-schema-inventory.json \
+              provider-schema.json \
+              runner-os-release.txt \
+              tofu-fmt.txt \
+              tofu-init.txt \
+              tofu-validate.txt \
+              tofu-version.json \
+              > sha256sums.txt
+          )
+          node scripts/faz3/verify-b1-native-provider-proof.mjs \
+            --root=. \
+            --evidence="$evidence" \
+            --expected-commit="$GITHUB_SHA" \
+            --expected-tree="$application_tree"
+      - name: Upload immutable B1 native provider proof
+        id: proof-upload
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: faz3-native-provider-proof-${{ github.sha }}
+          path: infra/staging/validation/native-linux
+          if-no-files-found: error
+          retention-days: 30
+      - name: Publish proof locator
+        shell: bash
+        run: |
+          {
+            echo '### B1 native provider proof: PASS'
+            echo '- commit: `${{ github.sha }}`'
+            echo '- run id: `${{ github.run_id }}`'
+            echo '- artifact id: `${{ steps.proof-upload.outputs.artifact-id }}`'
+            echo '- artifact digest: `${{ steps.proof-upload.outputs.artifact-digest }}`'
+            echo '- provider mutation attempted: `false`'
+          } >> "$GITHUB_STEP_SUMMARY"

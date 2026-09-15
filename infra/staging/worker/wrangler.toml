@@ -1,0 +1,13 @@
+name = "cza-faz3-edge-static-audit"
+main = "src/worker.mjs"
+compatibility_date = "2026-09-15"
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+PUBLIC_AUTHORITY = "phase2-staging.example.invalid"
+TRANSPORT_AUTHORITY = "phase2-origin-staging.example.invalid"
+ORIGIN_SERVICE_AUTHORITY = "phase2-origin.internal"
+ACCESS_AUDIENCE = "static-audit-only"
+HMAC_KEY_ID = "static-audit-only"
+HMAC_SECRET = "static-audit-value-never-used-for-deployment"
+IP_HASH_KEY = "static-audit-value-never-used-for-deployment"

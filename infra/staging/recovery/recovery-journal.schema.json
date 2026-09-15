@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cza.invalid/schemas/recovery-journal-v4.json",
+  "type": "object",
+  "required": ["schemaVersion", "runId", "environment", "createdAt", "expiresAt", "mutations"],
+  "properties": {
+    "schemaVersion": { "const": "CZA-RECOVERY-JOURNAL-V4" },
+    "runId": { "type": "string", "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$" },
+    "environment": { "const": "staging-security-lab" },
+    "createdAt": { "type": "string", "format": "date-time" },
+    "expiresAt": { "type": "string", "format": "date-time" },
+    "mutations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["sequence", "provider", "resourceKind", "deterministicLabel", "state", "checkpointSha256"],
+        "properties": {
+          "sequence": { "type": "integer", "minimum": 1 },
+          "provider": { "enum": ["neon", "cloudflare"] },
+          "resourceKind": { "type": "string", "minLength": 1 },
+          "deterministicLabel": { "type": "string", "pattern": "^cza-f3-[a-z0-9-]+-[0-9A-HJKMNP-TV-Z]{26}$" },
+          "providerResourceId": { "type": ["string", "null"] },
+          "state": { "enum": ["PREPARED", "WAL_DURABLE", "REQUESTED", "OBSERVED", "RECONCILED"] },
+          "checkpointSha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,10 @@
+{
+  "schemaVersion": "CZA-TUNNEL-CONTRACT-V4",
+  "transportAuthority": "phase2-origin-staging.example.invalid",
+  "originService": "http://127.0.0.1:8787",
+  "originServiceAuthority": "phase2-origin.internal",
+  "publicIngress": false,
+  "redirects": "DENY",
+  "terminalRule": "http_status:404",
+  "nativeIaC": "infra/staging/modules/cloudflare/main.tf#cloudflare_zero_trust_tunnel_cloudflared_config.origin"
+}

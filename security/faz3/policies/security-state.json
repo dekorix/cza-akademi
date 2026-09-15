@@ -1,0 +1,15 @@
+{
+  "schemaVersion": "CZA-FAZ3-SECURITY-STATE-V4",
+  "acceptedPastSeconds": 60,
+  "futureClockSkewSeconds": 5,
+  "cleanupSafetyMarginSeconds": 15,
+  "nonceRetentionSeconds": 80,
+  "invariant": "nonceRetentionSeconds >= acceptedPastSeconds + futureClockSkewSeconds + cleanupSafetyMarginSeconds",
+  "atomicConsume": "INSERT ON CONFLICT DO NOTHING in one PostgreSQL transaction",
+  "replayResult": "403 REPLAY_REJECTED",
+  "retentionExpiredSignedRequest": "403 SIGNATURE_TIME_INVALID",
+  "roleMetadata": {
+    "allowed": "edge-authn-only",
+    "authorizationAuthority": false
+  }
+}

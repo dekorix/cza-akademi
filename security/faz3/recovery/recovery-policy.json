@@ -1,0 +1,15 @@
+{
+  "schemaVersion": "CZA-RECOVERY-POLICY-V4",
+  "journalLocation": "GitHub Actions immutable run artifact plus runner fsync copy",
+  "states": ["PREPARED", "WAL_DURABLE", "REQUESTED", "OBSERVED", "RECONCILED"],
+  "beforeFirstMutation": ["create-run-id", "fsync-write-ahead-run-record", "upload-artifact", "download-and-hash-verify", "derive-deterministic-resource-label"],
+  "beforeEveryMutation": "persist-PREPARED-then-prove-WAL_DURABLE-then-persist-REQUESTED",
+  "afterEveryMutation": "persist-OBSERVED-then-RECONCILED",
+  "lostResponseReconciliationKeys": ["run_id", "provider", "resource_kind", "deterministic_label"],
+  "cleanupDiscovery": ["journal-resource-id", "provider-label-query", "provider-audit-query"],
+  "cleanupSuccessRequires": ["zero-live-resources-for-run-id", "remote-delete-observed", "final-journal-checkpoint"],
+  "neverEraseUnreconciledJournal": true,
+  "workflow": ".github/workflows/faz3-p1-provision-reusable.yml",
+  "executable": "scripts/faz3/recovery-wal.mjs",
+  "reconciler": "scripts/faz3/reconcile-staging-v4.mjs"
+}
