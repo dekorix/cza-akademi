@@ -18,24 +18,26 @@ const EVIDENCE_FILES = [
 ];
 const digest = value => createHash('sha256').update(value).digest('hex');
 
-export function verifyGitHubArtifactMetadata(response, { expectedName, expectedDigest }) {
+export function verifyGitHubArtifactMetadata(response, { expectedName, expectedDigest, expectedArtifactId }) {
   assert.match(expectedDigest || '', HEX_64, 'B1_ARTIFACT_DIGEST_INVALID');
   const matches = (response?.artifacts || []).filter(artifact => artifact.name === expectedName && artifact.expired === false);
   assert.equal(matches.length, 1, 'B1_ARTIFACT_EXACTLY_ONE_REQUIRED');
   const artifact = matches[0];
   assert.equal(artifact.digest, `sha256:${expectedDigest}`, 'B1_ARTIFACT_DIGEST_MISMATCH');
   assert.ok(Number.isSafeInteger(artifact.id) && artifact.id > 0, 'B1_ARTIFACT_ID_INVALID');
+  if (expectedArtifactId !== undefined) assert.equal(artifact.id, expectedArtifactId, 'B1_ARTIFACT_ID_MISMATCH');
   assert.ok(Number.isSafeInteger(artifact.size_in_bytes) && artifact.size_in_bytes > 0, 'B1_ARTIFACT_EMPTY');
   return { result: 'PASS', artifactId: artifact.id, digest: artifact.digest };
 }
 
-export function verifyGitHubRunMetadata(response, { expectedCommit, expectedRepository, expectedWorkflowPath }) {
+export function verifyGitHubRunMetadata(response, { expectedCommit, expectedRepository, expectedWorkflowPath, expectedRunId }) {
   assert.match(expectedCommit || '', HEX_40, 'B1_RUN_COMMIT_INVALID');
   assert.equal(response?.status, 'completed', 'B1_RUN_NOT_COMPLETED');
   assert.equal(response?.conclusion, 'success', 'B1_RUN_NOT_SUCCESSFUL');
   assert.equal(response?.head_sha, expectedCommit, 'B1_RUN_COMMIT_MISMATCH');
   assert.equal(response?.repository?.full_name, expectedRepository, 'B1_RUN_REPOSITORY_MISMATCH');
   assert.equal(response?.path, expectedWorkflowPath, 'B1_RUN_WORKFLOW_MISMATCH');
+  if (expectedRunId !== undefined) assert.equal(response?.id, expectedRunId, 'B1_RUN_ID_MISMATCH');
   assert.ok(['push', 'workflow_dispatch'].includes(response?.event), 'B1_RUN_EVENT_FORBIDDEN');
   return { result: 'PASS', runId: response.id, commit: response.head_sha, workflow: response.path };
 }
@@ -160,10 +162,12 @@ if (invokedPath === fileURLToPath(import.meta.url)) {
       expectedCommit: options['--expected-commit'],
       expectedRepository: options['--expected-repository'],
       expectedWorkflowPath: '.github/workflows/faz3-p0-native-provider-schema.yml',
+      expectedRunId: options['--expected-run-id'] ? Number(options['--expected-run-id']) : undefined,
     });
     const artifact = verifyGitHubArtifactMetadata(metadata, {
       expectedName: options['--expected-name'],
       expectedDigest: options['--expected-digest'],
+      expectedArtifactId: options['--expected-artifact-id'] ? Number(options['--expected-artifact-id']) : undefined,
     });
     process.stdout.write(`${JSON.stringify({ result: 'PASS', run, artifact })}\n`);
   } else {
