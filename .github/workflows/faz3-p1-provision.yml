@@ -12,14 +12,6 @@ on:
         description: Exact 64-hex digest of the independently accepted P0-C attestation
         required: true
         type: string
-      native_provider_proof_run_id:
-        description: GitHub Actions run ID containing the exact-commit B1 native provider proof
-        required: true
-        type: string
-      native_provider_artifact_digest:
-        description: Exact 64-hex SHA-256 digest reported by upload-artifact for the B1 proof
-        required: true
-        type: string
 
 permissions:
   contents: read
@@ -29,9 +21,7 @@ permissions:
 jobs:
   p1:
     if: inputs.authorize_p1 == true && github.ref == 'refs/heads/feature/faz3-gate1b-v4'
-    uses: dekorix/cza-akademi/.github/workflows/faz3-p1-provision-reusable.yml@b12242db1a8db886caee4c6f07ba1b1a98bea638
+    uses: dekorix/cza-akademi/.github/workflows/faz3-p1-provision-reusable.yml@4d6735045289c87b14ee25ba81b0312d2655d6b5
     with:
       authorize_p1: ${{ inputs.authorize_p1 }}
       p0c_attestation_sha256: ${{ inputs.p0c_attestation_sha256 }}
-      native_provider_proof_run_id: ${{ inputs.native_provider_proof_run_id }}
-      native_provider_artifact_digest: ${{ inputs.native_provider_artifact_digest }}

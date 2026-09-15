@@ -4,6 +4,12 @@ import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { verifyNativeProviderProof } from '../scripts/faz3/verify-native-provider-proof.mjs';
 import { verifyB1NativeProviderProof, verifyGitHubArtifactMetadata, verifyGitHubRunMetadata } from '../scripts/faz3/verify-b1-native-provider-proof.mjs';
+import {
+  createConsumptionClaim,
+  verifyManifestProofEvidence,
+  verifyP1NativeProofManifest,
+  verifyProofUnused,
+} from '../scripts/faz3/verify-p1-native-proof-manifest.mjs';
 
 const sourceCommit = 'a'.repeat(40);
 const providerLockSha256 = 'b'.repeat(64);
@@ -148,19 +154,133 @@ test('B1 run metadata requires the exact successful proof workflow and commit', 
   assert.throws(() => verifyGitHubRunMetadata({ ...run, conclusion: 'failure' }, expected));
 });
 
-test('P1 provisioning has a mandatory exact-run B1 proof dependency', async () => {
+const signedManifest = JSON.parse(await readFile('delivery/CZA_Faz3_Delivery_Manifest_v4.json', 'utf8'));
+const verifiedManifest = verifyP1NativeProofManifest(signedManifest);
+
+test('signed Manifest v4 accepts the exact native proof run and digest', () => {
+  assert.equal(verifiedManifest.result, 'PASS');
+  assert.equal(verifiedManifest.binding.runId, 35014797059);
+  assert.equal(verifiedManifest.binding.artifact.digestSha256, '3067bafbfd36a661f48d0498f4cefc210ec1befb1a7d38acb4dd0c9fd92c05d4');
+  assert.deepEqual(verifiedManifest.binding.application, {
+    commit: signedManifest.application.commit,
+    tree: signedManifest.application.tree,
+  });
+  assert.equal(verifyGitHubRunMetadata({
+    id: verifiedManifest.binding.runId,
+    status: 'completed',
+    conclusion: 'success',
+    head_sha: verifiedManifest.application.commit,
+    event: 'push',
+    path: verifiedManifest.binding.workflowPath,
+    repository: { full_name: verifiedManifest.binding.repository },
+  }, {
+    expectedCommit: verifiedManifest.application.commit,
+    expectedRepository: verifiedManifest.binding.repository,
+    expectedWorkflowPath: verifiedManifest.binding.workflowPath,
+    expectedRunId: verifiedManifest.binding.runId,
+  }).result, 'PASS');
+  assert.equal(verifyGitHubArtifactMetadata({ artifacts: [{
+    id: verifiedManifest.binding.artifact.id,
+    name: verifiedManifest.binding.artifact.name,
+    expired: false,
+    size_in_bytes: 4096,
+    digest: `sha256:${verifiedManifest.binding.artifact.digestSha256}`,
+  }] }, {
+    expectedName: verifiedManifest.binding.artifact.name,
+    expectedDigest: verifiedManifest.binding.artifact.digestSha256,
+    expectedArtifactId: verifiedManifest.binding.artifact.id,
+  }).result, 'PASS');
+});
+
+test('P1 gate rejects a damaged Manifest v4 signature', () => {
+  const changed = structuredClone(signedManifest);
+  changed.attestation.signature = `${changed.attestation.signature[0] === 'A' ? 'B' : 'A'}${changed.attestation.signature.slice(1)}`;
+  assert.throws(() => verifyP1NativeProofManifest(changed), /ED25519_SIGNATURE_INVALID/);
+});
+
+test('P1 gate rejects run ID metadata that disagrees with signed Manifest v4', () => {
+  const run = {
+    id: verifiedManifest.binding.runId + 1,
+    status: 'completed',
+    conclusion: 'success',
+    head_sha: verifiedManifest.application.commit,
+    event: 'push',
+    path: verifiedManifest.binding.workflowPath,
+    repository: { full_name: verifiedManifest.binding.repository },
+  };
+  assert.throws(() => verifyGitHubRunMetadata(run, {
+    expectedCommit: verifiedManifest.application.commit,
+    expectedRepository: verifiedManifest.binding.repository,
+    expectedWorkflowPath: verifiedManifest.binding.workflowPath,
+    expectedRunId: verifiedManifest.binding.runId,
+  }), /B1_RUN_ID_MISMATCH/);
+});
+
+test('P1 gate rejects artifact digest metadata that disagrees with signed Manifest v4', () => {
+  const artifact = verifiedManifest.binding.artifact;
+  const metadata = { artifacts: [{ id: artifact.id, name: artifact.name, expired: false, size_in_bytes: 4096, digest: `sha256:${'f'.repeat(64)}` }] };
+  assert.throws(() => verifyGitHubArtifactMetadata(metadata, {
+    expectedName: artifact.name,
+    expectedDigest: artifact.digestSha256,
+    expectedArtifactId: artifact.id,
+  }), /B1_ARTIFACT_DIGEST_MISMATCH/);
+});
+
+test('P1 ignores fake manual-dispatch proof locators and derives them only from the signed manifest', async () => {
   const caller = await readFile('.github/workflows/faz3-p1-provision.yml', 'utf8');
   const reusable = await readFile('.github/workflows/faz3-p1-provision-reusable.yml', 'utf8');
   const proofWorkflow = await readFile('.github/workflows/faz3-p0-native-provider-schema.yml', 'utf8');
-  assert.match(caller, /native_provider_proof_run_id:[\s\S]*native_provider_artifact_digest:/);
+  assert.doesNotMatch(caller, /native_provider_(?:proof_run_id|artifact_digest)/);
+  assert.doesNotMatch(reusable, /inputs\.native_provider_(?:proof_run_id|artifact_digest)/);
   assert.match(reusable, /native-provider-proof-gate:/);
+  assert.match(reusable, /verify-p1-native-proof-manifest\.mjs/);
   assert.match(reusable, /--metadata=.*b1-artifacts\.json/);
   assert.match(reusable, /--run-metadata=.*b1-run\.json/);
-  assert.match(reusable, /run-id:\s*\$\{\{ inputs\.native_provider_proof_run_id \}\}/);
+  assert.match(reusable, /run-id:\s*\$\{\{ steps\.manifest\.outputs\.proof_run_id \}\}/);
   assert.match(reusable, /needs:\s*native-provider-proof-gate/);
   assert.match(reusable, /needs\.native-provider-proof-gate\.result == 'success'/);
+  for (const path of [
+    'scripts/faz3/verify-p1-native-proof-manifest.mjs',
+    'scripts/faz3/verify-b1-native-provider-proof.mjs',
+    'security/faz3/attestation/verify-manifest-attestation.mjs',
+    'security/faz3/attestation/jcs.mjs',
+  ]) assert.match(reusable, new RegExp(`${hash(await readFile(path))}  ${path.replaceAll('.', '\\.')}`));
   assert.match(proofWorkflow, /init -backend=false -input=false -lockfile=readonly/);
   assert.match(proofWorkflow, /providers schema -json/);
   assert.match(proofWorkflow, /TF_LOG=TRACE/);
   assert.doesNotMatch(proofWorkflow, /\btofu\b[^\n]*\b(?:apply|destroy|import)\b/);
+});
+
+test('P1 replay guard permits the first claim and rejects the same run/digest a second time', () => {
+  assert.equal(verifyProofUnused({ total_count: 0, artifacts: [] }, { claimName: verifiedManifest.claimName }).result, 'PASS');
+  assert.throws(() => verifyProofUnused({ total_count: 1, artifacts: [{ name: verifiedManifest.claimName, expired: false }] }, { claimName: verifiedManifest.claimName }), /B1_PROOF_REPLAY_DETECTED/);
+  const claim = createConsumptionClaim(verifiedManifest, { workflowRunId: '9001', consumedAt: '2026-09-15T20:00:00Z' });
+  assert.equal(claim.claimName, verifiedManifest.claimName);
+  assert.equal(claim.proof.runId, verifiedManifest.binding.runId);
+  assert.equal(claim.proof.artifactDigestSha256, verifiedManifest.binding.artifact.digestSha256);
+});
+
+test('P1 gate rejects proof evidence for a different commit/tree', () => {
+  const schema = Buffer.from('{}');
+  const inventory = Buffer.from('{}');
+  const lockfile = Buffer.from('lock');
+  const proof = {
+    schemaVersion: 'CZA-B1-NATIVE-PROVIDER-PROOF-V1',
+    result: 'PASS',
+    application: { commit: '3'.repeat(40), tree: '4'.repeat(40) },
+    providerSchema: { sha256: hash(schema), inventorySha256: hash(inventory) },
+    lockfile: { sha256: hash(lockfile) },
+  };
+  const proofDocument = Buffer.from(JSON.stringify(proof));
+  const binding = {
+    ...verifiedManifest.binding,
+    evidence: {
+      ...verifiedManifest.binding.evidence,
+      proofDocumentSha256: hash(proofDocument),
+      providerSchemaSha256: hash(schema),
+      providerSchemaInventorySha256: hash(inventory),
+      providerLockSha256: hash(lockfile),
+    },
+  };
+  assert.throws(() => verifyManifestProofEvidence(binding, { proofDocument, schema, inventory, lockfile }), /B1_PROOF_APPLICATION_MISMATCH/);
 });
