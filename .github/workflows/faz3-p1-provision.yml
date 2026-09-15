@@ -29,7 +29,7 @@ permissions:
 jobs:
   p1:
     if: inputs.authorize_p1 == true && github.ref == 'refs/heads/feature/faz3-gate1b-v4'
-    uses: dekorix/cza-akademi/.github/workflows/faz3-p1-provision-reusable.yml@40f417a75b3d233ba9a41495f0eff3b41b281bfe
+    uses: dekorix/cza-akademi/.github/workflows/faz3-p1-provision-reusable.yml@b12242db1a8db886caee4c6f07ba1b1a98bea638
     with:
       authorize_p1: ${{ inputs.authorize_p1 }}
       p0c_attestation_sha256: ${{ inputs.p0c_attestation_sha256 }}
