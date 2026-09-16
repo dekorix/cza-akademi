@@ -2,57 +2,45 @@
   "acceptanceGateVersion": "CZA-F3-GATE-1B-V4",
   "application": {
     "baseCommit": "6a0142d1e0dabe9e0d1154a6c630c202317dc61e",
-    "commit": "83878d0bbaa99cef7656d9a74f98c881a9bb8900",
-    "tree": "13bc90c34618373c6899bf24183bcfe289969649"
+    "commit": "59877564e193eb04fa6182e7f27a74ba46889cb1",
+    "tree": "832a77024b812fc76d56fbb5016352e726d1d527"
   },
   "attestation": {
     "algorithm": "Ed25519",
     "canonicalization": "RFC8785-JCS",
     "digest_algorithm": "SHA-256",
-    "payload_sha256": "7e2a2069d95bc3e6bc1de3761ab9cb57a4e2ccc6bb9ab363f57cf2314343ecb8",
-    "public_key_fingerprint": "a750f810dba3c1bf6708c34e66037f7c0f26c3effe95975f67cacc8831cc4639",
-    "public_key_pem_sha256": "2dccad915afda80786ac89104f31880a9cdc0f6febd91ebc7af11e6f81f12107",
-    "public_key_spki_base64": "MCowBQYDK2VwAyEASmKbs8oU5icAZH0K5pDQyBlcD3wIsBUa/U4ExICGFys=",
-    "signature": "Eb/j/x9Hxl4Ghv75ldHd4uPqicjU32ui1270EUMkgj6VM+/aa5SZoYSceQsfTSeku+niZseRyJwspo9R+Zs7CA==",
+    "payload_sha256": "27697ed386e7a3f316c969598caed7aaa1b7ab7bef0e38fadf5048a8f64acb3b",
+    "public_key_fingerprint": "8f236703a3e286b8ca0b8860215a1773aad760df5e6aff2f35600b2e4e44b635",
+    "public_key_pem_sha256": "41316af76d7b8c4b1f30671f78c79bd3cc33d18296b1c4255ee19cae7b61dd00",
+    "public_key_spki_base64": "MCowBQYDK2VwAyEAH0k0N0tHTaXJGqh1tyCyXgqlWGlnsSgvMpqMl77k9Po=",
+    "signature": "wvgSurvb3rxVul2jOL/CvwX5G36rDXflEOaZO3TncaPZ/w2vgvzvRRQf2+5SjIW9kPXdHSUq/cs+zkoAMdksAQ==",
     "signing_purpose": "OFFLINE_STATIC_REAUDIT"
   },
   "hashes": {
-    "actionPins": "bc03b0140f3ba38b396d63ca5fb9325899311fd704f1d31ef6a3923ce8f2b914",
-    "closureMatrix": "4c73062e2c8b4abd88ed4b7159c1451957870d66cbb084367cb22f3c55de566b",
-    "credentialBrokerPolicy": "0a91f094de3e75ba44ef331df47c0e7e4639b728e7b07aa79af372d08a229758",
-    "gitCommitObject": "ff0c1baf8a606c0c6bdba3772628aef508e76d23403c451eb44fe5e0993c3edc",
-    "gitTreeIndex": "7065f07650a6935a0e2e50939525d8800ab25987b4481cdf2fa51c38d4ae3e44",
-    "localStaticEvidence": "57a0a43fea5e21771f79df11c5a62668d1a28cb8284ae6c4c4343f8e268fd6f5",
-    "npmLock": "2fa669e3e98bbe6b0a89c60c10a393699ab400f3866a103d582462c4d7730714",
-    "offlineGate": "89e16249482ca913a7c9e16934d57451669b0aff4ce29967f1729b3abba42a69",
-    "oidcExactClaims": "9a423107e7eeffd3d9186ed1fc3e9fa3fee3eb154931fb3f1b698a05698d717d",
-    "oidcPolicyGenerator": "a9456d3d2ceff70a5c9e3436d1c6b2a73f73e67d51e824146198827ff1dc138b",
-    "oidcTrustPolicy": "a8702930ac7aff353c1b72e8c9acfb397fa92e8462ab4aa56c52020472f4c4b4",
-    "originVerifier": "f8e20d2c95820b2a167d6ae5843176f2af7a5fcf37ad3b5b59297915036e5b30",
-    "p1MutationWrapper": "6eece647bd3df3b9b889993af1c8f956b3ac70af719ff825802d8466c6652d0b",
+    "activeTrustRootPublicKey": "41316af76d7b8c4b1f30671f78c79bd3cc33d18296b1c4255ee19cae7b61dd00",
+    "b1ProofVerifier": "10d0b836cde63ab82b5ea341adfd463fc9124c3d8390348fc42105c1b0bb7218",
+    "credentialBrokerPolicy": "e26cac6b274dbc04e264e925d04c1ef4fe511e0d225490d5e07c03c885815c01",
+    "gitCommitObject": "24ce2e56fabc8fd9c52f82468dce6bc18ddb93da1d28eb88e8db907d03608004",
+    "gitTreeIndex": "09d480d1bd79f29a21bce3dfdf90f5d46c0143b6434f81ef3da2137d020ae2c8",
+    "manifestVerifier": "631b2d87769281b9e3fda585a6f3c5fb7c68276535d5955a12fc151b39d9ac07",
+    "nativeProofVerifier": "d92b26508752573c0ce2b326d2c7a3390aaca824ecfca751b99427638ad86571",
+    "p0NativeProofWorkflow": "baa514df17efdf24fea576e9d1e4107328c4614e9d4053c1f76f1fa822192065",
+    "p1CallerWorkflow": "b1426053d172993f4d3131a27b7465c71d60b722cb7699e773c60d35fc981eb6",
+    "p1ManifestVerifier": "d14a320790442ccc0feb81789fe0c4c5324ad071af9147ea04ae4f50adde337b",
+    "p1NeonRuntimePolicy": "8aa5a779f6c843b67cd8100a30ffca171309b5f2e2e40f6cd9e868e501027494",
+    "p1NeonRuntimeTrust": "ee0c0f644ff39fe9a6dea4984886a3f768ab34a4fbf0def30b9716abea814c22",
+    "p1ReusableWorkflow": "9b900abd2edf77fb47b0a9bf37f54cd7ca748e3bc02b806bbd6f2b12dd5df0d0",
     "providerLockHcl": "0e3525009ecbc9c90af012571292c6cee321409dab888b4f08640287e4723464",
     "providerLockPolicy": "077e8272d42c30d1932609e660f0e14434c949eaee0cd014f2e6982aa3679305",
-    "providerProofCollector": "c1550defb147adcb76c778da718e67ff0aae170180f088cd01c980a1406d53d1",
-    "providerProofStatus": "9b55e48fa999cd6454945c38b4d456367b723e41689352de6fac3aebc081e913",
-    "providerProofVerifier": "d92b26508752573c0ce2b326d2c7a3390aaca824ecfca751b99427638ad86571",
-    "providerSchemaInventory": "95a6e70ba8001e295ae6f32b6558b734364159eb301c9de346a561ea6e14a7d6",
-    "rbacPolicy": "25f787c5b654703df19740414130437e3d9083db3cb2a353513bcd52a0f4eebd",
-    "recoveryPolicy": "b64858a3d27454620cfdad6851ca8aca480df7d91c7261c8e1608bbca09f405e",
-    "recoveryReconciler": "c28adae49aa7c734e84d7e92bf6fabf7bd9a8406d4d74eba1a6bb5f0b1b42992",
-    "replayPolicy": "eb075b1fe5aab0eb867c4b44a055fcb5d571b74fa58335e8a7c698f1d7a96ba8",
-    "resourceGraph": "0f770d95eb655687718ed0144165fc38a290d55104c1f13487e8fc6447176ce4",
-    "specification": "f05050a41a8661e3d63bbd66eb495e982ae5847ef3b58a2896c73598747a7245",
-    "toolchainInventoryCode": "5439852009b583a658e7e6eaf6f8f5284f9aa138c10538b38610aba4ce8332da",
-    "toolchainVerifier": "4b8b12fb4ae66ec50585e4800bdfdbb5c2ba457ed96238981c6d682fd1f51e88",
-    "vendoredToolchainInventory": "c2d4c6c8edf9878c8011eb0a5edd3656d90f8f4d4d6ed9484dda561c3908948e",
-    "worker": "c8a4c5f2ec5cfb6cd6858e63bcd8cb40a4827d89e4da9c28dcea600ee4b56a82",
-    "workerCanonical": "88dc45340b5a37d78240bc8897c4a8e0a63019d21c37b1ae7e969ae3507aca17",
+    "recoveryWalVerifier": "557ec3387f6b56d83ec74622dc4e59231a80dad2355b5bac6ab7f50ebd1f9be6",
+    "trustRootRegistry": "66653eb48cc31726eb5b1c3037c757f8effe9ba2a32055b9f2a021bf0dbb5cf6",
     "workflows": {
-      ".github/workflows/assessment-ci.yml": "920a8458c1df7f8e8935018bdda90d9ff16cd7e2081db983e406ed542fc16dc2",
-      ".github/workflows/canonical-security-postgres.yml": "90da736fa1fa2bafd16b1b0c9571a01fb1fd694fb40d88785907f27e12f8aeeb",
-      ".github/workflows/faz3-p0-native-provider-schema.yml": "382219c8840cc9363827c1e566b35a6865f5ff5ed3101a453c146837ea83957f",
-      ".github/workflows/faz3-p1-provision-reusable.yml": "1c775797eba62d165a32ed0d6d1801da974ee4a8039070be9ebfd38a0e01dd69",
-      ".github/workflows/faz3-p1-provision.yml": "30b39c76672210ff7f503f5874b958979cbf125f26ac7479c57db9f17623e5e0"
+      ".github/workflows/assessment-ci.yml": "f796e804223c011bee2c2c6328be8213b74681227161f94edc9408c14d20009e",
+      ".github/workflows/canonical-security-postgres.yml": "493eaba07d6a7e3fd39a1c4236bef9cb3eaf245072c9bf3fde053c22a705f7ee",
+      ".github/workflows/faz3-p0-native-provider-schema.yml": "baa514df17efdf24fea576e9d1e4107328c4614e9d4053c1f76f1fa822192065",
+      ".github/workflows/faz3-p1-neon-step1-reusable.yml": "9b900abd2edf77fb47b0a9bf37f54cd7ca748e3bc02b806bbd6f2b12dd5df0d0",
+      ".github/workflows/faz3-p1-provision-reusable.yml": "d14c21acba6e944d36079d70ddc4f79a7218f6ee42dd6e7d867d00d93f1e4f63",
+      ".github/workflows/faz3-p1-provision.yml": "b1426053d172993f4d3131a27b7465c71d60b722cb7699e773c60d35fc981eb6"
     }
   },
   "mutationClaims": {
@@ -62,10 +50,12 @@
     "workflowTriggered": true
   },
   "oidcIdentity": {
+    "authorizationAuthority": "RUNTIME_CREDENTIAL_BROKER_POLICY",
     "callerWorkflowPath": ".github/workflows/faz3-p1-provision.yml",
-    "jobWorkflowSha": "b12242db1a8db886caee4c6f07ba1b1a98bea638",
-    "reusableWorkflowPath": ".github/workflows/faz3-p1-provision-reusable.yml",
-    "workflowSha": "83878d0bbaa99cef7656d9a74f98c881a9bb8900"
+    "jobWorkflowSha": "874c406bd1710da7af798a920c87e4982676d6ea",
+    "manifestOidcAuthorization": false,
+    "reusableWorkflowPath": ".github/workflows/faz3-p1-neon-step1-reusable.yml",
+    "workflowSha": "59877564e193eb04fa6182e7f27a74ba46889cb1"
   },
   "providerProof": {
     "adapterAllowed": false,
@@ -77,23 +67,23 @@
     "execution": "OPENTOFU_NATIVE_PLUGIN_PROTOCOL",
     "nativeRun": {
       "application": {
-        "commit": "83878d0bbaa99cef7656d9a74f98c881a9bb8900",
-        "tree": "13bc90c34618373c6899bf24183bcfe289969649"
+        "commit": "59877564e193eb04fa6182e7f27a74ba46889cb1",
+        "tree": "832a77024b812fc76d56fbb5016352e726d1d527"
       },
       "artifact": {
-        "digestSha256": "3067bafbfd36a661f48d0498f4cefc210ec1befb1a7d38acb4dd0c9fd92c05d4",
-        "id": 10414893292,
-        "name": "faz3-native-provider-proof-83878d0bbaa99cef7656d9a74f98c881a9bb8900"
+        "digestSha256": "1d65f81b064d8a2c68704055d67ea4721666c606a4dea63b26a60d28372ed0ee",
+        "id": 10456234650,
+        "name": "faz3-native-provider-proof-59877564e193eb04fa6182e7f27a74ba46889cb1"
       },
       "evidence": {
-        "proofDocumentSha256": "a57e0cc3d22d4e1d2eee16b898b17f171ad056cb54bdf95aa4366c00e1aa1807",
+        "proofDocumentSha256": "2e4aad6f95f1a724a4468553665fb66c40b62516d476441158623a6a8b4745b5",
         "proofSchemaVersion": "CZA-B1-NATIVE-PROVIDER-PROOF-V1",
         "providerLockSha256": "0e3525009ecbc9c90af012571292c6cee321409dab888b4f08640287e4723464",
         "providerSchemaInventorySha256": "d9a5c1e5998a5f54ab3ed939b07704c96d8338abeb0118844228e67cddcaa8e4",
         "providerSchemaSha256": "b922622c84aed8180236ebf953243fe7c0da291cc0cf77fa7a92becb22878d48"
       },
       "repository": "dekorix/cza-akademi",
-      "runId": 35014797059,
+      "runId": 35121038976,
       "schemaVersion": "CZA-B1-NATIVE-PROVIDER-RUN-BINDING-V1",
       "singleUse": {
         "claimNamespace": "faz3-p1-native-proof-consumed",
@@ -126,5 +116,14 @@
     "schemaVersion": "CZA-NATIVE-PROVIDER-PROOF-V4",
     "status": "PASS"
   },
-  "schemaVersion": "CZA-FAZ3-DELIVERY-MANIFEST-V4"
+  "schemaVersion": "CZA-FAZ3-DELIVERY-MANIFEST-V4",
+  "trustRoot": {
+    "algorithm": "Ed25519",
+    "decisionId": "CZA-TRUST-ROOT-ROTATION-20260916-001",
+    "fingerprint": "8f236703a3e286b8ca0b8860215a1773aad760df5e6aff2f35600b2e4e44b635",
+    "productionEligible": false,
+    "publicKeyPath": "security/faz3/attestation/public-keys/8f236703a3e286b8ca0b8860215a1773aad760df5e6aff2f35600b2e4e44b635.pem",
+    "registryPath": "security/faz3/attestation/trust-roots.json",
+    "scope": "P0C_STAGING_ONLY_INTERIM"
+  }
 }
