@@ -145,3 +145,27 @@ test('old run machine evidence proves skipped provider mutation and resolves its
     artifacts: [artifact(record.requestedWalArtifact), artifact(record.finalWalArtifact)],
   }), /PROVIDER_MUTATION_ABSENCE_UNPROVEN/);
 });
+
+test('workflow blocks orphan WAL before proof claim and reaches REQUESTED only after broker plus tofu init', async () => {
+  const workflow = await readFile('.github/workflows/faz3-p1-neon-step1-reusable.yml', 'utf8');
+  const positions = {
+    orphan: workflow.indexOf('Reject unresolved P1 WAL before proof consumption'),
+    claim: workflow.indexOf('Reject replay and create single-use claim'),
+    durable: workflow.indexOf('Persist WAL_DURABLE externally before credential exchange'),
+    exchange: workflow.indexOf('Exchange exact-claim OIDC token for Neon-only credential'),
+    install: workflow.indexOf('Install checksum-pinned OpenTofu'),
+    init: workflow.indexOf('Initialize checksum-locked Neon provider'),
+    requested: workflow.indexOf('Mark REQUESTED immediately before provider mutation'),
+    requestedUpload: workflow.indexOf('Persist REQUESTED WAL externally', workflow.indexOf('Mark REQUESTED immediately before provider mutation')),
+    mutation: workflow.indexOf('Create only the isolated Neon staging project'),
+  };
+  assert.equal(Object.values(positions).every(value => value >= 0), true, JSON.stringify(positions));
+  assert.equal(positions.orphan < positions.claim, true);
+  assert.equal(positions.durable < positions.exchange, true);
+  assert.equal(positions.exchange < positions.install && positions.install < positions.init, true);
+  assert.equal(positions.init < positions.requested && positions.requested < positions.requestedUpload && positions.requestedUpload < positions.mutation, true);
+  assert.doesNotMatch(workflow.slice(positions.durable, positions.requested), /--state=REQUESTED/);
+  assert.doesNotMatch(workflow.slice(positions.exchange, positions.mutation), /continue-on-error:\s*true/);
+  assert.match(workflow, /\/v1\/exchange/);
+  assert.match(workflow, /Revoke run-bound Neon lease[\s\S]*\/v1\/revoke/);
+});

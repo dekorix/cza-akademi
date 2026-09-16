@@ -6,7 +6,7 @@ import { verifyP1NeonStaticGraph } from '../scripts/faz3/verify-p1-neon-static.m
 import { verifyP1NeonRuntimeClaims } from '../security/faz3/oidc/p1-neon-runtime-trust.mjs';
 
 const reusableSha = '57ce71e5e294370cf4e135a4d98747f730e11caa';
-const executionSha = '9276ca73a5b9fa5d4470b8ed5b048b82e66667b7';
+const executionSha = '31bd150537b5ae96899ae5fd2cc63e4591035a29';
 const p0c = 'a'.repeat(64);
 const runId = '01J8ABCDEFGHJKMNPQRSTVWXYZ';
 const nowMs = Date.parse('2026-09-16T12:00:00Z');
