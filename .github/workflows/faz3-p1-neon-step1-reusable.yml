@@ -30,7 +30,7 @@ jobs:
       - name: Checkout P1 trust gate
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
-          ref: d968805ec0901ad73fdc510ef3a501aaf6151536
+          ref: b54658a3b613534c75a541a653195260c54afd46
           persist-credentials: false
       - name: Verify immutable trust-gate code
         shell: bash

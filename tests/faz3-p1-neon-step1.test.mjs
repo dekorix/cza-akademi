@@ -6,7 +6,7 @@ import { verifyP1NeonStaticGraph } from '../scripts/faz3/verify-p1-neon-static.m
 import { verifyP1NeonRuntimeClaims } from '../security/faz3/oidc/p1-neon-runtime-trust.mjs';
 
 const reusableSha = '874c406bd1710da7af798a920c87e4982676d6ea';
-const trustGateSha = 'd968805ec0901ad73fdc510ef3a501aaf6151536';
+const trustGateSha = 'b54658a3b613534c75a541a653195260c54afd46';
 const executionSha = 'fcf41e909dfa66f6dd70cf9c947dc708142ab442';
 const runId = '01J8ABCDEFGHJKMNPQRSTVWXYZ';
 const leaseId = '018f47a2-4d31-7c2a-9f11-123456789abc';

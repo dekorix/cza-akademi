@@ -156,16 +156,19 @@ test('B1 run metadata requires the exact successful proof workflow and commit', 
 
 const signedManifest = JSON.parse(await readFile('delivery/CZA_Faz3_Delivery_Manifest_v4.json', 'utf8'));
 const historicalTrustRootFingerprint = 'a750f810dba3c1bf6708c34e66037f7c0f26c3effe95975f67cacc8831cc4639';
-const verifiedManifest = verifyP1NativeProofManifest(signedManifest, { expectedKeyFingerprint: historicalTrustRootFingerprint });
+const activeTrustRootFingerprint = '8f236703a3e286b8ca0b8860215a1773aad760df5e6aff2f35600b2e4e44b635';
+const verifiedManifest = verifyP1NativeProofManifest(signedManifest);
 
-test('P1 default trust gate rejects the retired historical Manifest root', () => {
-  assert.throws(() => verifyP1NativeProofManifest(signedManifest), /B1_MANIFEST_TRUST_ROOT_MISMATCH/);
+test('P1 default trust gate accepts only the active rotated Manifest root', () => {
+  assert.equal(verifiedManifest.result, 'PASS');
+  assert.equal(signedManifest.attestation.public_key_fingerprint, activeTrustRootFingerprint);
+  assert.throws(() => verifyP1NativeProofManifest(signedManifest, { expectedKeyFingerprint: historicalTrustRootFingerprint }), /B1_MANIFEST_TRUST_ROOT_MISMATCH/);
 });
 
 test('signed Manifest v4 accepts the exact native proof run and digest', () => {
   assert.equal(verifiedManifest.result, 'PASS');
-  assert.equal(verifiedManifest.binding.runId, 35014797059);
-  assert.equal(verifiedManifest.binding.artifact.digestSha256, '3067bafbfd36a661f48d0498f4cefc210ec1befb1a7d38acb4dd0c9fd92c05d4');
+  assert.equal(verifiedManifest.binding.runId, 35121038976);
+  assert.equal(verifiedManifest.binding.artifact.digestSha256, '1d65f81b064d8a2c68704055d67ea4721666c606a4dea63b26a60d28372ed0ee');
   assert.deepEqual(verifiedManifest.binding.application, {
     commit: signedManifest.application.commit,
     tree: signedManifest.application.tree,
