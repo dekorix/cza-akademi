@@ -1,0 +1,261 @@
+{
+  "schemaVersion": "CZA-FAZ3-P2-REAL-STAGING-EVIDENCE-V1",
+  "generatedAt": "2026-09-16T18:47:17Z",
+  "sourceCheckpoint": {
+    "branch": "feature/faz3-gate1b-v4",
+    "commit": "02b6ae60cbe1b8c0dee2c51110b10960104d2cd8",
+    "tree": "3e27ce885da38cf93db0b2bcfbdb752f5adf9491",
+    "remoteCommit": "02b6ae60cbe1b8c0dee2c51110b10960104d2cd8"
+  },
+  "p1Run": {
+    "id": 35134327735,
+    "name": "Faz3 P1 provision gate",
+    "event": "workflow_dispatch",
+    "status": "completed",
+    "conclusion": "success",
+    "headBranch": "feature/faz3-gate1b-v4",
+    "headSha": "02b6ae60cbe1b8c0dee2c51110b10960104d2cd8",
+    "runAttempt": 1,
+    "createdAt": "2026-09-16T18:25:38Z",
+    "updatedAt": "2026-09-16T18:27:00Z",
+    "jobs": [
+      {
+        "id": 104922804010,
+        "name": "p1 / native-provider-proof-gate",
+        "status": "completed",
+        "conclusion": "success",
+        "requiredSteps": {
+          "Reject unresolved P1 WAL before proof consumption": "success",
+          "Verify signed Manifest v4 and derive proof locator": "success",
+          "Verify proof evidence and application identity": "success",
+          "Reject replay and create single-use claim": "success",
+          "Persist single-use proof claim before provisioning": "success"
+        }
+      },
+      {
+        "id": 104922907805,
+        "name": "p1 / provision-neon-staging-project",
+        "status": "completed",
+        "conclusion": "success",
+        "requiredSteps": {
+          "Verify Neon-only static resource graph": "success",
+          "Persist PREPARED WAL externally": "success",
+          "Persist WAL_DURABLE externally before credential exchange": "success",
+          "Exchange exact-claim OIDC token for opaque broker lease": "success",
+          "Persist REQUESTED WAL externally": "success",
+          "Create only the isolated Neon staging project through broker": "success",
+          "Persist final WAL and Neon staging contract": "success",
+          "Revoke run-bound broker lease and remove opaque capability": "success"
+        }
+      }
+    ]
+  },
+  "githubArtifacts": {
+    "claim": {
+      "id": 10463101485,
+      "runId": 35134327735,
+      "name": "faz3-p1-native-proof-consumed-35121038976-1d65f81b064d8a2c68704055d67ea4721666c606a4dea63b26a60d28372ed0ee",
+      "digestSha256": "c5eb65b45eaf79a89b019c931134ac3b3d715e65ab5fb62c6e0a4548b6e67eb0",
+      "expired": false
+    },
+    "walPrepared": {
+      "id": 10462811974,
+      "runId": 35134327735,
+      "name": "faz3-p1-neon-wal-prepared-01K2ANG8T31E2F3713704CD2B4",
+      "digestSha256": "d4ea66ee7ca40f39a576f39dc22c0788b9a97fc828d27e27ca4e4b1f108e493b",
+      "expired": false
+    },
+    "walDurable": {
+      "id": 10462722170,
+      "runId": 35134327735,
+      "name": "faz3-p1-neon-wal-durable-01K2ANG8T31E2F3713704CD2B4",
+      "digestSha256": "8ebc73aaa4e024ed147a12c3f0f78993740f95de358648576ed44d7cb6e08933",
+      "expired": false
+    },
+    "walRequested": {
+      "id": 10462762231,
+      "runId": 35134327735,
+      "name": "faz3-p1-neon-wal-requested-01K2ANG8T31E2F3713704CD2B4",
+      "digestSha256": "8c7260fc4b0f0d9ee2fb6368a5de0869b03f2b097547d1d1bdaf59f9a7068821",
+      "expired": false
+    },
+    "result": {
+      "id": 10462692407,
+      "runId": 35134327735,
+      "name": "faz3-p1-neon-result-01K2ANG8T31E2F3713704CD2B4",
+      "digestSha256": "abcf164ce331f63dbe8d747566d2929b03b0fa0a3c9c2773e2a4a3e894703891",
+      "expired": false
+    }
+  },
+  "nativeProof": {
+    "runId": 35121038976,
+    "result": "PASS",
+    "expectedDigestSha256": "1d65f81b064d8a2c68704055d67ea4721666c606a4dea63b26a60d28372ed0ee",
+    "artifact": {
+      "id": 10456234650,
+      "runId": 35121038976,
+      "name": "faz3-native-provider-proof-59877564e193eb04fa6182e7f27a74ba46889cb1",
+      "digestSha256": "1d65f81b064d8a2c68704055d67ea4721666c606a4dea63b26a60d28372ed0ee",
+      "expired": false
+    },
+    "applicationCommit": "59877564e193eb04fa6182e7f27a74ba46889cb1",
+    "applicationTree": "832a77024b812fc76d56fbb5016352e726d1d527",
+    "providerSchemaExecuted": true,
+    "nativeHandshake": "PASS",
+    "providerMutationAttempted": false
+  },
+  "trust": {
+    "p0cManifestSha256": "7df975961415220879051f0b1e21178d2659db6bd0eb53c56a1069d7ef57ba9b",
+    "manifestVerification": "PASS",
+    "manifestPayloadSha256": "27697ed386e7a3f316c969598caed7aaa1b7ab7bef0e38fadf5048a8f64acb3b",
+    "publicKeyFingerprint": "8f236703a3e286b8ca0b8860215a1773aad760df5e6aff2f35600b2e4e44b635",
+    "oidc": {
+      "policyPath": "security/faz3/oidc/p1-neon-runtime-policy.json",
+      "matchingMode": "EXACT_ALL_REQUIRED",
+      "brokerExchangeAccepted": true,
+      "observedClaims": {
+        "aud": "urn:cza:staging:credential-broker:v1",
+        "repository": "dekorix/cza-akademi",
+        "repository_id": "1359513274",
+        "repository_owner_id": "219684352",
+        "environment": "CZA-STAGING-SECURITY",
+        "event_name": "workflow_dispatch",
+        "ref": "refs/heads/feature/faz3-gate1b-v4",
+        "workflow_ref": "dekorix/cza-akademi/.github/workflows/faz3-p1-provision.yml@refs/heads/feature/faz3-gate1b-v4",
+        "job_workflow_ref": "dekorix/cza-akademi/.github/workflows/faz3-p1-neon-step1-reusable.yml@607836a530322c0b7c57980f694c77fa2a2c3a6f",
+        "job_workflow_sha": "607836a530322c0b7c57980f694c77fa2a2c3a6f",
+        "sub": "repo:dekorix@219684352/cza-akademi@1359513274:environment:CZA-STAGING-SECURITY"
+      }
+    }
+  },
+  "wal": {
+    "runId": "01K2ANG8T31E2F3713704CD2B4",
+    "states": ["PREPARED", "WAL_DURABLE", "REQUESTED", "OBSERVED", "RECONCILED"],
+    "resource": "neon-staging-project",
+    "resourceId": "orange-resonance-01270480",
+    "preparedAt": "2026-09-16T18:26:12.553Z",
+    "durableAt": "2026-09-16T18:26:15.035Z",
+    "requestedAt": "2026-09-16T18:26:31.451Z",
+    "observedAt": "2026-09-16T18:26:54.278Z",
+    "reconciledAt": "2026-09-16T18:26:54.307Z"
+  },
+  "broker": {
+    "controlProjectId": "young-bar-92679633",
+    "controlProjectOrgId": "org-silent-boat-09386886",
+    "runnerReceivesNeonKey": false,
+    "runtimeNeonApiKeyIssued": false,
+    "opaqueLeaseOnly": true,
+    "lease": {
+      "id": "e5a7c3a3-844c-4aca-bf3c-ccdaefc1f07a",
+      "repositoryId": "1359513274",
+      "workflowRunId": "35134327735",
+      "runAttempt": 1,
+      "walRunId": "01K2ANG8T31E2F3713704CD2B4",
+      "scopes": ["staging:neon:create", "staging:neon:inspect", "staging:neon:delete"],
+      "status": "REVOKED",
+      "expiresAt": "2026-09-16T18:41:22.893Z",
+      "projectId": "orange-resonance-01270480",
+      "projectName": "cza-f3-staging-01k2ang8t31e2f3713704cd2b4",
+      "jobWorkflowSha": "607836a530322c0b7c57980f694c77fa2a2c3a6f",
+      "createdAt": "2026-09-16T18:26:27.943Z",
+      "updatedAt": "2026-09-16T18:26:57.434Z"
+    },
+    "publicTunnel": {
+      "provider": "trycloudflare",
+      "hostnameSha256": "2b8f59077499b8692671b36cf95d10f8adb336bb0707f832da4f8eef54862125",
+      "urlDisclosed": false,
+      "healthHttpStatus": 502,
+      "cloudflareEdgeStatus": "WORKING",
+      "originHostStatus": "ERROR",
+      "active": false,
+      "observedAt": "2026-09-16T18:47:17Z"
+    },
+    "githubVariables": {
+      "name": "CZA_STAGING_CREDENTIAL_BROKER_URL",
+      "environment": "CZA-STAGING-SECURITY",
+      "environmentCount": 0,
+      "repositoryCount": 0,
+      "removed": true,
+      "observedAt": "2026-09-16T18:46:00Z"
+    }
+  },
+  "neon": {
+    "inventoryObservedAt": "2026-09-16T18:44:00Z",
+    "controlPlaneMetadataOnly": true,
+    "databaseEndpointAccessed": false,
+    "stagingOrganization": {
+      "id": "org-silent-boat-09386886",
+      "name": "CZA Staging",
+      "projects": [
+        {
+          "id": "young-bar-92679633",
+          "name": "CZA P1 Broker Control STAGING",
+          "orgId": "org-silent-boat-09386886",
+          "region": "aws-eu-central-1",
+          "createdAt": "2026-09-16T17:39:18Z",
+          "updatedAt": "2026-09-16T18:26:46Z"
+        },
+        {
+          "id": "orange-resonance-01270480",
+          "name": "cza-f3-staging-01k2ang8t31e2f3713704cd2b4",
+          "orgId": "org-silent-boat-09386886",
+          "region": "aws-eu-central-1",
+          "createdAt": "2026-09-16T18:26:51Z",
+          "updatedAt": "2026-09-16T18:27:01Z"
+        }
+      ]
+    },
+    "p1Project": {
+      "id": "orange-resonance-01270480",
+      "name": "cza-f3-staging-01k2ang8t31e2f3713704cd2b4",
+      "orgId": "org-silent-boat-09386886",
+      "region": "aws-eu-central-1"
+    },
+    "endpointContract": {
+      "leaseProjectId": "e5a7c3a3-844c-4aca-bf3c-ccdaefc1f07a",
+      "projectId": "orange-resonance-01270480",
+      "projectName": "cza-f3-staging-01k2ang8t31e2f3713704cd2b4",
+      "region": "aws-eu-central-1",
+      "pooledEndpoint": "ep-winter-mode-b2djq0wx-pooler.c-6.eu-central-1.aws.neon.tech",
+      "unpooledEndpoint": "ep-winter-mode-b2djq0wx.c-6.eu-central-1.aws.neon.tech",
+      "migrationEndpoint": "ep-winter-mode-b2djq0wx.c-6.eu-central-1.aws.neon.tech",
+      "createdAt": "2026-09-16T18:26:51Z",
+      "targetEnvironment": "staging"
+    },
+    "productionOrganization": {
+      "id": "org-green-fire-42822633",
+      "name": "Habib",
+      "oldWrongStagingProjectPresent": false,
+      "projects": [
+        {
+          "id": "hidden-glade-66748043",
+          "name": "CZA Learning Core",
+          "orgId": "org-green-fire-42822633",
+          "region": "aws-eu-central-1",
+          "createdAt": "2026-09-04T11:12:48Z",
+          "updatedAt": "2026-09-14T11:28:46Z"
+        }
+      ]
+    }
+  },
+  "replayGuard": {
+    "active": true,
+    "claimPresent": true,
+    "claimName": "faz3-p1-native-proof-consumed-35121038976-1d65f81b064d8a2c68704055d67ea4721666c606a4dea63b26a60d28372ed0ee",
+    "proofRunId": 35121038976,
+    "proofDigestSha256": "1d65f81b064d8a2c68704055d67ea4721666c606a4dea63b26a60d28372ed0ee",
+    "consumerRunId": 35134327735,
+    "consumedAt": "2026-09-16T18:25:57Z"
+  },
+  "security": {
+    "productionAccessed": false,
+    "productionMutation": false,
+    "cloudflareResourcesCreated": 0,
+    "providerMutationPath": "BROKER_PROXY_NEON_ONLY",
+    "secretScan": {
+      "result": "PASS",
+      "findings": 0,
+      "forbiddenClasses": ["API_KEY", "DATABASE_PASSWORD", "LEASE_TOKEN", "GITHUB_TOKEN", "PRIVATE_KEY"]
+    }
+  }
+}
