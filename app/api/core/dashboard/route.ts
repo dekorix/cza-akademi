@@ -26,6 +26,12 @@ function boundedPercent(value: unknown) {
   return Math.max(0, Math.min(100, Math.round(parsed)));
 }
 
+function timestamp(value: unknown) {
+  if (typeof value === 'string') return value;
+  if (value instanceof Date) return value.toISOString();
+  return null;
+}
+
 export async function GET(request: Request) {
   try {
     const student = await authenticatedStudent(request);
@@ -159,8 +165,8 @@ export async function GET(request: Request) {
           moduleCode: String(item.module_code),
           moduleName: String(item.module_name),
           title: String(item.name),
-          startsAt: item.starts_at ? String(item.starts_at) : null,
-          expiresAt: item.expires_at ? String(item.expires_at) : null,
+          startsAt: timestamp(item.starts_at),
+          expiresAt: timestamp(item.expires_at),
           sessionCount: integer(item.session_count),
           completedCount: integer(item.completed_count),
         } satisfies StudentDashboardAssignment;
@@ -172,8 +178,8 @@ export async function GET(request: Request) {
           moduleCode: String(item.module_code),
           moduleName: String(item.module_name),
           status: String(item.status) as StudentDashboardActivity['status'],
-          startedAt: String(item.started_at),
-          completedAt: item.completed_at ? String(item.completed_at) : null,
+          startedAt: timestamp(item.started_at) || '',
+          completedAt: timestamp(item.completed_at),
         } satisfies StudentDashboardActivity;
       }),
       skillProfile: skills.map((row) => {

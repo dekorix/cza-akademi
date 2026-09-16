@@ -1,3 +1,4 @@
+/* oxlint-disable typescript/no-floating-promises -- node:test registrations are intentionally top-level. */
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -5,13 +6,26 @@ import { PGlite } from '@electric-sql/pglite';
 import { pgcrypto } from '@electric-sql/pglite/contrib/pgcrypto';
 
 const prerequisites = fs.readFileSync(
-  new URL('../db/migrations/20260912_staging_core_prerequisites_v1.sql', import.meta.url),
+  new URL(
+    '../db/migrations/20260912_staging_core_prerequisites_v1.sql',
+    import.meta.url,
+  ),
   'utf8',
 );
 const migration = fs.readFileSync(
-  new URL('../db/migrations/20260916_u1_student_panel_core_v1.sql', import.meta.url),
+  new URL(
+    '../db/migrations/20260916_u1_student_panel_core_v1.sql',
+    import.meta.url,
+  ),
   'utf8',
 );
+
+test('U1 migration is additive-only', () => {
+  assert.doesNotMatch(
+    migration,
+    /\b(?:drop|truncate)\b|\bdelete\s+from\b|\balter\s+table\b[^;]*\bdrop\b/i,
+  );
+});
 
 const ids = {
   academy: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
@@ -152,7 +166,9 @@ test('U1 additive schema is idempotent and preserves cross-student isolation', a
       UPDATE public.academies SET environment = 'production' WHERE id = '${ids.academy}';
     `);
     await assert.rejects(
-      db.exec(`UPDATE public.students SET is_demo = true WHERE id = '${ids.studentA}'`),
+      db.exec(
+        `UPDATE public.students SET is_demo = true WHERE id = '${ids.studentA}'`,
+      ),
       /CZA_DEMO_STUDENT_ENVIRONMENT_REJECTED/,
     );
   } finally {

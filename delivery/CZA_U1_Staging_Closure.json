@@ -1,0 +1,126 @@
+{
+  "schemaVersion": "CZA-U1-STAGING-CLOSURE-V1",
+  "generatedAt": "2026-09-16T21:05:24Z",
+  "sourceCandidate": {
+    "commit": "578711c46fbea33981ef9fa68d772f8ce4f03177",
+    "tree": "befb3a5c03527495d87e99384b0e6b7df9a83482"
+  },
+  "target": {
+    "environment": "staging",
+    "organizationId": "org-silent-boat-09386886",
+    "organizationName": "CZA Staging",
+    "projectId": "orange-resonance-01270480",
+    "projectName": "cza-f3-staging-01k2ang8t31e2f3713704cd2b4",
+    "branchId": "br-lucky-rain-b2po93vx",
+    "branchName": "main",
+    "database": "neondb"
+  },
+  "migration": {
+    "path": "db/migrations/20260916_u1_student_panel_core_v1.sql",
+    "sha256": "c5e71dabab51b2e3f4f9374963a53afa623a0262231aba0945b57871927f95b1",
+    "status": "APPLIED",
+    "additiveOnly": true,
+    "destructiveSqlMatches": 0,
+    "firstSchemaSha256": "2066e3f5a0f7c8b3e01f6bd684c84a96d7550a4cd6e193b614ee4cb226e4b905",
+    "secondSchemaSha256": "2066e3f5a0f7c8b3e01f6bd684c84a96d7550a4cd6e193b614ee4cb226e4b905",
+    "identityCount": 75,
+    "moduleSeedCount": 7,
+    "guardTriggerCount": 1,
+    "idempotent": true
+  },
+  "demoFlow": {
+    "dataClass": "synthetic_demo",
+    "academyId": "81000000-0000-4000-8000-000000000001",
+    "studentAId": "81000000-0000-4000-8000-000000000021",
+    "studentBId": "81000000-0000-4000-8000-000000000022",
+    "studentAUserId": "81000000-0000-4000-8000-000000000011",
+    "studentASessionId": "81000000-0000-4000-8000-000000000071",
+    "allStudentsMarkedDemo": true,
+    "writtenOutsideStaging": false,
+    "identity": {
+      "result": "PASS",
+      "authenticatedContextRows": 1,
+      "canonicalIdentityMatch": true
+    },
+    "assignment": {
+      "result": "PASS",
+      "studentAAssignments": 1,
+      "completedSessions": 1,
+      "studentBAssignmentsVisibleToA": 0
+    },
+    "attemptResult": {
+      "result": "PASS",
+      "attempts": 2,
+      "correctAttempts": 1,
+      "persistedResults": 2,
+      "firstRecordId": "66d0de6c-d3ff-4fa4-a83c-4ad1fdc485da",
+      "retryRecordId": "8cf88e4f-4f7d-4da7-8107-a91babf9143f"
+    },
+    "errorEvidence": {
+      "result": "PASS",
+      "persistedErrors": 1,
+      "errorType": "CALCULATION_ERROR",
+      "serverVerifiedEvidence": 4
+    },
+    "history": {
+      "result": "PASS",
+      "entryCount": 2,
+      "allEntriesStudentScoped": true,
+      "stableOrderRecordIds": [
+        "8cf88e4f-4f7d-4da7-8107-a91babf9143f",
+        "66d0de6c-d3ff-4fa4-a83c-4ad1fdc485da"
+      ]
+    },
+    "learningProfile": {
+      "result": "PASS",
+      "representation": "verified_evidence_projection",
+      "skillCode": "arithmetic.basic",
+      "observationCount": 2,
+      "progression": [
+        { "status": "developing", "scorePercent": 50 },
+        { "status": "proficient", "scorePercent": 100 }
+      ]
+    }
+  },
+  "negativeTests": {
+    "crossStudent": {
+      "result": "PASS",
+      "rejection": "CZA_STUDENT_SESSION_REVOKED",
+      "foreignAssignmentRows": 0,
+      "foreignRecordRows": 0,
+      "foreignAttemptRows": 0
+    },
+    "failedWriteRollback": {
+      "result": "PASS",
+      "rejection": "question_attempts_training_session_id_academy_id_student_i_fkey",
+      "sentinelRecipeRows": 0,
+      "partialAttemptRows": 0
+    },
+    "idempotency": {
+      "result": "PASS",
+      "firstReplayed": false,
+      "secondReplayed": true,
+      "recordIdStable": true,
+      "payloadHashStable": true
+    }
+  },
+  "applicationVerification": {
+    "productionBuild": "PASS",
+    "dashboardRouteBuilt": true,
+    "targetedHandlerTests": "PASS",
+    "deployedPreviewClaimed": false,
+    "existingPreviewAttempted": true,
+    "previewEnvironmentBlocker": "uv_interface_addresses",
+    "newHostingCreated": false
+  },
+  "security": {
+    "demoDataOnly": true,
+    "realStudentOrParentDataUsed": false,
+    "productionAccessed": false,
+    "productionMutation": false,
+    "stagingOnly": true,
+    "credentialValuesPersisted": false,
+    "temporaryEnvironmentFileRemoved": true,
+    "secretScan": "PASS"
+  }
+}

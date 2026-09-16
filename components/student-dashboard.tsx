@@ -1,5 +1,6 @@
 'use client';
 
+/* oxlint-disable next/no-html-link-for-pages -- CZA navigation intentionally uses full-page anchors; the client router shim is regression-tested as unsupported. */
 import {
   ArrowRight,
   AudioLines,
@@ -71,7 +72,6 @@ function dateLabel(value: string | null) {
     minute: '2-digit',
   }).format(date);
 }
-
 export function StudentDashboard({
   dashboard,
   loading,
@@ -155,7 +155,7 @@ export function StudentDashboard({
         </section>
 
         {loading ? (
-          <div role="status" className="mt-6 rounded-3xl border border-[#dce5e0] bg-white p-10 text-center text-sm font-semibold text-[#61727c]">Panel verilerin hazırlanıyor…</div>
+          <output aria-live="polite" className="mt-6 block rounded-3xl border border-[#dce5e0] bg-white p-10 text-center text-sm font-semibold text-[#61727c]">Panel verilerin hazırlanıyor…</output>
         ) : (
           <div className="mt-6 grid gap-6 xl:grid-cols-[1.45fr_.9fr]">
             <section id="today" className="scroll-mt-28 rounded-3xl border border-[#dce5e0] bg-white p-6 shadow-sm md:p-7" aria-labelledby="today-heading">

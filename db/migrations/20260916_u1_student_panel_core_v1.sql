@@ -138,9 +138,20 @@ BEGIN
 END;
 $$;
 
-DROP TRIGGER IF EXISTS students_demo_environment_guard_u1 ON public.students;
-CREATE TRIGGER students_demo_environment_guard_u1
-BEFORE INSERT OR UPDATE OF is_demo, academy_id ON public.students
-FOR EACH ROW EXECUTE FUNCTION public.cza_reject_demo_student_outside_nonproduction();
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_trigger
+    WHERE tgname = 'students_demo_environment_guard_u1'
+      AND tgrelid = 'public.students'::regclass
+      AND NOT tgisinternal
+  ) THEN
+    CREATE TRIGGER students_demo_environment_guard_u1
+    BEFORE INSERT OR UPDATE OF is_demo, academy_id ON public.students
+    FOR EACH ROW EXECUTE FUNCTION public.cza_reject_demo_student_outside_nonproduction();
+  END IF;
+END;
+$$;
 
 COMMIT;
