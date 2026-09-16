@@ -21,6 +21,10 @@ permissions:
 jobs:
   p1:
     if: inputs.authorize_p1 == true && github.ref == 'refs/heads/feature/faz3-gate1b-v4'
+    permissions:
+      contents: read
+      actions: write
+      id-token: write
     uses: dekorix/cza-akademi/.github/workflows/faz3-p1-neon-step1-reusable.yml@57ce71e5e294370cf4e135a4d98747f730e11caa
     with:
       authorize_p1: ${{ inputs.authorize_p1 }}
