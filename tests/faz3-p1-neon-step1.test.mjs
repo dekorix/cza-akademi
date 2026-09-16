@@ -6,6 +6,7 @@ import { verifyP1NeonStaticGraph } from '../scripts/faz3/verify-p1-neon-static.m
 import { verifyP1NeonRuntimeClaims } from '../security/faz3/oidc/p1-neon-runtime-trust.mjs';
 
 const reusableSha = '1ec96f6110a2bbeed5a4d829bf6af450f26d16bc';
+const trustGateSha = 'd968805ec0901ad73fdc510ef3a501aaf6151536';
 const executionSha = 'fcf41e909dfa66f6dd70cf9c947dc708142ab442';
 const runId = '01J8ABCDEFGHJKMNPQRSTVWXYZ';
 const leaseId = '018f47a2-4d31-7c2a-9f11-123456789abc';
@@ -119,6 +120,7 @@ test('caller and reusable workflow are pinned to immutable trust layers', async 
   const reusable = await readFile('.github/workflows/faz3-p1-neon-step1-reusable.yml', 'utf8');
   const broker = JSON.parse(await readFile('security/faz3/oidc/credential-broker-policy.json', 'utf8'));
   assert.match(caller, new RegExp(`faz3-p1-neon-step1-reusable\\.yml@${reusableSha}`));
+  assert.match(reusable, new RegExp(`ref: ${trustGateSha}`));
   assert.match(reusable, new RegExp(`ref: ${executionSha}`));
   assert.doesNotMatch(reusable, /infra\/staging\/p1-provision|provider-mutation-wrapper\.mjs|TF_VAR_cloudflare/i);
   assert.equal(policy.claims.job_workflow_sha, reusableSha);

@@ -30,13 +30,15 @@ jobs:
       - name: Checkout P1 trust gate
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
-          ref: 31bd150537b5ae96899ae5fd2cc63e4591035a29
+          ref: d968805ec0901ad73fdc510ef3a501aaf6151536
           persist-credentials: false
       - name: Verify immutable trust-gate code
         shell: bash
         run: |
           set -euo pipefail
-          echo 'd16aff885ec09975c2c501d92807c73e1495c41021527389ff32b2da068d3d80  scripts/faz3/verify-p1-native-proof-manifest.mjs' | sha256sum --check --strict
+          echo 'd14a320790442ccc0feb81789fe0c4c5324ad071af9147ea04ae4f50adde337b  scripts/faz3/verify-p1-native-proof-manifest.mjs' | sha256sum --check --strict
+          echo '66653eb48cc31726eb5b1c3037c757f8effe9ba2a32055b9f2a021bf0dbb5cf6  security/faz3/attestation/trust-roots.json' | sha256sum --check --strict
+          echo '41316af76d7b8c4b1f30671f78c79bd3cc33d18296b1c4255ee19cae7b61dd00  security/faz3/attestation/public-keys/8f236703a3e286b8ca0b8860215a1773aad760df5e6aff2f35600b2e4e44b635.pem' | sha256sum --check --strict
           echo '10d0b836cde63ab82b5ea341adfd463fc9124c3d8390348fc42105c1b0bb7218  scripts/faz3/verify-b1-native-provider-proof.mjs' | sha256sum --check --strict
           echo '631b2d87769281b9e3fda585a6f3c5fb7c68276535d5955a12fc151b39d9ac07  security/faz3/attestation/verify-manifest-attestation.mjs' | sha256sum --check --strict
           echo 'ed6490b1c55568c6d62fe065aa112004b2146878a7d324d7feccafcedf56f9ed  security/faz3/attestation/jcs.mjs' | sha256sum --check --strict

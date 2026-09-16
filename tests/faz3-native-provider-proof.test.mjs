@@ -155,7 +155,12 @@ test('B1 run metadata requires the exact successful proof workflow and commit', 
 });
 
 const signedManifest = JSON.parse(await readFile('delivery/CZA_Faz3_Delivery_Manifest_v4.json', 'utf8'));
-const verifiedManifest = verifyP1NativeProofManifest(signedManifest);
+const historicalTrustRootFingerprint = 'a750f810dba3c1bf6708c34e66037f7c0f26c3effe95975f67cacc8831cc4639';
+const verifiedManifest = verifyP1NativeProofManifest(signedManifest, { expectedKeyFingerprint: historicalTrustRootFingerprint });
+
+test('P1 default trust gate rejects the retired historical Manifest root', () => {
+  assert.throws(() => verifyP1NativeProofManifest(signedManifest), /B1_MANIFEST_TRUST_ROOT_MISMATCH/);
+});
 
 test('signed Manifest v4 accepts the exact native proof run and digest', () => {
   assert.equal(verifiedManifest.result, 'PASS');
@@ -228,7 +233,7 @@ test('P1 gate rejects artifact digest metadata that disagrees with signed Manife
 
 test('P1 ignores fake manual-dispatch proof locators and derives them only from the signed manifest', async () => {
   const caller = await readFile('.github/workflows/faz3-p1-provision.yml', 'utf8');
-  const reusable = await readFile('.github/workflows/faz3-p1-provision-reusable.yml', 'utf8');
+  const reusable = await readFile('.github/workflows/faz3-p1-neon-step1-reusable.yml', 'utf8');
   const proofWorkflow = await readFile('.github/workflows/faz3-p0-native-provider-schema.yml', 'utf8');
   assert.doesNotMatch(caller, /native_provider_(?:proof_run_id|artifact_digest)/);
   assert.doesNotMatch(reusable, /inputs\.native_provider_(?:proof_run_id|artifact_digest)/);
@@ -241,6 +246,8 @@ test('P1 ignores fake manual-dispatch proof locators and derives them only from 
   assert.match(reusable, /needs\.native-provider-proof-gate\.result == 'success'/);
   for (const path of [
     'scripts/faz3/verify-p1-native-proof-manifest.mjs',
+    'security/faz3/attestation/trust-roots.json',
+    'security/faz3/attestation/public-keys/8f236703a3e286b8ca0b8860215a1773aad760df5e6aff2f35600b2e4e44b635.pem',
     'scripts/faz3/verify-b1-native-provider-proof.mjs',
     'security/faz3/attestation/verify-manifest-attestation.mjs',
     'security/faz3/attestation/jcs.mjs',
