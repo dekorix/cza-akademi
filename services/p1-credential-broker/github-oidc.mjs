@@ -50,6 +50,7 @@ export class GithubOidcVerifier {
     if (claims.nbf !== undefined && (!Number.isInteger(claims.nbf) || claims.nbf > nowSeconds + 30)) throw new Error('OIDC_TIME_INVALID');
     if (!verifyP1NeonRuntimeClaims(claims, this.policy)) throw new Error('OIDC_CLAIM_MISMATCH');
     if (!/^[1-9][0-9]*$/.test(claims.run_id || '')) throw new Error('OIDC_RUN_ID_INVALID');
+    if (!/^[1-9][0-9]*$/.test(claims.run_attempt || '')) throw new Error('OIDC_RUN_ATTEMPT_INVALID');
     return claims;
   }
 }
