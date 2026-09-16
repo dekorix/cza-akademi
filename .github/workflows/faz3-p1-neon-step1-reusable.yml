@@ -146,14 +146,14 @@ jobs:
       - name: Checkout immutable Neon-only execution layer
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
-          ref: 31bd150537b5ae96899ae5fd2cc63e4591035a29
+          ref: fcf41e909dfa66f6dd70cf9c947dc708142ab442
           persist-credentials: false
       - name: Verify immutable runtime foundation
         shell: bash
         run: |
           set -euo pipefail
           echo 'b67b5d9897f98b334ed94110e81f53569395bde43ba4201b82e7e3ceeb209ad4  scripts/faz3/recovery-wal.mjs' | sha256sum --check --strict
-          echo 'abd06dcb8a243edfef10bb9c592c4407ddaca55cdd8b94260cdaa7cfe9f5b9c2  scripts/faz3/p1-neon-mutation-wrapper.mjs' | sha256sum --check --strict
+          echo '59d123d21b9fde6caa1bccff001596890ae65ff71314e95d13d154d535a71df4  scripts/faz3/p1-neon-mutation-wrapper.mjs' | sha256sum --check --strict
           echo '2d7626f4f25b796378d921c721eedaab43bcb0a2fba5fc0d5edab28f128ee2b8  scripts/faz3/verify-p1-neon-static.mjs' | sha256sum --check --strict
       - name: Verify Neon-only static resource graph
         shell: bash
@@ -196,7 +196,7 @@ jobs:
           path: ${{ steps.recovery.outputs.journal }}
           if-no-files-found: error
           retention-days: 30
-      - name: Exchange exact-claim OIDC token for Neon-only credential
+      - name: Exchange exact-claim OIDC token for opaque broker lease
         shell: bash
         env:
           AUDIENCE: urn:cza:staging:credential-broker:v1
@@ -209,38 +209,21 @@ jobs:
           token="$(curl --proto '=https' --tlsv1.2 --fail --silent --show-error \
             -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
             "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=${AUDIENCE}" | node -pe 'JSON.parse(require("fs").readFileSync(0)).value')"
-          request="$(node -e 'process.stdout.write(JSON.stringify({policy:"CZA-P1-NEON-RUNTIME-TRUST-V1",scopes:["staging:neon:create","staging:neon:inspect","staging:neon:delete"],ttlSeconds:900,p0cAttestationSha256:process.env.P0C_SHA}))')"
+          request="$(WAL_RUN_ID='${{ steps.recovery.outputs.run_id }}' node -e 'process.stdout.write(JSON.stringify({policy:"CZA-P1-NEON-RUNTIME-TRUST-V1",scopes:["staging:neon:create","staging:neon:inspect","staging:neon:delete"],ttlSeconds:900,p0cAttestationSha256:process.env.P0C_SHA,walRunId:process.env.WAL_RUN_ID}))')"
           broker="${BROKER_URL%/}"
           response="$(curl --proto '=https' --tlsv1.2 --fail --silent --show-error \
             -H "Authorization: Bearer ${token}" -H 'content-type: application/json' \
             --data "$request" "${broker}/v1/exchange")"
           umask 077
-          printf '%s' "$response" > recovery/broker-exchange.json
+          printf '%s' "$response" > recovery/neon-opaque-lease.json
           node -e '
             const fs = require("fs");
-            const response = JSON.parse(fs.readFileSync("recovery/broker-exchange.json"));
-            if (!response || typeof response.leaseId !== "string" || !response.credential || Object.keys(response).sort().join(",") !== "credential,leaseId") throw new Error("BROKER_RESPONSE_INVALID");
-            fs.writeFileSync("recovery/neon-scoped-credential.json", JSON.stringify(response.credential), { mode: 0o600 });
-            fs.writeFileSync("recovery/neon-lease-id", response.leaseId, { mode: 0o600 });
+            const response = JSON.parse(fs.readFileSync("recovery/neon-opaque-lease.json"));
+            const keys = ["expiresAt","leaseId","leaseToken","scopes","targetEnvironment"];
+            if (!response || Object.keys(response).sort().join(",") !== keys.sort().join(",") || typeof response.leaseToken !== "string") throw new Error("BROKER_RESPONSE_INVALID");
+            process.stdout.write(`::add-mask::${response.leaseToken}\n`);
           '
-          neon_api_key="$(node -pe 'JSON.parse(require("fs").readFileSync("recovery/neon-scoped-credential.json")).neonApiKey')"
-          echo "::add-mask::$neon_api_key"
-          rm -f recovery/broker-exchange.json
-      - name: Install checksum-pinned OpenTofu
-        shell: bash
-        run: |
-          set -euo pipefail
-          curl --proto '=https' --tlsv1.2 --fail --silent --show-error --location \
-            --output /tmp/tofu.deb \
-            https://packages.opentofu.org/opentofu/tofu/any/pool/any/main/t/tofu/tofu_1.12.0_amd64.deb
-          echo 'c2cd6876f06107c8e29abae34810bd7b557f7c44efd2cd71711e38e52bc534f9  /tmp/tofu.deb' | sha256sum --check --strict
-          sudo dpkg --install /tmp/tofu.deb
-      - name: Initialize checksum-locked Neon provider
-        shell: bash
-        run: |
-          set -euo pipefail
-          tofu -chdir=infra/staging/p1-neon init -backend=false -input=false -lockfile=readonly
-      - name: Mark REQUESTED immediately before provider mutation
+      - name: Mark REQUESTED immediately before broker mutation
         shell: bash
         run: |
           set -euo pipefail
@@ -252,32 +235,31 @@ jobs:
           path: ${{ steps.recovery.outputs.journal }}
           if-no-files-found: error
           retention-days: 30
-      - name: Create only the isolated Neon staging project
+      - name: Create only the isolated Neon staging project through broker
         shell: bash
         env:
-          P0C_SHA: ${{ inputs.p0c_attestation_sha256 }}
+          AUDIENCE: urn:cza:staging:credential-broker:v1
+          BROKER_URL: ${{ vars.CZA_STAGING_CREDENTIAL_BROKER_URL }}
         run: |
           set -euo pipefail
+          token="$(curl --proto '=https' --tlsv1.2 --fail --silent --show-error \
+            -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=${AUDIENCE}" | node -pe 'JSON.parse(require("fs").readFileSync(0)).value')"
+          lease_id="$(node -pe 'JSON.parse(require("fs").readFileSync("recovery/neon-opaque-lease.json")).leaseId')"
+          lease_token="$(node -pe 'JSON.parse(require("fs").readFileSync("recovery/neon-opaque-lease.json")).leaseToken')"
+          request="$(LEASE_ID="$lease_id" node -e 'process.stdout.write(JSON.stringify({leaseId:process.env.LEASE_ID}))')"
+          curl --proto '=https' --tlsv1.2 --fail --silent --show-error \
+            -H "Authorization: Bearer ${token}" \
+            -H "x-cza-lease-token: ${lease_token}" \
+            -H 'content-type: application/json' \
+            --data "$request" "${BROKER_URL%/}/v1/neon/projects" > recovery/neon-staging-contract.json
           node scripts/faz3/p1-neon-mutation-wrapper.mjs \
             --journal='${{ steps.recovery.outputs.journal }}' \
-            --credential-file=recovery/neon-scoped-credential.json \
-            --p0c-sha256="$P0C_SHA"
-          tofu -chdir=infra/staging/p1-neon output \
-            -state="$GITHUB_WORKSPACE/recovery/${{ steps.recovery.outputs.run_id }}.tfstate" \
-            -json staging_contract > recovery/neon-staging-contract.json
-          node -e '
-            const fs = require("fs"), crypto = require("crypto");
-            const contract = JSON.parse(fs.readFileSync("recovery/neon-staging-contract.json"));
-            const credential = JSON.parse(fs.readFileSync("recovery/neon-scoped-credential.json"));
-            const denied = new Set(credential.productionEndpointSha256Denylist);
-            for (const key of ["pooled_endpoint", "unpooled_endpoint", "migration_endpoint"]) {
-              const host = String(contract[key] || "").toLowerCase();
-              const digest = crypto.createHash("sha256").update(host).digest("hex");
-              if (!host || /(^|[.-])(prod|production)([.-]|$)/.test(host) || denied.has(digest)) throw new Error("PRODUCTION_ENDPOINT_REJECTED");
-            }
-          '
-          node scripts/faz3/recovery-wal.mjs advance '${{ steps.recovery.outputs.journal }}' --state=OBSERVED --resource-id="$(node -pe 'JSON.parse(require("fs").readFileSync("recovery/neon-staging-contract.json")).project_id')"
-          node scripts/faz3/recovery-wal.mjs advance '${{ steps.recovery.outputs.journal }}' --state=RECONCILED --resource-id="$(node -pe 'JSON.parse(require("fs").readFileSync("recovery/neon-staging-contract.json")).project_id')"
+            --lease-file=recovery/neon-opaque-lease.json \
+            --contract-file=recovery/neon-staging-contract.json
+          project_id="$(node -pe 'JSON.parse(require("fs").readFileSync("recovery/neon-staging-contract.json")).projectId')"
+          node scripts/faz3/recovery-wal.mjs advance '${{ steps.recovery.outputs.journal }}' --state=OBSERVED --resource-id="$project_id"
+          node scripts/faz3/recovery-wal.mjs advance '${{ steps.recovery.outputs.journal }}' --state=RECONCILED --resource-id="$project_id"
       - name: Persist final WAL and Neon staging contract
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -288,7 +270,7 @@ jobs:
             recovery/neon-staging-contract.json
           if-no-files-found: error
           retention-days: 30
-      - name: Revoke run-bound Neon lease and remove scoped credential
+      - name: Revoke run-bound broker lease and remove opaque capability
         if: always()
         shell: bash
         env:
@@ -296,13 +278,15 @@ jobs:
           BROKER_URL: ${{ vars.CZA_STAGING_CREDENTIAL_BROKER_URL }}
         run: |
           set -euo pipefail
-          trap 'rm -f recovery/neon-scoped-credential.json recovery/neon-lease-id recovery/prepared.receipt recovery/broker-exchange.json' EXIT
-          if [[ ! -f recovery/neon-lease-id ]]; then exit 0; fi
+          trap 'rm -f recovery/neon-opaque-lease.json recovery/prepared.receipt' EXIT
+          if [[ ! -f recovery/neon-opaque-lease.json ]]; then exit 0; fi
           test -n "$BROKER_URL"
           token="$(curl --proto '=https' --tlsv1.2 --fail --silent --show-error \
             -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
             "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=${AUDIENCE}" | node -pe 'JSON.parse(require("fs").readFileSync(0)).value')"
-          request="$(node -e 'process.stdout.write(JSON.stringify({leaseId:require("fs").readFileSync("recovery/neon-lease-id","utf8")}))')"
+          lease_id="$(node -pe 'JSON.parse(require("fs").readFileSync("recovery/neon-opaque-lease.json")).leaseId')"
+          lease_token="$(node -pe 'JSON.parse(require("fs").readFileSync("recovery/neon-opaque-lease.json")).leaseToken')"
+          request="$(LEASE_ID="$lease_id" node -e 'process.stdout.write(JSON.stringify({leaseId:process.env.LEASE_ID}))')"
           curl --proto '=https' --tlsv1.2 --fail --silent --show-error \
-            -H "Authorization: Bearer ${token}" -H 'content-type: application/json' \
+            -H "Authorization: Bearer ${token}" -H "x-cza-lease-token: ${lease_token}" -H 'content-type: application/json' \
             --data "$request" "${BROKER_URL%/}/v1/revoke" > /dev/null
