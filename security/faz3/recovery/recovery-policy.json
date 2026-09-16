@@ -1,10 +1,11 @@
 {
   "schemaVersion": "CZA-RECOVERY-POLICY-V4",
   "journalLocation": "GitHub Actions immutable run artifact plus runner fsync copy",
-  "states": ["PREPARED", "WAL_DURABLE", "REQUESTED", "OBSERVED", "RECONCILED"],
+  "states": ["PREPARED", "WAL_DURABLE", "REQUESTED", "OBSERVED", "RECONCILED", "RECONCILED_NO_MUTATION"],
   "beforeFirstMutation": ["create-run-id", "fsync-write-ahead-run-record", "upload-artifact", "download-and-hash-verify", "derive-deterministic-resource-label"],
   "beforeEveryMutation": "persist-PREPARED-then-prove-WAL_DURABLE-then-persist-REQUESTED",
   "afterEveryMutation": "persist-OBSERVED-then-RECONCILED",
+  "noMutationTerminal": "REQUESTED-to-RECONCILED_NO_MUTATION-only-with-machine-verified-provider-step-skipped-evidence",
   "lostResponseReconciliationKeys": ["run_id", "provider", "resource_kind", "deterministic_label"],
   "cleanupDiscovery": ["journal-resource-id", "provider-label-query", "provider-audit-query"],
   "cleanupSuccessRequires": ["zero-live-resources-for-run-id", "remote-delete-observed", "final-journal-checkpoint"],

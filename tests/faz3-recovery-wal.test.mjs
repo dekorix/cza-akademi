@@ -38,3 +38,23 @@ test('P0 mutation command is a hard nonzero failure', () => {
   assert.equal(result.status, 23);
   assert.match(result.stderr, /P0_MUTATION_COMMAND_FORBIDDEN/);
 });
+
+test('REQUESTED can reach RECONCILED_NO_MUTATION only with machine-verifiable skipped-step evidence', async () => {
+  const directory = await mkdtemp(resolve(tmpdir(), 'cza-faz3-no-mutation-'));
+  const journal = resolve(directory, 'journal.jsonl');
+  const durable = resolve(directory, 'durable.jsonl');
+  const receipt = resolve(directory, 'receipt.txt');
+  const evidence = resolve('security/faz3/recovery/reconciliations/35067500579-01K2KH2DCA2448770B9A359BE9.json');
+  try {
+    run(['init', journal, '--run-id=01K2KH2DCA2448770B9A359BE9', '--resource=neon-staging-project']);
+    await import('node:fs/promises').then(fs => fs.copyFile(journal, durable));
+    run(['receipt', durable, `--out=${receipt}`]);
+    run(['advance', journal, '--state=WAL_DURABLE', `--receipt=${receipt}`]);
+    run(['advance', journal, '--state=REQUESTED']);
+    assert.notEqual(spawnSync(process.execPath, [script, 'advance', journal, '--state=RECONCILED_NO_MUTATION'], { encoding: 'utf8' }).status, 0);
+    run(['reconcile-no-mutation', journal, `--evidence=${evidence}`]);
+    const history = (await readFile(journal, 'utf8')).trim().split('\n').map(line => JSON.parse(line));
+    assert.equal(history.at(-1).state, 'RECONCILED_NO_MUTATION');
+    assert.match(history.at(-1).evidenceSha256, /^[0-9a-f]{64}$/);
+  } finally { await rm(directory, { recursive: true, force: true }); }
+});

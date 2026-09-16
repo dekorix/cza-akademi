@@ -1,0 +1,7 @@
+{
+  "name": "@cza/p1-credential-broker",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=22.13.0" },
+  "scripts": { "start": "node server.mjs" }
+}

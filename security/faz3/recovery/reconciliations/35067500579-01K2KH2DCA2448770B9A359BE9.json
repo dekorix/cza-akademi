@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "CZA-P1-NO-MUTATION-EVIDENCE-V1",
+  "source": "GITHUB_ACTIONS_JOB_API",
+  "repository": "dekorix/cza-akademi",
+  "repositoryId": 1359513274,
+  "workflowRunId": 35067500579,
+  "headSha": "27f57f2c67d8ac1e929d2ad68ce42816285b7485",
+  "jobId": 104701071726,
+  "jobName": "p1 / provision-neon-staging-project",
+  "jobConclusion": "failure",
+  "walRunId": "01K2KH2DCA2448770B9A359BE9",
+  "exchangeStep": {
+    "number": 9,
+    "name": "Exchange exact-claim OIDC token for Neon-only credential",
+    "conclusion": "failure"
+  },
+  "providerMutationStep": {
+    "number": 11,
+    "name": "Create only the isolated Neon staging project",
+    "conclusion": "skipped"
+  },
+  "providerMutationStarted": false,
+  "neonProjectCreated": false,
+  "requestedWalArtifact": {
+    "id": 10434468715,
+    "name": "faz3-p1-neon-wal-requested-01K2KH2DCA2448770B9A359BE9",
+    "digest": "sha256:f801ab637e68d46d40bd9a0685faf8bf0c59a2d64a1c53e67f6291283d74e30b",
+    "expired": false
+  },
+  "finalWalArtifact": {
+    "id": 10434947254,
+    "name": "faz3-p1-neon-result-01K2KH2DCA2448770B9A359BE9",
+    "digest": "sha256:f801ab637e68d46d40bd9a0685faf8bf0c59a2d64a1c53e67f6291283d74e30b",
+    "expired": false
+  },
+  "terminalState": "RECONCILED_NO_MUTATION"
+}
