@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { appendFile, readFile, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
@@ -8,7 +9,14 @@ import { verifyManifestObject } from '../../security/faz3/attestation/verify-man
 
 const HEX_40 = /^[0-9a-f]{40}$/;
 const HEX_64 = /^[0-9a-f]{64}$/;
-const EXPECTED_MANIFEST_KEY_FINGERPRINT = 'a750f810dba3c1bf6708c34e66037f7c0f26c3effe95975f67cacc8831cc4639';
+const TRUST_ROOTS_PATH = fileURLToPath(new URL('../../security/faz3/attestation/trust-roots.json', import.meta.url));
+const trustRootRegistry = JSON.parse(readFileSync(TRUST_ROOTS_PATH, 'utf8'));
+assert.equal(trustRootRegistry.schemaVersion, 'CZA-P0C-TRUST-ROOTS-V1', 'B1_TRUST_ROOT_REGISTRY_SCHEMA_INVALID');
+const activeTrustRoots = (trustRootRegistry.roots || []).filter(root => root.status === 'ACTIVE' && root.newSignaturesAccepted === true);
+assert.equal(activeTrustRoots.length, 1, 'B1_ACTIVE_TRUST_ROOT_COUNT_INVALID');
+assert.equal(activeTrustRoots[0].algorithm, 'Ed25519', 'B1_ACTIVE_TRUST_ROOT_ALGORITHM_INVALID');
+assert.match(activeTrustRoots[0].fingerprint || '', HEX_64, 'B1_ACTIVE_TRUST_ROOT_FINGERPRINT_INVALID');
+const EXPECTED_MANIFEST_KEY_FINGERPRINT = activeTrustRoots[0].fingerprint;
 const EXPECTED_REPOSITORY = 'dekorix/cza-akademi';
 const EXPECTED_WORKFLOW = '.github/workflows/faz3-p0-native-provider-schema.yml';
 const CLAIM_NAMESPACE = 'faz3-p1-native-proof-consumed';

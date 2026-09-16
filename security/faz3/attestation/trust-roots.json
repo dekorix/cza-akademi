@@ -1,0 +1,28 @@
+{
+  "schemaVersion": "CZA-P0C-TRUST-ROOTS-V1",
+  "roots": [
+    {
+      "fingerprint": "a750f810dba3c1bf6708c34e66037f7c0f26c3effe95975f67cacc8831cc4639",
+      "algorithm": "Ed25519",
+      "status": "RETIRED_UNKNOWN",
+      "newSignaturesAccepted": false,
+      "historicalVerificationAllowed": true,
+      "reason": "SIGNER_PROVENANCE_AND_CUSTODY_UNRESOLVED",
+      "retiredByDecisionId": "CZA-TRUST-ROOT-ROTATION-20260916-001",
+      "effectiveAtUtc": "2026-09-16T14:21:19.941Z"
+    },
+    {
+      "fingerprint": "8f236703a3e286b8ca0b8860215a1773aad760df5e6aff2f35600b2e4e44b635",
+      "algorithm": "Ed25519",
+      "status": "ACTIVE",
+      "newSignaturesAccepted": true,
+      "historicalVerificationAllowed": true,
+      "scope": "P0C_STAGING_ONLY_INTERIM",
+      "productionEligible": false,
+      "decisionId": "CZA-TRUST-ROOT-ROTATION-20260916-001",
+      "activatedAtUtc": "2026-09-16T14:21:19.941Z",
+      "publicKeyPath": "security/faz3/attestation/public-keys/8f236703a3e286b8ca0b8860215a1773aad760df5e6aff2f35600b2e4e44b635.pem",
+      "replacementRequirement": "Rotate to non-exportable HSM-backed root before PRODUCTION_APPROVED"
+    }
+  ]
+}
