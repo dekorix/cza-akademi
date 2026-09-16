@@ -1,0 +1,252 @@
+name: Faz3 P1 Neon Step 1 reusable
+
+on:
+  workflow_call:
+    inputs:
+      authorize_p1:
+        type: boolean
+        required: true
+      p0c_attestation_sha256:
+        type: string
+        required: true
+
+permissions:
+  contents: read
+  actions: read
+  id-token: write
+
+concurrency:
+  group: cza-faz3-p1-neon-step1
+  cancel-in-progress: false
+
+jobs:
+  native-provider-proof-gate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - name: Checkout P1 trust gate
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+      - name: Verify immutable trust-gate code
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo 'd16aff885ec09975c2c501d92807c73e1495c41021527389ff32b2da068d3d80  scripts/faz3/verify-p1-native-proof-manifest.mjs' | sha256sum --check --strict
+          echo '10d0b836cde63ab82b5ea341adfd463fc9124c3d8390348fc42105c1b0bb7218  scripts/faz3/verify-b1-native-provider-proof.mjs' | sha256sum --check --strict
+          echo '631b2d87769281b9e3fda585a6f3c5fb7c68276535d5955a12fc151b39d9ac07  security/faz3/attestation/verify-manifest-attestation.mjs' | sha256sum --check --strict
+          echo 'ed6490b1c55568c6d62fe065aa112004b2146878a7d324d7feccafcedf56f9ed  security/faz3/attestation/jcs.mjs' | sha256sum --check --strict
+      - name: Verify signed Manifest v4 and derive proof locator
+        id: manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/faz3/verify-p1-native-proof-manifest.mjs \
+            --manifest=delivery/CZA_Faz3_Delivery_Manifest_v4.json \
+            --github-output="$GITHUB_OUTPUT"
+      - name: Validate manifest-bound run and artifact metadata
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          PROOF_RUN_ID: ${{ steps.manifest.outputs.proof_run_id }}
+          PROOF_ARTIFACT_ID: ${{ steps.manifest.outputs.proof_artifact_id }}
+          PROOF_NAME: ${{ steps.manifest.outputs.proof_artifact_name }}
+          PROOF_DIGEST: ${{ steps.manifest.outputs.proof_artifact_digest }}
+          APPLICATION_COMMIT: ${{ steps.manifest.outputs.application_commit }}
+        run: |
+          set -euo pipefail
+          [[ "$PROOF_RUN_ID" =~ ^[1-9][0-9]*$ ]]
+          [[ "$PROOF_DIGEST" =~ ^[0-9a-f]{64}$ ]]
+          curl --proto '=https' --tlsv1.2 --fail --silent --show-error \
+            -H 'Accept: application/vnd.github+json' \
+            -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+            -H 'X-GitHub-Api-Version: 2022-11-28' \
+            "${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/actions/runs/${PROOF_RUN_ID}/artifacts?name=${PROOF_NAME}&per_page=100" \
+            > "$RUNNER_TEMP/b1-artifacts.json"
+          curl --proto '=https' --tlsv1.2 --fail --silent --show-error \
+            -H 'Accept: application/vnd.github+json' \
+            -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+            -H 'X-GitHub-Api-Version: 2022-11-28' \
+            "${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/actions/runs/${PROOF_RUN_ID}" \
+            > "$RUNNER_TEMP/b1-run.json"
+          node scripts/faz3/verify-b1-native-provider-proof.mjs \
+            --metadata="$RUNNER_TEMP/b1-artifacts.json" \
+            --run-metadata="$RUNNER_TEMP/b1-run.json" \
+            --expected-name="$PROOF_NAME" \
+            --expected-digest="$PROOF_DIGEST" \
+            --expected-artifact-id="$PROOF_ARTIFACT_ID" \
+            --expected-run-id="$PROOF_RUN_ID" \
+            --expected-commit="$APPLICATION_COMMIT" \
+            --expected-repository="$GITHUB_REPOSITORY"
+      - name: Download exact-run native provider proof
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: ${{ steps.manifest.outputs.proof_artifact_name }}
+          path: ${{ runner.temp }}/b1-native-provider-proof
+          github-token: ${{ github.token }}
+          run-id: ${{ steps.manifest.outputs.proof_run_id }}
+      - name: Verify proof evidence and application identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/faz3/verify-p1-native-proof-manifest.mjs \
+            --manifest=delivery/CZA_Faz3_Delivery_Manifest_v4.json \
+            --evidence="$RUNNER_TEMP/b1-native-provider-proof"
+      - name: Reject replay and create single-use claim
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          CLAIM_NAME: ${{ steps.manifest.outputs.claim_name }}
+        run: |
+          set -euo pipefail
+          curl --proto '=https' --tlsv1.2 --fail --silent --show-error \
+            -H 'Accept: application/vnd.github+json' \
+            -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+            -H 'X-GitHub-Api-Version: 2022-11-28' \
+            "${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/actions/artifacts?name=${CLAIM_NAME}&per_page=100" \
+            > "$RUNNER_TEMP/b1-consumption-claims.json"
+          node scripts/faz3/verify-p1-native-proof-manifest.mjs \
+            --manifest=delivery/CZA_Faz3_Delivery_Manifest_v4.json \
+            --replay-metadata="$RUNNER_TEMP/b1-consumption-claims.json" \
+            --write-claim="$RUNNER_TEMP/b1-consumption-claim.json" \
+            --consumer-run-id="$GITHUB_RUN_ID" \
+            --consumed-at="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+      - name: Persist single-use proof claim before provisioning
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: ${{ steps.manifest.outputs.claim_name }}
+          path: ${{ runner.temp }}/b1-consumption-claim.json
+          if-no-files-found: error
+          retention-days: 30
+
+  provision-neon-staging-project:
+    needs: native-provider-proof-gate
+    if: inputs.authorize_p1 == true && needs.native-provider-proof-gate.result == 'success'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    environment: CZA-STAGING-SECURITY
+    permissions:
+      contents: read
+      actions: write
+      id-token: write
+    steps:
+      - name: Checkout immutable Neon-only execution layer
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          ref: 0ab12d21630647254a704d220252cc22fdff2709
+          persist-credentials: false
+      - name: Verify Neon-only static resource graph
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/faz3/verify-p1-neon-static.mjs
+      - name: Create recovery identity before mutation
+        id: recovery
+        shell: bash
+        run: |
+          set -euo pipefail
+          run_id="$(node scripts/faz3/recovery-wal.mjs new-run-id /dev/null)"
+          journal="recovery/${run_id}-neon-project.jsonl"
+          node scripts/faz3/recovery-wal.mjs init "$journal" --run-id="$run_id" --resource=neon-staging-project
+          echo "run_id=$run_id" >> "$GITHUB_OUTPUT"
+          echo "journal=$journal" >> "$GITHUB_OUTPUT"
+      - name: Persist PREPARED WAL externally
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: faz3-p1-neon-wal-prepared-${{ steps.recovery.outputs.run_id }}
+          path: ${{ steps.recovery.outputs.journal }}
+          if-no-files-found: error
+          retention-days: 30
+      - name: Re-read externally durable PREPARED WAL
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: faz3-p1-neon-wal-prepared-${{ steps.recovery.outputs.run_id }}
+          path: recovery/durable
+      - name: Mark WAL durable and request Neon mutation
+        shell: bash
+        run: |
+          set -euo pipefail
+          durable="recovery/durable/$(basename '${{ steps.recovery.outputs.journal }}')"
+          node scripts/faz3/recovery-wal.mjs receipt "$durable" --out=recovery/prepared.receipt
+          node scripts/faz3/recovery-wal.mjs advance '${{ steps.recovery.outputs.journal }}' --state=WAL_DURABLE --receipt=recovery/prepared.receipt
+          node scripts/faz3/recovery-wal.mjs advance '${{ steps.recovery.outputs.journal }}' --state=REQUESTED
+      - name: Persist REQUESTED WAL externally
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: faz3-p1-neon-wal-requested-${{ steps.recovery.outputs.run_id }}
+          path: ${{ steps.recovery.outputs.journal }}
+          if-no-files-found: error
+          retention-days: 30
+      - name: Exchange exact-claim OIDC token for Neon-only credential
+        shell: bash
+        env:
+          AUDIENCE: urn:cza:staging:credential-broker:v1
+          BROKER_URL: ${{ vars.CZA_STAGING_CREDENTIAL_BROKER_URL }}
+          P0C_SHA: ${{ inputs.p0c_attestation_sha256 }}
+        run: |
+          set -euo pipefail
+          test -n "$BROKER_URL"
+          [[ "$P0C_SHA" =~ ^[0-9a-f]{64}$ ]]
+          token="$(curl --proto '=https' --tlsv1.2 --fail --silent --show-error \
+            -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=${AUDIENCE}" | node -pe 'JSON.parse(require("fs").readFileSync(0)).value')"
+          request="$(node -e 'process.stdout.write(JSON.stringify({policy:"CZA-P1-NEON-RUNTIME-TRUST-V1",scopes:["staging:neon:create","staging:neon:inspect","staging:neon:delete"],ttlSeconds:900,p0cAttestationSha256:process.env.P0C_SHA}))')"
+          credential="$(curl --proto '=https' --tlsv1.2 --fail --silent --show-error \
+            -H "Authorization: Bearer ${token}" -H 'content-type: application/json' \
+            --data "$request" "$BROKER_URL")"
+          echo "::add-mask::$credential"
+          umask 077
+          printf '%s' "$credential" > recovery/neon-scoped-credential.json
+      - name: Install checksum-pinned OpenTofu
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --proto '=https' --tlsv1.2 --fail --silent --show-error --location \
+            --output /tmp/tofu.deb \
+            https://packages.opentofu.org/opentofu/tofu/any/pool/any/main/t/tofu/tofu_1.12.0_amd64.deb
+          echo 'c2cd6876f06107c8e29abae34810bd7b557f7c44efd2cd71711e38e52bc534f9  /tmp/tofu.deb' | sha256sum --check --strict
+          sudo dpkg --install /tmp/tofu.deb
+      - name: Create only the isolated Neon staging project
+        shell: bash
+        env:
+          P0C_SHA: ${{ inputs.p0c_attestation_sha256 }}
+        run: |
+          set -euo pipefail
+          tofu -chdir=infra/staging/p1-neon init -backend=false -input=false -lockfile=readonly
+          node scripts/faz3/p1-neon-mutation-wrapper.mjs \
+            --journal='${{ steps.recovery.outputs.journal }}' \
+            --credential-file=recovery/neon-scoped-credential.json \
+            --p0c-sha256="$P0C_SHA"
+          tofu -chdir=infra/staging/p1-neon output \
+            -state="$GITHUB_WORKSPACE/recovery/${{ steps.recovery.outputs.run_id }}.tfstate" \
+            -json staging_contract > recovery/neon-staging-contract.json
+          node -e '
+            const fs = require("fs"), crypto = require("crypto");
+            const contract = JSON.parse(fs.readFileSync("recovery/neon-staging-contract.json"));
+            const credential = JSON.parse(fs.readFileSync("recovery/neon-scoped-credential.json"));
+            const denied = new Set(credential.productionEndpointSha256Denylist);
+            for (const key of ["pooled_endpoint", "unpooled_endpoint", "migration_endpoint"]) {
+              const host = String(contract[key] || "").toLowerCase();
+              const digest = crypto.createHash("sha256").update(host).digest("hex");
+              if (!host || /(^|[.-])(prod|production)([.-]|$)/.test(host) || denied.has(digest)) throw new Error("PRODUCTION_ENDPOINT_REJECTED");
+            }
+          '
+          node scripts/faz3/recovery-wal.mjs advance '${{ steps.recovery.outputs.journal }}' --state=OBSERVED --resource-id="$(node -pe 'JSON.parse(require("fs").readFileSync("recovery/neon-staging-contract.json")).project_id')"
+          node scripts/faz3/recovery-wal.mjs advance '${{ steps.recovery.outputs.journal }}' --state=RECONCILED --resource-id="$(node -pe 'JSON.parse(require("fs").readFileSync("recovery/neon-staging-contract.json")).project_id')"
+      - name: Persist final WAL and Neon staging contract
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: faz3-p1-neon-result-${{ steps.recovery.outputs.run_id }}
+          path: |
+            recovery/*-neon-project.jsonl
+            recovery/neon-staging-contract.json
+          if-no-files-found: error
+          retention-days: 30
+      - name: Remove scoped credential
+        if: always()
+        shell: bash
+        run: rm -f recovery/neon-scoped-credential.json recovery/prepared.receipt
