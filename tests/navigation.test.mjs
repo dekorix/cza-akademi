@@ -30,7 +30,8 @@ test('main routes and query-bearing teaching/program links remain native anchors
   assert.match(source('app/page.tsx'), /<a[^>]*href=\{module\.href\}/);
   assert.ok(source('app/page.tsx').includes('/studio?mode=flash'));
   assert.ok(source('app/page.tsx').includes('/studio?mode=audio'));
-  assert.match(source('app/page.tsx'), /window\.location\.replace\(CAMPUS_V14_URL\)/);
+  assert.match(source('app/page.tsx'), /return <StudentPortal area="main" \/>/);
+  assert.doesNotMatch(source('app/page.tsx'), /window\.location\.replace\(CAMPUS_V14_URL\)/);
 });
 
 test('educator handoff carries the selected username but never a PIN', () => {

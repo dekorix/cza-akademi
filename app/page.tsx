@@ -1,12 +1,14 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { ArrowRight, AudioLines, BookOpenCheck, BrainCircuit, ChartNoAxesCombined, Check, ChevronRight, Clock3, Dumbbell, Eye, Flame, Hand, LayoutDashboard, Loader2, LogOut, Menu, Play, School, ShieldCheck, Sparkles, Target, X } from 'lucide-react';
+import { ArrowRight, AudioLines, BookOpenCheck, BrainCircuit, ChartNoAxesCombined, ChevronRight, Clock3, Eye, Flame, Hand, LayoutDashboard, Loader2, Menu, Play, Sparkles, Target, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Input } from '@/components/ui/input';
 import { core, coreStudent, friendlyCoreError, studentName, type CoreStudent } from '@/lib/core-client';
+import { StudentDashboard } from '@/components/student-dashboard';
+import type { StudentDashboardData } from '@/lib/student-dashboard-contract';
 
 const modules = [
   { title: 'Parmak tekniği', detail: 'Oku, parmaklarınla göster ve anında geri bildirim al', icon: Hand, color: '#f8eee3', ink: '#a56730', level: 'Learning Core bağlı', progress: 1, href: '/paritmetik' },
@@ -17,8 +19,6 @@ const modules = [
   { title: 'Hızlı Okuma', detail: 'Odaklan, görsel alanını genişlet ve anlamı yakala', icon: Eye, color: '#efeafd', ink: '#6755b3', level: 'Faz 2 önizleme', progress: 0, href: '/speed-reading' },
 ];
 
-const CAMPUS_V14_URL = 'https://script.google.com/macros/s/AKfycbwIS-o_6HB8GiA-pLhR-zK4aRZCqo_kz_dpUJFWA94NqMUT2E22tu6tThHPSAT0Ro92/exec?v=14';
-
 export function StudentPortal({ area }: { area: 'main' | 'work' }) {
   const [authLoading, setAuthLoading] = useState(true);
   const [student, setStudent] = useState<CoreStudent | null>(null);
@@ -26,11 +26,32 @@ export function StudentPortal({ area }: { area: 'main' | 'work' }) {
   const [pin, setPin] = useState('');
   const [loginError, setLoginError] = useState('');
   const [loginBusy, setLoginBusy] = useState(false);
+  const [dashboard, setDashboard] = useState<StudentDashboardData | null>(null);
+  const [dashboardLoading, setDashboardLoading] = useState(false);
+  const [dashboardError, setDashboardError] = useState('');
   const [menu, setMenu] = useState(false);
   const [digits, setDigits] = useState([0, 2, 4]);
   const [notice, setNotice] = useState('');
   const value = digits.reduce((total, digit) => total * 10 + digit, 0);
   const displayName = student ? studentName(student) : 'Öğrenci';
+
+  async function refreshDashboard() {
+    setDashboardLoading(true);
+    setDashboardError('');
+    try {
+      const response = await fetch('/api/core/dashboard', { cache: 'no-store' });
+      const data = await response.json() as { ok?: boolean; dashboard?: StudentDashboardData; error?: string };
+      if (!response.ok || data.ok !== true || !data.dashboard) {
+        throw new Error(data.error || 'student_dashboard_unavailable');
+      }
+      setDashboard(data.dashboard);
+    } catch {
+      setDashboard(null);
+      setDashboardError('Panel özetin şu anda yüklenemedi. Çalışma Merkezini kullanmaya devam edebilirsin.');
+    } finally {
+      setDashboardLoading(false);
+    }
+  }
 
   useEffect(() => {
     async function restoreStudent() {
@@ -43,6 +64,7 @@ export function StudentPortal({ area }: { area: 'main' | 'work' }) {
         if (new URLSearchParams(window.location.search).get('handoffError')) throw new Error('handoff_unavailable');
         const data = await core('me');
         setStudent(coreStudent(data));
+        await refreshDashboard();
       } catch (error) {
         setStudent(null);
         if (error instanceof Error && error.message !== 'session_required' && error.message !== 'invalid_session') {
@@ -63,6 +85,7 @@ export function StudentPortal({ area }: { area: 'main' | 'work' }) {
       const data = await core('login', { username: username.trim(), pin: pin.trim() });
       setStudent(coreStudent(data));
       setPin('');
+      await refreshDashboard();
     } catch (error) {
       setLoginError(friendlyCoreError(error));
     } finally {
@@ -71,25 +94,14 @@ export function StudentPortal({ area }: { area: 'main' | 'work' }) {
   }
 
   async function logout() {
-    try { await core('logout'); setStudent(null); setPin(''); setLoginError(''); }
+    try { await core('logout'); setStudent(null); setDashboard(null); setPin(''); setLoginError(''); }
     catch (error) { setLoginError(`${friendlyCoreError(error)} Güvenli çıkışı yeniden deneyin.`); }
   }
 
   if (authLoading) return <div className="grid min-h-screen place-items-center bg-background text-sm text-muted-foreground">Öğrenci oturumu açılıyor…</div>;
   if (!student) return <main className="min-h-screen bg-background px-5 py-12"><form onSubmit={login} aria-busy={loginBusy} className="mx-auto mt-[8vh] max-w-md rounded-3xl border border-border bg-white p-8 shadow-lg"><p className="eyebrow text-primary">ÇELİK ZİHİN AKADEMİSİ</p><h1 className="mt-3 text-3xl font-semibold">Öğrenci girişi</h1><p className="mt-2 text-base leading-7 text-muted-foreground">Çalışma merkezine girmek için kullanıcı adı ve PIN bilgilerini yaz.</p><label className="mt-7 block text-sm font-semibold" htmlFor="home-username">Kullanıcı adı</label><Input id="home-username" autoComplete="username" value={username} onChange={event => setUsername(event.target.value)} className="mt-2 h-12" disabled={loginBusy} required /><label className="mt-4 block text-sm font-semibold" htmlFor="home-pin">PIN</label><Input id="home-pin" type="password" inputMode="numeric" maxLength={6} autoComplete="current-password" value={pin} onChange={event => setPin(event.target.value.replace(/\D/g, ''))} className="mt-2 h-12" disabled={loginBusy} required />{loginError && <p role="alert" className="mt-4 rounded-xl bg-red-50 p-4 text-sm font-semibold text-red-800">{loginError}</p>}{loginBusy && <p role="status" className="mt-4 text-center text-sm font-medium text-primary">Bilgilerin güvenli biçimde doğrulanıyor…</p>}<Button type="submit" className="mt-6 h-12 w-full text-base" disabled={loginBusy || !username.trim() || !pin.trim()}>{loginBusy ? <><Loader2 className="animate-spin"/> Giriş hazırlanıyor…</> : 'Giriş yap'}</Button></form></main>;
 
-  if (area === 'main') return <div className="min-h-screen bg-background">
-    <header className="border-b border-border bg-white"><div className="mx-auto flex h-20 max-w-6xl items-center justify-between gap-4 px-5"><div className="flex items-center gap-3"><span className="grid h-10 w-10 place-items-center rounded-xl bg-primary font-black text-white">CZA</span><div><p className="font-semibold">CZA Öğrenci Paneli</p><p className="text-xs text-muted-foreground">Ana gelişim merkezi</p></div></div><Button variant="outline" onClick={logout}><LogOut/> Güvenli çıkış</Button></div></header>
-    <main className="mx-auto max-w-6xl px-5 py-9">
-      {loginError && <p role="alert" className="mb-5 rounded-xl bg-red-50 p-4 text-sm font-semibold text-red-800">{loginError}</p>}
-      <div className="mb-8 flex flex-wrap items-end justify-between gap-4"><div><p className="eyebrow text-primary">TEK ÖĞRENCİ · TEK GELİŞİM GEÇMİŞİ</p><h1 className="mt-2 text-3xl font-semibold tracking-tight">Merhaba {displayName}, ana paneline hoş geldin.</h1><p className="mt-3 max-w-2xl text-base leading-7 text-muted-foreground">Akademik gelişimini ve beceri çalışmalarını iki sade alandan yönetebilirsin.</p></div><span className="inline-flex items-center gap-2 rounded-xl bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-800"><ShieldCheck size={18}/> Merkezî kayıt etkin</span></div>
-      <section className="grid gap-5 md:grid-cols-2" aria-label="Öğrenci çalışma alanları">
-        <a href={CAMPUS_V14_URL} className="group rounded-3xl border-2 border-[#315a83]/30 bg-[linear-gradient(145deg,#fff,#e8f2fb)] p-7 shadow-sm transition hover:-translate-y-1 hover:shadow-lg"><span className="grid h-14 w-14 place-items-center rounded-2xl bg-[#315a83] text-white"><School size={28}/></span><p className="mt-6 text-xs font-bold tracking-widest text-[#315a83]">ANA AKADEMİK PANEL</p><h2 className="mt-2 text-2xl font-bold">CZA Kampüs · Sürüm 14</h2><p className="mt-3 min-h-20 text-sm leading-7 text-muted-foreground">Değerlendirme sonuçların, okul derslerin, hedeflerin, eğitimci yönlendirmelerin ve gelişim yolun.</p><span className="mt-5 inline-flex items-center gap-2 font-semibold text-[#315a83]">Akademik panelimi aç <ArrowRight size={18} className="transition group-hover:translate-x-1"/></span></a>
-        <a href="/work" className="group rounded-3xl border-2 border-primary/30 bg-[linear-gradient(145deg,#fff,#e5f4ed)] p-7 shadow-sm transition hover:-translate-y-1 hover:shadow-lg"><span className="grid h-14 w-14 place-items-center rounded-2xl bg-primary text-white"><Dumbbell size={28}/></span><p className="mt-6 text-xs font-bold tracking-widest text-primary">BECERİ VE EGZERSİZ ALANI</p><h2 className="mt-2 text-2xl font-bold">CZA Çalışma Paneli</h2><p className="mt-3 min-h-20 text-sm leading-7 text-muted-foreground">Parmak, Soroban, Toplama–Çıkarma, Flash Anzan, Sesli Anzan ve gelişecek diğer atölyeler.</p><span className="mt-5 inline-flex items-center gap-2 font-semibold text-primary">Çalışma alanımı aç <ArrowRight size={18} className="transition group-hover:translate-x-1"/></span></a>
-      </section>
-      <section className="mt-6 rounded-2xl border border-border bg-white p-6"><h2 className="font-semibold">Paneller nasıl birlikte çalışır?</h2><p className="mt-2 text-sm leading-7 text-muted-foreground">Her iki alan aynı öğrenciye aittir. Çalışma Panelindeki yeni sonuçlar merkezî kayda işlenir; eğitimci bu sonuçları kendi güvenli panelinden görür.</p></section>
-    </main>
-  </div>;
+  if (area === 'main') return <StudentDashboard dashboard={dashboard} loading={dashboardLoading} error={dashboardError || loginError} onLogout={logout} />;
 
   return (
     <div className="academy-shell lg:pl-[236px]">
@@ -200,7 +212,6 @@ export function StudentPortal({ area }: { area: 'main' | 'work' }) {
 }
 
 export default function Home() {
-  useEffect(() => { window.location.replace(CAMPUS_V14_URL); }, []);
-  return <main className="grid min-h-screen place-items-center bg-background px-5"><div className="text-center"><p className="eyebrow text-primary">ÇELİK ZİHİN AKADEMİSİ</p><h1 className="mt-3 text-2xl font-semibold">CZA Öğrenci Girişi açılıyor…</h1><a className="mt-5 inline-flex font-semibold text-primary" href={CAMPUS_V14_URL}>Açılmazsa öğrenci girişine dokun</a></div></main>;
+  return <StudentPortal area="main" />;
 }
 
