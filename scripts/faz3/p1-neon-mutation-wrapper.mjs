@@ -16,7 +16,8 @@ const ALLOWED_CREDENTIAL_KEYS = new Set([
 ]);
 
 function exactArray(actual, expected) {
-  return Array.isArray(actual) && JSON.stringify([...actual].sort()) === JSON.stringify([...expected].sort());
+  const compare = (left, right) => left.localeCompare(right);
+  return Array.isArray(actual) && JSON.stringify([...actual].sort(compare)) === JSON.stringify([...expected].sort(compare));
 }
 
 export function assertP1NeonMutationReady(history) {
@@ -47,7 +48,11 @@ export function buildP1NeonEnvironment({ credential, p0c, runId, nowMs = Date.no
   const denylist = credential.productionEndpointSha256Denylist;
   if (!Array.isArray(denylist) || denylist.length === 0 || denylist.some(value => !HEX_64.test(value))) throw new Error('PRODUCTION_ENDPOINT_DENYLIST_REQUIRED');
   if (denylist.includes(createHash('sha256').update(providerHost).digest('hex'))) throw new Error('PRODUCTION_ENDPOINT_REJECTED');
-  if (typeof credential.neonApiKey !== 'string' || credential.neonApiKey.length < 20 || /[\u0000-\u001f\u007f]/.test(credential.neonApiKey)) throw new Error('NEON_SCOPED_CREDENTIAL_INVALID');
+  const hasControlCharacter = typeof credential.neonApiKey === 'string' && [...credential.neonApiKey].some(character => {
+    const codePoint = character.codePointAt(0);
+    return codePoint <= 31 || codePoint === 127;
+  });
+  if (typeof credential.neonApiKey !== 'string' || credential.neonApiKey.length < 20 || hasControlCharacter) throw new Error('NEON_SCOPED_CREDENTIAL_INVALID');
 
   return {
     PATH: path,
