@@ -30,7 +30,7 @@ export class NeonAdminClient {
 
   #assertProject(project) {
     if (!project || typeof project.id !== 'string' || !PROJECT_NAME.test(project.name || '')) throw new Error('NEON_PROJECT_RESPONSE_INVALID');
-    if (project.org_id && project.org_id !== this.organizationId) throw new Error('NEON_ORGANIZATION_BOUNDARY_VIOLATION');
+    if (project.org_id !== this.organizationId) throw new Error('NEON_ORGANIZATION_BOUNDARY_VIOLATION');
     return project;
   }
 
@@ -81,7 +81,6 @@ export class NeonAdminClient {
   async deleteProject(projectId) {
     if (!/^[a-z0-9-]{1,64}$/.test(projectId || '')) throw new Error('NEON_PROJECT_ID_INVALID');
     const project = this.#assertProject((await this.#request(`/projects/${projectId}`, { method: 'GET' })).project);
-    if (project.org_id && project.org_id !== this.organizationId) throw new Error('NEON_ORGANIZATION_BOUNDARY_VIOLATION');
     await this.#request(`/projects/${projectId}`, { method: 'DELETE' });
   }
 }

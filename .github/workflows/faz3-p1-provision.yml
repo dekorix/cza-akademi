@@ -25,7 +25,7 @@ jobs:
       contents: read
       actions: write
       id-token: write
-    uses: dekorix/cza-akademi/.github/workflows/faz3-p1-neon-step1-reusable.yml@77ffa12e66c906f2ecf87d7b8b71b38f5e15fe0b
+    uses: dekorix/cza-akademi/.github/workflows/faz3-p1-neon-step1-reusable.yml@1ec96f6110a2bbeed5a4d829bf6af450f26d16bc
     with:
       authorize_p1: ${{ inputs.authorize_p1 }}
       p0c_attestation_sha256: ${{ inputs.p0c_attestation_sha256 }}

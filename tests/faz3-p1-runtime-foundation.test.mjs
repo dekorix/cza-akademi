@@ -5,6 +5,7 @@ import test from 'node:test';
 import { CredentialBroker, BrokerError, brokerConstants } from '../services/p1-credential-broker/broker.mjs';
 import { GithubOidcVerifier } from '../services/p1-credential-broker/github-oidc.mjs';
 import { MemoryLeaseStore } from '../services/p1-credential-broker/lease-store.mjs';
+import { NeonAdminClient, neonAdminConstants } from '../services/p1-credential-broker/neon-admin-client.mjs';
 import { createBrokerServer, configurationFromEnvironment } from '../services/p1-credential-broker/server.mjs';
 import { unresolvedRequestedWals, verifyNoMutationReconciliation } from '../scripts/faz3/verify-p1-orphan-wal.mjs';
 
@@ -213,6 +214,34 @@ test('revoke is an atomic control-plane state change and sweeper expires missed 
   expiring.clock.value += 61_000;
   assert.deepEqual(await expiring.broker.sweepExpired(), { expired: 1 });
   assert.equal((await expiring.store.list())[0].status, 'EXPIRED');
+});
+
+test('revoke fails closed when the durable lease database cannot commit', async () => {
+  const { broker, store } = setup();
+  const lease = await broker.exchange({ token: token(), request: request() });
+  store.revoke = async () => { throw new Error('DATABASE_UNAVAILABLE'); };
+  await assert.rejects(broker.revoke({ token: token(), leaseToken: lease.leaseToken, request: { leaseId: lease.leaseId } }), /DATABASE_UNAVAILABLE/);
+  assert.equal((await store.getLease(lease.leaseId)).status, 'ACTIVE');
+});
+
+test('Neon admin client is physically pinned to the staging organization and fixed API origin', async () => {
+  const calls = [];
+  const client = new NeonAdminClient({
+    stagingApiKey: 'staging-bootstrap-secret-value',
+    stagingOrganizationId: 'dedicated-staging-org',
+    fetchImpl: async (url, init) => {
+      calls.push({ url: String(url), init });
+      if (String(url).endsWith('/projects')) return new Response(JSON.stringify({
+        project: { id: 'project-staging-1', name: `cza-f3-staging-${walRunId.toLowerCase()}`, org_id: 'dedicated-staging-org' },
+      }), { status: 200 });
+      return new Response('', { status: 404 });
+    },
+  });
+  await client.createProject({ name: `cza-f3-staging-${walRunId.toLowerCase()}` });
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].url, `${neonAdminConstants.API_ROOT}/projects`);
+  assert.equal(JSON.parse(calls[0].init.body).project.org_id, 'dedicated-staging-org');
+  assert.throws(() => new NeonAdminClient({ stagingApiKey: 'staging-bootstrap-secret-value', stagingOrganizationId: 'PRODUCTION_ORG' }), /STAGING_NEON_ORGANIZATION_ID_INVALID/);
 });
 
 test('healthz is database-backed and broker runtime accepts only staging secret names', async () => {

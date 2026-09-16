@@ -13,10 +13,14 @@ export class MemoryLeaseStore {
     const previous = this.locks.get(runKey) || Promise.resolve();
     let release;
     const current = new Promise(resolve => { release = resolve; });
-    this.locks.set(runKey, previous.then(() => current));
+    const tail = previous.then(() => current);
+    this.locks.set(runKey, tail);
     await previous;
     try { return await callback(); }
-    finally { release(); }
+    finally {
+      release();
+      if (this.locks.get(runKey) === tail) this.locks.delete(runKey);
+    }
   }
 
   async reserveLease(candidate) {
