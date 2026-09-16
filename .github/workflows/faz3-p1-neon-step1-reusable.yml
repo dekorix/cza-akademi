@@ -136,7 +136,7 @@ jobs:
       - name: Checkout immutable Neon-only execution layer
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
-          ref: 0ab12d21630647254a704d220252cc22fdff2709
+          ref: 9276ca73a5b9fa5d4470b8ed5b048b82e66667b7
           persist-credentials: false
       - name: Verify Neon-only static resource graph
         shell: bash
