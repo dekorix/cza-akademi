@@ -36,10 +36,41 @@ export class NeonAdminClient {
 
   async findProjectsByName(name) {
     if (!PROJECT_NAME.test(name || '')) throw new Error('NEON_PROJECT_NAME_INVALID');
-    const query = new URLSearchParams({ org_id: this.organizationId, limit: '400' });
-    const result = await this.#request(`/projects?${query}`, { method: 'GET' });
-    const projects = Array.isArray(result.projects) ? result.projects : [];
-    return projects.filter(project => project.name === name).map(project => this.#assertProject(project));
+    const matches = [];
+    const seenCursors = new Set();
+    let cursor = null;
+
+    do {
+      const query = new URLSearchParams({ org_id: this.organizationId, search: name, limit: '400' });
+      if (cursor) query.set('cursor', cursor);
+      const page = await this.#request(`/projects?${query}`, { method: 'GET' });
+      if (!page || typeof page !== 'object' || Array.isArray(page) || !Array.isArray(page.projects)) {
+        throw new Error('NEON_PROJECT_LIST_RESPONSE_INVALID');
+      }
+      for (const field of ['unavailable_project_ids', 'unavailable']) {
+        if (page[field] !== undefined && !Array.isArray(page[field])) throw new Error('NEON_PROJECT_LIST_RESPONSE_INVALID');
+        if (page[field]?.length) throw new Error('NEON_PROJECT_RECONCILIATION_INCOMPLETE');
+      }
+      if (page.pagination !== undefined) {
+        if (!page.pagination || typeof page.pagination !== 'object' || Array.isArray(page.pagination)
+          || typeof page.pagination.cursor !== 'string' || page.pagination.cursor.length === 0
+          || page.pagination.cursor.length > 2048 || /[\u0000-\u001f\u007f]/.test(page.pagination.cursor)) {
+          throw new Error('NEON_PROJECT_PAGINATION_INVALID');
+        }
+      }
+      for (const project of page.projects) {
+        if (!project || typeof project !== 'object' || Array.isArray(project)
+          || !/^[a-z0-9-]{1,60}$/.test(project.id || '') || typeof project.name !== 'string' || project.name.length === 0
+          || project.org_id !== this.organizationId) throw new Error('NEON_PROJECT_LIST_RESPONSE_INVALID');
+        if (project.name === name) matches.push(this.#assertProject(project));
+      }
+      const next = page.pagination?.cursor ?? null;
+      if (next && seenCursors.has(next)) throw new Error('NEON_PROJECT_PAGINATION_CYCLE');
+      if (next) seenCursors.add(next);
+      cursor = next;
+    } while (cursor);
+
+    return matches;
   }
 
   async createProject({ name }) {
