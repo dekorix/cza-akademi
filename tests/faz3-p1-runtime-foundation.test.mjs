@@ -148,6 +148,21 @@ test('50 parallel exchanges reserve exactly one lease and retry returns the same
   assert.equal(neon.calls.length, 0);
 });
 
+test('durable lease schema and Postgres path enforce unique run identity and row locking', async () => {
+  const [migration, storeSource] = await Promise.all([
+    readFile('services/p1-credential-broker/migrations/001_p1_broker_leases.sql', 'utf8'),
+    readFile('services/p1-credential-broker/lease-store.mjs', 'utf8'),
+  ]);
+  assert.match(migration, /run_key text NOT NULL UNIQUE/);
+  assert.match(migration, /wal_run_id varchar\(26\) NOT NULL UNIQUE/);
+  assert.match(migration, /project_name text NOT NULL UNIQUE/);
+  assert.match(migration, /'ACTIVE'[\s\S]*'EXECUTING'[\s\S]*'SUCCEEDED'[\s\S]*'REVOKED'[\s\S]*'EXPIRED'[\s\S]*'FAILED'/);
+  assert.match(storeSource, /this\.sql\.begin/);
+  assert.match(storeSource, /ON CONFLICT \(run_key\) DO NOTHING/);
+  assert.match(storeSource, /WHERE run_key = \$\{candidate\.runKey\} FOR UPDATE/);
+  assert.match(storeSource, /pg_advisory_lock\(hashtextextended/);
+});
+
 test('expired, revoked, or wrong-scope leases cannot create a project', async () => {
   const expired = setup();
   const expiredLease = await expired.broker.exchange({ token: token(), request: request({ ttlSeconds: 60 }) });
