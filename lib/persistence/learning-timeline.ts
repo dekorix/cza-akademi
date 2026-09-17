@@ -184,13 +184,7 @@ export async function readLearningTimeline({
   const fetchLimit = bind(limit + 1);
   const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
   const rows = await sql.query(`
-    WITH attempt_totals AS (
-      SELECT training_session_id, count(*)::int AS attempts,
-             count(*) FILTER (WHERE is_correct)::int AS correct
-      FROM public.question_attempts
-      WHERE academy_id=$1::uuid AND student_id=$2::uuid
-      GROUP BY training_session_id
-    ), timeline AS (
+    WITH timeline AS (
       SELECT 'assignment:' || recipe.id::text AS event_id, recipe.student_id,
              recipe.created_at AS occurred_at, 'ASSIGNMENT_AVAILABLE'::text AS event_type,
              recipe.module_code, recipe.id AS assignment_id, NULL::uuid AS training_session_id,
@@ -211,14 +205,13 @@ export async function readLearningTimeline({
                   ELSE 'WORK_STARTED' END,
              session.module_code, session.recipe_id, session.id, NULL::uuid,
              COALESCE(recipe.name, module.name), session.status,
-             jsonb_build_object('attemptCount',COALESCE(totals.attempts,0),'correctCount',COALESCE(totals.correct,0)),
+             NULL::jsonb,
              NULL::jsonb, NULL::jsonb, NULL::text,
              'server_authoritative', 'server_verified', 'training_sessions'
       FROM public.training_sessions session
       JOIN public.modules module ON module.code=session.module_code
       LEFT JOIN public.training_recipes recipe
         ON recipe.id=session.recipe_id AND recipe.academy_id=session.academy_id AND recipe.student_id=session.student_id
-      LEFT JOIN attempt_totals totals ON totals.training_session_id=session.id
       WHERE session.academy_id=$1::uuid AND session.student_id=$2::uuid
 
       UNION ALL

@@ -34,10 +34,11 @@ const id = {
   studentB: '44000000-0000-4000-8000-000000000005', recipeA: '44000000-0000-4000-8000-000000000006',
   recipeB: '44000000-0000-4000-8000-000000000007', sessionA: '44000000-0000-4000-8000-000000000008',
   sessionB: '44000000-0000-4000-8000-000000000009', attemptA: '44000000-0000-4000-8000-000000000010',
+  attemptA2: '44000000-0000-4000-8000-000000000015',
   recordA: '44000000-0000-4000-8000-000000000011', evidenceA: '44000000-0000-4000-8000-000000000012',
 };
 
-test('canonical timeline is chronological, gap-free, isolated, provenance-safe, and read-only', async () => {
+test('malicious client correctness cannot mint server_verified timeline evidence', async () => {
   const db = new PGlite({ extensions: { pgcrypto } });
   const timeline = loadTimelineModule();
   const previous = process.env.CZA_TIMELINE_CURSOR_SECRET;
@@ -58,7 +59,8 @@ test('canonical timeline is chronological, gap-free, isolated, provenance-safe, 
         ('${id.sessionA}','${id.academy}','${id.studentA}','finger_read','${id.recipeA}','completed','2026-09-17T12:00:00Z','2026-09-17T12:00:00Z','2026-09-17T12:00:00Z'),
         ('${id.sessionB}','${id.academy}','${id.studentB}','flash_anzan','${id.recipeB}','completed','2026-09-17T12:00:00Z','2026-09-17T12:00:00Z','2026-09-17T12:00:00Z');
       INSERT INTO public.question_attempts (id,academy_id,student_id,training_session_id,module_code,client_attempt_id,question_index,question_id,is_correct,error_type,error_detail,created_at) VALUES
-        ('${id.attemptA}','${id.academy}','${id.studentA}','${id.sessionA}','finger_read','44000000-0000-4000-8000-000000000013',1,'q1',false,'DEMO_ERROR','Demo only','2026-09-17T12:00:00Z');
+        ('${id.attemptA}','${id.academy}','${id.studentA}','${id.sessionA}','finger_read','44000000-0000-4000-8000-000000000013',1,'q1',false,'DEMO_ERROR','Demo only','2026-09-17T12:00:00Z'),
+        ('${id.attemptA2}','${id.academy}','${id.studentA}','${id.sessionA}','finger_read','44000000-0000-4000-8000-000000000016',2,'q2',true,'NONE',NULL,'2026-09-17T12:00:00Z');
       INSERT INTO public.learning_records (id,academy_id,student_id,module_code,training_session_id,client_record_id,payload_hash,record_origin,verification_status,contract_version,schema_version,module_version,activity_type,started_at,completed_at,support_level,performance,skills) VALUES
         ('${id.recordA}','${id.academy}','${id.studentA}','finger_read','${id.sessionA}','44000000-0000-4000-8000-000000000014',repeat('a',64),'legacy_client_reported','client_reported','1.1.0','CZA_MODULE_RECORD_V1','u4','practice','2026-09-17T11:59:00Z','2026-09-17T12:00:00Z','guided','{"accuracy":0}','["number-recognition"]');
       INSERT INTO public.learning_evidence (id,learning_record_id,academy_id,student_id,evidence_type,verification_status,verification_authority,skill_code,support_level,observed_at,payload) VALUES
@@ -80,6 +82,20 @@ test('canonical timeline is chronological, gap-free, isolated, provenance-safe, 
     assert.equal(all.events.find((event) => event.eventType === 'LEARNING_RESULT').verificationStatus, 'client_reported');
     assert.equal(all.events.find((event) => event.eventType === 'SKILL_EVIDENCE').verificationStatus, 'server_verified');
     assert.equal(all.events.find((event) => event.eventType === 'ERROR_OBSERVED').provenance, 'client_reported');
+    const mixedCompletion = all.events.find((event) => event.eventType === 'WORK_COMPLETED');
+    assert.equal(mixedCompletion.verificationStatus, 'server_verified');
+    assert.equal(mixedCompletion.resultSummary, null);
+
+    for (const forgedValue of [true, false]) {
+      await db.query('UPDATE public.question_attempts SET is_correct=$1 WHERE training_session_id=$2', [forgedValue, id.sessionA]);
+      const forged = await timeline.readLearningTimeline({ sql, academyId: id.academy, studentId: id.studentA, limit: 50, cursor: null, filters });
+      const completion = forged.events.find((event) => event.eventType === 'WORK_COMPLETED');
+      assert.equal(completion.resultSummary, null, `forged ${forgedValue ? '100' : '0'}% correctness leaked`);
+      assert.doesNotMatch(JSON.stringify(completion), /correctCount|accuracy|score|isCorrect/);
+    }
+    await db.query('UPDATE public.question_attempts SET is_correct=(question_index % 2 = 0) WHERE training_session_id=$1', [id.sessionA]);
+    const mixedForged = await timeline.readLearningTimeline({ sql, academyId: id.academy, studentId: id.studentA, limit: 50, cursor: null, filters });
+    assert.equal(mixedForged.events.find((event) => event.eventType === 'WORK_COMPLETED').resultSummary, null);
 
     const paged = [];
     let cursor = null;

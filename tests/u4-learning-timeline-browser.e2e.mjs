@@ -10,17 +10,18 @@ import puppeteer from 'puppeteer-core';
 const origin = 'http://127.0.0.1:4184';
 let browser, server, browserTemp;
 const now = '2026-09-17T15:21:06.920Z';
-const event = (eventId, eventType, verificationStatus, title) => ({
+const event = (eventId, eventType, verificationStatus, title, resultSummary = null) => ({
   eventId, studentId: 'c2000000-0000-4000-8000-000000000003', occurredAt: now,
   eventType, moduleCode: 'finger_read', assignmentId: null, trainingSessionId: null,
-  learningRecordId: null, title, status: 'completed', resultSummary: null,
+  learningRecordId: null, title, status: 'completed', resultSummary,
   errorSummary: eventType === 'ERROR_OBSERVED' ? { errorType: 'demo_error' } : null,
   skillSummary: null, supportLevel: null,
   provenance: verificationStatus === 'server_verified' ? 'server_authoritative' : 'client_reported',
   verificationStatus, sourceReference: eventType === 'ERROR_OBSERVED' ? 'question_attempts' : 'training_sessions',
 });
 const timeline = { ok: true, timeline: { events: [
-  event('session:c2000000-0000-4000-8000-000000000015', 'WORK_COMPLETED', 'server_verified', 'Parmak Okuma'),
+  event('session:c2000000-0000-4000-8000-000000000015', 'WORK_COMPLETED', 'server_verified', 'Parmak Okuma', { attemptCount: 2, correctCount: 2, accuracy: 100 }),
+  event('record:22d35e09-adb7-4c9f-82f3-e9def4df19ad', 'LEARNING_RESULT', 'client_reported', 'Parmak Okuma', { attemptCount: 2, correctCount: 1, accuracy: 50 }),
   event('error:cb3a0adf-99c3-4527-b478-e83de3990ec6', 'ERROR_OBSERVED', 'client_reported', 'Parmak Okuma'),
 ], hasMore: false, nextCursor: null } };
 const dashboard = { ok: true, dashboard: {
@@ -50,12 +51,15 @@ async function assertViewport(page, path, width, height) {
   await page.setViewport({ width, height, deviceScaleFactor: 1 });
   await page.goto(`${origin}${path}`, { waitUntil: 'networkidle0' });
   await page.waitForFunction(() => document.body.innerText.includes('Doğrulanmış kanıt') && document.body.innerText.includes('Kaydedilen sonuç'));
+  await page.evaluate(() => document.querySelectorAll('details').forEach((detail) => { detail.open = true; }));
   const state = await page.evaluate(() => ({
     timeline: document.body.innerText.includes('Kronolojik öğrenci geçmişi') || document.body.innerText.includes('Geçmişim'),
     verified: document.body.innerText.includes('Doğrulanmış kanıt'), reported: document.body.innerText.includes('Kaydedilen sonuç'),
+    reportedCorrectness: document.body.innerText.includes('Bildirilen: 1/2 doğru'),
+    forgedVerifiedCorrectness: document.body.innerText.includes('2/2 doğru'),
     overflow: document.documentElement.scrollWidth > window.innerWidth,
   }));
-  assert.deepEqual(state, { timeline: true, verified: true, reported: true, overflow: false });
+  assert.deepEqual(state, { timeline: true, verified: true, reported: true, reportedCorrectness: true, forgedVerifiedCorrectness: false, overflow: false });
 }
 
 try {

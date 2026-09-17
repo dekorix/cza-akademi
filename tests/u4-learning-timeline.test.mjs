@@ -27,7 +27,7 @@ function loadTimelineModule() {
   return commonJsModule.exports;
 }
 
-function loadRoute(source, { student = null, educator = null, authorized = [] } = {}) {
+function loadRoute(source, { student = null, educator = null, authorized = [], timelineResult = null } = {}) {
   const commonJsModule = { exports: {} };
   const timelineCalls = [];
   const queries = [];
@@ -40,7 +40,7 @@ function loadRoute(source, { student = null, educator = null, authorized = [] } 
       if (id.includes('learning-timeline')) return {
         TimelineInputError: class extends Error {},
         parseTimelineRequest: () => ({ limit: 20, cursor: null, filters: {} }),
-        readLearningTimeline: async (input) => { timelineCalls.push(input); return { events: [], hasMore: false, nextCursor: null }; },
+        readLearningTimeline: async (input) => { timelineCalls.push(input); return timelineResult || { events: [], hasMore: false, nextCursor: null }; },
       };
       if (id === '@neondatabase/serverless') return { neon: () => async (strings, ...values) => {
         queries.push({ sql: strings.join('?'), values }); return authorized;
@@ -61,6 +61,7 @@ test('timeline contract uses canonical sources, deterministic cursor pagination,
   assert.match(timelineSource, /MAX_TIMELINE_PAGE_SIZE = 50/);
   assert.doesNotMatch(timelineSource, /INSERT INTO|UPDATE public|DELETE FROM|TRUNCATE/);
   assert.doesNotMatch(timelineSource, /student_history_copy|history_events_copy|student_timeline_cache/);
+  assert.doesNotMatch(timelineSource, /attempt_totals|correctCount/);
 });
 
 test('cursor is scope-bound, tamper-evident, and page size is bounded', () => {
@@ -99,6 +100,26 @@ test('student history route derives identity from session and ignores forged stu
   assert.equal(own.timelineCalls[0].studentId, '10000000-0000-4000-8000-000000000001');
 });
 
+test('API timeline response keeps server-verified completion free of client correctness', async () => {
+  const completion = {
+    eventId: 'session:10000000-0000-4000-8000-000000000004', eventType: 'WORK_COMPLETED',
+    verificationStatus: 'server_verified', provenance: 'server_authoritative', resultSummary: null,
+  };
+  const route = loadRoute(studentRoute, {
+    student: {
+      student_id: '10000000-0000-4000-8000-000000000001',
+      academy_id: '10000000-0000-4000-8000-000000000002',
+      student_user_id: '10000000-0000-4000-8000-000000000003', session_id: 's',
+    },
+    timelineResult: { events: [completion], hasMore: false, nextCursor: null },
+  });
+  const response = await route.get(new Request('https://cza.test/api/core/history'));
+  const body = await response.json();
+  assert.equal(response.status, 200);
+  assert.equal(body.timeline.events[0].resultSummary, null);
+  assert.doesNotMatch(JSON.stringify(body.timeline.events[0]), /correctCount|accuracy|score|isCorrect/);
+});
+
 test('educator history route denies invalid role/unlinked student before timeline reads', async () => {
   const studentRole = loadRoute(educatorRoute);
   assert.equal((await studentRole.get(new Request('https://cza.test/api/educator-student-history?studentId=10000000-0000-4000-8000-000000000001'))).status, 401);
@@ -121,4 +142,10 @@ test('student and educator use one readable responsive timeline UI with provenan
   }
   assert.match(timelineUi, /sm:grid-cols-2/);
   assert.doesNotMatch(timelineUi, /min-w-\[[1-9][0-9]{3,}px\]/);
+});
+
+test('client-reported correctness is never rendered as verified evidence', () => {
+  assert.match(timelineUi, /event\.verificationStatus !== 'server_verified' && typeof attemptCount === 'number'/);
+  assert.match(timelineUi, /Bildirilen:/);
+  assert.doesNotMatch(timelineUi, /verified[^\n]*correctCount|correctCount[^\n]*Doğrulanmış kanıt/);
 });

@@ -30,8 +30,8 @@ function summary(event: LearningTimelineEvent) {
   if (typeof event.skillSummary?.skillCode === 'string') return `Beceri: ${event.skillSummary.skillCode}`;
   const attemptCount = event.resultSummary?.attemptCount;
   const correctCount = event.resultSummary?.correctCount;
-  if (typeof attemptCount === 'number') {
-    return `${typeof correctCount === 'number' ? correctCount : 0}/${attemptCount} doğru`;
+  if (event.verificationStatus !== 'server_verified' && typeof attemptCount === 'number') {
+    return `Bildirilen: ${typeof correctCount === 'number' ? correctCount : 0}/${attemptCount} doğru`;
   }
   return event.status;
 }
