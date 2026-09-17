@@ -14,6 +14,9 @@ const ledger = read(
 );
 const u1 = read('../db/migrations/20260916_u1_student_panel_core_v1.sql');
 const u2 = read('../db/migrations/20260917_u2_work_center_core_v1.sql');
+const u2TrustBoundaryRemediation = read(
+  '../db/migrations/20260917_u2_client_reported_completion_remediation_v1.sql',
+);
 
 const ids = {
   academy: 'a2000000-0000-4000-8000-000000000001',
@@ -41,6 +44,8 @@ function attempt(clientAttemptId, questionIndex, correct, errorType) {
     patternValid: true,
     isCorrect: correct,
     errorType,
+    skillCode: 'forged-skill-code',
+    performance: { accuracy: 100, forged: true },
     errorDetail: correct ? 'Doğru cevap' : 'Demo hata kanıtı',
     stimulusDurationMs: 700,
     responseLatencyMs: 950,
@@ -50,7 +55,7 @@ function attempt(clientAttemptId, questionIndex, correct, errorType) {
     attemptNumber: 1,
     metadata: {
       attemptType: 'PRIMARY',
-      skills: ['number-recognition'],
+      skills: ['forged-client-skill'],
       demo: true,
     },
   };
@@ -81,6 +86,14 @@ test('U2 migration is additive-only', () => {
     u2,
     /\b(?:drop|truncate)\b|\bdelete\s+from\b|\balter\s+table\b[^;]*\bdrop\b/i,
   );
+  assert.doesNotMatch(
+    u2TrustBoundaryRemediation,
+    /\b(?:drop|truncate)\b|\bdelete\s+from\b|\balter\s+table\b[^;]*\bdrop\b/i,
+  );
+  assert.doesNotMatch(
+    u2TrustBoundaryRemediation,
+    /cza_append_verified_evidence/,
+  );
 });
 
 test('U2 assigned work lifecycle is isolated, resumable, idempotent, and atomic', async () => {
@@ -90,8 +103,9 @@ test('U2 assigned work lifecycle is isolated, resumable, idempotent, and atomic'
     await db.exec(ledger);
     await db.exec(u1);
     await db.exec(u2);
+    await db.exec(u2TrustBoundaryRemediation);
     const firstFingerprint = await fingerprint(db);
-    await db.exec(u2);
+    await db.exec(u2TrustBoundaryRemediation);
     assert.equal(await fingerprint(db), firstFingerprint);
 
     await db.exec(`
@@ -173,7 +187,7 @@ test('U2 assigned work lifecycle is isolated, resumable, idempotent, and atomic'
         ids.academy,
         ids.studentA,
         ids.trainingA,
-        JSON.stringify(attempt(ids.attempt1, 1, true, 'OK')),
+        JSON.stringify(attempt(ids.attempt1, 1, true, 'FORGED_TRUE_ERROR')),
       ],
     );
     assert.equal(firstAttempt.rows[0].attempt_count, 1);
@@ -185,7 +199,7 @@ test('U2 assigned work lifecycle is isolated, resumable, idempotent, and atomic'
         ids.academy,
         ids.studentA,
         ids.trainingA,
-        JSON.stringify(attempt(ids.attempt1, 1, true, 'OK')),
+        JSON.stringify(attempt(ids.attempt1, 1, true, 'FORGED_TRUE_ERROR')),
       ],
     );
     assert.equal(replayedAttempt.rows[0].replayed, true);
@@ -244,7 +258,7 @@ test('U2 assigned work lifecycle is isolated, resumable, idempotent, and atomic'
     assert.equal(completed.rows[0].attempt_count, 2);
     assert.equal(completed.rows[0].correct_count, 1);
     assert.ok(completed.rows[0].learning_record_id);
-    assert.ok(completed.rows[0].evidence_id);
+    assert.equal(completed.rows[0].evidence_id, null);
 
     const replayedCompletion = await db.query(
       `SELECT * FROM public.cza_complete_assigned_work($1,$2,$3,$4,false)`,
@@ -282,8 +296,24 @@ test('U2 assigned work lifecycle is isolated, resumable, idempotent, and atomic'
         status: 'completed',
         attempts: 2,
         history_records: 1,
-        evidence_records: 1,
-        learning_profile_skills: '["number-recognition"]',
+        evidence_records: 0,
+        learning_profile_skills: '["forged-client-skill"]',
+      },
+    ]);
+
+    const provenance = await db.query(`
+      SELECT record_origin, verification_status,
+             (SELECT count(*)::int FROM public.learning_evidence
+              WHERE learning_record_id = records.id
+                AND verification_status = 'server_verified') AS server_verified_count
+      FROM public.learning_records AS records
+      WHERE records.training_session_id = '${ids.trainingA}'
+    `);
+    assert.deepEqual(provenance.rows, [
+      {
+        record_origin: 'client_reported',
+        verification_status: 'client_reported',
+        server_verified_count: 0,
       },
     ]);
   } finally {

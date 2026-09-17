@@ -11,6 +11,9 @@ const repository = read('../lib/persistence/work-center-repository.ts');
 const routing = read('../lib/work-center.ts');
 const workPage = read('../components/work-center.tsx');
 const studio = read('../app/studio/page.tsx');
+const remediation = read(
+  '../db/migrations/20260917_u2_client_reported_completion_remediation_v1.sql',
+);
 
 test('work center and assignment APIs derive student identity from auth', () => {
   for (const source of [workRoute, coreRoute, dashboardRoute]) {
@@ -51,6 +54,13 @@ test('assigned session start, resume, attempt, result, and evidence are server-o
   );
   assert.match(studio, /serverAttemptCount/);
   assert.match(studio, /resumeOffset\+round\+1/);
+});
+
+test('malicious client cannot mint server_verified evidence', () => {
+  assert.match(remediation, /'evidenceClass', 'client_reported_attempts'/);
+  assert.match(remediation, /v_evidence_id := NULL/);
+  assert.doesNotMatch(remediation, /cza_append_verified_evidence/);
+  assert.match(remediation, /cza_student_record_learning/);
 });
 
 test('real work center UI presents lifecycle, history, and responsive layout', () => {
