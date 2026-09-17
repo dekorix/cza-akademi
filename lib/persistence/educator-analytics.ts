@@ -17,6 +17,8 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-
 const ASSIGNMENT_STATUSES = new Set(['active', 'upcoming', 'completed', 'cancelled']);
 const SESSION_STATUSES = new Set(['active', 'completed', 'aborted']);
 const PROVENANCE = new Set<ReportProvenance>(['SERVER_AUTHORITATIVE', 'CLIENT_REPORTED', 'MIXED']);
+const LEGACY_CLIENT_DERIVED_AUTHORITIES = new Set(['work_center_completion:v1']);
+const TRUSTED_SERVER_AUTHORITIES = new Set(['canonical_server_evaluator:v1']);
 export const MAX_REPORT_PAGE_SIZE = 50;
 
 export class ReportInputError extends Error {
@@ -97,6 +99,18 @@ function iso(value: unknown) {
 }
 function integer(value: unknown) { return Number.isFinite(Number(value)) ? Number(value) : 0; }
 
+export function resolveEvidenceProvenance({
+  authority, evidenceVerificationStatus, parentRecordOrigin, parentVerificationStatus,
+}: {
+  authority: unknown; evidenceVerificationStatus: unknown;
+  parentRecordOrigin: unknown; parentVerificationStatus: unknown;
+}): Exclude<ReportProvenance, 'MIXED'> {
+  if (typeof authority !== 'string' || LEGACY_CLIENT_DERIVED_AUTHORITIES.has(authority)) return 'CLIENT_REPORTED';
+  if (parentRecordOrigin !== 'server_authoritative' || parentVerificationStatus !== 'server_verified') return 'CLIENT_REPORTED';
+  if (evidenceVerificationStatus !== 'server_verified' || !TRUSTED_SERVER_AUTHORITIES.has(authority)) return 'CLIENT_REPORTED';
+  return 'SERVER_AUTHORITATIVE';
+}
+
 export async function readEducatorAnalytics({ sql, educatorId, academyId, studentId, filters, limit, cursor }: {
   sql: QueryClient; educatorId: string; academyId: string; studentId: string;
   filters: ReportFilters; limit: number; cursor: string | null;
@@ -171,16 +185,22 @@ export async function readEducatorAnalytics({ sql, educatorId, academyId, studen
     SELECT COALESCE(s.day,q.day) day,COALESCE(s.sessions,0) sessions,COALESCE(s.completions,0) completions,
       COALESCE(q.attempts,0) attempts,COALESCE(q.correct,0) correct FROM s FULL JOIN q USING(day) ORDER BY day DESC LIMIT 90`, params);
 
-  const evidenceRows = await sql.query(`SELECT e.id,e.evidence_type,e.verification_status,e.verification_authority,
-      e.skill_code,e.observed_at,r.module_code
+  const evidenceRows = await sql.query(`WITH projected AS (
+    SELECT e.id,e.evidence_type,e.verification_status,e.verification_authority,
+      e.skill_code,e.observed_at,COALESCE(r.module_code,'unknown') module_code,
+      r.record_origin parent_record_origin,r.verification_status parent_verification_status,
+      CASE WHEN e.verification_authority=ANY($10::text[]) THEN 'CLIENT_REPORTED'
+        WHEN r.id IS NULL OR r.record_origin<>'server_authoritative' OR r.verification_status<>'server_verified' THEN 'CLIENT_REPORTED'
+        WHEN e.verification_status='server_verified' AND e.verification_authority=ANY($9::text[]) THEN 'SERVER_AUTHORITATIVE'
+        ELSE 'CLIENT_REPORTED' END final_provenance
     FROM public.learning_evidence e
-    JOIN public.learning_records r ON r.id=e.learning_record_id AND r.academy_id=e.academy_id AND r.student_id=e.student_id
+    LEFT JOIN public.learning_records r ON r.id=e.learning_record_id AND r.academy_id=e.academy_id AND r.student_id=e.student_id
     WHERE e.academy_id=$1::uuid AND e.student_id=$2::uuid
       AND ($3::timestamptz IS NULL OR e.observed_at >= $3) AND ($4::timestamptz IS NULL OR e.observed_at <= $4)
       AND ($5::text IS NULL OR r.module_code=$5)
-      AND ($8::text IS NULL OR ($8='SERVER_AUTHORITATIVE' AND e.verification_status='server_verified')
-        OR ($8='CLIENT_REPORTED' AND e.verification_status<>'server_verified') OR $8='MIXED')
-    ORDER BY e.observed_at DESC,e.id DESC LIMIT 20`, [...params, filters.provenance]);
+    ) SELECT * FROM projected WHERE $8::text IS NULL OR $8='MIXED' OR final_provenance=$8
+    ORDER BY observed_at DESC,id DESC LIMIT 20`, [...params, filters.provenance,
+      [...TRUSTED_SERVER_AUTHORITIES], [...LEGACY_CLIENT_DERIVED_AUTHORITIES]]);
 
   const pageParams: unknown[] = [...params];
   let cursorSql = '';
@@ -206,7 +226,9 @@ export async function readEducatorAnalytics({ sql, educatorId, academyId, studen
     evidence: evidenceRows.map(e => ({ id:String(e.id), type:String(e.evidence_type), moduleCode:String(e.module_code),
       skillCode:typeof e.skill_code==='string'?e.skill_code:null, observedAt:iso(e.observed_at),
       verificationStatus:String(e.verification_status), verificationAuthority:typeof e.verification_authority==='string'?e.verification_authority:null,
-      provenance:e.verification_status==='server_verified'?'SERVER_AUTHORITATIVE' as const:'CLIENT_REPORTED' as const })),
+      provenance:resolveEvidenceProvenance({ authority:e.verification_authority,
+        evidenceVerificationStatus:e.verification_status,parentRecordOrigin:e.parent_record_origin,
+        parentVerificationStatus:e.parent_verification_status }) })),
     trend: trendRows.map(t => { const count=integer(t.attempts); return { day:iso(t.day), sessions:includeServer?integer(t.sessions):null, completions:includeServer?integer(t.completions):null, attempts:includeClient?count:null, clientReportedAccuracy:includeClient&&count?Math.round(integer(t.correct)*1000/count)/10:null, provenance:includeServer&&includeClient?'MIXED':includeServer?'SERVER_AUTHORITATIVE':'CLIENT_REPORTED' }; }),
     sessions: page.map(s => ({ id:String(s.id), assignmentId:typeof s.recipe_id==='string'?s.recipe_id:null, moduleCode:String(s.module_code), status:String(s.status), startedAt:iso(s.started_at), completedAt:s.completed_at?iso(s.completed_at):null, lastActivityAt:iso(s.last_activity_at), provenance:'SERVER_AUTHORITATIVE' as const })),
     nextCursor: sessionRows.length>limit && page.length ? encodeReportCursor(page.at(-1)!,educatorId,studentId,filters) : null,

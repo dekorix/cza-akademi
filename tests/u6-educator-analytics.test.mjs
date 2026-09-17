@@ -107,6 +107,34 @@ test('malicious client correctness cannot mint server authoritative report metri
   assert.match(ui,/Yeterli attempt kanıtı yok; %0 değildir/);
 });
 
+test('legacy work_center_completion v1 evidence is never rendered server authoritative',async()=>{
+  const report=load();
+  const provenance=report.resolveEvidenceProvenance({authority:'work_center_completion:v1',evidenceVerificationStatus:'server_verified',parentRecordOrigin:'client_reported',parentVerificationStatus:'client_reported'});
+  assert.equal(provenance,'CLIENT_REPORTED');
+  const responses=[[{assignment_total:0,assignment_active:0,assignment_completed:0,assignment_cancelled:0,session_total:0,session_completed:0,last_activity_at:null,attempt_total:0,correct_total:0,wrong_total:0}],[],[],[],[{
+    id:'60000000-0000-4000-8000-000000000010',evidence_type:'activity_result',verification_status:'server_verified',verification_authority:'work_center_completion:v1',skill_code:null,observed_at:'2026-09-17T10:00:00Z',module_code:'finger_read',parent_record_origin:'client_reported',parent_verification_status:'client_reported',final_provenance:'CLIENT_REPORTED',
+  }],[]];
+  const result=await report.readEducatorAnalytics({sql:{query:async()=>responses.shift()},educatorId:'e',academyId:'a',studentId:'s',filters:{from:null,to:null,moduleCode:null,assignmentStatus:null,sessionStatus:null,provenance:null},limit:20,cursor:null});
+  assert.equal(result.evidence[0].provenance,'CLIENT_REPORTED');
+  assert.match(ui,/<Badge value=\{e\.provenance\}/);
+  assert.doesNotMatch(ui,/e\.verificationStatus\s*===\s*['"]server_verified/);
+});
+
+test('parent client reported provenance overrides legacy evidence verification flag',()=>{
+  const report=load();
+  assert.equal(report.resolveEvidenceProvenance({authority:'canonical_server_evaluator:v1',evidenceVerificationStatus:'server_verified',parentRecordOrigin:'client_reported',parentVerificationStatus:'server_verified'}),'CLIENT_REPORTED');
+  assert.equal(report.resolveEvidenceProvenance({authority:'canonical_server_evaluator:v1',evidenceVerificationStatus:'server_verified',parentRecordOrigin:'server_authoritative',parentVerificationStatus:'client_reported'}),'CLIENT_REPORTED');
+});
+
+test('trusted evidence requires an authoritative parent and unknown provenance fails closed',()=>{
+  const report=load();
+  assert.equal(report.resolveEvidenceProvenance({authority:'canonical_server_evaluator:v1',evidenceVerificationStatus:'server_verified',parentRecordOrigin:'server_authoritative',parentVerificationStatus:'server_verified'}),'SERVER_AUTHORITATIVE');
+  assert.equal(report.resolveEvidenceProvenance({authority:'unknown:v1',evidenceVerificationStatus:'server_verified',parentRecordOrigin:'server_authoritative',parentVerificationStatus:'server_verified'}),'CLIENT_REPORTED');
+  assert.equal(report.resolveEvidenceProvenance({authority:'canonical_server_evaluator:v1',evidenceVerificationStatus:'server_verified',parentRecordOrigin:null,parentVerificationStatus:null}),'CLIENT_REPORTED');
+  assert.match(source,/LEFT JOIN public\.learning_records/);
+  assert.match(source,/r\.id IS NULL[\s\S]*'CLIENT_REPORTED'/);
+});
+
 test('U6 UI covers required reports and responsive breakpoints',()=>{
   assert.match(core,/<EducatorAnalytics studentId=/);
   for(const label of ['Toplam ödev','Oturum','Bildirilen doğruluk','Modül dağılımı','Hata örüntüleri','Evidence ve güven kaynağı','Zaman içindeki kayıtlar','Bounded oturum geçmişi'])assert.match(ui,new RegExp(label));
