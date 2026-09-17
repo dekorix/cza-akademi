@@ -2,11 +2,12 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import {
-  Activity, AlertTriangle, BookOpenCheck, CheckCircle2, Clock3,
+  Activity, AlertTriangle, BookOpenCheck, CheckCircle2,
   RefreshCw, Search, ShieldCheck, UserRound,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { LearningTimeline } from '@/components/learning-timeline';
 
 type Student = {
   id: string;
@@ -250,13 +251,10 @@ export function EducatorStudentCore() {
             </section>
           </div>
 
-          <section className="rounded-2xl border bg-white p-5 shadow-sm">
-            <div className="flex items-center gap-2"><Clock3 className="text-[#276151]" /><h3 className="font-bold">Kronolojik öğrenci geçmişi</h3></div>
-            <div className="mt-4 space-y-3">
-              {detail.history.map((record) => <article key={record.id} className="flex flex-col gap-3 rounded-xl border p-4 sm:flex-row sm:items-center sm:justify-between"><div><b>{record.moduleCode}</b><p className="mt-1 text-xs text-muted-foreground">{date(record.completedAt)} · {record.skills.join(', ') || 'Beceri etiketi yok'}</p></div><Provenance status={record.verificationStatus} /></article>)}
-              {!detail.history.length && <p className="text-sm text-muted-foreground">Geçmiş kaydı bulunmuyor.</p>}
-            </div>
-          </section>
+          <LearningTimeline
+            endpoint={`/api/educator-student-history?studentId=${encodeURIComponent(detail.student.id)}`}
+            title="Kronolojik öğrenci geçmişi"
+          />
 
           <section className="rounded-2xl border border-[#c9dfd4] bg-[#f3f9f6] p-5">
             <div className="flex items-center gap-2"><BookOpenCheck className="text-[#276151]" /><h3 className="font-bold text-[#18372f]">Student Learning Profile özeti</h3></div>

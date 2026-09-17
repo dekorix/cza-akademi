@@ -10,7 +10,6 @@ import {
   ChartNoAxesCombined,
   CheckCircle2,
   ChevronRight,
-  Clock3,
   History,
   LayoutDashboard,
   LogOut,
@@ -21,6 +20,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import type { StudentDashboardData } from '@/lib/student-dashboard-contract';
+import { LearningTimeline } from '@/components/learning-timeline';
 
 const moduleLinks = [
   {
@@ -61,17 +61,6 @@ const dashboardLinks = [
   { href: '/work', label: 'Çalışma Merkezim', icon: LayoutDashboard },
 ];
 
-function dateLabel(value: string | null) {
-  if (!value) return 'Devam ediyor';
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return 'Tarih bekleniyor';
-  return new Intl.DateTimeFormat('tr-TR', {
-    day: 'numeric',
-    month: 'short',
-    hour: '2-digit',
-    minute: '2-digit',
-  }).format(date);
-}
 export function StudentDashboard({
   dashboard,
   loading,
@@ -239,32 +228,7 @@ export function StudentDashboard({
           </div>
         </section>
 
-        <section id="history" className="mt-6 scroll-mt-28 rounded-3xl border border-[#dce5e0] bg-white p-6 shadow-sm md:p-7" aria-labelledby="history-heading">
-          <div className="flex flex-wrap items-end justify-between gap-3">
-            <div>
-              <p className="text-sm font-bold uppercase tracking-[.1em] text-[#a2602c]">Kalıcı öğrenci geçmişi</p>
-              <h2 id="history-heading" className="mt-2 text-2xl font-black">Son aktivitelerin</h2>
-            </div>
-            <span className="inline-flex items-center gap-2 text-sm font-semibold text-[#697983]"><Clock3 size={17} /> En yeni çalışma önce</span>
-          </div>
-          {dashboard?.recentActivity.length ? (
-            <div className="mt-5 divide-y divide-[#e2e9e5]">
-              {dashboard.recentActivity.map((activity) => (
-                <article key={activity.id} className="flex flex-wrap items-center justify-between gap-4 py-4 first:pt-0 last:pb-0">
-                  <div>
-                    <h3 className="font-black">{activity.moduleName}</h3>
-                    <p className="mt-1 text-sm text-[#6b7a83]">{dateLabel(activity.completedAt || activity.startedAt)}</p>
-                  </div>
-                  <span className={`rounded-full px-3 py-1.5 text-xs font-black ${activity.status === 'completed' ? 'bg-emerald-50 text-emerald-800' : activity.status === 'active' ? 'bg-blue-50 text-blue-800' : 'bg-slate-100 text-slate-700'}`}>
-                    {activity.status === 'completed' ? 'Tamamlandı' : activity.status === 'active' ? 'Devam ediyor' : 'İptal edildi'}
-                  </span>
-                </article>
-              ))}
-            </div>
-          ) : (
-            <p className="mt-5 rounded-2xl bg-[#f7f9f8] p-5 text-sm text-[#687982]">Henüz tamamlanmış veya devam eden çalışma kaydı yok.</p>
-          )}
-        </section>
+        <div id="history" className="mt-6 scroll-mt-28"><LearningTimeline endpoint="/api/core/history" title="Geçmişim" /></div>
 
         <footer className="mt-8 flex flex-wrap items-center justify-between gap-3 border-t border-[#dce5e0] pt-6 text-xs text-[#72818a]">
           <span>CZA Student Learning Profile · U1 çekirdeği</span>
