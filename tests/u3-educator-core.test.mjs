@@ -28,10 +28,18 @@ test('U3 educator identity and student authorization are server-side', () => {
     assert.match(route, /link\.can_view = true|l\.can_view = true/);
     assert.match(route, /educator_user\.auth_user_id|t\.auth_user_id/);
     assert.match(route, /educator_user\.academy_id|t\.academy_id/);
+    assert.match(route, /educator_user\.role::text = 'educator'|t\.role::text = 'educator'/);
   }
   assert.match(detailRoute, /student_not_authorized/);
   assert.match(detailRoute, /s\.id = \$\{studentId\}::uuid/);
   assert.doesNotMatch(detailRoute, /INSERT INTO|UPDATE public|DELETE FROM/);
+});
+
+test('U3 canonical educator role cannot be replaced by external claims or links', () => {
+  const auth = read('../lib/educator-auth.ts');
+  assert.match(auth, /role::text = 'educator'/);
+  assert.doesNotMatch(auth, /role::text IN \('admin','teacher'\)/);
+  assert.match(auth, /canonicalEducatorByAuthId\(EDUCATOR_AUTH_USER_ID\)/);
 });
 
 test('U3 reads canonical U1 and U2 persistence without parallel models', () => {

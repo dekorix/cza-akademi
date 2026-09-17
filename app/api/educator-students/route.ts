@@ -30,6 +30,7 @@ export async function GET(request: Request) {
         JOIN public.users t ON t.id = l.teacher_id
         WHERE l.student_id = s.id AND l.can_view = true
           AND t.auth_user_id = ${educator.id} AND t.is_active = true
+          AND t.role::text = 'educator'
           AND t.academy_id = s.academy_id
       )
         AND s.status = 'active'

@@ -13,7 +13,7 @@ const SECRET = 'test-only-proxy-secret-with-at-least-32-bytes';
 const OWNER_EMAIL = 'habipcann65@gmail.com';
 const TEST_DATABASE_URL = 'postgresql://test.invalid/cza';
 
-function loadAuth({ nonceStore = new Set(), databaseError = false } = {}) {
+function loadAuth({ nonceStore = new Set(), databaseError = false, canonicalRole = 'educator', active = true } = {}) {
   const commonJsModule = { exports: {} };
   let databaseCalls = 0;
   // oxlint-disable-next-line typescript/no-implied-eval -- isolated TypeScript module harness
@@ -31,9 +31,22 @@ function loadAuth({ nonceStore = new Set(), databaseError = false } = {}) {
       }
       if (id === '@neondatabase/serverless') {
         return {
-          neon: () => async (_strings, nonceHash) => {
+          neon: () => async (strings, ...values) => {
             databaseCalls += 1;
             if (databaseError) throw new Error('database unavailable');
+            const query = strings.join('?');
+            if (query.includes('FROM public.users')) {
+              return canonicalRole === 'educator' && active
+                ? [{
+                    id: 'd3000000-0000-4000-8000-000000000001',
+                    academy_id: 'd3000000-0000-4000-8000-000000000002',
+                    auth_user_id: values[0],
+                    email: 'celikzihin.akademisi@gmail.com',
+                    display_name: 'Habip Çelik',
+                  }]
+                : [];
+            }
+            const nonceHash = values[0];
             if (nonceStore.has(nonceHash)) return [{ consumed: false }];
             nonceStore.add(nonceHash);
             return [{ consumed: true }];
@@ -124,7 +137,7 @@ test('signed body and single-use nonce map the private Site owner', async () => 
       email: auth.EDUCATOR_EMAIL,
       name: 'Habip Çelik',
     });
-    assert.equal(databaseCalls(), 1);
+    assert.equal(databaseCalls(), 2);
   });
 });
 
@@ -151,7 +164,7 @@ test('a valid POST nonce is rejected when replayed by another request', async ()
       await auth.authenticatedEducator(signedRequest({ timestamp, nonce })),
       null,
     );
-    assert.equal(databaseCalls(), 2);
+    assert.equal(databaseCalls(), 3);
   });
 });
 
@@ -172,7 +185,19 @@ test('a valid privileged GET nonce is rejected when replayed', async () => {
       ),
       null,
     );
-    assert.equal(databaseCalls(), 2);
+    assert.equal(databaseCalls(), 3);
+  });
+});
+
+test('valid external identity is denied unless canonical DB role is educator', async () => {
+  await withEnvironment(proxyEnvironment, async () => {
+    const studentRole = loadAuth({ canonicalRole: 'student' });
+    assert.equal(await studentRole.auth.authenticatedEducator(signedRequest()), null);
+    assert.equal(studentRole.databaseCalls(), 2);
+
+    const inactiveEducator = loadAuth({ active: false });
+    assert.equal(await inactiveEducator.auth.authenticatedEducator(signedRequest()), null);
+    assert.equal(inactiveEducator.databaseCalls(), 2);
   });
 });
 

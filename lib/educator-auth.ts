@@ -184,18 +184,38 @@ function tokenHash(token: string) {
   return createHash('sha256').update(token).digest('hex');
 }
 
-async function educatorDbUser() {
+type CanonicalEducator = {
+  id: string;
+  academy_id: string;
+  auth_user_id: string;
+  email: string | null;
+  display_name: string;
+};
+
+async function canonicalEducatorByAuthId(authUserId: string) {
   if (!process.env.DATABASE_URL) return null;
   const sql = neon(process.env.DATABASE_URL);
   const rows = await sql`
     SELECT id, academy_id, auth_user_id, email, display_name
     FROM public.users
-    WHERE auth_user_id = ${EDUCATOR_AUTH_USER_ID}
+    WHERE auth_user_id = ${authUserId}
       AND is_active = true
-      AND role::text IN ('admin','teacher')
+      AND role::text = 'educator'
     LIMIT 1
   `;
-  return rows[0] as { id: string; academy_id: string; auth_user_id: string; email: string | null; display_name: string } | undefined;
+  return (rows[0] as CanonicalEducator | undefined) || null;
+}
+
+async function educatorDbUser() {
+  return canonicalEducatorByAuthId(EDUCATOR_AUTH_USER_ID);
+}
+
+function educatorIdentity(row: CanonicalEducator) {
+  return {
+    id: row.auth_user_id,
+    email: row.email || EDUCATOR_EMAIL,
+    name: row.display_name || 'CZA Eğitimci',
+  };
 }
 
 export async function verifyEducatorPassword(password: string) {
@@ -250,7 +270,7 @@ async function localEducator(cookieValue: string) {
       AND es.revoked_at IS NULL
       AND es.expires_at > now()
       AND u.is_active = true
-      AND u.role::text IN ('admin','teacher')
+      AND u.role::text = 'educator'
       AND u.auth_user_id = ${EDUCATOR_AUTH_USER_ID}
     LIMIT 1
   `;
@@ -284,7 +304,8 @@ export async function authenticatedEducator(request: Request) {
 
   const siteEmail = proxy?.educatorEmail || '';
   if (siteEmail === SITE_OWNER_EMAIL) {
-    return { id: EDUCATOR_AUTH_USER_ID, email: EDUCATOR_EMAIL, name: 'Habip Çelik' };
+    const canonical = await canonicalEducatorByAuthId(EDUCATOR_AUTH_USER_ID);
+    return canonical ? educatorIdentity(canonical) : null;
   }
   const sessionCookie = readCookie(request, EDUCATOR_COOKIE);
   if (!sessionCookie) return null;
@@ -299,7 +320,9 @@ export async function authenticatedEducator(request: Request) {
     if (!response.ok) return null;
     const data = await response.json() as {user?:{id?:string;email?:string;name?:string}};
     const userEmail = (data.user?.email || '').trim().toLowerCase();
-    return data.user?.id === EDUCATOR_AUTH_USER_ID && userEmail === EDUCATOR_EMAIL ? data.user : null;
+    if (data.user?.id !== EDUCATOR_AUTH_USER_ID || userEmail !== EDUCATOR_EMAIL) return null;
+    const canonical = await canonicalEducatorByAuthId(data.user.id);
+    return canonical ? educatorIdentity(canonical) : null;
   } catch {
     return null;
   } finally {
