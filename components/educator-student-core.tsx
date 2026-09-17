@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { LearningTimeline } from '@/components/learning-timeline';
 import { EducatorAssignmentManager } from '@/components/educator-assignment-manager';
+import { EducatorAnalytics } from '@/components/educator-analytics';
 
 type Student = {
   id: string;
@@ -211,6 +212,8 @@ export function EducatorStudentCore() {
               ].map(([label, value]) => <div key={label} className="rounded-xl bg-white/10 p-3"><b className="text-2xl">{value}</b><p className="mt-1 text-xs text-[#d5e8e0]">{label}</p></div>)}
             </div>
           </header>
+
+          <EducatorAnalytics studentId={detail.student.id} />
 
           <div className="grid gap-6 lg:grid-cols-2">
             <WorkList title="Aktif ve devam eden çalışmalar" items={detail.work.active} empty="Aktif çalışma bulunmuyor." />
