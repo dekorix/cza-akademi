@@ -49,6 +49,9 @@ function mappedError(error: unknown) {
   if (message.includes('CZA_WORK_SESSION_CLOSED')) {
     return new WorkCenterPersistenceError('work_session_closed', 409);
   }
+  if (message.includes('CZA_WORK_ASSIGNMENT_CLOSED')) {
+    return new WorkCenterPersistenceError('work_assignment_closed', 409);
+  }
   if (
     message.includes('CZA_WORK_SESSION_NOT_FOUND') ||
     message.includes('CZA_WORK_ASSIGNMENT_NOT_FOUND')

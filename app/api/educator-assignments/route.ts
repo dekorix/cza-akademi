@@ -336,18 +336,28 @@ export async function POST(request: Request) {
     const assignmentId = typeof input.assignmentId === 'string' ? input.assignmentId.trim() : '';
     if (!UUID_PATTERN.test(assignmentId)) return json({ ok: false, error: 'invalid_assignment_id' }, 400);
     const rows = await sql`
-      UPDATE public.training_recipes
-      SET is_active = false, cancelled_at = COALESCE(cancelled_at, now()),
-          cancelled_by = COALESCE(cancelled_by, ${link.educator_user_id}::uuid), updated_at = now()
-      WHERE id = ${assignmentId}::uuid
-        AND student_id = ${studentId}::uuid
-        AND academy_id = ${link.academy_id}::uuid
-        AND assigned_by = ${link.educator_user_id}::uuid
-        AND source = 'teacher_assignment'
-      RETURNING id, cancelled_at
+      WITH target AS (
+        SELECT id, cancelled_at, updated_at
+        FROM public.training_recipes
+        WHERE id = ${assignmentId}::uuid
+          AND student_id = ${studentId}::uuid
+          AND academy_id = ${link.academy_id}::uuid
+          AND assigned_by = ${link.educator_user_id}::uuid
+          AND source = 'teacher_assignment'
+        FOR UPDATE
+      )
+      UPDATE public.training_recipes AS recipe
+      SET is_active = false,
+          cancelled_at = COALESCE(recipe.cancelled_at, now()),
+          cancelled_by = COALESCE(recipe.cancelled_by, ${link.educator_user_id}::uuid),
+          updated_at = CASE WHEN recipe.cancelled_at IS NULL THEN now() ELSE recipe.updated_at END
+      FROM target
+      WHERE recipe.id = target.id
+      RETURNING recipe.id, recipe.cancelled_at,
+                (target.cancelled_at IS NOT NULL) AS replayed
     `;
     if (!rows.length) return json({ ok: false, error: 'assignment_not_found' }, 404);
-    return json({ ok: true });
+    return json({ ok: true, replayed: rows[0].replayed === true });
   }
 
   return json({ ok: false, error: 'invalid_action' }, 400);

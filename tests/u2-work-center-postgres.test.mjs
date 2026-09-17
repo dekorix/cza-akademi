@@ -17,6 +17,9 @@ const u2 = read('../db/migrations/20260917_u2_work_center_core_v1.sql');
 const u2TrustBoundaryRemediation = read(
   '../db/migrations/20260917_u2_client_reported_completion_remediation_v1.sql',
 );
+const u5CancelBarrier = read(
+  '../db/migrations/20260917_u5_cancelled_assignment_write_barrier_v1.sql',
+);
 
 const ids = {
   academy: 'a2000000-0000-4000-8000-000000000001',
@@ -104,6 +107,8 @@ test('U2 assigned work lifecycle is isolated, resumable, idempotent, and atomic'
     await db.exec(u1);
     await db.exec(u2);
     await db.exec(u2TrustBoundaryRemediation);
+    await db.exec(read('../db/migrations/20260917_u5_assignment_management_v1.sql'));
+    await db.exec(u5CancelBarrier);
     const firstFingerprint = await fingerprint(db);
     await db.exec(u2TrustBoundaryRemediation);
     assert.equal(await fingerprint(db), firstFingerprint);
