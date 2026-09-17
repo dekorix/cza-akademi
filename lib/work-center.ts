@@ -23,6 +23,7 @@ export type WorkAssignmentState =
   | 'in_progress'
   | 'completed'
   | 'expired'
+  | 'cancelled'
   | 'closed';
 
 export function isAssignedEngineModule(
@@ -48,5 +49,6 @@ export function workStateLabel(state: WorkAssignmentState) {
   if (state === 'in_progress') return 'Devam ediyor';
   if (state === 'completed') return 'Tamamlandı';
   if (state === 'expired') return 'Süresi doldu';
+  if (state === 'cancelled') return 'İptal edildi';
   return 'Kapalı';
 }

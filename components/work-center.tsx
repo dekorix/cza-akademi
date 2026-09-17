@@ -91,6 +91,11 @@ function AssignmentCard({
       </div>
 
       <div className="mt-5">
+        {assignment.instructions ? (
+          <p className="mb-4 rounded-2xl bg-[#f3f7f5] p-4 text-sm leading-6 text-[#405a53]">
+            <b>Eğitmen notu:</b> {assignment.instructions}
+          </p>
+        ) : null}
         <div className="mb-2 flex items-center justify-between gap-3 text-sm">
           <span className="font-semibold text-[#5f717a]">
             {assignment.attemptCount}/{assignment.expectedCount} adım
@@ -113,6 +118,9 @@ function AssignmentCard({
             : assignment.startsAt
               ? `Açılış: ${dateLabel(assignment.startsAt)}`
               : 'Başlamaya hazır'}
+        </span>
+        <span className="inline-flex items-center gap-2 text-sm text-[#687982]">
+          <CalendarClock size={17} /> Son tarih: {dateLabel(assignment.expiresAt)}
         </span>
 
         {actionable ? (

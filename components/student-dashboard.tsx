@@ -165,6 +165,7 @@ export function StudentDashboard({
                         <div className="min-w-0">
                           <h3 className="font-black">{assignment.title}</h3>
                           <p className="mt-1 text-sm text-[#63747d]">{assignment.moduleName} · {assignment.completedCount}/{Math.max(assignment.sessionCount, 1)} tamamlandı</p>
+                          {assignment.instructions ? <p className="mt-2 text-sm text-[#405a53]"><b>Eğitmen notu:</b> {assignment.instructions}</p> : null}
                         </div>
                       </div>
                       <a href={`/assignment?recipe=${encodeURIComponent(assignment.id)}`} className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-xl bg-[#1f705f] px-5 text-sm font-black text-white hover:bg-[#175748]">

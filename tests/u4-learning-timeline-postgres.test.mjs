@@ -14,6 +14,7 @@ const migrations = [
   read('../db/migrations/20260916_u1_student_panel_core_v1.sql'),
   read('../db/migrations/20260917_u2_work_center_core_v1.sql'),
   read('../db/migrations/20260917_u2_client_reported_completion_remediation_v1.sql'),
+  read('../db/migrations/20260917_u5_assignment_management_v1.sql'),
 ];
 
 function loadTimelineModule() {

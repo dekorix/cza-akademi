@@ -18,6 +18,7 @@ export type LearningTimelineEvent = {
   studentId: string;
   occurredAt: string;
   eventType: TimelineEventType;
+  assignmentLifecycle: 'ASSIGNMENT_CREATED' | 'ASSIGNMENT_STARTED' | 'ASSIGNMENT_COMPLETED' | 'ASSIGNMENT_CANCELLED' | null;
   moduleCode: string;
   assignmentId: string | null;
   trainingSessionId: string | null;
@@ -186,10 +187,11 @@ export async function readLearningTimeline({
   const rows = await sql.query(`
     WITH timeline AS (
       SELECT 'assignment:' || recipe.id::text AS event_id, recipe.student_id,
-             recipe.created_at AS occurred_at, 'ASSIGNMENT_AVAILABLE'::text AS event_type,
+             COALESCE(recipe.cancelled_at, recipe.created_at) AS occurred_at, 'ASSIGNMENT_AVAILABLE'::text AS event_type,
+             CASE WHEN recipe.cancelled_at IS NOT NULL THEN 'ASSIGNMENT_CANCELLED' ELSE 'ASSIGNMENT_CREATED' END::text AS assignment_lifecycle,
              recipe.module_code, recipe.id AS assignment_id, NULL::uuid AS training_session_id,
              NULL::uuid AS learning_record_id, recipe.name AS title,
-             CASE WHEN recipe.is_active THEN 'available' ELSE 'closed' END AS status,
+             CASE WHEN recipe.cancelled_at IS NOT NULL THEN 'cancelled' WHEN recipe.is_active THEN 'available' ELSE 'closed' END AS status,
              NULL::jsonb AS result_summary, NULL::jsonb AS error_summary,
              NULL::jsonb AS skill_summary, NULL::text AS support_level,
              'server_authoritative'::text AS provenance, 'server_verified'::text AS verification_status,
@@ -203,6 +205,9 @@ export async function readLearningTimeline({
              CASE WHEN session.status='completed' THEN 'WORK_COMPLETED'
                   WHEN session.last_activity_at > session.started_at THEN 'WORK_RESUMED'
                   ELSE 'WORK_STARTED' END,
+             CASE WHEN session.recipe_id IS NULL THEN NULL
+                  WHEN session.status='completed' THEN 'ASSIGNMENT_COMPLETED'
+                  ELSE 'ASSIGNMENT_STARTED' END::text,
              session.module_code, session.recipe_id, session.id, NULL::uuid,
              COALESCE(recipe.name, module.name), session.status,
              NULL::jsonb,
@@ -216,7 +221,7 @@ export async function readLearningTimeline({
 
       UNION ALL
       SELECT 'record:' || record.id::text, record.student_id, record.completed_at,
-             'LEARNING_RESULT', record.module_code, session.recipe_id, record.training_session_id, record.id,
+             'LEARNING_RESULT', NULL::text, record.module_code, session.recipe_id, record.training_session_id, record.id,
              module.name, 'completed', record.performance, NULL::jsonb,
              jsonb_build_object('skills',record.skills), record.support_level,
              record.record_origin, record.verification_status, 'learning_records'
@@ -228,7 +233,7 @@ export async function readLearningTimeline({
 
       UNION ALL
       SELECT 'error:' || attempt.id::text, attempt.student_id, attempt.created_at,
-             'ERROR_OBSERVED', attempt.module_code, session.recipe_id, attempt.training_session_id, NULL::uuid,
+             'ERROR_OBSERVED', NULL::text, attempt.module_code, session.recipe_id, attempt.training_session_id, NULL::uuid,
              module.name, 'observed',
              jsonb_build_object('isCorrect',attempt.is_correct,'responseTimeMs',attempt.total_response_time_ms),
              jsonb_build_object('errorType',attempt.error_type,'detail',attempt.error_detail),
@@ -241,7 +246,7 @@ export async function readLearningTimeline({
 
       UNION ALL
       SELECT 'evidence:' || evidence.id::text, evidence.student_id, evidence.observed_at,
-             'SKILL_EVIDENCE', record.module_code, session.recipe_id, record.training_session_id, record.id,
+             'SKILL_EVIDENCE', NULL::text, record.module_code, session.recipe_id, record.training_session_id, record.id,
              module.name, 'observed', evidence.payload, NULL::jsonb,
              jsonb_build_object('skillCode',evidence.skill_code,'evidenceType',evidence.evidence_type),
              evidence.support_level,
@@ -263,6 +268,7 @@ export async function readLearningTimeline({
   const events = rows.slice(0, limit).map((row): LearningTimelineEvent => ({
     eventId: String(row.event_id), studentId: String(row.student_id), occurredAt: asTimestamp(row.occurred_at),
     eventType: String(row.event_type) as TimelineEventType, moduleCode: String(row.module_code),
+    assignmentLifecycle: typeof row.assignment_lifecycle === 'string' ? row.assignment_lifecycle as LearningTimelineEvent['assignmentLifecycle'] : null,
     assignmentId: typeof row.assignment_id === 'string' ? row.assignment_id : null,
     trainingSessionId: typeof row.training_session_id === 'string' ? row.training_session_id : null,
     learningRecordId: typeof row.learning_record_id === 'string' ? row.learning_record_id : null,

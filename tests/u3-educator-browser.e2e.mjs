@@ -101,6 +101,8 @@ try {
     if (url.pathname === '/api/educator-auth') return void respond({ ok: true, user: { name: 'Demo Eğitmen' } });
     if (url.pathname === '/api/educator-students') return void respond({ ok: true, students: [student], hasMore: false });
     if (url.pathname === '/api/educator-student-detail') return void respond(detail);
+    if (url.pathname === '/api/educator-assignments') return void respond({ ok: true, assignments: [] });
+    if (url.pathname === '/api/educator-student-history') return void respond({ ok: true, timeline: { events: [], hasMore: false, nextCursor: null } });
     void request.continue();
   });
   const response = await page.goto(`${origin}/educator`, { waitUntil: 'networkidle0' });

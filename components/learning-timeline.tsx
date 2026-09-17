@@ -12,6 +12,10 @@ const EVENT_LABELS: Record<LearningTimelineEvent['eventType'], string> = {
   LEARNING_RESULT: 'Sonuç kaydedildi', ERROR_OBSERVED: 'Hata gözlendi',
   SKILL_EVIDENCE: 'Beceri kanıtı',
 };
+const ASSIGNMENT_LABELS = {
+  ASSIGNMENT_CREATED: 'Ödev oluşturuldu', ASSIGNMENT_STARTED: 'Ödev başlatıldı',
+  ASSIGNMENT_COMPLETED: 'Ödev tamamlandı', ASSIGNMENT_CANCELLED: 'Ödev iptal edildi',
+} as const;
 
 function dateLabel(value: string) {
   return new Intl.DateTimeFormat('tr-TR', {
@@ -96,7 +100,7 @@ export function LearningTimeline({ endpoint, title = 'Öğrenme Geçmişi' }: { 
         <h4 className="mb-3 text-base font-black text-[#3f5d58]">{group.day}</h4>
         <div className="space-y-3">{group.events.map((event) => <details key={event.eventId} className="group rounded-2xl border border-[#dfe7e3] p-4 open:bg-[#f8fbf9]">
         <summary className="flex cursor-pointer list-none flex-wrap items-center justify-between gap-3">
-          <div className="min-w-0"><p className="font-black text-[#243d3a]">{event.title}</p><p className="mt-1 text-sm text-[#65777e]">{EVENT_LABELS[event.eventType]} · {event.moduleCode}</p></div>
+          <div className="min-w-0"><p className="font-black text-[#243d3a]">{event.title}</p><p className="mt-1 text-sm text-[#65777e]">{event.assignmentLifecycle ? ASSIGNMENT_LABELS[event.assignmentLifecycle] : EVENT_LABELS[event.eventType]} · {event.moduleCode}</p></div>
           <div className="flex flex-wrap items-center gap-2"><Provenance event={event} /><ChevronDown size={17} className="transition group-open:rotate-180" /></div>
         </summary>
         <div className="mt-4 grid gap-3 border-t pt-4 text-sm sm:grid-cols-2">

@@ -8,6 +8,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { LearningTimeline } from '@/components/learning-timeline';
+import { EducatorAssignmentManager } from '@/components/educator-assignment-manager';
 
 type Student = {
   id: string;
@@ -113,6 +114,7 @@ export function EducatorStudentCore() {
   const [detail, setDetail] = useState<Detail | null>(null);
   const [loadingDetail, setLoadingDetail] = useState(true);
   const [message, setMessage] = useState('');
+  const [detailVersion, setDetailVersion] = useState(0);
 
   const loadStudents = useCallback(async (search = '') => {
     setLoadingList(true);
@@ -165,7 +167,7 @@ export function EducatorStudentCore() {
         if (!controller.signal.aborted) setLoadingDetail(false);
       });
     return () => controller.abort();
-  }, [selectedId]);
+  }, [selectedId, detailVersion]);
 
   return (
     <section className="grid gap-6 xl:grid-cols-[320px_minmax(0,1fr)]">
@@ -214,6 +216,8 @@ export function EducatorStudentCore() {
             <WorkList title="Aktif ve devam eden çalışmalar" items={detail.work.active} empty="Aktif çalışma bulunmuyor." />
             <WorkList title="Tamamlanan çalışmalar" items={detail.work.completed} empty="Tamamlanmış çalışma bulunmuyor." />
           </div>
+
+          <EducatorAssignmentManager studentId={detail.student.id} onChanged={() => setDetailVersion((value) => value + 1)} />
 
           <section className="rounded-2xl border bg-white p-5 shadow-sm">
             <div className="flex items-center gap-2"><Activity className="text-[#276151]" /><h3 className="font-bold text-[#18372f]">Son attempt ve sonuçlar</h3></div>

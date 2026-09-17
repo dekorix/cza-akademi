@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowLeft, CheckCircle2, Loader2, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -21,6 +21,7 @@ export default function AssessmentPrescriptionPage() {
   const [busy, setBusy] = useState(false);
   const [assigned, setAssigned] = useState(false);
   const [message, setMessage] = useState('');
+  const requestId = useRef('');
 
   useEffect(() => {
     const query = new URLSearchParams(window.location.search);
@@ -38,6 +39,7 @@ export default function AssessmentPrescriptionPage() {
     if (!ready || busy || !canAssign) return;
     setBusy(true);
     setMessage('');
+    if (!requestId.current) requestId.current = crypto.randomUUID();
     try {
       const response = await fetch('/api/educator-assignments', {
         method: 'POST',
@@ -47,6 +49,7 @@ export default function AssessmentPrescriptionPage() {
           studentId,
           assessmentSessionId,
           recommendationId,
+          clientRequestId: requestId.current,
         }),
       });
       const data = await response.json() as { ok?: boolean; error?: string; assignment?: { name?: string } };

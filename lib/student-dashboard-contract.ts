@@ -9,6 +9,7 @@ export type StudentDashboardAssignment = {
   moduleCode: string;
   moduleName: string;
   title: string;
+  instructions: string | null;
   startsAt: string | null;
   expiresAt: string | null;
   sessionCount: number;
@@ -19,6 +20,7 @@ export type StudentDashboardAssignment = {
     | 'in_progress'
     | 'completed'
     | 'expired'
+    | 'cancelled'
     | 'closed';
   launchPath: string | null;
   freePracticePath: string | null;

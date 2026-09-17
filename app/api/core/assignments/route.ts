@@ -28,6 +28,7 @@ function assignmentState(row: Record<string, unknown>): WorkAssignmentState {
   const now = Date.now();
   const startsAt = timestamp(row.starts_at);
   const expiresAt = timestamp(row.expires_at);
+  if (row.cancelled_at) return 'cancelled';
   if (row.is_active !== true) return 'closed';
   if (expiresAt && Date.parse(expiresAt) <= now) return 'expired';
   if (row.completed_session_id) return 'completed';
@@ -89,7 +90,7 @@ export async function GET(request: Request) {
 
   if (recipeId) {
     const rows = await sql`
-      SELECT tr.id, tr.module_code, tr.name, tr.settings, tr.starts_at, tr.expires_at, tr.is_active,
+      SELECT tr.id, tr.module_code, tr.name, tr.instructions, tr.settings, tr.starts_at, tr.expires_at, tr.is_active, tr.cancelled_at,
              m.name AS module_name,
              active_session.id AS active_session_id,
              active_session.last_activity_at,
@@ -151,8 +152,8 @@ export async function GET(request: Request) {
   }
 
   const rows = await sql`
-    SELECT tr.id, tr.module_code, tr.name, tr.settings, tr.starts_at, tr.expires_at,
-           tr.is_active, m.name AS module_name,
+    SELECT tr.id, tr.module_code, tr.name, tr.instructions, tr.settings, tr.starts_at, tr.expires_at,
+           tr.is_active, tr.cancelled_at, m.name AS module_name,
            (SELECT count(*)::int FROM public.training_sessions ts
             WHERE ts.recipe_id = tr.id
               AND ts.academy_id = ${student.academy_id}::uuid

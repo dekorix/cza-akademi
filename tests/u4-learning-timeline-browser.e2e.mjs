@@ -78,6 +78,7 @@ try {
     if (url.pathname === '/api/educator-auth') return void respond({ ok: true, user: { name: 'U4 Demo Eğitmen' } });
     if (url.pathname === '/api/educator-students') return void respond({ ok: true, students: [educatorStudent], hasMore: false });
     if (url.pathname === '/api/educator-student-detail') return void respond(educatorDetail);
+    if (url.pathname === '/api/educator-assignments') return void respond({ ok: true, assignments: [] });
     void request.continue();
   });
   for (const [path, width, height] of [['/', 1440, 900], ['/', 390, 844], ['/educator', 1440, 900], ['/educator', 390, 844]]) await assertViewport(page, path, width, height);

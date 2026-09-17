@@ -55,6 +55,7 @@ function assignmentState(item: Record<string, unknown>): WorkAssignmentState {
   const now = Date.now();
   const startsAt = timestamp(item.starts_at);
   const expiresAt = timestamp(item.expires_at);
+  if (item.cancelled_at) return 'cancelled';
   if (item.is_active !== true) return 'closed';
   if (expiresAt && Date.parse(expiresAt) <= now) return 'expired';
   if (item.completed_session_id) return 'completed';
@@ -97,8 +98,8 @@ export async function GET(request: Request) {
           LIMIT 1
         `,
         sql`
-          SELECT tr.id, tr.module_code, tr.name, tr.settings, tr.starts_at,
-                 tr.expires_at, tr.is_active, m.name AS module_name,
+          SELECT tr.id, tr.module_code, tr.name, tr.instructions, tr.settings, tr.starts_at,
+                 tr.expires_at, tr.is_active, tr.cancelled_at, m.name AS module_name,
                  (SELECT count(*)::int FROM public.training_sessions ts
                   WHERE ts.recipe_id = tr.id
                     AND ts.academy_id = ${student.academy_id}::uuid
@@ -229,6 +230,7 @@ export async function GET(request: Request) {
         moduleCode,
         moduleName: String(item.module_name),
         title: String(item.name),
+        instructions: typeof item.instructions === 'string' ? item.instructions : null,
         startsAt: timestamp(item.starts_at),
         expiresAt: timestamp(item.expires_at),
         sessionCount: integer(item.session_count),
