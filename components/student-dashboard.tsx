@@ -15,12 +15,11 @@ import {
   LogOut,
   Sparkles,
   Target,
-  UserRound,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
 import type { StudentDashboardData } from '@/lib/student-dashboard-contract';
 import { LearningTimeline } from '@/components/learning-timeline';
+import { StudentLearningProfile } from '@/components/student-learning-profile';
 
 const moduleLinks = [
   {
@@ -79,11 +78,11 @@ export function StudentDashboard({
     { label: 'Aktif çalışma', value: summary?.activeAssignments ?? 0, icon: CalendarClock, color: '#315f86' },
     { label: 'Tamamlanan', value: summary?.completedSessions ?? 0, icon: CheckCircle2, color: '#1b7863' },
     { label: 'Yanıtlanan soru', value: summary?.totalAttempts ?? 0, icon: BookOpenCheck, color: '#735ea8' },
-    { label: 'Doğruluk', value: `%${summary?.accuracy ?? 0}`, icon: Target, color: '#a2602c' },
+    { label: 'Bildirilen doğruluk', value: summary?.totalAttempts ? `%${summary.accuracy}` : '—', icon: Target, color: '#a2602c' },
   ];
 
   return (
-    <div className="min-h-screen bg-[#f4f7f5] text-[#21313e]">
+    <div className="min-h-screen overflow-x-hidden bg-[#f4f7f5] text-[#21313e]">
       <header className="sticky top-0 z-30 border-b border-[#dce5e0] bg-white/95 backdrop-blur">
         <div className="mx-auto flex min-h-20 max-w-7xl items-center justify-between gap-4 px-5 py-3 lg:px-8">
           <a href="/" className="flex items-center gap-3" aria-label="CZA Öğrenci Paneli">
@@ -183,32 +182,7 @@ export function StudentDashboard({
               )}
             </section>
 
-            <section id="profile" className="scroll-mt-28 rounded-3xl border border-[#dce5e0] bg-white p-6 shadow-sm md:p-7" aria-labelledby="profile-heading">
-              <div className="flex items-center justify-between gap-3">
-                <div>
-                  <p className="text-sm font-bold uppercase tracking-[.1em] text-[#6652a8]">Öğrenme profili köprüsü</p>
-                  <h2 id="profile-heading" className="mt-2 text-xl font-black">Beceri görünümün</h2>
-                </div>
-                <UserRound className="text-[#6652a8]" />
-              </div>
-              {dashboard?.skillProfile.length ? (
-                <div className="mt-6 space-y-5">
-                  {dashboard.skillProfile.slice(0, 4).map((skill) => (
-                    <div key={skill.moduleCode}>
-                      <div className="mb-2 flex items-center justify-between gap-3 text-sm">
-                        <span className="font-bold">{skill.moduleName}</span>
-                        <span className="font-black text-[#6652a8]">%{skill.accuracy}</span>
-                      </div>
-                      <Progress value={skill.accuracy} aria-label={`${skill.moduleName} yüzde ${skill.accuracy}`} />
-                      <p className="mt-1 text-xs text-[#6a7a83]">{skill.correct}/{skill.total} doğru yanıt</p>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="mt-5 rounded-2xl bg-[#f5f3fc] p-5 text-sm leading-6 text-[#625b78]">İlk çalışmanı tamamladığında beceri görünümün gerçek sonuçlarından oluşmaya başlayacak.</p>
-              )}
-              <p className="mt-5 text-xs leading-5 text-[#718088]">Bu görünüm eğitimsel çalışma verisidir; klinik tanı veya sağlık etiketi üretmez.</p>
-            </section>
+            <div id="profile" className="scroll-mt-28 xl:col-span-2"><StudentLearningProfile endpoint="/api/core/learning-profile" audience="student" /></div>
           </div>
         )}
 
@@ -232,7 +206,7 @@ export function StudentDashboard({
         <div id="history" className="mt-6 scroll-mt-28"><LearningTimeline endpoint="/api/core/history" title="Geçmişim" /></div>
 
         <footer className="mt-8 flex flex-wrap items-center justify-between gap-3 border-t border-[#dce5e0] pt-6 text-xs text-[#72818a]">
-          <span>CZA Student Learning Profile · U1 çekirdeği</span>
+          <span>CZA Student Learning Profile · Eğitimsel görünüm klinik tanı veya sağlık etiketi üretmez.</span>
           <span>Koçluk, LGS/YKS ve veli görünümü sonraki onaylı fazlarda bağlanacaktır.</span>
         </footer>
       </main>

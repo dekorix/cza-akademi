@@ -54,7 +54,7 @@ function EducatorDashboard() {
     const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8;'}));const link=document.createElement('a');link.href=url;link.download='cza-bu-sekme-deneme-sonuclari.csv';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
   }
   const tabs: {id:Tab;label:string;icon:typeof Users}[] = [{id:'students',label:'Öğrenciler',icon:Users},{id:'teaching',label:'Ders incelemesi',icon:BookOpen},{id:'program',label:'Program stüdyosu',icon:SlidersHorizontal},{id:'reports',label:'Seans raporları',icon:ClipboardList},{id:'modules',label:'Atölye yol haritası',icon:LayoutGrid}];
-  return <div className="min-h-screen bg-background">
+  return <div className="min-h-screen overflow-x-hidden bg-background">
     <header className="bg-[#182739] px-5 text-white md:px-9"><div className="mx-auto flex h-20 max-w-[1360px] items-center justify-between gap-4"><div className="flex items-center gap-3"><span className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#d8eeac] text-xs font-black text-[#182739]">CZA</span><div><p className="text-sm font-semibold">Eğitimci kontrol merkezi</p><p className="text-[10px] text-[#9db0c3]">EGZERSİZ AKADEMİSİ</p></div></div><a href="/" className="flex items-center gap-2 text-xs text-[#cfdfec]"><ArrowLeft size={15}/> Öğrenci görünümü</a></div></header>
     <main className="mx-auto max-w-[1432px] px-5 py-8 md:px-9">
       {tab==='reports' && <div className="mb-5"><CentralStudentReport key={studentCode} initialCode={studentCode}/></div>}

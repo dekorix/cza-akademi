@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import {
-  Activity, AlertTriangle, BookOpenCheck, CheckCircle2,
+  Activity, AlertTriangle, CheckCircle2,
   RefreshCw, Search, ShieldCheck, UserRound,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { LearningTimeline } from '@/components/learning-timeline';
 import { EducatorAssignmentManager } from '@/components/educator-assignment-manager';
 import { EducatorAnalytics } from '@/components/educator-analytics';
+import { StudentLearningProfile } from '@/components/student-learning-profile';
 
 type Student = {
   id: string;
@@ -263,13 +264,7 @@ export function EducatorStudentCore() {
             title="Kronolojik öğrenci geçmişi"
           />
 
-          <section className="rounded-2xl border border-[#c9dfd4] bg-[#f3f9f6] p-5">
-            <div className="flex items-center gap-2"><BookOpenCheck className="text-[#276151]" /><h3 className="font-bold text-[#18372f]">Student Learning Profile özeti</h3></div>
-            <div className="mt-4 grid gap-4 md:grid-cols-2">
-              <div className="rounded-xl bg-white p-4"><Provenance status="client_reported" /><p className="mt-3 text-sm">{detail.learningProfile.clientReportedSkills.join(', ') || 'Bildirilen beceri yok'}</p><p className="mt-2 text-xs text-muted-foreground">{detail.learningProfile.clientReportedRecordCount} client-reported geçmiş kaydı</p></div>
-              <div className="rounded-xl bg-white p-4"><Provenance status="server_verified" /><p className="mt-3 text-sm">{detail.learningProfile.serverVerifiedSkills.join(', ') || 'Doğrulanmış beceri kanıtı yok'}</p><p className="mt-2 text-xs text-muted-foreground">{detail.learningProfile.serverVerifiedEvidenceCount} server-verified evidence</p></div>
-            </div>
-          </section>
+          <div aria-label="Student Learning Profile özeti"><StudentLearningProfile endpoint={`/api/educator-learning-profile?studentId=${encodeURIComponent(detail.student.id)}`} audience="educator" /></div>
         </> : <div className="grid min-h-72 place-items-center rounded-2xl border bg-white text-center"><div><CheckCircle2 className="mx-auto text-[#7aa28f]" /><p className="mt-3 font-semibold">Detayını görmek için yetkili bir öğrenci seç.</p></div></div>}
       </div>
     </section>
