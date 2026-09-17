@@ -13,6 +13,21 @@ export type StudentDashboardAssignment = {
   expiresAt: string | null;
   sessionCount: number;
   completedCount: number;
+  status:
+    | 'assigned'
+    | 'available'
+    | 'in_progress'
+    | 'completed'
+    | 'expired'
+    | 'closed';
+  launchPath: string | null;
+  freePracticePath: string | null;
+  activeSessionId: string | null;
+  lastActivityAt: string | null;
+  attemptCount: number;
+  correctCount: number;
+  expectedCount: number;
+  progressPercent: number;
 };
 
 export type StudentDashboardActivity = {
@@ -22,6 +37,11 @@ export type StudentDashboardActivity = {
   status: 'active' | 'completed' | 'cancelled';
   startedAt: string;
   completedAt: string | null;
+  assignmentId: string | null;
+  assignmentTitle: string | null;
+  attemptCount: number;
+  correctCount: number;
+  accuracy: number;
 };
 
 export type StudentDashboardSkill = {
@@ -40,6 +60,9 @@ export type StudentDashboardData = {
     totalAttempts: number;
     correctAttempts: number;
     accuracy: number;
+    availableAssignments: number;
+    inProgressAssignments: number;
+    completedAssignments: number;
   };
   assignments: StudentDashboardAssignment[];
   recentActivity: StudentDashboardActivity[];

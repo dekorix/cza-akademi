@@ -21,6 +21,16 @@ import {
   CanonicalPersistenceError,
   persistCanonicalLearningRecord,
 } from '@/lib/persistence/canonical-repository';
+import {
+  assignedSessionForRecipe,
+  bindAssignedSession,
+  completeAssignedSession,
+  ownedSession,
+  recordAssignedAttempt,
+  WorkCenterPersistenceError,
+  type WorkStudent,
+} from '@/lib/persistence/work-center-repository';
+import { isAssignedEngineModule } from '@/lib/work-center';
 
 const COOKIE_NAME = 'cza_student_session';
 const ASSIGNMENT_COOKIE = 'cza_assignment_recipe';
@@ -192,6 +202,9 @@ export async function POST(request: Request) {
   const payload: Record<string, unknown> = { ...input };
   delete payload.sessionToken;
   if (action !== 'login') payload.sessionToken = sessionToken;
+  let workStudent: WorkStudent | null = null;
+  let workRecipeId = '';
+  let assignedTrainingSessionId = '';
 
   if (action === 'start') {
     const recipeId = readCookie(request, ASSIGNMENT_COOKIE);
@@ -212,6 +225,7 @@ export async function POST(request: Request) {
       const student = await authenticatedStudent(request);
       if (!student)
         return respond({ ok: false, error: 'session_required' }, 401);
+      workStudent = student;
       const sql = neon(process.env.DATABASE_URL);
       const recipes = await sql`
         SELECT id, module_code, settings
@@ -233,6 +247,41 @@ export async function POST(request: Request) {
         module_code: string;
         settings: Record<string, unknown>;
       };
+      if (!isAssignedEngineModule(recipe.module_code)) {
+        return respond(
+          { ok: false, error: 'unsupported_assignment_module' },
+          409,
+        );
+      }
+      let existing;
+      try {
+        existing = await assignedSessionForRecipe(student, recipe.id);
+      } catch (error) {
+        if (error instanceof WorkCenterPersistenceError) {
+          return respond({ ok: false, error: error.code }, error.status);
+        }
+        return respond(
+          { ok: false, error: 'work_persistence_unavailable' },
+          503,
+        );
+      }
+      if (existing?.status === 'completed') {
+        return respond({ ok: false, error: 'assignment_completed' }, 409);
+      }
+      if (existing?.status === 'active') {
+        return respond({
+          ok: true,
+          sessionId: existing.sessionId,
+          resumed: true,
+          workStatus: 'in_progress',
+          startedAt: existing.startedAt,
+          workProgress: {
+            attemptCount: existing.attemptCount,
+            correctCount: existing.correctCount,
+          },
+        });
+      }
+      workRecipeId = recipe.id;
       payload.recipeId = recipe.id;
       payload.moduleCode = recipe.module_code;
       payload.source = 'teacher_assignment';
@@ -240,6 +289,24 @@ export async function POST(request: Request) {
     } else {
       payload.recipeId = null;
       payload.source = 'free_practice';
+    }
+  }
+
+  if (action === 'attempt' || action === 'interaction' || action === 'finish') {
+    const student = await authenticatedStudent(request);
+    if (!student) return respond({ ok: false, error: 'session_required' }, 401);
+    workStudent = student;
+    const sessionId =
+      typeof input.sessionId === 'string' ? input.sessionId : '';
+    try {
+      const session = await ownedSession(student, sessionId);
+      if (!session) return respond({ ok: false, error: 'work_not_found' }, 404);
+      if (session.recipe_id) assignedTrainingSessionId = session.id;
+    } catch (error) {
+      if (error instanceof WorkCenterPersistenceError) {
+        return respond({ ok: false, error: error.code }, error.status);
+      }
+      return respond({ ok: false, error: 'work_persistence_unavailable' }, 503);
     }
   }
 
@@ -298,8 +365,60 @@ export async function POST(request: Request) {
       ]);
     }
 
+    if (action === 'start' && workStudent && workRecipeId) {
+      const trainingSessionId =
+        typeof upstreamResult.sessionId === 'string'
+          ? upstreamResult.sessionId
+          : '';
+      if (!UUID_PATTERN.test(trainingSessionId)) {
+        return respond({ ok: false, error: 'core_invalid_response' }, 502);
+      }
+      const bound = await bindAssignedSession(workStudent, {
+        recipeId: workRecipeId,
+        clientSessionId: String(payload.clientSessionId),
+        trainingSessionId,
+        startedAt: new Date().toISOString(),
+      });
+      if (bound.status === 'completed') {
+        return respond({ ok: false, error: 'assignment_completed' }, 409);
+      }
+      return respond({
+        ...upstreamResult,
+        sessionId: bound.sessionId,
+        resumed: bound.resumed,
+        workStatus: bound.status,
+        startedAt: bound.startedAt,
+        workProgress: {
+          attemptCount: bound.attemptCount,
+          correctCount: bound.correctCount,
+          lastActivityAt: bound.lastActivityAt,
+        },
+      });
+    }
+
+    if (action === 'attempt' && workStudent && assignedTrainingSessionId) {
+      const progress = await recordAssignedAttempt(
+        workStudent,
+        assignedTrainingSessionId,
+        input.payload as Record<string, unknown>,
+      );
+      return respond({ ...upstreamResult, workProgress: progress });
+    }
+
+    if (action === 'finish' && workStudent && assignedTrainingSessionId) {
+      const completion = await completeAssignedSession(
+        workStudent,
+        assignedTrainingSessionId,
+        input.aborted === true,
+      );
+      return respond({ ...upstreamResult, workCompletion: completion });
+    }
+
     return respond(upstreamResult);
   } catch (error) {
+    if (error instanceof WorkCenterPersistenceError) {
+      return respond({ ok: false, error: error.code }, error.status);
+    }
     if (error instanceof CoreRequestError) {
       return respond({ ok: false, error: 'core_invalid_response' }, 502);
     }
