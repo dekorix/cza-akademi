@@ -32,6 +32,7 @@ export type LearningProfile = {
     sessions: number; records: number; attempts: number; clientReportedAccuracy: number | null;
     provenance: ReportProvenance;
   }>;
+  coaching?: { activePrograms:number;publishedPlans:number;studyLogs:number;examResults:number;meetings:number;latestGoal:unknown;performanceProvenance:'CLIENT_REPORTED';sourceReference:string };
 };
 
 function integer(value: unknown) {

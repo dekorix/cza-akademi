@@ -20,6 +20,7 @@ import { Button } from '@/components/ui/button';
 import type { StudentDashboardData } from '@/lib/student-dashboard-contract';
 import { LearningTimeline } from '@/components/learning-timeline';
 import { StudentLearningProfile } from '@/components/student-learning-profile';
+import { CoachingCenter } from '@/components/coaching-center';
 
 const moduleLinks = [
   {
@@ -182,6 +183,7 @@ export function StudentDashboard({
               )}
             </section>
 
+            <div className="xl:col-span-2"><CoachingCenter audience="student" /></div>
             <div id="profile" className="scroll-mt-28 xl:col-span-2"><StudentLearningProfile endpoint="/api/core/learning-profile" audience="student" /></div>
           </div>
         )}
@@ -207,7 +209,7 @@ export function StudentDashboard({
 
         <footer className="mt-8 flex flex-wrap items-center justify-between gap-3 border-t border-[#dce5e0] pt-6 text-xs text-[#72818a]">
           <span>CZA Student Learning Profile · Eğitimsel görünüm klinik tanı veya sağlık etiketi üretmez.</span>
-          <span>Koçluk, LGS/YKS ve veli görünümü sonraki onaylı fazlarda bağlanacaktır.</span>
+          <span>LGS/YKS Koçluk Merkezi aynı öğrenci kimliği ve öğrenme geçmişine bağlıdır.</span>
         </footer>
       </main>
     </div>

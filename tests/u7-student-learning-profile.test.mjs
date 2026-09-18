@@ -27,6 +27,7 @@ function loadRoute(source,{student=null,educator=null,authorized=[],profile={stu
       if(id.includes('educator-auth'))return{authenticatedEducator:async()=>educator};
       if(id.includes('request-guard'))return{allowRequest:async()=>({allowed:true})};
       if(id.includes('student-learning-profile'))return{readStudentLearningProfile:async input=>{calls.push(input);return profile;}};
+      if(id.includes('coaching-center'))return{readCoachingProfileBridge:async()=>({activePrograms:0,publishedPlans:0,studyLogs:0,examResults:0,performanceProvenance:'CLIENT_REPORTED'})};
       if(id==='@neondatabase/serverless')return{neon:()=>{const sql=async(strings,...values)=>{queries.push({sql:strings.join('?'),values});return authorized;};sql.query=async()=>[];return sql;}};
       throw new Error(id);
     },mod,mod.exports,{env:{DATABASE_URL:'test-only'}});return{get:mod.exports.GET,calls,queries};}

@@ -11,6 +11,7 @@ import { LearningTimeline } from '@/components/learning-timeline';
 import { EducatorAssignmentManager } from '@/components/educator-assignment-manager';
 import { EducatorAnalytics } from '@/components/educator-analytics';
 import { StudentLearningProfile } from '@/components/student-learning-profile';
+import { CoachingCenter } from '@/components/coaching-center';
 
 type Student = {
   id: string;
@@ -215,6 +216,8 @@ export function EducatorStudentCore() {
           </header>
 
           <EducatorAnalytics studentId={detail.student.id} />
+
+          <CoachingCenter studentId={detail.student.id} audience="educator" />
 
           <div className="grid gap-6 lg:grid-cols-2">
             <WorkList title="Aktif ve devam eden çalışmalar" items={detail.work.active} empty="Aktif çalışma bulunmuyor." />
