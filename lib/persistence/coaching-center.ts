@@ -4,7 +4,7 @@ import { defaultRecipeSettings,isAssignableModule } from '@/lib/training-recipes
 export type CoachingSql = { query: (text: string, params?: unknown[]) => Promise<Record<string, unknown>[]> };
 export type CoachingActor = { userId: string; academyId: string; studentId: string; canCoach: boolean };
 export class CoachingError extends Error { constructor(public code: string, public status = 400) { super(code); } }
-async function conflictAwareQuery(sql:CoachingSql,statement:string,params:unknown[],code:string){try{return await sql.query(statement,params);}catch(error){if(['23505','23P01'].includes(String((error as {code?:unknown}).code)))throw new CoachingError(code,409);throw error;}}
+async function conflictAwareQuery(sql:CoachingSql,statement:string,params:unknown[],code:string){try{return await sql.query(statement,params);}catch(error){if(['23505','23P01','P0001'].includes(String((error as {code?:unknown}).code)))throw new CoachingError(code,409);throw error;}}
 
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const ISO_DATE=/^\d{4}-\d{2}-\d{2}$/;
@@ -114,10 +114,16 @@ export async function createGoal(sql:CoachingSql,actor:CoachingActor,input:Recor
       FROM program LEFT JOIN latest ON true
       WHERE program.coach_id=$3::uuid AND COALESCE(latest.revision,0)=$10 AND NOT EXISTS(SELECT 1 FROM existing_request)
       RETURNING id,program_id,revision,target,provenance,created_at
+    ), replay AS (
+      SELECT id,program_id,revision,target,provenance,created_at FROM existing_request WHERE request_hash=$9
+    ), outcome AS (
+      SELECT id,program_id,revision,target,provenance,created_at,false replayed FROM inserted
+      UNION ALL
+      SELECT id,program_id,revision,target,provenance,created_at,true FROM replay
+    ), guard AS MATERIALIZED (
+      SELECT public.cza_u8_require_atomic(EXISTS(SELECT 1 FROM outcome),'goal_version_owner_or_idempotency_conflict') ok
     )
-    SELECT id,program_id,revision,target,provenance,created_at,false replayed FROM inserted
-    UNION ALL
-    SELECT id,program_id,revision,target,provenance,created_at,true FROM existing_request WHERE request_hash=$9`,
+    SELECT outcome.* FROM guard LEFT JOIN outcome ON true WHERE guard.ok AND outcome.id IS NOT NULL`,
     [actor.academyId,actor.studentId,actor.userId,programType,examYear,periodLabel,fieldCode,requestId,requestHash,expectedRevision,json(target)],'goal_version_owner_or_idempotency_conflict');
   if(!rows.length)throw new CoachingError('goal_version_owner_or_idempotency_conflict',409);return rows[0];
 }
@@ -171,7 +177,7 @@ export async function publishDraftPlan(sql:CoachingSql,actor:CoachingActor,input
     ), item AS (
       INSERT INTO public.coaching_plan_items(academy_id,student_id,plan_id,recipe_id,scheduled_for) SELECT $1::uuid,$2::uuid,ready.id,recipe.id,$12::date FROM ready,recipe
       ON CONFLICT(plan_id,recipe_id) DO UPDATE SET scheduled_for=public.coaching_plan_items.scheduled_for RETURNING plan_id,recipe_id
-    ) SELECT item.plan_id,item.recipe_id,ready.version FROM item JOIN ready ON ready.id=item.plan_id`,
+    ), outcome AS (SELECT item.plan_id,item.recipe_id,ready.version FROM item JOIN ready ON ready.id=item.plan_id), guard AS MATERIALIZED (SELECT public.cza_u8_require_atomic(EXISTS(SELECT 1 FROM outcome),'plan_publish_version_overlap_or_idempotency_conflict') ok) SELECT outcome.* FROM guard LEFT JOIN outcome ON true WHERE guard.ok AND outcome.plan_id IS NOT NULL`,
     [actor.academyId,actor.studentId,actor.userId,planId,expectedVersion,requestId,requestHash,moduleCode,taskKind,subject,instructions,scheduled,topic,json(settings),targetQuestions,targetMinutes],'plan_publish_version_overlap_or_idempotency_conflict');
   if(!rows.length)throw new CoachingError('plan_publish_version_overlap_or_idempotency_conflict',409);return rows[0];
 }
@@ -227,8 +233,10 @@ export async function publishPlan(sql:CoachingSql,actor:CoachingActor,input:Reco
     recipe AS (INSERT INTO public.training_recipes(academy_id,student_id,module_code,assigned_by,source,name,instructions,settings,is_active,starts_at,expires_at,client_request_id,request_hash,task_kind,academic_subject,academic_topic,target_questions,target_minutes,task_purpose)
       SELECT $1::uuid,$2::uuid,$12,$3::uuid,'teacher_assignment',$5,$8,$16::jsonb,true,$11::date,$10::date+interval '1 day',$6::uuid,$7,$13,$14,$15,$17,$18,'practice' FROM plan
       ON CONFLICT(academy_id,assigned_by,client_request_id) WHERE client_request_id IS NOT NULL DO UPDATE SET updated_at=public.training_recipes.updated_at WHERE public.training_recipes.request_hash=EXCLUDED.request_hash RETURNING id),
-    item AS (INSERT INTO public.coaching_plan_items(academy_id,student_id,plan_id,recipe_id,scheduled_for) SELECT $1::uuid,$2::uuid,plan.id,recipe.id,$11::date FROM plan,recipe ON CONFLICT(plan_id,recipe_id) DO UPDATE SET scheduled_for=EXCLUDED.scheduled_for RETURNING recipe_id)
-    SELECT plan.id plan_id,item.recipe_id FROM plan,item`,[actor.academyId,actor.studentId,actor.userId,programId,title,requestId,requestHash,instructions,start,end,scheduled,moduleCode,taskKind,subject,topic,json(settings),targetQuestions,targetMinutes,monthlyFocus],'plan_overlap_or_idempotency_conflict');
+    item AS (INSERT INTO public.coaching_plan_items(academy_id,student_id,plan_id,recipe_id,scheduled_for) SELECT $1::uuid,$2::uuid,plan.id,recipe.id,$11::date FROM plan,recipe ON CONFLICT(plan_id,recipe_id) DO UPDATE SET scheduled_for=EXCLUDED.scheduled_for RETURNING recipe_id),
+    outcome AS (SELECT plan.id plan_id,item.recipe_id FROM plan,item),
+    guard AS MATERIALIZED (SELECT public.cza_u8_require_atomic(EXISTS(SELECT 1 FROM outcome),'plan_overlap_or_idempotency_conflict') ok)
+    SELECT outcome.* FROM guard LEFT JOIN outcome ON true WHERE guard.ok AND outcome.plan_id IS NOT NULL`,[actor.academyId,actor.studentId,actor.userId,programId,title,requestId,requestHash,instructions,start,end,scheduled,moduleCode,taskKind,subject,topic,json(settings),targetQuestions,targetMinutes,monthlyFocus],'plan_overlap_or_idempotency_conflict');
   if(!rows.length)throw new CoachingError('plan_overlap_or_idempotency_conflict',409);return rows[0];
 }
 
@@ -298,8 +306,10 @@ export async function createMistakeRevision(sql:CoachingSql,actor:CoachingActor,
     recipe AS (INSERT INTO public.training_recipes(academy_id,student_id,module_code,assigned_by,source,name,instructions,settings,is_active,starts_at,client_request_id,request_hash,task_kind,academic_subject,academic_topic,task_purpose)
       SELECT $1::uuid,$2::uuid,NULL,$3::uuid,'teacher_assignment','Tekrar · '||$7,$10,'{}',true,now(),$11::uuid,$12,'academic',$7,$8,'revision' FROM mistake
       ON CONFLICT(academy_id,assigned_by,client_request_id) WHERE client_request_id IS NOT NULL DO UPDATE SET updated_at=public.training_recipes.updated_at WHERE public.training_recipes.request_hash=EXCLUDED.request_hash RETURNING id),
-    item AS (INSERT INTO public.coaching_plan_items(academy_id,student_id,plan_id,recipe_id,scheduled_for) SELECT $1::uuid,$2::uuid,active_plan.id,recipe.id,current_date FROM active_plan,recipe ON CONFLICT(plan_id,recipe_id) DO UPDATE SET scheduled_for=public.coaching_plan_items.scheduled_for RETURNING recipe_id)
-    SELECT mistake.id mistake_id,item.recipe_id FROM mistake,item`,[actor.academyId,actor.studentId,actor.userId,programId,examResultId,studyLogId,subject,topic,reason,explanation,requestId,requestHash],'mistake_revision_idempotency_conflict');
+    item AS (INSERT INTO public.coaching_plan_items(academy_id,student_id,plan_id,recipe_id,scheduled_for) SELECT $1::uuid,$2::uuid,active_plan.id,recipe.id,current_date FROM active_plan,recipe ON CONFLICT(plan_id,recipe_id) DO UPDATE SET scheduled_for=public.coaching_plan_items.scheduled_for RETURNING recipe_id),
+    outcome AS (SELECT mistake.id mistake_id,item.recipe_id FROM mistake,item),
+    guard AS MATERIALIZED (SELECT public.cza_u8_require_atomic(EXISTS(SELECT 1 FROM outcome),'mistake_revision_idempotency_conflict') ok)
+    SELECT outcome.* FROM guard LEFT JOIN outcome ON true WHERE guard.ok AND outcome.mistake_id IS NOT NULL`,[actor.academyId,actor.studentId,actor.userId,programId,examResultId,studyLogId,subject,topic,reason,explanation,requestId,requestHash],'mistake_revision_idempotency_conflict');
   if(!rows.length)throw new CoachingError('idempotency_conflict',409);return rows[0];
 }
 
