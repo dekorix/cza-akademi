@@ -32,7 +32,7 @@ export type LearningProfile = {
     sessions: number; records: number; attempts: number; clientReportedAccuracy: number | null;
     provenance: ReportProvenance;
   }>;
-  coaching?: { activePrograms:number;publishedPlans:number;studyLogs:number;examResults:number;meetings:number;latestGoal:unknown;performanceProvenance:'CLIENT_REPORTED';sourceReference:string };
+  coaching?: { activePrograms:number;publishedPlans:number;studyLogs:number;examResults:number;meetings:number;latestGoal:Record<string,unknown>|null;latestPlan:Record<string,unknown>|null;latestExam:Record<string,unknown>|null;latestTask:Record<string,unknown>|null;performanceProvenance:'CLIENT_REPORTED';sourceReference:string };
 };
 
 function integer(value: unknown) {

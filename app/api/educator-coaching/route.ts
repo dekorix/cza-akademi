@@ -1,7 +1,7 @@
 import { neon } from '@neondatabase/serverless';
 import { authenticatedEducator } from '@/lib/educator-auth';
 import { allowRequest, rateLimited } from '@/lib/request-guard';
-import { cancelPlan,CoachingError,createGoal,createMeeting,createMistakeRevision,publishPlan,readCoachingCenter,recordExam,recordStudy,resolveEducatorCoachingActor,updateTopicStatus } from '@/lib/persistence/coaching-center';
+import { cancelPlan,CoachingError,createGoal,createMeeting,createMistakeRevision,createPlanDraft,publishDraftPlan,publishPlan,readCoachingCenter,recordExam,recordStudy,resolveEducatorCoachingActor,revisePlan,updateMeeting,updateTopicStatus } from '@/lib/persistence/coaching-center';
 
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const json=(body:unknown,status=200)=>Response.json(body,{status,headers:{'cache-control':'no-store'}});
@@ -18,11 +18,15 @@ export async function POST(request:Request){
   const origin=request.headers.get('origin');if(origin&&origin!==new URL(request.url).origin)return json({ok:false,error:'request_origin_rejected'},403);
   try{const input=await request.clone().json() as Record<string,unknown>;const ctx=await context(request,true);if('limited'in ctx)return ctx.limited;const action=typeof input.action==='string'?input.action:'';let result;
     if(action==='goal')result=await createGoal(ctx.sql,ctx.actor,input);
+    else if(action==='create_plan_draft')result=await createPlanDraft(ctx.sql,ctx.actor,input);
+    else if(action==='publish_draft_plan')result=await publishDraftPlan(ctx.sql,ctx.actor,input);
     else if(action==='publish_plan')result=await publishPlan(ctx.sql,ctx.actor,input);
+    else if(action==='revise_plan')result=await revisePlan(ctx.sql,ctx.actor,input);
     else if(action==='study_log')result=await recordStudy(ctx.sql,ctx.actor,input);
     else if(action==='exam')result=await recordExam(ctx.sql,ctx.actor,input);
     else if(action==='mistake_revision')result=await createMistakeRevision(ctx.sql,ctx.actor,input);
     else if(action==='meeting')result=await createMeeting(ctx.sql,ctx.actor,input);
+    else if(action==='update_meeting')result=await updateMeeting(ctx.sql,ctx.actor,input);
     else if(action==='topic_status')result=await updateTopicStatus(ctx.sql,ctx.actor,input);
     else if(action==='cancel_plan')result=await cancelPlan(ctx.sql,ctx.actor,input);
     else throw new CoachingError('invalid_action');return json({ok:true,result},201);
