@@ -52,15 +52,15 @@ export async function readCoachingCenter(sql:CoachingSql,actor:CoachingActor,{in
     sql.query(`SELECT id,program_type,exam_year,period_label,field_code,status,version,created_at FROM public.coaching_programs WHERE academy_id=$1::uuid AND student_id=$2::uuid ORDER BY created_at DESC,id DESC LIMIT 20`,p),
     sql.query(`SELECT id,program_id,revision,target,provenance,supersedes_id,created_at FROM public.coaching_goals WHERE academy_id=$1::uuid AND student_id=$2::uuid ORDER BY created_at DESC,id DESC LIMIT 30`,p),
     sql.query(`SELECT id,program_id,subject_code,topic_code,achievement_code,status,source,version,updated_at FROM public.coaching_topic_status WHERE academy_id=$1::uuid AND student_id=$2::uuid ORDER BY updated_at DESC,id DESC LIMIT 50`,p),
-    sql.query(`SELECT plan.id,plan.program_id,plan.title,plan.period_start,plan.period_end,plan.monthly_focus,plan.status,plan.version,plan.published_at,plan.cancelled_at,
-      COALESCE(jsonb_agg(jsonb_build_object('itemId',item.id,'recipeId',recipe.id,'scheduledFor',item.scheduled_for,'taskKind',recipe.task_kind,'moduleCode',recipe.module_code,'subject',recipe.academic_subject,'topic',recipe.academic_topic,'name',recipe.name,'instructions',recipe.instructions,'purpose',recipe.task_purpose,'active',recipe.is_active,'cancelledAt',recipe.cancelled_at) ORDER BY item.scheduled_for,item.id) FILTER(WHERE item.id IS NOT NULL),'[]') items
+    sql.query(`SELECT plan.id,plan.program_id,plan.title,plan.period_start::text AS period_start,plan.period_end::text AS period_end,plan.monthly_focus,plan.status,plan.version,plan.published_at,plan.cancelled_at,
+      COALESCE(jsonb_agg(jsonb_build_object('itemId',item.id,'recipeId',recipe.id,'scheduledFor',item.scheduled_for::text,'taskKind',recipe.task_kind,'moduleCode',recipe.module_code,'subject',recipe.academic_subject,'topic',recipe.academic_topic,'name',recipe.name,'instructions',recipe.instructions,'purpose',recipe.task_purpose,'active',recipe.is_active,'cancelledAt',recipe.cancelled_at) ORDER BY item.scheduled_for,item.id) FILTER(WHERE item.id IS NOT NULL),'[]') items
       FROM public.coaching_plans plan LEFT JOIN public.coaching_plan_items item ON item.plan_id=plan.id
       LEFT JOIN public.training_recipes recipe ON recipe.id=item.recipe_id
       WHERE plan.academy_id=$1::uuid AND plan.student_id=$2::uuid AND ($3::boolean=false OR plan.status IN ('published','cancelled'))
         AND ($4::date IS NULL OR (plan.period_start,plan.id)<($4::date,$5::uuid))
       GROUP BY plan.id ORDER BY plan.period_start DESC,plan.id DESC LIMIT $6`,[...p,studentView,decoded?.periodStart??null,decoded?.id??null,limit+1]),
     sql.query(`SELECT id,recipe_id,question_count,correct_count,wrong_count,blank_count,duration_minutes,student_feedback,provenance,created_at FROM public.coaching_study_logs WHERE academy_id=$1::uuid AND student_id=$2::uuid ORDER BY created_at DESC,id DESC LIMIT 50`,p),
-    sql.query(`SELECT result.id,result.program_id,template.code template_code,template.stage,template.source_label,template.is_demo,result.exam_date,result.sections,result.total_net,result.duration_minutes,result.is_partial,result.provenance,result.revision,result.supersedes_id,result.created_at FROM public.coaching_exam_results result JOIN public.coaching_exam_templates template ON template.id=result.template_id WHERE result.academy_id=$1::uuid AND result.student_id=$2::uuid ORDER BY result.exam_date DESC,result.id DESC LIMIT 40`,p),
+    sql.query(`SELECT result.id,result.program_id,template.code template_code,template.stage,template.source_label,template.is_demo,result.exam_date::text AS exam_date,result.sections,result.total_net,result.duration_minutes,result.is_partial,result.provenance,result.revision,result.supersedes_id,result.created_at FROM public.coaching_exam_results result JOIN public.coaching_exam_templates template ON template.id=result.template_id WHERE result.academy_id=$1::uuid AND result.student_id=$2::uuid ORDER BY result.exam_date DESC,result.id DESC LIMIT 40`,p),
     sql.query(`SELECT id,program_id,exam_result_id,study_log_id,subject_code,topic_code,reason_code,explanation,provenance,created_at FROM public.coaching_mistakes WHERE academy_id=$1::uuid AND student_id=$2::uuid ORDER BY created_at DESC,id DESC LIMIT 50`,p),
     sql.query(`SELECT id,program_id,coach_id,meeting_at,CASE WHEN $3::boolean AND coach_id=$4::uuid THEN private_note ELSE NULL::text END private_note,shared_summary,next_week_focus,follow_up_recipe_id,student_feedback,version,created_at FROM public.coaching_meetings WHERE academy_id=$1::uuid AND student_id=$2::uuid ORDER BY meeting_at DESC,id DESC LIMIT 30`,[...p,includePrivate,actor.userId]),
     sql.query(`SELECT id,code,version,program_type,stage,rules,source_label,is_demo FROM public.coaching_exam_templates WHERE is_active=true ORDER BY program_type,stage,version DESC LIMIT 20`),
@@ -77,8 +77,8 @@ export async function readCoachingProfileBridge(sql:CoachingSql,academyId:string
     (SELECT count(*)::int FROM public.coaching_exam_results WHERE academy_id=$1::uuid AND student_id=$2::uuid) exam_results,
     (SELECT count(*)::int FROM public.coaching_meetings WHERE academy_id=$1::uuid AND student_id=$2::uuid) meetings,
     (SELECT jsonb_build_object('id',id,'programId',program_id,'revision',revision,'target',target,'provenance',provenance,'createdAt',created_at) FROM public.coaching_goals WHERE academy_id=$1::uuid AND student_id=$2::uuid ORDER BY created_at DESC,id DESC LIMIT 1) latest_goal,
-    (SELECT jsonb_build_object('id',id,'programId',program_id,'title',title,'periodStart',period_start,'periodEnd',period_end,'version',version) FROM public.coaching_plans WHERE academy_id=$1::uuid AND student_id=$2::uuid AND status='published' ORDER BY period_start DESC,id DESC LIMIT 1) latest_plan,
-    (SELECT jsonb_build_object('id',result.id,'programId',result.program_id,'templateId',result.template_id,'examDate',result.exam_date,'totalNet',result.total_net,'provenance',result.provenance) FROM public.coaching_exam_results result WHERE result.academy_id=$1::uuid AND result.student_id=$2::uuid ORDER BY result.exam_date DESC,result.id DESC LIMIT 1) latest_exam,
+    (SELECT jsonb_build_object('id',id,'programId',program_id,'title',title,'periodStart',period_start::text,'periodEnd',period_end::text,'version',version) FROM public.coaching_plans WHERE academy_id=$1::uuid AND student_id=$2::uuid AND status='published' ORDER BY period_start DESC,id DESC LIMIT 1) latest_plan,
+    (SELECT jsonb_build_object('id',result.id,'programId',result.program_id,'templateId',result.template_id,'examDate',result.exam_date::text,'totalNet',result.total_net,'provenance',result.provenance) FROM public.coaching_exam_results result WHERE result.academy_id=$1::uuid AND result.student_id=$2::uuid ORDER BY result.exam_date DESC,result.id DESC LIMIT 1) latest_exam,
     (SELECT jsonb_build_object('itemId',item.id,'recipeId',item.recipe_id,'planId',item.plan_id) FROM public.coaching_plan_items item JOIN public.coaching_plans plan ON plan.id=item.plan_id AND plan.academy_id=item.academy_id AND plan.student_id=item.student_id WHERE item.academy_id=$1::uuid AND item.student_id=$2::uuid AND plan.status='published' ORDER BY item.scheduled_for DESC,item.id DESC LIMIT 1) latest_task`,[academyId,studentId]);
   const row=rows[0]||{};return{activePrograms:Number(row.active_programs)||0,publishedPlans:Number(row.published_plans)||0,studyLogs:Number(row.study_logs)||0,examResults:Number(row.exam_results)||0,meetings:Number(row.meetings)||0,latestGoal:recordOrNull(row.latest_goal),latestPlan:recordOrNull(row.latest_plan),latestExam:recordOrNull(row.latest_exam),latestTask:recordOrNull(row.latest_task),performanceProvenance:'CLIENT_REPORTED' as const,sourceReference:'coaching-center'};
 }
@@ -130,7 +130,7 @@ export async function createPlanDraft(sql:CoachingSql,actor:CoachingActor,input:
     SELECT $1::uuid,$2::uuid,program.id,$3::uuid,$5,$6::date,$7::date,$8,'draft',1,$9::uuid,$10
     FROM public.coaching_programs program WHERE program.id=$4::uuid AND program.academy_id=$1::uuid AND program.student_id=$2::uuid AND program.coach_id=$3::uuid AND program.status='active'
     ON CONFLICT(academy_id,coach_id,client_request_id) DO UPDATE SET updated_at=public.coaching_plans.updated_at WHERE public.coaching_plans.request_hash=EXCLUDED.request_hash
-    RETURNING *`,[actor.academyId,actor.studentId,actor.userId,programId,title,start,end,monthlyFocus,requestId,requestHash],'plan_owner_or_idempotency_conflict');
+    RETURNING id,academy_id,student_id,program_id,coach_id,title,period_start::text AS period_start,period_end::text AS period_end,monthly_focus,status,version,client_request_id,request_hash,published_at,cancelled_at,created_at,updated_at`,[actor.academyId,actor.studentId,actor.userId,programId,title,start,end,monthlyFocus,requestId,requestHash],'plan_owner_or_idempotency_conflict');
   if(!rows.length)throw new CoachingError('plan_owner_or_idempotency_conflict',409);return rows[0];
 }
 
@@ -202,9 +202,9 @@ export async function revisePlan(sql:CoachingSql,actor:CoachingActor,input:Recor
       UPDATE public.coaching_plans plan SET title=revision.title,period_start=revision.period_start,period_end=revision.period_end,monthly_focus=revision.monthly_focus,version=revision.revision,updated_at=now()
       FROM revision WHERE plan.id=revision.plan_id AND plan.version=$5 RETURNING plan.id,plan.version,plan.title,plan.period_start,plan.period_end,plan.monthly_focus,plan.status
     )
-    SELECT id,version,title,period_start,period_end,monthly_focus,status,false replayed FROM updated
+    SELECT id,version,title,period_start::text AS period_start,period_end::text AS period_end,monthly_focus,status,false replayed FROM updated
     UNION ALL
-    SELECT plan_id,revision,title,period_start,period_end,monthly_focus,status,true FROM existing WHERE request_hash=$10`,
+    SELECT plan_id,revision,title,period_start::text,period_end::text,monthly_focus,status,true FROM existing WHERE request_hash=$10`,
     [actor.academyId,actor.studentId,actor.userId,planId,expectedVersion,title,start,end,requestId,requestHash,monthlyFocus],'plan_revision_version_overlap_or_idempotency_conflict');
   if(!rows.length)throw new CoachingError('plan_revision_version_overlap_or_idempotency_conflict',409);return rows[0];
 }
@@ -272,7 +272,9 @@ export async function recordExam(sql:CoachingSql,actor:CoachingActor,input:Recor
       WHERE NOT EXISTS(SELECT 1 FROM existing_request)
         AND (($13::uuid IS NULL AND $14=0) OR ($13::uuid IS NOT NULL AND prior.revision=$14))
       RETURNING *
-    ) SELECT *,false replayed FROM inserted UNION ALL SELECT *,true FROM existing_request WHERE request_hash=$11`,[actor.academyId,actor.studentId,actor.userId,templateId,examDate,json(sections),totalNet,partial,duration,requestId,requestHash,programId,supersedesId,expectedRevision,actor.canCoach]);}
+    ) SELECT id,academy_id,student_id,program_id,template_id,reported_by,exam_date::text AS exam_date,sections,total_net,duration_minutes,is_partial,provenance,revision,supersedes_id,client_request_id,request_hash,created_at,false replayed FROM inserted
+      UNION ALL
+      SELECT id,academy_id,student_id,program_id,template_id,reported_by,exam_date::text,sections,total_net,duration_minutes,is_partial,provenance,revision,supersedes_id,client_request_id,request_hash,created_at,true FROM existing_request WHERE request_hash=$11`,[actor.academyId,actor.studentId,actor.userId,templateId,examDate,json(sections),totalNet,partial,duration,requestId,requestHash,programId,supersedesId,expectedRevision,actor.canCoach]);}
   catch(error){if((error as {code?:string}).code==='23505')throw new CoachingError('exam_revision_conflict',409);throw error;}
   if(!rows.length)throw new CoachingError('exam_owner_version_or_idempotency_conflict',409);return rows[0];
 }
@@ -336,5 +338,7 @@ export async function cancelPlan(sql:CoachingSql,actor:CoachingActor,input:Recor
   const rows=await sql.query(`WITH target AS (SELECT id,status,version FROM public.coaching_plans WHERE id=$4::uuid AND academy_id=$1::uuid AND student_id=$2::uuid AND coach_id=$3::uuid AND ((version=$5 AND status<>'cancelled') OR (version=$5+1 AND status='cancelled')) FOR UPDATE),
     cancelled_recipes AS (UPDATE public.training_recipes r SET is_active=false,cancelled_at=COALESCE(r.cancelled_at,now()),cancelled_by=COALESCE(r.cancelled_by,$3::uuid),updated_at=now() FROM public.coaching_plan_items i,target WHERE target.status<>'cancelled' AND i.plan_id=target.id AND r.id=i.recipe_id RETURNING r.id),
     cancelled_plan AS (UPDATE public.coaching_plans p SET status='cancelled',cancelled_at=now(),version=p.version+1,updated_at=now() FROM target WHERE target.status<>'cancelled' AND p.id=target.id RETURNING p.*)
-    SELECT * FROM cancelled_plan UNION ALL SELECT p.* FROM public.coaching_plans p JOIN target ON target.id=p.id WHERE target.status='cancelled'`,[actor.academyId,actor.studentId,actor.userId,planId,expected]);if(!rows.length)throw new CoachingError('version_conflict_or_plan_not_found',409);return rows[0];
+    SELECT id,academy_id,student_id,program_id,coach_id,title,period_start::text AS period_start,period_end::text AS period_end,monthly_focus,status,version,client_request_id,request_hash,published_at,cancelled_at,created_at,updated_at FROM cancelled_plan
+    UNION ALL
+    SELECT p.id,p.academy_id,p.student_id,p.program_id,p.coach_id,p.title,p.period_start::text,p.period_end::text,p.monthly_focus,p.status,p.version,p.client_request_id,p.request_hash,p.published_at,p.cancelled_at,p.created_at,p.updated_at FROM public.coaching_plans p JOIN target ON target.id=p.id WHERE target.status='cancelled'`,[actor.academyId,actor.studentId,actor.userId,planId,expected]);if(!rows.length)throw new CoachingError('version_conflict_or_plan_not_found',409);return rows[0];
 }
