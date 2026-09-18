@@ -70,7 +70,7 @@ export async function readStudentLearningProfile({ sql, academyId, studentId, ca
       (SELECT count(*)::int FROM public.learning_records WHERE academy_id=$1::uuid AND student_id=$2::uuid) records,
       (SELECT count(*)::int FROM public.learning_evidence WHERE academy_id=$1::uuid AND student_id=$2::uuid) evidence,
       (SELECT count(*)::int FROM public.training_recipes WHERE academy_id=$1::uuid AND student_id=$2::uuid AND is_active AND cancelled_at IS NULL AND NOT EXISTS (SELECT 1 FROM public.training_sessions s WHERE s.recipe_id=training_recipes.id AND s.status='completed')) active_assignments,
-      (SELECT count(*)::int FROM public.training_recipes WHERE academy_id=$1::uuid AND student_id=$2::uuid AND EXISTS (SELECT 1 FROM public.training_sessions s WHERE s.recipe_id=training_recipes.id AND s.status='completed')) completed_assignments,
+      (SELECT count(*)::int FROM public.training_recipes WHERE academy_id=$1::uuid AND student_id=$2::uuid AND cancelled_at IS NULL AND EXISTS (SELECT 1 FROM public.training_sessions s WHERE s.recipe_id=training_recipes.id AND s.status='completed')) completed_assignments,
       (SELECT count(*)::int FROM public.training_recipes WHERE academy_id=$1::uuid AND student_id=$2::uuid AND cancelled_at IS NOT NULL) cancelled_assignments,
       (SELECT count(*)::int FROM public.training_sessions WHERE academy_id=$1::uuid AND student_id=$2::uuid AND status='completed') completed_sessions,
       (SELECT count(DISTINCT started_at::date)::int FROM public.training_sessions WHERE academy_id=$1::uuid AND student_id=$2::uuid AND started_at >= $3::timestamptz - interval '30 days') active_days_30,
@@ -102,14 +102,31 @@ export async function readStudentLearningProfile({ sql, academyId, studentId, ca
         CASE WHEN EXISTS(SELECT 1 FROM public.learning_records r WHERE r.academy_id=$1::uuid AND r.student_id=$2::uuid AND r.module_code=k.module_code) THEN 'learning_records' END
       ],NULL) source_references
       FROM module_keys k LEFT JOIN public.modules m ON m.code=k.module_code ORDER BY k.module_code LIMIT 24`, params),
-    sql.query(`SELECT e.skill_code,r.module_code,count(*)::int record_count,
-      array_agg(e.id::text ORDER BY e.observed_at DESC,e.id DESC)[1:5] source_references,
-      bool_or(e.verification_authority='work_center_completion:v1' OR r.record_origin='client_reported' OR r.verification_status='client_reported') has_client,
-      bool_and(e.verification_status='server_verified' AND e.verification_authority='canonical_server_evaluator:v1' AND r.record_origin='server_authoritative' AND r.verification_status='server_verified') all_trusted
+    sql.query(`WITH raw_skill_sources AS (
+      SELECT e.skill_code,r.module_code,r.id::text source_key,'evidence:'||e.id::text source_reference,e.observed_at,
+        e.verification_authority='work_center_completion:v1' OR r.record_origin<>'server_authoritative' OR r.verification_status<>'server_verified' is_client,
+        e.verification_status='server_verified' AND e.verification_authority='canonical_server_evaluator:v1'
+          AND r.record_origin='server_authoritative' AND r.verification_status='server_verified' is_trusted
       FROM public.learning_evidence e JOIN public.learning_records r
         ON r.id=e.learning_record_id AND r.academy_id=e.academy_id AND r.student_id=e.student_id
       WHERE e.academy_id=$1::uuid AND e.student_id=$2::uuid AND e.skill_code IS NOT NULL
-      GROUP BY e.skill_code,r.module_code ORDER BY max(e.observed_at) DESC,e.skill_code LIMIT 24`, params),
+      UNION ALL
+      SELECT skill.value,r.module_code,r.id::text,'record:'||r.id::text,r.completed_at,true,false
+      FROM public.learning_records r
+      CROSS JOIN LATERAL jsonb_array_elements_text(
+        CASE WHEN jsonb_typeof(r.skills)='array' THEN r.skills ELSE '[]'::jsonb END
+      ) skill(value)
+      WHERE r.academy_id=$1::uuid AND r.student_id=$2::uuid
+    ), skill_sources AS (
+      SELECT DISTINCT ON (skill_code,module_code,source_key)
+        skill_code,module_code,source_key,source_reference,observed_at,is_client,is_trusted
+      FROM raw_skill_sources
+      ORDER BY skill_code,module_code,source_key,is_trusted DESC,source_reference
+    ) SELECT skill_code,module_code,count(*)::int record_count,
+      (array_agg(DISTINCT source_reference ORDER BY source_reference))[1:5] source_references,
+      bool_or(is_client) has_client,bool_and(is_trusted) all_trusted,max(observed_at) last_observed_at
+      FROM skill_sources GROUP BY skill_code,module_code
+      ORDER BY last_observed_at DESC,skill_code LIMIT 24`, params),
     sql.query(`SELECT error_type,count(DISTINCT id)::int count FROM public.question_attempts
       WHERE academy_id=$1::uuid AND student_id=$2::uuid AND NOT is_correct
       GROUP BY error_type ORDER BY count DESC,error_type LIMIT 12`, params),
@@ -157,7 +174,7 @@ export async function readStudentLearningProfile({ sql, academyId, studentId, ca
     skills: skillRows.map((row) => ({ skillCode: String(row.skill_code), moduleCode: String(row.module_code), recordCount: integer(row.record_count),
       provenance: resolveEvidenceProvenance({ authority: row.has_client === true ? 'work_center_completion:v1' : row.all_trusted === true ? 'canonical_server_evaluator:v1' : null,
         evidenceVerificationStatus: row.all_trusted === true ? 'server_verified' : 'client_reported', parentRecordOrigin: row.all_trusted === true ? 'server_authoritative' : 'client_reported', parentVerificationStatus: row.all_trusted === true ? 'server_verified' : 'client_reported' }),
-      sourceReferences: textArray(row.source_references).map(id => `evidence:${id}`) })),
+      sourceReferences: textArray(row.source_references) })),
     errors: errorRows.map(row => ({ errorType: String(row.error_type), count: integer(row.count), provenance: 'CLIENT_REPORTED', sourceReference: 'question_attempts' })),
     process: { supportLevels, strategy: null, selfCorrection: null, repetition: null, transfer: null,
       insufficiencyReason: supportLevels.length ? null : 'Yardım, strateji, öz-düzeltme, tekrar veya transfer için yeterli kayıt yok.' },
