@@ -19,6 +19,8 @@ const routes=[
   '../app/api/guardian/coaching/route.ts',
 ].map(read);
 const reportRoute=read('../app/api/guardian/report/route.ts');
+const historyRoute=read('../app/api/guardian/history/route.ts');
+const profileRoute=read('../app/api/guardian/learning-profile/route.ts');
 const coachingRoute=read('../app/api/guardian/coaching/route.ts');
 
 test('U9 extends canonical identity without duplicate learning stores',()=>{
@@ -53,7 +55,10 @@ test('U9 reuses U4 U6 U7 U8 canonical projections and provenance',()=>{
 
 test('guardian response surfaces exclude private notes and internal trust metadata',()=>{
   assert.doesNotMatch(coachingRoute,/private_note/);
-  assert.doesNotMatch(reportRoute,/verificationAuthority|request_hash|token_hash/);
+  assert.doesNotMatch(reportRoute,/verificationAuthority|request_hash|token_hash|sourceReferences|sourceReference/);
+  assert.doesNotMatch(historyRoute,/verificationStatus|verificationAuthority|sourceReferences|sourceReference/);
+  assert.doesNotMatch(profileRoute,/sourceReferences|sourceReference|verificationStatus|verificationAuthority/);
+  assert.doesNotMatch(dashboard,/sourceReferences|sourceReference|verificationStatus|verificationAuthority/);
   for(const source of routes)assert.doesNotMatch(source,/token_hash|password|credential/i);
   assert.doesNotMatch(panel,/private_note|request_hash|token_hash/);
 });

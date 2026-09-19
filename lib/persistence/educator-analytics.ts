@@ -116,8 +116,8 @@ export async function readEducatorAnalytics({ sql, educatorId, academyId, studen
   filters: ReportFilters; limit: number; cursor: string | null;
 }) {
   const decoded = cursor ? decodeReportCursor(cursor, educatorId, studentId, filters) : null;
-  const params: unknown[] = [academyId, studentId, filters.from, filters.to, filters.moduleCode,
-    filters.assignmentStatus, filters.sessionStatus];
+  const baseParams: unknown[] = [academyId, studentId, filters.from, filters.to, filters.moduleCode];
+  const params: unknown[] = [...baseParams, filters.assignmentStatus, filters.sessionStatus];
   const common = `academy_id=$1::uuid AND student_id=$2::uuid`;
   const dates = `( $3::timestamptz IS NULL OR occurred_at >= $3::timestamptz ) AND
                  ( $4::timestamptz IS NULL OR occurred_at <= $4::timestamptz )`;
@@ -154,13 +154,14 @@ export async function readEducatorAnalytics({ sql, educatorId, academyId, studen
   const row = summaryRows[0] || {};
   const attempts = includeClient ? integer(row.attempt_total) : 0;
 
+  const moduleParams: unknown[] = [academyId, studentId, filters.from, filters.to, filters.moduleCode, filters.sessionStatus];
   const moduleRows = await sql.query(`
     WITH a AS (SELECT module_code,count(*)::int assignment_count FROM public.training_recipes
       WHERE ${common} AND ($3::timestamptz IS NULL OR created_at >= $3) AND ($4::timestamptz IS NULL OR created_at <= $4)
         AND ($5::text IS NULL OR module_code=$5) GROUP BY module_code),
     s AS (SELECT module_code,count(*)::int session_count,count(*) FILTER(WHERE status='completed')::int completed_count
       FROM public.training_sessions WHERE ${common} AND ($3::timestamptz IS NULL OR started_at >= $3) AND ($4::timestamptz IS NULL OR started_at <= $4)
-        AND ($5::text IS NULL OR module_code=$5) AND ($7::text IS NULL OR status=$7) GROUP BY module_code),
+        AND ($5::text IS NULL OR module_code=$5) AND ($6::text IS NULL OR status=$6) GROUP BY module_code),
     q AS (SELECT module_code,count(*)::int attempt_count,count(*) FILTER(WHERE is_correct)::int correct_count
       FROM public.question_attempts WHERE ${common} AND ($3::timestamptz IS NULL OR created_at >= $3) AND ($4::timestamptz IS NULL OR created_at <= $4)
         AND ($5::text IS NULL OR module_code=$5) GROUP BY module_code)
@@ -169,40 +170,41 @@ export async function readEducatorAnalytics({ sql, educatorId, academyId, studen
       COALESCE(s.completed_count,0) completed_count,COALESCE(q.attempt_count,0) attempt_count,
       COALESCE(q.correct_count,0) correct_count
     FROM a FULL JOIN s USING(module_code) FULL JOIN q USING(module_code) ORDER BY module_code
-  `, params);
+  `, moduleParams);
 
   const errorRows = includeClient ? await sql.query(`SELECT error_type,count(DISTINCT id)::int count
     FROM public.question_attempts WHERE ${common} AND NOT is_correct
       AND ($3::timestamptz IS NULL OR created_at >= $3) AND ($4::timestamptz IS NULL OR created_at <= $4)
-      AND ($5::text IS NULL OR module_code=$5) GROUP BY error_type ORDER BY count DESC,error_type LIMIT 20`, params) : [];
+      AND ($5::text IS NULL OR module_code=$5) GROUP BY error_type ORDER BY count DESC,error_type LIMIT 20`, baseParams) : [];
   const trendRows = await sql.query(`
-    WITH s AS (SELECT date_trunc('day',started_at) day,count(*)::int sessions,count(*) FILTER(WHERE status='completed')::int completions
+    WITH s AS (SELECT date_trunc('day',started_at) AS bucket_day,count(*)::int sessions,count(*) FILTER(WHERE status='completed')::int completions
       FROM public.training_sessions WHERE ${common} AND ($3::timestamptz IS NULL OR started_at >= $3) AND ($4::timestamptz IS NULL OR started_at <= $4)
       AND ($5::text IS NULL OR module_code=$5) GROUP BY 1),
-    q AS (SELECT date_trunc('day',created_at) day,count(*)::int attempts,count(*) FILTER(WHERE is_correct)::int correct
+    q AS (SELECT date_trunc('day',created_at) AS bucket_day,count(*)::int attempts,count(*) FILTER(WHERE is_correct)::int correct
       FROM public.question_attempts WHERE ${common} AND ($3::timestamptz IS NULL OR created_at >= $3) AND ($4::timestamptz IS NULL OR created_at <= $4)
       AND ($5::text IS NULL OR module_code=$5) GROUP BY 1)
-    SELECT COALESCE(s.day,q.day) day,COALESCE(s.sessions,0) sessions,COALESCE(s.completions,0) completions,
-      COALESCE(q.attempts,0) attempts,COALESCE(q.correct,0) correct FROM s FULL JOIN q USING(day) ORDER BY day DESC LIMIT 90`, params);
+    SELECT COALESCE(s.bucket_day,q.bucket_day) AS bucket_day,COALESCE(s.sessions,0) sessions,COALESCE(s.completions,0) completions,
+      COALESCE(q.attempts,0) attempts,COALESCE(q.correct,0) correct FROM s FULL JOIN q USING(bucket_day) ORDER BY bucket_day DESC LIMIT 90`, baseParams);
 
+  const evidenceParams: unknown[] = [...baseParams, filters.provenance,
+    [...TRUSTED_SERVER_AUTHORITIES], [...LEGACY_CLIENT_DERIVED_AUTHORITIES]];
   const evidenceRows = await sql.query(`WITH projected AS (
     SELECT e.id,e.evidence_type,e.verification_status,e.verification_authority,
       e.skill_code,e.observed_at,COALESCE(r.module_code,'unknown') module_code,
       r.record_origin parent_record_origin,r.verification_status parent_verification_status,
-      CASE WHEN e.verification_authority=ANY($10::text[]) THEN 'CLIENT_REPORTED'
+      CASE WHEN e.verification_authority=ANY($8::text[]) THEN 'CLIENT_REPORTED'
         WHEN r.id IS NULL OR r.record_origin<>'server_authoritative' OR r.verification_status<>'server_verified' THEN 'CLIENT_REPORTED'
-        WHEN e.verification_status='server_verified' AND e.verification_authority=ANY($9::text[]) THEN 'SERVER_AUTHORITATIVE'
+        WHEN e.verification_status='server_verified' AND e.verification_authority=ANY($7::text[]) THEN 'SERVER_AUTHORITATIVE'
         ELSE 'CLIENT_REPORTED' END final_provenance
     FROM public.learning_evidence e
     LEFT JOIN public.learning_records r ON r.id=e.learning_record_id AND r.academy_id=e.academy_id AND r.student_id=e.student_id
     WHERE e.academy_id=$1::uuid AND e.student_id=$2::uuid
       AND ($3::timestamptz IS NULL OR e.observed_at >= $3) AND ($4::timestamptz IS NULL OR e.observed_at <= $4)
       AND ($5::text IS NULL OR r.module_code=$5)
-    ) SELECT * FROM projected WHERE $8::text IS NULL OR $8='MIXED' OR final_provenance=$8
-    ORDER BY observed_at DESC,id DESC LIMIT 20`, [...params, filters.provenance,
-      [...TRUSTED_SERVER_AUTHORITIES], [...LEGACY_CLIENT_DERIVED_AUTHORITIES]]);
+    ) SELECT * FROM projected WHERE $6::text IS NULL OR $6='MIXED' OR final_provenance=$6
+    ORDER BY observed_at DESC,id DESC LIMIT 20`, evidenceParams);
 
-  const pageParams: unknown[] = [...params];
+  const pageParams: unknown[] = [...baseParams, filters.sessionStatus];
   let cursorSql = '';
   if (decoded) { pageParams.push(decoded.occurredAt, decoded.sessionId); cursorSql = `AND (COALESCE(completed_at,last_activity_at,started_at),id)<($${pageParams.length-1}::timestamptz,$${pageParams.length}::uuid)`; }
   pageParams.push(limit + 1);
@@ -211,7 +213,7 @@ export async function readEducatorAnalytics({ sql, educatorId, academyId, studen
     FROM public.training_sessions WHERE ${common}
       AND ($3::timestamptz IS NULL OR COALESCE(completed_at,last_activity_at,started_at) >= $3)
       AND ($4::timestamptz IS NULL OR COALESCE(completed_at,last_activity_at,started_at) <= $4)
-      AND ($5::text IS NULL OR module_code=$5) AND ($7::text IS NULL OR status=$7) ${cursorSql}
+      AND ($5::text IS NULL OR module_code=$5) AND ($6::text IS NULL OR status=$6) ${cursorSql}
     ORDER BY occurred_at DESC,id DESC LIMIT $${pageParams.length}`, pageParams);
   const page = sessionRows.slice(0, limit);
 
@@ -229,7 +231,7 @@ export async function readEducatorAnalytics({ sql, educatorId, academyId, studen
       provenance:resolveEvidenceProvenance({ authority:e.verification_authority,
         evidenceVerificationStatus:e.verification_status,parentRecordOrigin:e.parent_record_origin,
         parentVerificationStatus:e.parent_verification_status }) })),
-    trend: trendRows.map(t => { const count=integer(t.attempts); return { day:iso(t.day), sessions:includeServer?integer(t.sessions):null, completions:includeServer?integer(t.completions):null, attempts:includeClient?count:null, clientReportedAccuracy:includeClient&&count?Math.round(integer(t.correct)*1000/count)/10:null, provenance:includeServer&&includeClient?'MIXED':includeServer?'SERVER_AUTHORITATIVE':'CLIENT_REPORTED' }; }),
+    trend: trendRows.map(t => { const count=integer(t.attempts); return { day:iso(t.bucket_day), sessions:includeServer?integer(t.sessions):null, completions:includeServer?integer(t.completions):null, attempts:includeClient?count:null, clientReportedAccuracy:includeClient&&count?Math.round(integer(t.correct)*1000/count)/10:null, provenance:includeServer&&includeClient?'MIXED':includeServer?'SERVER_AUTHORITATIVE':'CLIENT_REPORTED' }; }),
     sessions: page.map(s => ({ id:String(s.id), assignmentId:typeof s.recipe_id==='string'?s.recipe_id:null, moduleCode:String(s.module_code), status:String(s.status), startedAt:iso(s.started_at), completedAt:s.completed_at?iso(s.completed_at):null, lastActivityAt:iso(s.last_activity_at), provenance:'SERVER_AUTHORITATIVE' as const })),
     nextCursor: sessionRows.length>limit && page.length ? encodeReportCursor(page.at(-1)!,educatorId,studentId,filters) : null,
   };

@@ -68,6 +68,8 @@ try{
   assert.equal(dashB.dashboard.student.id,studentB);
   assert.notEqual(dashA.dashboard.student.id,dashB.dashboard.student.id);
   assert.ok(Array.isArray(dashA.dashboard.assignments));
+  const dashText=JSON.stringify(dashA);
+  for(const forbidden of ['sourceReferences','sourceReference','verificationStatus','verificationAuthority','private_note','privateNote'])assert.equal(dashText.includes(forbidden),false,`dashboard leaked ${forbidden}`);
   if(dashA.dashboard.report?.summary?.clientPerformance?.attempts===0){
     assert.equal(dashA.dashboard.report.summary.clientPerformance.accuracy,null);
     assert.equal(dashA.dashboard.report.summary.clientPerformance.evidenceStatus,'INSUFFICIENT');
@@ -77,13 +79,17 @@ try{
 
   const history=await guardianGet(cookie,`/api/guardian/history?studentId=${studentA}&limit=1`);
   assert.ok(history.timeline.events.length<=1);
+  const historyText=JSON.stringify(history);
+  for(const forbidden of ['sourceReferences','sourceReference','verificationStatus','verificationAuthority'])assert.equal(historyText.includes(forbidden),false,`history leaked ${forbidden}`);
   const profile=await guardianGet(cookie,`/api/guardian/learning-profile?studentId=${studentA}`);
   assert.equal(profile.profile.student.id,studentA);
-  assert.equal(JSON.stringify(profile).includes('sourceReferences'),false);
+  const profileText=JSON.stringify(profile);
+  for(const forbidden of ['sourceReferences','sourceReference','verificationStatus','verificationAuthority'])assert.equal(profileText.includes(forbidden),false,`profile leaked ${forbidden}`);
 
   const report=await guardianGet(cookie,`/api/guardian/report?studentId=${studentA}&limit=1`);
   assert.ok(report.report.sessions.length<=1);
-  assert.equal(JSON.stringify(report).includes('verificationAuthority'),false);
+  const reportText=JSON.stringify(report);
+  for(const forbidden of ['sourceReferences','sourceReference','verificationStatus','verificationAuthority'])assert.equal(reportText.includes(forbidden),false,`report leaked ${forbidden}`);
 
   const coaching=await guardianGet(cookie,`/api/guardian/coaching?studentId=${studentA}`);
   const coachingText=JSON.stringify(coaching);

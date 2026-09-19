@@ -33,7 +33,6 @@ export async function GET(request:Request){
         }:null,
         supportLevel:event.supportLevel,
         provenance:event.provenance,
-        verificationStatus:event.verificationStatus,
       })),
       hasMore:timeline.hasMore,
       nextCursor:timeline.nextCursor,

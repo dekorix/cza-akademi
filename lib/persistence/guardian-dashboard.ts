@@ -85,7 +85,14 @@ export async function readGuardianDashboard({sql,guardianUserId,academyId,studen
     },
     profile:profile?{
       calculatedAt:profile.calculatedAt,dataThrough:profile.dataThrough,coverage:profile.coverage,studyPattern:profile.studyPattern,
-      modules:profile.modules.slice(0,8),skills:profile.skills.slice(0,8),process:profile.process,
+      modules:profile.modules.slice(0,8).map(item=>({
+        moduleCode:item.moduleCode,moduleName:item.moduleName,assignments:item.assignments,sessions:item.sessions,
+        records:item.records,attempts:item.attempts,clientReportedAccuracy:item.clientReportedAccuracy,provenance:item.provenance,
+      })),
+      skills:profile.skills.slice(0,8).map(item=>({
+        skillCode:item.skillCode,moduleCode:item.moduleCode,recordCount:item.recordCount,provenance:item.provenance,
+      })),
+      process:profile.process,
     }:null,
     coaching:{
       programs:coaching.programs.map(row=>({id:row.id,programType:row.program_type,examYear:number(row.exam_year),fieldCode:row.field_code,status:row.status})),
