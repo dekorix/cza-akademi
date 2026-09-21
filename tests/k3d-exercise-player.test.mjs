@@ -66,8 +66,38 @@ test('player lookup fails closed for unknown and mismatched activities', () => {
   assert.equal(dispatch.resolvePlayerEngine('finger-read'), null);
 });
 
-test('controller executes the canonical runtime lifecycle and rejects invalid transitions', () => {
+test('controller executes the complete allowed lifecycle transition matrix', () => {
+  assert.deepEqual(controller.allowedPlayerTransitions, {
+    ready: [
+      'START_COUNTDOWN',
+      'START_STIMULUS',
+      'START_SEQUENCE',
+      'START_ANSWER',
+      'RESET',
+    ],
+    countdown: [
+      'START_STIMULUS',
+      'START_SEQUENCE',
+      'START_ANSWER',
+      'COMPLETE',
+      'RESET',
+    ],
+    prepare: [
+      'START_STIMULUS',
+      'START_SEQUENCE',
+      'START_ANSWER',
+      'COMPLETE',
+      'RESET',
+    ],
+    stimulus: ['PRESENTATION_COMPLETE', 'COMPLETE', 'RESET'],
+    sequence: ['PRESENTATION_COMPLETE', 'COMPLETE', 'RESET'],
+    answer: ['SUBMIT', 'SUBMIT_FEEDBACK', 'NEXT', 'COMPLETE', 'RESET'],
+    feedback: ['NEXT', 'COMPLETE', 'RETRY', 'RESET'],
+    finished: ['RESET'],
+  });
   let phase = 'ready';
+  phase = controller.nextPlayerPhase(phase, 'START_COUNTDOWN');
+  assert.equal(phase, 'countdown');
   phase = controller.nextPlayerPhase(phase, 'START_SEQUENCE');
   assert.equal(phase, 'sequence');
   phase = controller.nextPlayerPhase(phase, 'PRESENTATION_COMPLETE');
@@ -80,12 +110,81 @@ test('controller executes the canonical runtime lifecycle and rejects invalid tr
   assert.equal(phase, 'stimulus');
   phase = controller.nextPlayerPhase(phase, 'PRESENTATION_COMPLETE');
   assert.equal(phase, 'answer');
+  phase = controller.nextPlayerPhase(phase, 'SUBMIT');
+  assert.equal(phase, 'answer');
   phase = controller.nextPlayerPhase(phase, 'COMPLETE');
   assert.equal(phase, 'finished');
-  assert.throws(
-    () => controller.nextPlayerPhase('ready', 'PRESENTATION_COMPLETE'),
-    /invalid_player_transition/,
-  );
+  phase = controller.nextPlayerPhase(phase, 'RESET');
+  assert.equal(phase, 'ready');
+});
+
+test('every disallowed phase and intent pair is rejected with state unchanged', () => {
+  const phases = Object.keys(controller.allowedPlayerTransitions);
+  const intents = [
+    'START_COUNTDOWN',
+    'START_STIMULUS',
+    'START_SEQUENCE',
+    'START_ANSWER',
+    'PRESENTATION_COMPLETE',
+    'SUBMIT',
+    'SUBMIT_FEEDBACK',
+    'NEXT',
+    'COMPLETE',
+    'RETRY',
+    'RESET',
+  ];
+  let rejected = 0;
+  for (const phase of phases) {
+    for (const intent of intents) {
+      const result = controller.playerTransition(phase, intent);
+      const expected =
+        controller.allowedPlayerTransitions[phase].includes(intent);
+      assert.equal(result.accepted, expected, `${phase} + ${intent}`);
+      if (!expected) {
+        rejected += 1;
+        assert.equal(result.phase, phase, `${phase} + ${intent} changed state`);
+        assert.equal(controller.nextPlayerPhase(phase, intent), phase);
+      }
+    }
+  }
+  assert.equal(rejected, 57);
+  for (const [phase, intent] of [
+    ['ready', 'COMPLETE'],
+    ['ready', 'NEXT'],
+    ['ready', 'SUBMIT_FEEDBACK'],
+    ['finished', 'START_SEQUENCE'],
+    ['feedback', 'START_STIMULUS'],
+    ['ready', 'PRESENTATION_COMPLETE'],
+  ])
+    assert.deepEqual(controller.playerTransition(phase, intent), {
+      accepted: false,
+      phase,
+    });
+});
+
+test('invalid transitions cannot invoke lifecycle or persistence side effects', () => {
+  let sideEffects = 0;
+  const invalid = [
+    ['ready', 'COMPLETE'],
+    ['ready', 'NEXT'],
+    ['ready', 'SUBMIT_FEEDBACK'],
+    ['finished', 'START_SEQUENCE'],
+    ['feedback', 'START_STIMULUS'],
+    ['ready', 'PRESENTATION_COMPLETE'],
+  ];
+  for (const [phase, intent] of invalid) {
+    const result = controller.applyPlayerIntent(phase, intent, () => {
+      sideEffects += 1;
+    });
+    assert.equal(result.accepted, false);
+    assert.equal(result.phase, phase);
+  }
+  assert.equal(sideEffects, 0);
+  const valid = controller.applyPlayerIntent('answer', 'SUBMIT', () => {
+    sideEffects += 1;
+  });
+  assert.equal(valid.accepted, true);
+  assert.equal(sideEffects, 1);
 });
 
 test('Studio delegates player state-machine ownership to the controller', () => {
