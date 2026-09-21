@@ -1,14 +1,14 @@
 import assert from 'node:assert/strict';
-import { spawn } from 'node:child_process';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { inflate } from '@sparticuz/chromium';
 import puppeteer from 'puppeteer-core';
+import { ALLOWED_ORIGIN, assertLocalTestRequest, startStudioServer, stopChild } from './k3a-studio-harness.mjs';
 
-const origin = 'http://127.0.0.1:4213';
 let browser;
+let page;
 let server;
 let browserTemp;
 
@@ -16,21 +16,6 @@ async function browserBinary() {
   browserTemp = await mkdtemp(join(tmpdir(), 'cza-k3a-studio-'));
   const entry = fileURLToPath(import.meta.resolve('@sparticuz/chromium'));
   return inflate(resolve(dirname(entry), '../bin/chromium.br'));
-}
-
-async function startServer() {
-  const child = spawn(process.execPath, ['tests/k3a-studio-e2e-server.mjs'], {
-    cwd: process.cwd(), env: { ...process.env, NODE_ENV: 'development' }, stdio: ['ignore', 'pipe', 'pipe'],
-  });
-  let output = '';
-  await new Promise((ready, reject) => {
-    const timeout = setTimeout(() => reject(new Error(`K3A_STUDIO_SERVER_TIMEOUT\n${output}`)), 20_000);
-    const inspect = chunk => { output += chunk.toString(); if (output.includes('CZA_K3A_STUDIO_E2E_READY')) { clearTimeout(timeout); ready(); } };
-    child.stdout.on('data', inspect);
-    child.stderr.on('data', inspect);
-    child.once('exit', code => { clearTimeout(timeout); reject(new Error(`K3A_STUDIO_SERVER_EXIT_${code}\n${output}`)); });
-  });
-  return child;
 }
 
 async function clickButton(page, label) {
@@ -46,28 +31,34 @@ async function waitForText(page, text) {
 }
 
 try {
-  server = await startServer();
+  server = await startStudioServer();
   browser = await puppeteer.launch({ executablePath: await browserBinary(), headless: true, args: ['--no-sandbox','--disable-setuid-sandbox'] });
-  const page = await browser.newPage();
+  page = await browser.newPage();
   const errors = [];
   const actions = [];
+  const networkViolations = [];
   page.on('console', message => { if (message.type() === 'error') errors.push(message.text()); });
   page.on('pageerror', error => errors.push(error.message));
   await page.setRequestInterception(true);
   page.on('request', async request => {
-    const url = new URL(request.url());
-    if (url.pathname !== '/api/core') return void request.continue();
-    const body = JSON.parse(await request.fetchPostData() || '{}');
-    actions.push(body);
-    const response = body.action === 'me'
-      ? { ok:true, student:{ name:'K3-A Demo Öğrenci', grade:'5' } }
-      : body.action === 'start'
-        ? { ok:true, sessionId:'k3a-session-1' }
-        : { ok:true };
-    void request.respond({ status:200, contentType:'application/json', body:JSON.stringify(response) });
+    try {
+      const url = assertLocalTestRequest(request.url());
+      if (url.pathname !== '/api/core') return void request.continue();
+      const body = JSON.parse(await request.fetchPostData() || '{}');
+      actions.push(body);
+      const response = body.action === 'me'
+        ? { ok:true, student:{ name:'K3-A Demo Öğrenci', grade:'5' } }
+        : body.action === 'start'
+          ? { ok:true, sessionId:'k3a-session-1' }
+          : { ok:true };
+      void request.respond({ status:200, contentType:'application/json', body:JSON.stringify(response) });
+    } catch (error) {
+      networkViolations.push(error);
+      void request.abort('blockedbyclient');
+    }
   });
 
-  const response = await page.goto(`${origin}/studio`, { waitUntil:'networkidle0' });
+  const response = await page.goto(`${ALLOWED_ORIGIN}/studio`, { waitUntil:'networkidle0' });
   assert.equal(response?.status(), 200);
   await waitForText(page, 'K3-A Demo Öğrenci');
 
@@ -104,10 +95,12 @@ try {
   assert.equal(start.moduleCode, 'finger_read');
   assert.equal(start.settings.exerciseType, 'FINGER_READING');
   assert.equal(start.settings.engine, 'cza-exercise-engine-v14');
+  assert.deepEqual(networkViolations, []);
   assert.deepEqual(errors, []);
-  process.stdout.write('K3A_STUDIO_BEHAVIOR=PASS START=PASS STIMULUS=PASS ANSWER=PASS SUBMIT=PASS NEXT=PASS COMPLETION=PASS MODE_BINDING=PASS CONSOLE_ERRORS=0\n');
+  process.stdout.write('K3A_STUDIO_BEHAVIOR=PASS START=PASS STIMULUS=PASS ANSWER=PASS SUBMIT=PASS NEXT=PASS COMPLETION=PASS MODE_BINDING=PASS ENV_ALLOWLIST=ENFORCED LOCALHOST_ONLY=ENFORCED EXTERNAL_NETWORK=DENIED CONSOLE_ERRORS=0\n');
 } finally {
+  if (page && !page.isClosed()) await page.close();
   if (browser) await browser.close();
-  if (server && !server.killed) server.kill('SIGTERM');
+  await stopChild(server);
   if (browserTemp) await rm(browserTemp, { recursive:true, force:true });
 }
