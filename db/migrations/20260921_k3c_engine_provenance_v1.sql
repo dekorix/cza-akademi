@@ -26,7 +26,9 @@ ALTER TABLE public.training_sessions
   ADD CONSTRAINT training_sessions_engine_provenance_k3c_check CHECK (
     (engine_id IS NULL AND engine_version IS NULL)
     OR (
-      engine_id ~ '^[A-Z][A-Z0-9_]{0,79}$'
+      engine_id IS NOT NULL
+      AND engine_version IS NOT NULL
+      AND engine_id ~ '^[A-Z][A-Z0-9_]{0,79}$'
       AND engine_version ~ '^[A-Za-z0-9][A-Za-z0-9._-]{0,39}$'
     )
   );
@@ -37,14 +39,18 @@ ALTER TABLE public.question_attempts
   ADD CONSTRAINT question_attempts_engine_provenance_k3c_check CHECK (
     (engine_id IS NULL AND engine_version IS NULL)
     OR (
-      engine_id ~ '^[A-Z][A-Z0-9_]{0,79}$'
+      engine_id IS NOT NULL
+      AND engine_version IS NOT NULL
+      AND engine_id ~ '^[A-Z][A-Z0-9_]{0,79}$'
       AND engine_version ~ '^[A-Za-z0-9][A-Za-z0-9._-]{0,39}$'
     )
   ),
   ADD CONSTRAINT question_attempts_response_k3c_check CHECK (
     (response_type IS NULL AND response_payload IS NULL)
     OR (
-      response_type = 'numeric'
+      response_type IS NOT NULL
+      AND response_payload IS NOT NULL
+      AND response_type = 'numeric'
       AND jsonb_typeof(response_payload) = 'object'
       AND jsonb_typeof(response_payload->'value') = 'number'
       AND (response_payload->>'value') ~ '^-?[0-9]+$'
@@ -56,7 +62,9 @@ ALTER TABLE public.learning_records
   ADD CONSTRAINT learning_records_engine_provenance_k3c_check CHECK (
     (engine_id IS NULL AND engine_version IS NULL)
     OR (
-      engine_id ~ '^[A-Z][A-Z0-9_]{0,79}$'
+      engine_id IS NOT NULL
+      AND engine_version IS NOT NULL
+      AND engine_id ~ '^[A-Z][A-Z0-9_]{0,79}$'
       AND engine_version ~ '^[A-Za-z0-9][A-Za-z0-9._-]{0,39}$'
     )
   );
@@ -66,7 +74,9 @@ ALTER TABLE public.learning_evidence
   ADD CONSTRAINT learning_evidence_engine_provenance_k3c_check CHECK (
     (engine_id IS NULL AND engine_version IS NULL)
     OR (
-      engine_id ~ '^[A-Z][A-Z0-9_]{0,79}$'
+      engine_id IS NOT NULL
+      AND engine_version IS NOT NULL
+      AND engine_id ~ '^[A-Z][A-Z0-9_]{0,79}$'
       AND engine_version ~ '^[A-Za-z0-9][A-Za-z0-9._-]{0,39}$'
     )
   );
@@ -157,7 +167,9 @@ BEGIN
   IF NOT (
     (p_engine_id IS NULL AND p_engine_version IS NULL)
     OR (
-      p_engine_id ~ '^[A-Z][A-Z0-9_]{0,79}$'
+      p_engine_id IS NOT NULL
+      AND p_engine_version IS NOT NULL
+      AND p_engine_id ~ '^[A-Z][A-Z0-9_]{0,79}$'
       AND p_engine_version ~ '^[A-Za-z0-9][A-Za-z0-9._-]{0,39}$'
     )
   ) THEN

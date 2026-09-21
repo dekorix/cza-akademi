@@ -177,6 +177,31 @@ test('migration preserves legacy rows and stamps session to evidence provenance 
       response_payload: { value: 7 },
     });
 
+    // Engine provenance pair: NULL/NULL and valid/valid pass; either partial pair fails.
+    await db.exec(`UPDATE public.training_sessions SET engine_id=NULL,engine_version=NULL WHERE id='10000000-0000-4000-8000-000000000001'`);
+    await db.exec(`UPDATE public.training_sessions SET engine_id='ANZAN',engine_version='1' WHERE id='10000000-0000-4000-8000-000000000001'`);
+    await assert.rejects(
+      db.exec(`UPDATE public.training_sessions SET engine_id=NULL,engine_version='1' WHERE id='10000000-0000-4000-8000-000000000001'`),
+      /training_sessions_engine_provenance_k3c_check/,
+    );
+    await assert.rejects(
+      db.exec(`UPDATE public.training_sessions SET engine_id='ANZAN',engine_version=NULL WHERE id='10000000-0000-4000-8000-000000000001'`),
+      /training_sessions_engine_provenance_k3c_check/,
+    );
+    await db.exec(`UPDATE public.training_sessions SET engine_id=NULL,engine_version=NULL WHERE id='10000000-0000-4000-8000-000000000001'`);
+
+    // Generic response pair: NULL/NULL and numeric/payload pass; either partial pair fails.
+    await db.exec(`UPDATE public.question_attempts SET response_type=NULL,response_payload=NULL WHERE id='10000000-0000-4000-8000-000000000004'`);
+    await db.exec(`UPDATE public.question_attempts SET response_type='numeric',response_payload='{"value":7}'::jsonb WHERE id='10000000-0000-4000-8000-000000000004'`);
+    await assert.rejects(
+      db.exec(`UPDATE public.question_attempts SET response_type=NULL,response_payload='{"value":7}'::jsonb WHERE id='10000000-0000-4000-8000-000000000004'`),
+      /question_attempts_response_k3c_check/,
+    );
+    await assert.rejects(
+      db.exec(`UPDATE public.question_attempts SET response_type='numeric',response_payload=NULL WHERE id='10000000-0000-4000-8000-000000000004'`),
+      /question_attempts_response_k3c_check/,
+    );
+
     await db.exec(`INSERT INTO public.question_attempts VALUES (
       '10000000-0000-4000-8000-000000000007','10000000-0000-4000-8000-000000000003','{}',9
     )`);
@@ -204,7 +229,7 @@ test('migration preserves legacy rows and stamps session to evidence provenance 
     await assert.rejects(
       db.query(
         `SELECT * FROM public.cza_bind_assigned_work_session_k3c(
-          $1,$2,$3,$4,$5,now(),'bad engine',NULL
+          $1,$2,$3,$4,$5,now(),'ANZAN',NULL
         )`,
         [
           '10000000-0000-4000-8000-000000000011',
@@ -212,6 +237,36 @@ test('migration preserves legacy rows and stamps session to evidence provenance 
           '10000000-0000-4000-8000-000000000002',
           '10000000-0000-4000-8000-000000000013',
           '10000000-0000-4000-8000-000000000014',
+        ],
+      ),
+      /CZA_ENGINE_PROVENANCE_INVALID/,
+    );
+    await assert.rejects(
+      db.query(
+        `SELECT * FROM public.cza_bind_assigned_work_session_k3c(
+          $1,$2,$3,$4,$5,now(),NULL,'1'
+        )`,
+        [
+          '10000000-0000-4000-8000-000000000011',
+          '10000000-0000-4000-8000-000000000012',
+          '10000000-0000-4000-8000-000000000002',
+          '10000000-0000-4000-8000-000000000013',
+          '10000000-0000-4000-8000-000000000015',
+        ],
+      ),
+      /CZA_ENGINE_PROVENANCE_INVALID/,
+    );
+    await assert.rejects(
+      db.query(
+        `SELECT * FROM public.cza_bind_assigned_work_session_k3c(
+          $1,$2,$3,$4,$5,now(),'bad engine','1'
+        )`,
+        [
+          '10000000-0000-4000-8000-000000000011',
+          '10000000-0000-4000-8000-000000000012',
+          '10000000-0000-4000-8000-000000000002',
+          '10000000-0000-4000-8000-000000000013',
+          '10000000-0000-4000-8000-000000000016',
         ],
       ),
       /CZA_ENGINE_PROVENANCE_INVALID/,
