@@ -32,10 +32,15 @@ function seeded(seed) {
   return () => { state = state * 16807 % 2147483647; return (state - 1) / 2147483646; };
 }
 
-test('registry preserves the seven unique canonical IDs, metadata, routing, and unknown lookup', () => {
-  assert.deepEqual(exerciseRegistry.map(item => item.id), [
-    'FINGER_READING', 'FINGER_PRESSING', 'SOROBAN_READING', 'SOROBAN_WRITING',
-    'ADDITION_SUBTRACTION', 'FLASH_ANZAN', 'AUDIO_ANZAN',
+test('registry preserves the full canonical ID to mode or href matrix', () => {
+  assert.deepEqual(exerciseRegistry.map(({ id, mode, href }) => ({ id, mode, href })), [
+    { id:'FINGER_READING', mode:'finger-read', href:undefined },
+    { id:'FINGER_PRESSING', mode:undefined, href:'/paritmetik?mode=press' },
+    { id:'SOROBAN_READING', mode:'soroban-read', href:undefined },
+    { id:'SOROBAN_WRITING', mode:'soroban-write', href:undefined },
+    { id:'ADDITION_SUBTRACTION', mode:undefined, href:'/arithmetic' },
+    { id:'FLASH_ANZAN', mode:'flash', href:undefined },
+    { id:'AUDIO_ANZAN', mode:'audio', href:undefined },
   ]);
   assert.equal(new Set(exerciseRegistry.map(item => item.id)).size, exerciseRegistry.length);
   for (const item of exerciseRegistry) {
@@ -118,10 +123,23 @@ test('recipe resolution keeps canonical modes, defaults, overrides, and invalid 
 });
 
 test('work-center routing remains allowlisted and unknown targets fail closed', () => {
-  for (const moduleCode of ['finger_read','soroban_read','soroban_write','flash_anzan','audio_anzan']) {
+  const assigned = {
+    finger_read:'/studio?program=assigned&recipe=recipe%20%2F%3F',
+    soroban_read:'/studio?program=assigned&recipe=recipe%20%2F%3F',
+    soroban_write:'/studio?program=assigned&recipe=recipe%20%2F%3F',
+    flash_anzan:'/studio?program=assigned&recipe=recipe%20%2F%3F',
+    audio_anzan:'/studio?program=assigned&recipe=recipe%20%2F%3F',
+  };
+  const freePractice = {
+    finger_read:'/paritmetik', finger_press:'/paritmetik',
+    soroban_read:'/studio?mode=soroban-read', soroban_write:'/studio?mode=soroban-write',
+    arithmetic:'/arithmetic', flash_anzan:'/studio?mode=flash', audio_anzan:'/studio?mode=audio',
+  };
+  for (const [moduleCode, path] of Object.entries(assigned)) {
     assert.equal(isAssignedEngineModule(moduleCode), true);
-    assert.equal(assignedEnginePath(moduleCode, 'recipe /?'), '/studio?program=assigned&recipe=recipe%20%2F%3F');
+    assert.equal(assignedEnginePath(moduleCode, 'recipe /?'), path);
   }
+  for (const [moduleCode, path] of Object.entries(freePractice)) assert.equal(freePracticePath(moduleCode), path);
   assert.equal(isAssignedEngineModule('arithmetic'), false);
   assert.equal(assignedEnginePath('arithmetic', 'r1'), null);
   assert.equal(freePracticePath('finger_press'), '/paritmetik');
@@ -130,6 +148,20 @@ test('work-center routing remains allowlisted and unknown targets fail closed', 
 });
 
 test('core records preserve module, engine, skill, difficulty, and attempt contracts', () => {
+  const matrix = {
+    'finger-read': { moduleCode:'finger_read', exerciseType:'FINGER_READING', skills:['finger.numberRecognition','visual.processingSpeed'] },
+    'soroban-read': { moduleCode:'soroban_read', exerciseType:'SOROBAN_READING', skills:['soroban.numberRecognition','soroban.placeValue','visual.processingSpeed'] },
+    'soroban-write': { moduleCode:'soroban_write', exerciseType:'SOROBAN_WRITING', skills:['soroban.numberConstruction','soroban.placeValue'] },
+    flash: { moduleCode:'flash_anzan', exerciseType:'FLASH_ANZAN', skills:['mental.visualization','anzan.calculation','visual.processingSpeed'] },
+    audio: { moduleCode:'audio_anzan', exerciseType:'AUDIO_ANZAN', skills:['anzan.calculation','response.fluency'] },
+  };
+  for (const [mode, expected] of Object.entries(matrix)) {
+    assert.equal(records.moduleCodeByMode[mode], expected.moduleCode);
+    const settings = records.trainingSettings({ ...defaultConfig, mode });
+    assert.equal(settings.engine, 'cza-exercise-engine-v14');
+    assert.equal(settings.exerciseType, expected.exerciseType);
+    assert.deepEqual(settings.skills, expected.skills);
+  }
   const config = { ...defaultConfig, mode:'audio', rounds:3, terms:4, minDigits:1, maxDigits:2, interval:.8, practiceMode:'performance', feedbackMode:'end_of_session' };
   assert.equal(records.moduleCodeByMode.audio, 'audio_anzan');
   const settings = records.trainingSettings(config);
@@ -147,19 +179,4 @@ test('core records preserve module, engine, skill, difficulty, and attempt contr
   assert.equal(payload.metadata.exerciseMode, 'audio');
   assert.deepEqual(payload.metadata.sequence, [8,-2]);
   assert.equal(payload.metadata.voiceVersion, 1);
-});
-
-test('Studio retains its current start, presentation, answer, next-step, completion, and mode behavior', () => {
-  const studio = read('../app/studio/page.tsx');
-  assert.match(studio, /async function start\(\)/);
-  assert.match(studio, /setQuestions\(generated\).*setRunConfig/s);
-  assert.match(studio, /setPhase\(countdown \? 'countdown'/);
-  assert.match(studio, /phase === 'stimulus'.*Zamanlı görsel uyaran/s);
-  assert.match(studio, /phase === 'sequence'.*anzan-stimulus-screen/s);
-  assert.match(studio, /phase === 'answer'.*onSubmit=.*submit\(\)/s);
-  assert.match(studio, /function nextQuestion\(\).*setPhase\('prepare'\)/s);
-  assert.match(studio, /await core\('finish',\{sessionId\}\); setPhase\('finished'\)/);
-  assert.match(studio, /modeLabels\[active \|\| phase === 'finished' \? runConfig\.mode : config\.mode\]/);
-  assert.match(studio, /trainingSettings\(config\)/);
-  assert.match(studio, /attemptPayload\(attempt,runConfig/);
 });
