@@ -25,7 +25,10 @@ ALTER TABLE public.training_sessions
   DROP CONSTRAINT IF EXISTS training_sessions_engine_provenance_k3c_check,
   ADD CONSTRAINT training_sessions_engine_provenance_k3c_check CHECK (
     (engine_id IS NULL AND engine_version IS NULL)
-    OR (engine_id = 'ANZAN' AND engine_version = '1')
+    OR (
+      engine_id ~ '^[A-Z][A-Z0-9_]{0,79}$'
+      AND engine_version ~ '^[A-Za-z0-9][A-Za-z0-9._-]{0,39}$'
+    )
   );
 
 ALTER TABLE public.question_attempts
@@ -33,7 +36,10 @@ ALTER TABLE public.question_attempts
   DROP CONSTRAINT IF EXISTS question_attempts_response_k3c_check,
   ADD CONSTRAINT question_attempts_engine_provenance_k3c_check CHECK (
     (engine_id IS NULL AND engine_version IS NULL)
-    OR (engine_id = 'ANZAN' AND engine_version = '1')
+    OR (
+      engine_id ~ '^[A-Z][A-Z0-9_]{0,79}$'
+      AND engine_version ~ '^[A-Za-z0-9][A-Za-z0-9._-]{0,39}$'
+    )
   ),
   ADD CONSTRAINT question_attempts_response_k3c_check CHECK (
     (response_type IS NULL AND response_payload IS NULL)
@@ -49,14 +55,20 @@ ALTER TABLE public.learning_records
   DROP CONSTRAINT IF EXISTS learning_records_engine_provenance_k3c_check,
   ADD CONSTRAINT learning_records_engine_provenance_k3c_check CHECK (
     (engine_id IS NULL AND engine_version IS NULL)
-    OR (engine_id = 'ANZAN' AND engine_version = '1')
+    OR (
+      engine_id ~ '^[A-Z][A-Z0-9_]{0,79}$'
+      AND engine_version ~ '^[A-Za-z0-9][A-Za-z0-9._-]{0,39}$'
+    )
   );
 
 ALTER TABLE public.learning_evidence
   DROP CONSTRAINT IF EXISTS learning_evidence_engine_provenance_k3c_check,
   ADD CONSTRAINT learning_evidence_engine_provenance_k3c_check CHECK (
     (engine_id IS NULL AND engine_version IS NULL)
-    OR (engine_id = 'ANZAN' AND engine_version = '1')
+    OR (
+      engine_id ~ '^[A-Z][A-Z0-9_]{0,79}$'
+      AND engine_version ~ '^[A-Za-z0-9][A-Za-z0-9._-]{0,39}$'
+    )
   );
 
 CREATE OR REPLACE FUNCTION public.cza_k3c_stamp_question_attempt()
@@ -144,7 +156,10 @@ DECLARE
 BEGIN
   IF NOT (
     (p_engine_id IS NULL AND p_engine_version IS NULL)
-    OR (p_engine_id = 'ANZAN' AND p_engine_version = '1')
+    OR (
+      p_engine_id ~ '^[A-Z][A-Z0-9_]{0,79}$'
+      AND p_engine_version ~ '^[A-Za-z0-9][A-Za-z0-9._-]{0,39}$'
+    )
   ) THEN
     RAISE EXCEPTION 'CZA_ENGINE_PROVENANCE_INVALID' USING ERRCODE = '22023';
   END IF;

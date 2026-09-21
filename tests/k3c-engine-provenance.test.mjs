@@ -12,6 +12,10 @@ const migration = fs.readFileSync(
   ),
   'utf8',
 );
+const repositorySource = fs.readFileSync(
+  new URL('../lib/persistence/work-center-repository.ts', import.meta.url),
+  'utf8',
+);
 
 async function load(path) {
   const vite = await createServer({
@@ -91,6 +95,30 @@ test('registry is the single source for ANZAN provenance and numeric responses r
   );
 });
 
+test('persistence resolves engines through the registry before opening the database', async () => {
+  const repository = await load('/lib/persistence/work-center-repository.ts');
+  assert.equal(repository.resolvePersistenceEngine({ engineId: 'ANZAN', engineVersion: '1' }).engineId, 'ANZAN');
+  assert.throws(
+    () => repository.resolvePersistenceEngine({ engineId: 'UNKNOWN', engineVersion: '1' }),
+    /unknown_engine/,
+  );
+  assert.throws(
+    () => repository.resolvePersistenceEngine({ engineId: 'ANZAN', engineVersion: '999' }),
+    /unknown_engine_version/,
+  );
+  assert.ok(
+    repositorySource.indexOf('resolvePersistenceEngine(input.engine)') <
+      repositorySource.indexOf('const sql = database()', repositorySource.indexOf('export async function bindAssignedSession')),
+  );
+});
+
+test('database preserves generic provenance integrity without duplicating the engine catalog', () => {
+  assert.doesNotMatch(migration, /'ANZAN'|engine_version\s*=\s*'1'/);
+  assert.match(migration, /engine_id IS NULL AND engine_version IS NULL/);
+  assert.match(migration, /engine_id ~ '\^\[A-Z\]/);
+  assert.match(migration, /engine_version ~ '\^\[A-Za-z0-9\]/);
+});
+
 test('migration preserves legacy rows and stamps session to evidence provenance fail-closed', async () => {
   const db = new PGlite();
   try {
@@ -160,17 +188,30 @@ test('migration preserves legacy rows and stamps session to evidence provenance 
       response_payload: { value: 9 },
     });
 
+    const genericDbProvenance = await db.query(
+      `SELECT * FROM public.cza_bind_assigned_work_session_k3c(
+        $1,$2,$3,$4,$5,now(),'FUTURE_ENGINE','2027.2'
+      )`,
+      [
+        '10000000-0000-4000-8000-000000000011',
+        '10000000-0000-4000-8000-000000000012',
+        '10000000-0000-4000-8000-000000000002',
+        '10000000-0000-4000-8000-000000000013',
+        '10000000-0000-4000-8000-000000000009',
+      ],
+    );
+    assert.equal(genericDbProvenance.rows[0].training_session_id, '10000000-0000-4000-8000-000000000009');
     await assert.rejects(
       db.query(
         `SELECT * FROM public.cza_bind_assigned_work_session_k3c(
-        $1,$2,$3,$4,$5,now(),'UNKNOWN','9'
-      )`,
+          $1,$2,$3,$4,$5,now(),'bad engine',NULL
+        )`,
         [
           '10000000-0000-4000-8000-000000000011',
           '10000000-0000-4000-8000-000000000012',
           '10000000-0000-4000-8000-000000000002',
           '10000000-0000-4000-8000-000000000013',
-          '10000000-0000-4000-8000-000000000009',
+          '10000000-0000-4000-8000-000000000014',
         ],
       ),
       /CZA_ENGINE_PROVENANCE_INVALID/,

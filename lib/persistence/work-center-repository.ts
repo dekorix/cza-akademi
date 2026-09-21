@@ -1,5 +1,6 @@
 import { neon } from '@neondatabase/serverless';
 import type { EngineReference } from '@/lib/engine-contract';
+import { engineDefinition } from '../engine-registry';
 
 export type WorkStudent = {
   academy_id: string;
@@ -72,6 +73,12 @@ function mappedError(error: unknown) {
   return new WorkCenterPersistenceError('work_persistence_unavailable', 503);
 }
 
+export function resolvePersistenceEngine(engine: EngineReference | null) {
+  return engine
+    ? engineDefinition(engine.engineId, engine.engineVersion)
+    : null;
+}
+
 export async function assignedSessionForRecipe(
   student: WorkStudent,
   recipeId: string,
@@ -142,6 +149,7 @@ export async function bindAssignedSession(
     engine: EngineReference | null;
   },
 ) {
+  const engine = resolvePersistenceEngine(input.engine);
   const sql = database();
   try {
     const rows = await sql`
@@ -152,8 +160,8 @@ export async function bindAssignedSession(
         ${input.clientSessionId}::uuid,
         ${input.trainingSessionId}::uuid,
         ${input.startedAt}::timestamptz,
-        ${input.engine?.engineId ?? null}::text,
-        ${input.engine?.engineVersion ?? null}::text
+        ${engine?.engineId ?? null}::text,
+        ${engine?.engineVersion ?? null}::text
       )
     `;
     const row = rows[0] as Record<string, unknown> | undefined;
