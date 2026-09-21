@@ -29,7 +29,9 @@ const recipes = await dataModule(read('../lib/training-recipes.ts')
 const records = await dataModule(read('../lib/core-records.ts')
   .replace("import { exerciseForMode } from './exercise-registry';", `const definitions = ${JSON.stringify(exerciseRegistry)}; const exerciseForMode = mode => definitions.find(item => item.mode === mode);`)
   .replace("import { feedbackModeFor, learningModeFor } from './practice-mode';", "const feedbackModeFor = mode => mode === 'performance' ? 'end_of_session' : mode === 'assessment' ? 'none_during_test' : 'immediate'; const learningModeFor = mode => mode;")
-  .replace("import { anzanDifficulty } from './anzan-engine';", `const anzanDifficulty = ${anzan.anzanDifficulty.toString()};`));
+  .replace("import { anzanDifficulty } from './anzan-engine';", `const anzanDifficulty = ${anzan.anzanDifficulty.toString()};`)
+  .replace("import { engineDefinition } from './engine-registry';", "const engineDefinition = (engineId, engineVersion) => ({ engineId, engineVersion, validateConfig: () => {} });")
+  .replace("import { numericResponse } from './response-contract';", "const numericResponse = value => ({ type:'numeric', payload:{ value } });"));
 
 function seeded(seed) {
   let state = seed;

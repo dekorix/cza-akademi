@@ -2,6 +2,8 @@ import type { Attempt, ExerciseConfig, ExerciseMode } from './exercise-engine';
 import { exerciseForMode } from './exercise-registry';
 import { feedbackModeFor, learningModeFor } from './practice-mode';
 import { anzanDifficulty } from './anzan-engine';
+import { engineDefinition } from './engine-registry';
+import { numericResponse } from './response-contract';
 
 export const moduleCodeByMode: Record<ExerciseMode, string> = {
   'finger-read': 'finger_read',
@@ -13,6 +15,10 @@ export const moduleCodeByMode: Record<ExerciseMode, string> = {
 
 export function trainingSettings(config: ExerciseConfig) {
   const definition = exerciseForMode(config.mode);
+  const activityEngine = definition?.engine
+    ? engineDefinition(definition.engine.engineId, definition.engine.engineVersion)
+    : null;
+  activityEngine?.validateConfig(config);
   return {
     engine: 'cza-exercise-engine-v14',
     questionCount: config.rounds,
@@ -20,6 +26,8 @@ export function trainingSettings(config: ExerciseConfig) {
     stimulusDurationMs: ['finger-read','soroban-read'].includes(config.mode) ? config.presentationDurationMs ?? 1000 : Math.round(config.interval * 1000),
     answerDurationMs: config.answerDurationMs ?? 0,
     exerciseType: definition?.id,
+    engineId: activityEngine?.engineId,
+    engineVersion: activityEngine?.engineVersion,
     practiceMode: config.practiceMode ?? 'free_practice',
     feedbackMode: config.feedbackMode ?? feedbackModeFor(config.practiceMode ?? 'free_practice'),
     skills: definition?.skills ?? [],
@@ -31,6 +39,11 @@ export function trainingSettings(config: ExerciseConfig) {
 
 export function attemptPayload(attempt: Attempt, config: ExerciseConfig, questionIndex: number, ids: { attemptId: string; questionId: string }) {
   const definition = exerciseForMode(config.mode);
+  const activityEngine = definition?.engine
+    ? engineDefinition(definition.engine.engineId, definition.engine.engineVersion)
+    : null;
+  activityEngine?.validateConfig(config);
+  const response = numericResponse(attempt.given);
   return {
     clientAttemptId: ids.attemptId,
     questionIndex,
@@ -49,6 +62,10 @@ export function attemptPayload(attempt: Attempt, config: ExerciseConfig, questio
     attemptNumber: 1,
     metadata: {
       engine: 'cza-exercise-engine-v14',
+      engineId: activityEngine?.engineId,
+      engineVersion: activityEngine?.engineVersion,
+      responseType: response.type,
+      responsePayload: response.payload,
       exerciseMode: config.mode,
       exerciseType: definition?.id,
       skills: definition?.skills ?? [],

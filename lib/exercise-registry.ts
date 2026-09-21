@@ -34,3 +34,14 @@ export const exerciseRegistry: ExerciseDefinition[] = [
 export function exerciseForMode(mode: ExerciseMode) {
   return exerciseRegistry.find(exercise => exercise.mode === mode);
 }
+
+export function exerciseForModuleCode(moduleCode: string) {
+  const mode = Object.entries({
+    'finger-read': 'finger_read',
+    'soroban-read': 'soroban_read',
+    'soroban-write': 'soroban_write',
+    flash: 'flash_anzan',
+    audio: 'audio_anzan',
+  } as const).find(([, code]) => code === moduleCode)?.[0] as ExerciseMode | undefined;
+  return mode ? exerciseForMode(mode) : undefined;
+}

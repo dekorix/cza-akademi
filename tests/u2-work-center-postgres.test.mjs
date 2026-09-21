@@ -20,6 +20,9 @@ const u2TrustBoundaryRemediation = read(
 const u5CancelBarrier = read(
   '../db/migrations/20260917_u5_cancelled_assignment_write_barrier_v1.sql',
 );
+const k3cEngineProvenance = read(
+  '../db/migrations/20260921_k3c_engine_provenance_v1.sql',
+);
 
 const ids = {
   academy: 'a2000000-0000-4000-8000-000000000001',
@@ -109,6 +112,7 @@ test('U2 assigned work lifecycle is isolated, resumable, idempotent, and atomic'
     await db.exec(u2TrustBoundaryRemediation);
     await db.exec(read('../db/migrations/20260917_u5_assignment_management_v1.sql'));
     await db.exec(u5CancelBarrier);
+    await db.exec(k3cEngineProvenance);
     const firstFingerprint = await fingerprint(db);
     await db.exec(u2TrustBoundaryRemediation);
     assert.equal(await fingerprint(db), firstFingerprint);

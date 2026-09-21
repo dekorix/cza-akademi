@@ -31,6 +31,9 @@ import {
   type WorkStudent,
 } from '@/lib/persistence/work-center-repository';
 import { isAssignedEngineModule } from '@/lib/work-center';
+import { exerciseForModuleCode } from '@/lib/exercise-registry';
+import { engineDefinition } from '@/lib/engine-registry';
+import type { EngineReference } from '@/lib/engine-contract';
 
 const COOKIE_NAME = 'cza_student_session';
 const ASSIGNMENT_COOKIE = 'cza_assignment_recipe';
@@ -205,6 +208,7 @@ export async function POST(request: Request) {
   let workStudent: WorkStudent | null = null;
   let workRecipeId = '';
   let assignedTrainingSessionId = '';
+  let workEngine: EngineReference | null = null;
 
   if (action === 'start') {
     const recipeId = readCookie(request, ASSIGNMENT_COOKIE);
@@ -282,6 +286,13 @@ export async function POST(request: Request) {
         });
       }
       workRecipeId = recipe.id;
+      const exercise = exerciseForModuleCode(recipe.module_code);
+      workEngine = exercise?.engine
+        ? engineDefinition(
+            exercise.engine.engineId,
+            exercise.engine.engineVersion,
+          )
+        : null;
       payload.recipeId = recipe.id;
       payload.moduleCode = recipe.module_code;
       payload.source = 'teacher_assignment';
@@ -378,6 +389,7 @@ export async function POST(request: Request) {
         clientSessionId: String(payload.clientSessionId),
         trainingSessionId,
         startedAt: new Date().toISOString(),
+        engine: workEngine,
       });
       if (bound.status === 'completed') {
         return respond({ ok: false, error: 'assignment_completed' }, 409);

@@ -1,4 +1,5 @@
 import { neon } from '@neondatabase/serverless';
+import type { EngineReference } from '@/lib/engine-contract';
 
 export type WorkStudent = {
   academy_id: string;
@@ -60,6 +61,13 @@ function mappedError(error: unknown) {
   }
   if (message.includes('CZA_WORK_ATTEMPT_INVALID')) {
     return new WorkCenterPersistenceError('invalid_attempt', 400);
+  }
+  if (
+    message.includes('CZA_ENGINE_PROVENANCE_INVALID') ||
+    message.includes('CZA_ENGINE_PROVENANCE_CONFLICT') ||
+    message.includes('CZA_GENERIC_RESPONSE_INVALID')
+  ) {
+    return new WorkCenterPersistenceError('invalid_engine_record', 400);
   }
   return new WorkCenterPersistenceError('work_persistence_unavailable', 503);
 }
@@ -131,18 +139,21 @@ export async function bindAssignedSession(
     clientSessionId: string;
     trainingSessionId: string;
     startedAt: string;
+    engine: EngineReference | null;
   },
 ) {
   const sql = database();
   try {
     const rows = await sql`
-      SELECT * FROM public.cza_bind_assigned_work_session(
+      SELECT * FROM public.cza_bind_assigned_work_session_k3c(
         ${student.academy_id}::uuid,
         ${student.student_id}::uuid,
         ${input.recipeId}::uuid,
         ${input.clientSessionId}::uuid,
         ${input.trainingSessionId}::uuid,
-        ${input.startedAt}::timestamptz
+        ${input.startedAt}::timestamptz,
+        ${input.engine?.engineId ?? null}::text,
+        ${input.engine?.engineVersion ?? null}::text
       )
     `;
     const row = rows[0] as Record<string, unknown> | undefined;
