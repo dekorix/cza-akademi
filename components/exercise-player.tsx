@@ -1,52 +1,24 @@
 'use client';
 
 import { Maximize2, Moon, Pause, Play, Sun } from 'lucide-react';
-import { useRef, useState, type ReactNode } from 'react';
-import { AnzanExerciseRenderer } from '@/components/anzan-exercise-renderer';
+import {
+  Children,
+  isValidElement,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react';
+import {
+  ExerciseRendererDispatch,
+  playerPresentation,
+} from '@/components/exercise-renderer-dispatch';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { anzanThemes, type AnzanTheme } from '@/lib/anzan-engine';
-import { engineDefinition } from '@/lib/engine-registry';
-import { exerciseForMode } from '@/lib/exercise-registry';
-import type {
-  ExerciseConfig,
-  ExerciseMode,
-  ExerciseQuestion,
-} from '@/lib/exercise-engine';
-
-export type ExercisePlayerPhase =
-  | 'ready'
-  | 'countdown'
-  | 'prepare'
-  | 'stimulus'
-  | 'sequence'
-  | 'answer'
-  | 'feedback'
-  | 'finished';
-
-export function resolvePlayerEngine(mode: ExerciseMode, activityType?: string) {
-  const exercise = exerciseForMode(mode);
-  if (!exercise) throw new Error('unknown_exercise_activity');
-  if (!exercise.engine) return null;
-  const definition = engineDefinition(
-    exercise.engine.engineId,
-    exercise.engine.engineVersion,
-  );
-  const canonicalActivity = activityType ?? exercise.id;
-  if (
-    canonicalActivity !== exercise.id ||
-    !definition.supportedActivityTypes.includes(
-      canonicalActivity as 'FLASH_ANZAN' | 'AUDIO_ANZAN',
-    )
-  ) {
-    throw new Error('unsupported_engine_activity');
-  }
-  return definition;
-}
+import type { ExerciseConfig, ExerciseQuestion } from '@/lib/exercise-engine';
+import type { ExercisePlayerPhase } from '@/components/use-exercise-player-controller';
 
 type Props = {
   phase: ExercisePlayerPhase;
-  config: ExerciseConfig;
   runConfig: ExerciseConfig;
   current?: ExerciseQuestion;
   round: number;
@@ -64,9 +36,17 @@ type Props = {
   onError: (message: string) => void;
 };
 
+export function PlayerPhase({
+  children,
+}: {
+  when: Exclude<ExercisePlayerPhase, 'sequence'>;
+  children: ReactNode;
+}) {
+  return children;
+}
+
 export function ExercisePlayer({
   phase,
-  config,
   runConfig,
   current,
   round,
@@ -86,49 +66,33 @@ export function ExercisePlayer({
   const [darkStage, setDarkStage] = useState(false);
   const stageRef = useRef<HTMLDivElement>(null);
   const active = phase !== 'ready' && phase !== 'finished';
-  const mental = runConfig.mode === 'flash' || runConfig.mode === 'audio';
-  const selectedConfig = active || phase === 'finished' ? runConfig : config;
-  const definition = resolvePlayerEngine(selectedConfig.mode);
-  const theme =
-    anzanThemes[(runConfig.backgroundToken ?? 'PAPER_BLACK') as AnzanTheme];
+  const presentation = active ? playerPresentation(runConfig) : {};
   const content =
     phase === 'sequence' ? (
-      definition && current ? (
-        <AnzanExerciseRenderer
-          definition={definition}
-          config={runConfig}
-          question={current}
-          round={round}
-          term={term}
-          paused={paused}
-          sequenceVisible={sequenceVisible}
-          onAdvance={onAdvance}
-        />
-      ) : (
-        (() => {
-          throw new Error(
-            definition
-              ? 'missing_player_question'
-              : 'unsupported_engine_activity',
-          );
-        })()
-      )
+      <ExerciseRendererDispatch
+        config={runConfig}
+        question={current}
+        round={round}
+        term={term}
+        paused={paused}
+        sequenceVisible={sequenceVisible}
+        onAdvance={onAdvance}
+      />
     ) : (
-      children
+      Children.toArray(children).filter(
+        (child) =>
+          isValidElement<{ when?: ExercisePlayerPhase }>(child) &&
+          child.type === PlayerPhase &&
+          child.props.when === phase,
+      )
     );
 
   return (
     <div
       ref={stageRef}
       data-player-phase={phase}
-      data-engine-id={definition?.engineId}
-      data-engine-version={definition?.engineVersion}
-      style={
-        active && mental
-          ? { backgroundColor: theme.background, color: theme.foreground }
-          : undefined
-      }
-      className={`overflow-hidden rounded-2xl border ${active && mental ? 'anzan-focus-stage ' : ''}${darkStage ? 'border-[#273c51] bg-[#182739] text-white' : 'border-border bg-white'}`}
+      style={presentation.style}
+      className={`overflow-hidden rounded-2xl border ${presentation.className ?? ''} ${darkStage ? 'border-[#273c51] bg-[#182739] text-white' : 'border-border bg-white'}`}
     >
       <div
         className={`flex items-center justify-between gap-3 border-b px-5 py-4 ${darkStage ? 'border-white/10' : 'border-border'}`}

@@ -4,7 +4,8 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { ArrowLeft, ArrowRight, AudioLines, CheckCircle2, CircleHelp, Loader2, LogOut, Pause, Play, RotateCcw, Settings2, Target, Volume2, Wifi, WifiOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ExercisePlayer, type ExercisePlayerPhase } from '@/components/exercise-player';
+import { ExercisePlayer, PlayerPhase } from '@/components/exercise-player';
+import { useExercisePlayerController } from '@/components/use-exercise-player-controller';
 import { ExerciseSettings } from '@/components/exercise-settings';
 import { ExerciseLaunchSequence } from '@/components/exercise-launch-sequence';
 import { ExerciseNumberDisplay } from '@/components/exercise-number-display';
@@ -23,8 +24,6 @@ import { feedbackModeFor, isMeasuredMode, practiceModeLabels, shouldShowCountdow
 import { compareSorobanStates, serializeSorobanState } from '@/lib/soroban-comparison';
 import { AudioStimulusScheduler, preloadVoiceClips, releaseVoiceClips, voiceClipKey } from '@/lib/cza-voice-client';
 
-type Phase = ExercisePlayerPhase;
-
 export default function Studio() {
   const [authLoading, setAuthLoading] = useState(true);
   const [student, setStudent] = useState<CoreStudent | null>(null);
@@ -38,26 +37,17 @@ export default function Studio() {
   const [savingAttempt, setSavingAttempt] = useState(false);
   const [config, setConfig] = useState<ExerciseConfig>({...defaultConfig});
   const [runConfig, setRunConfig] = useState<ExerciseConfig>({...defaultConfig});
-  const [phase, setPhase] = useState<Phase>('ready');
   const [questions, setQuestions] = useState<ExerciseQuestion[]>([]);
-  const [round, setRound] = useState(0);
-  const [term, setTerm] = useState(0);
-  const [paused, setPaused] = useState(false);
-  const [answer, setAnswer] = useState('');
-  const [abacusValue, setAbacusValue] = useState(0);
   const [attempts, setAttempts] = useState<Attempt[]>([]);
   const [error, setError] = useState('');
   const [info, setInfo] = useState('');
   const [saved, setSaved] = useState(false);
-  const [feedbackAttempt, setFeedbackAttempt] = useState<Attempt | null>(null);
   const [reviewAttempt, setReviewAttempt] = useState<Attempt | null>(null);
   const [reviewReplayIndex, setReviewReplayIndex] = useState(-1);
-  const [retrying, setRetrying] = useState(false);
   const [audioPreparing, setAudioPreparing] = useState(false);
   const [voiceConfigured, setVoiceConfigured] = useState<boolean | null>(null);
-  const [sequenceVisible, setSequenceVisible] = useState(true);
   const [settingsOpen, setSettingsOpen] = useState(true);
-  const [answerRemainingMs, setAnswerRemainingMs] = useState(0);
+  const { phase, round, term, paused, answer, abacusValue, feedbackAttempt, retrying, sequenceVisible, answerRemainingMs, setPaused, setAnswer, setAbacusValue, setSequenceVisible, setAnswerRemainingMs, configure: configurePlayer, begin: beginPlayer, present: presentQuestion, presentationComplete, advanceSequence, submitted: playerSubmitted, next: nextPlayerQuestion, complete: completePlayer, reset: resetPlayer, retry: retryPlayerQuestion, addAnswerDigit } = useExercisePlayerController<Attempt>();
   const responseStart = useRef(0);
   const sessionStart = useRef(0);
   const presentationStartedAt = useRef('');
@@ -120,7 +110,7 @@ export default function Studio() {
         const allowed = ['mode','presentationDurationMs','answerDurationMs','countdownEnabled','rods','minValue','digits','minDigits','maxDigits','terms','rounds','interval','operation','pool','additionPool','subtractionPool','maxValue','firstWithinMax','showNumbers','fontSize','backgroundColor','textColor','freePractice'];
         if (Object.keys(input).some(key => !allowed.includes(key))) throw new Error('Bilinmeyen ayar.');
         const next = {...snapshot.current.config,...input} as ExerciseConfig; validateConfig(next); createQuestion(next);
-        setConfig(next); setPhase('ready');
+        setConfig(next); configurePlayer();
         await new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
         return {status:'configured', config: next};
       } },
@@ -146,15 +136,14 @@ export default function Studio() {
 
   const advance = useCallback(() => {
     if (!current) return;
-    if (term + 1 < current.sequence.length) { setSequenceVisible(false); setTerm(v => v+1); }
-    else { setPhase('answer'); responseStart.current = performance.now(); answerStartedAt.current = new Date().toISOString(); }
-  }, [current, term]);
+    if (advanceSequence(term, current.sequence.length)) { responseStart.current = performance.now(); answerStartedAt.current = new Date().toISOString(); }
+  }, [advanceSequence, current, term]);
 
   const openQuestion = useCallback(() => {
-    if (timedReading && measured) setPhase('stimulus');
-    else if (mental) setPhase('sequence');
-    else { responseStart.current = performance.now(); answerStartedAt.current = new Date().toISOString(); setPhase('answer'); }
-  }, [measured, mental, timedReading]);
+    const presentation = timedReading && measured ? 'stimulus' : mental ? 'sequence' : 'answer';
+    presentQuestion(presentation);
+    if (presentation === 'answer') { responseStart.current = performance.now(); answerStartedAt.current = new Date().toISOString(); }
+  }, [measured, mental, presentQuestion, timedReading]);
 
   useEffect(() => {
     if (phase !== 'prepare') return;
@@ -174,7 +163,7 @@ export default function Studio() {
       answerDeadline.current = answerLimit ? performance.now() + answerLimit : 0;
       timeoutTriggered.current = false;
       setAnswerRemainingMs(answerLimit);
-      setPhase('answer');
+      presentationComplete();
     }, Math.max(0, (runConfig.presentationDurationMs ?? 1000) - (performance.now() - started)));
     return () => window.clearTimeout(timeout);
   }, [phase, paused, current, runConfig.presentationDurationMs, runConfig.answerDurationMs]);
@@ -217,7 +206,7 @@ export default function Studio() {
     if (sessionId) { try { await core('finish',{sessionId,aborted:Boolean(assignmentId)}); } catch { /* Kaydedilmiş sorular sunucuda kalır. */ } }
     try { await core('logout'); }
     catch (e) { setError(`${friendlyCoreError(e)} Güvenli çıkış tamamlanmadı; tekrar dene.`); return; }
-    setStudent(null); setSessionId(null); setPhase('ready'); setAttempts([]);
+    setStudent(null); setSessionId(null); resetPlayer(); setAttempts([]);
   }
   async function start() {
     try {
@@ -244,7 +233,8 @@ export default function Studio() {
       }
       setSessionId(String(central.sessionId)); setResumeOffset(serverAttemptCount); setSync('ready');
       const countdown = shouldShowCountdown({practiceMode:selectedPracticeMode,exerciseType:config.mode,timed:['finger-read','soroban-read','flash','audio'].includes(config.mode),assessmentMode:selectedPracticeMode==='assessment',countdownEnabled:config.countdownEnabled});
-      setQuestions(generated); setRunConfig({...defaultConfig,...config, practiceMode:selectedPracticeMode, feedbackMode:config.feedbackMode??feedbackModeFor(selectedPracticeMode), pool:[...config.pool], additionPool:[...(config.additionPool ?? config.pool)], subtractionPool:[...(config.subtractionPool ?? config.pool)]}); setRound(0); setTerm(0); setSequenceVisible(true); setAttempts([]); setFeedbackAttempt(null); setReviewAttempt(null); setRetrying(false); setAnswer(''); setAbacusValue(0); setPaused(false); setError(''); setSaved(false); setAnswerRemainingMs(0); if (generated.length===0) { await core('finish',{sessionId:String(central.sessionId)}); setPhase('finished'); } else { setPhase(countdown ? 'countdown' : (['finger-read','soroban-read'].includes(config.mode) && isMeasuredMode(selectedPracticeMode) ? 'stimulus' : ['flash','audio'].includes(config.mode) ? 'sequence' : 'answer')); } if (generated.length && !countdown && (!['finger-read','soroban-read'].includes(config.mode) || !isMeasuredMode(selectedPracticeMode)) && !['flash','audio'].includes(config.mode)) { responseStart.current = performance.now(); answerStartedAt.current = new Date().toISOString(); } setSettingsOpen(false); sessionStart.current = Date.now();
+      const initialPhase = countdown ? 'countdown' : (['finger-read','soroban-read'].includes(config.mode) && isMeasuredMode(selectedPracticeMode) ? 'stimulus' : ['flash','audio'].includes(config.mode) ? 'sequence' : 'answer');
+      setQuestions(generated); setRunConfig({...defaultConfig,...config, practiceMode:selectedPracticeMode, feedbackMode:config.feedbackMode??feedbackModeFor(selectedPracticeMode), pool:[...config.pool], additionPool:[...(config.additionPool ?? config.pool)], subtractionPool:[...(config.subtractionPool ?? config.pool)]}); setAttempts([]); setReviewAttempt(null); setError(''); setSaved(false); beginPlayer(initialPhase); if (generated.length===0) { await core('finish',{sessionId:String(central.sessionId)}); completePlayer(); } if (generated.length && initialPhase === 'answer') { responseStart.current = performance.now(); answerStartedAt.current = new Date().toISOString(); } setSettingsOpen(false); sessionStart.current = Date.now();
     } catch (e) { setSync('error'); setError(e instanceof Error && !e.message.includes('_') ? e.message : friendlyCoreError(e)); }
   }
   async function submit(timedOut = false) {
@@ -260,10 +250,10 @@ export default function Studio() {
     try {
       const questionIndex=resumeOffset+round+1;
       await core('attempt',{sessionId,payload:attemptPayload(attempt,runConfig,questionIndex,{attemptId:crypto.randomUUID(),questionId:`${moduleCodeByMode[runConfig.mode]}-${Date.now()}-${questionIndex}`})});
-      const all = [...attempts, attempt]; setAttempts(all); setFeedbackAttempt(attempt); setRetrying(false); setSaved(saveDemoResult({ id: sessionId, at: new Date().toISOString(), config: runConfig, attempts: all, durationMs: completedAt-sessionStart.current })); setSync('ready');
-      if ((runConfig.feedbackMode ?? feedbackModeFor(practiceMode)) === 'immediate') setPhase('feedback');
+      const all = [...attempts, attempt]; setAttempts(all); const showFeedback=(runConfig.feedbackMode ?? feedbackModeFor(practiceMode)) === 'immediate'; playerSubmitted(attempt,showFeedback); setSaved(saveDemoResult({ id: sessionId, at: new Date().toISOString(), config: runConfig, attempts: all, durationMs: completedAt-sessionStart.current })); setSync('ready');
+      if (showFeedback) return;
       else if (round + 1 < questions.length) nextQuestion();
-      else { await core('finish',{sessionId}); setPhase('finished'); }
+      else { await core('finish',{sessionId}); completePlayer(); }
     } catch (e) { setSync('error'); setError(`${friendlyCoreError(e)} Cevabın ekranda tutuldu; “Yanıtı kaydet” ile yeniden dene.`); }
     finally { setSavingAttempt(false); }
   }
@@ -281,14 +271,14 @@ export default function Studio() {
     }, 100);
     return () => window.clearInterval(timer);
   }, [phase, timedReading, runConfig.answerDurationMs, savingAttempt]);
-  function nextQuestion() { setRound(v=>v+1); setTerm(0); setSequenceVisible(true); setAnswer(''); setAbacusValue(0); setFeedbackAttempt(null); setAnswerRemainingMs(0); presentationStartedAt.current=''; presentationEndedAt.current=''; answerStartedAt.current=''; setPhase('prepare'); }
+  function nextQuestion() { nextPlayerQuestion(); presentationStartedAt.current=''; presentationEndedAt.current=''; answerStartedAt.current=''; }
   useEffect(() => {
     if (phase !== 'feedback') return;
     if (runConfig.mode.startsWith('soroban') && feedbackAttempt && !feedbackAttempt.correct) return;
     const timeout = window.setTimeout(async () => {
       if (round + 1 < questions.length) nextQuestion();
       else if (sessionId) {
-        try { setSync('saving'); await core('finish',{sessionId}); setSync('ready'); setPhase('finished'); }
+        try { setSync('saving'); await core('finish',{sessionId}); setSync('ready'); completePlayer(); }
         catch (e) { setSync('error'); setError(`${friendlyCoreError(e)} “Bitir ve kaydet” ile yeniden dene.`); }
       }
     }, 1700);
@@ -296,12 +286,11 @@ export default function Studio() {
   }, [phase, round, runConfig.mode, runConfig.rounds, sessionId, feedbackAttempt]);
   async function finishSession() {
     if (!sessionId || savingAttempt) return;
-    try { setSync('saving'); await core('finish',{sessionId,aborted:Boolean(assignmentId)}); setSync('ready'); if (assignmentId) window.location.assign('/work'); else { setPhase('finished'); setPaused(false); setError(''); } }
+    try { setSync('saving'); await core('finish',{sessionId,aborted:Boolean(assignmentId)}); setSync('ready'); if (assignmentId) window.location.assign('/work'); else { completePlayer(); setError(''); } }
     catch (e) { setSync('error'); setError(`${friendlyCoreError(e)} Çalışma kapatılmadı; tekrar dene.`); }
   }
-  function reset() { setSessionId(null); setResumeOffset(0); setPhase('ready'); setPaused(false); setError(''); setAttempts([]); setFeedbackAttempt(null); setReviewAttempt(null); setReviewReplayIndex(-1); setSettingsOpen(true); }
-  function retryQuestion() { setAnswer(''); setAbacusValue(0); setFeedbackAttempt(null); setRetrying(true); setAnswerRemainingMs(0); openQuestion(); }
-  function addAnswerDigit(digit: number) { setAnswer(value => `${value}${digit}`.slice(0, 8)); }
+  function reset() { setSessionId(null); setResumeOffset(0); resetPlayer(); setError(''); setAttempts([]); setReviewAttempt(null); setReviewReplayIndex(-1); setSettingsOpen(true); }
+  function retryQuestion() { retryPlayerQuestion(timedReading && measured ? 'stimulus' : mental ? 'sequence' : 'answer'); }
   const result = score(attempts);
 
   if (phase === 'finished' && !measured) return <main className="min-h-screen bg-[#f5faf7] p-5"><section className="mx-auto max-w-5xl rounded-3xl border bg-white p-7 text-center shadow-lg"><p className="eyebrow text-[#16836e]">{practiceModeLabels[practiceMode]} tamamlandı</p><h1 className="mt-3 text-3xl font-black">Harika, {result.total} soru çalıştın.</h1><p className="mt-3 text-lg text-muted-foreground">İstersen aynı çalışmayı pekiştirebilir veya farklı bir çalışma seçebilirsin.</p><div className="mx-auto my-7 grid max-w-xl grid-cols-3 gap-3"><div className="rounded-2xl bg-[#edf5ff] p-4"><b className="text-3xl text-[#174f83]">{result.total}</b><p>Soru</p></div><div className="rounded-2xl bg-[#e9faef] p-4"><b className="text-3xl text-[#08733e]">{result.correct}</b><p>Doğru</p></div><div className="rounded-2xl bg-[#fff5dc] p-4"><b className="text-3xl text-[#a45c09]">{result.wrong}</b><p>Birlikte bakalım</p></div></div>{runConfig.mode.startsWith('soroban')&&attempts.some(attempt=>!attempt.correct&&attempt.attemptType!=='RETRY_AFTER_FEEDBACK')&&<div className="rounded-2xl border-2 border-[#efb55f] bg-[#fff8e7] p-5"><h2 className="font-black text-[#78470c]">Farkları görsel olarak incele</h2><div className="mt-4 flex flex-wrap justify-center gap-2">{attempts.map((attempt,index)=>!attempt.correct&&attempt.attemptType!=='RETRY_AFTER_FEEDBACK'?<Button key={index} variant="outline" className="border-[#dc941f] bg-white" onClick={()=>setReviewAttempt(attempt)}>Soru {index+1}</Button>:null)}</div></div>}<div className="mt-7 flex flex-wrap justify-center gap-3"><Button onClick={reset}><RotateCcw/> Yeni çalışma</Button><a href="/" className="inline-flex min-h-11 items-center rounded-xl border px-5 font-bold">Çalışma merkezim</a></div><p className="mt-5 text-sm font-semibold text-[#39715c]">Bütün yanıtların eğitimci kaydına işlendi.</p></section>{reviewAttempt&&<dialog open aria-label="Soroban soru incelemesi" className="fixed inset-0 z-50 m-0 grid h-full max-h-none w-full max-w-none place-items-center overflow-y-auto border-0 bg-[#102034]/65 p-4"><div className="w-full max-w-6xl rounded-3xl bg-white p-5 shadow-2xl md:p-8"><SorobanAnswerComparison studentValue={Math.max(0,reviewAttempt.given)} correctValue={reviewAttempt.expected} digits={runConfig.rods??5} onNext={()=>setReviewAttempt(null)}/></div></dialog>}</main>;
@@ -317,8 +306,8 @@ export default function Studio() {
       <div className="grid items-start gap-6 lg:grid-cols-[310px_1fr]">
         <aside className={`rounded-xl border border-border bg-white p-6 ${settingsOpen ? '' : 'hidden lg:block'}`}><div className="mb-6 flex items-center gap-2"><Settings2 size={17} className="text-primary" /><h2 className="font-semibold">Çalışma reçetesi</h2></div><ExerciseSettings config={config} onChange={setConfig} disabled={active || Boolean(assignmentId)} /><div className="mt-5 rounded-lg bg-secondary/60 p-3 text-[11px] leading-5 text-[#437369]">Her cevap merkezi öğrenci kaydına işlenir. Doğru cevap, girilen cevap, işlem dizisi, süre ve çalışma ayarları eğitimci raporunda birlikte tutulur.</div></aside>
         <div className="space-y-5">
-          <ExercisePlayer phase={phase} config={config} runConfig={runConfig} current={current} round={round} term={term} paused={paused} sequenceVisible={sequenceVisible} saving={savingAttempt||sync==='saving'} assignmentId={assignmentId} completedAnswers={resumeOffset+attempts.length} title={modeLabels[active || phase === 'finished' ? runConfig.mode : config.mode]} onAdvance={advance} onPauseChange={setPaused} onFinish={()=>void finishSession()} onError={setError}>
-              {phase === 'ready' && <div className="max-w-lg text-center">
+          <ExercisePlayer phase={phase} runConfig={runConfig} current={current} round={round} term={term} paused={paused} sequenceVisible={sequenceVisible} saving={savingAttempt||sync==='saving'} assignmentId={assignmentId} completedAnswers={resumeOffset+attempts.length} title={modeLabels[active || phase === 'finished' ? runConfig.mode : config.mode]} onAdvance={advance} onPauseChange={setPaused} onFinish={()=>void finishSession()} onError={setError}>
+              <PlayerPhase when="ready"><div className="max-w-lg text-center">
                 <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-[#e8f3ee] text-primary"><Target size={32} strokeWidth={1.5}/></div>
                 <h2 className="text-2xl font-semibold tracking-tight">Zihnine çalışma alanı aç.</h2>
                 <p className="mx-auto mt-3 max-w-md text-sm leading-7 opacity-70">{config.mode==='finger-read'?'Ekrandaki gerçekçi parmak desenine dikkatlice bak.':config.mode==='soroban-read'?'Abaküsteki boncukları oku ve sayıyı yaz. Üst boncuk 5, çubuğa yakın her alt boncuk 1 değerindedir.':config.mode==='soroban-write'?'Verilen sayıyı sorobanda oluştur. Boncukları çubuğa yaklaştırmak ve uzaklaştırmak için dokun.':config.mode==='audio'?'Sayıları dinle ve işlemleri zihninde yap. Bütün premium sesler başlamadan önce hazırlanır.':'Sayılar sırayla ekrana gelecek. İşlemleri zihninde takip et ve son sayının ardından sonucu yaz.'}</p>
@@ -326,11 +315,11 @@ export default function Studio() {
                 {config.mode==='audio'&&voiceConfigured===false&&<p role="alert" className="mb-4 rounded-xl border border-amber-200 bg-amber-50 p-3 text-left text-xs leading-5 text-amber-900">Sesli çalışma henüz etkin değil. Sunucuda Premium TTS sağlayıcısı ve Voice ID tanımlanınca bu düğme açılacak.</p>}
                 <Button className="h-12 px-7" disabled={audioPreparing||(config.mode==='audio'&&voiceConfigured!==true)} onClick={start}>{audioPreparing?<><Loader2 className="animate-spin"/> Sesler hazırlanıyor</>:config.mode==='audio'&&voiceConfigured===null?<><Loader2 className="animate-spin"/> Ses kontrol ediliyor</>:config.mode==='audio'&&!voiceConfigured?'Ses yapılandırması bekleniyor':<><Play size={16} fill="currentColor"/> {config.practiceMode==='performance'?'Performans çalışmasını başlat':'Çalışmaya başla'}</>}</Button>
                 {config.mode==='audio'&&<p className="mt-4 text-[11px] opacity-60">Premium Türkçe ses kütüphanesi sunucuda hazırlanır; API anahtarı tarayıcıya gönderilmez.</p>}
-              </div>}
-              {phase === 'countdown' && <ExerciseLaunchSequence exerciseType={runConfig.mode} title={modeLabels[runConfig.mode]} icon={runConfig.mode === 'audio' ? <AudioLines size={18}/> : <Target size={18}/>} accentToken={runConfig.mode.startsWith('finger') ? '#bd6c3c' : runConfig.mode.startsWith('soroban') ? '#16836e' : runConfig.mode === 'flash' ? '#7865b7' : '#315f86'} instruction={runConfig.mode === 'finger-read' ? 'Parmakları hızlıca tanımaya hazırlan.' : runConfig.mode === 'soroban-read' ? 'Görüntüye dikkatlice bak.' : runConfig.mode === 'soroban-write' ? 'Gösterilen sayıyı sorobanda kur.' : runConfig.mode === 'flash' ? 'Sayıları sırayla zihninde tut.' : 'Dinlemeye ve zihninde hesaplamaya hazırlan.'} countdownEnabled onComplete={openQuestion} />}
-              {phase === 'prepare' && <div className="launch-sequence text-center"><span className="mx-auto block h-3 w-3 animate-pulse rounded-full bg-[#4f9b85]"/><p className="mt-4 text-base font-semibold opacity-65">Yeni soru hazırlanıyor…</p></div>}
-              {phase === 'stimulus' && current && <div className="w-full text-center" aria-label="Zamanlı görsel uyaran"><p className="mb-5 text-sm font-semibold opacity-65">Dikkatlice bak</p>{runConfig.mode === 'finger-read' ? <div className={`mx-auto grid max-w-[760px] items-end gap-4 ${runConfig.digits === 1 ? 'grid-cols-1' : 'grid-cols-2'}`}>{runConfig.digits === 2 && <FingerHand side="left" pattern={numberPattern(current.answer).left}/>}<FingerHand side="right" pattern={numberPattern(current.answer).right}/></div> : <Soroban value={current.answer} digits={runConfig.rods ?? 5}/>}<p className="mt-5 text-xs opacity-55">{durationLabel(runConfig.presentationDurationMs ?? 1000)} sonra görüntü kapanır.</p></div>}
-              {phase === 'answer' && current && <form className="w-full max-w-md text-center" onSubmit={e => {e.preventDefault();submit();}}>
+              </div></PlayerPhase>
+              <PlayerPhase when="countdown"><ExerciseLaunchSequence exerciseType={runConfig.mode} title={modeLabels[runConfig.mode]} icon={runConfig.mode === 'audio' ? <AudioLines size={18}/> : <Target size={18}/>} accentToken={runConfig.mode.startsWith('finger') ? '#bd6c3c' : runConfig.mode.startsWith('soroban') ? '#16836e' : runConfig.mode === 'flash' ? '#7865b7' : '#315f86'} instruction={runConfig.mode === 'finger-read' ? 'Parmakları hızlıca tanımaya hazırlan.' : runConfig.mode === 'soroban-read' ? 'Görüntüye dikkatlice bak.' : runConfig.mode === 'soroban-write' ? 'Gösterilen sayıyı sorobanda kur.' : runConfig.mode === 'flash' ? 'Sayıları sırayla zihninde tut.' : 'Dinlemeye ve zihninde hesaplamaya hazırlan.'} countdownEnabled onComplete={openQuestion} /></PlayerPhase>
+              <PlayerPhase when="prepare"><div className="launch-sequence text-center"><span className="mx-auto block h-3 w-3 animate-pulse rounded-full bg-[#4f9b85]"/><p className="mt-4 text-base font-semibold opacity-65">Yeni soru hazırlanıyor…</p></div></PlayerPhase>
+              <PlayerPhase when="stimulus">{current && <div className="w-full text-center" aria-label="Zamanlı görsel uyaran"><p className="mb-5 text-sm font-semibold opacity-65">Dikkatlice bak</p>{runConfig.mode === 'finger-read' ? <div className={`mx-auto grid max-w-[760px] items-end gap-4 ${runConfig.digits === 1 ? 'grid-cols-1' : 'grid-cols-2'}`}>{runConfig.digits === 2 && <FingerHand side="left" pattern={numberPattern(current.answer).left}/>}<FingerHand side="right" pattern={numberPattern(current.answer).right}/></div> : <Soroban value={current.answer} digits={runConfig.rods ?? 5}/>}<p className="mt-5 text-xs opacity-55">{durationLabel(runConfig.presentationDurationMs ?? 1000)} sonra görüntü kapanır.</p></div>}</PlayerPhase>
+              <PlayerPhase when="answer">{current && <form className="w-full max-w-md text-center" onSubmit={e => {e.preventDefault();submit();}}>
                 <p className="mb-3 text-sm font-semibold opacity-70">{['soroban-read','finger-read'].includes(runConfig.mode) ? 'Gördüğün sayı kaçtı?' : runConfig.mode === 'soroban-write' ? 'Bu sayıyı sorobanda oluştur' : 'İşlemin sonucu kaç?'}</p>
                 {timedReading && measured && <p className="mb-5 text-xs opacity-55">Görsel kapandı. Cevabını hatırladığın sayı üzerinden ver.{(runConfig.answerDurationMs ?? 0) > 0 ? ` ${Math.ceil(answerRemainingMs/1000)} saniyen var.` : ''}</p>}
                 {timedReading && !measured && <div className="mb-5">{runConfig.mode==='soroban-read'?<Soroban value={current.answer} digits={runConfig.rods??5}/>:<div className={`mx-auto grid max-w-[760px] items-end gap-3 ${runConfig.digits===1?'grid-cols-1':'grid-cols-2'}`}>{runConfig.digits===2&&<FingerHand side="left" pattern={numberPattern(current.answer).left}/>}<FingerHand side="right" pattern={numberPattern(current.answer).right}/></div>}</div>}
@@ -338,10 +327,10 @@ export default function Studio() {
                 {runConfig.mode !== 'soroban-write' && <><div className="mx-auto mt-7 max-w-[220px]"><label htmlFor="answer" className="sr-only">Cevabın</label><Input autoFocus id="answer" autoComplete="off" inputMode="numeric" value={answer} onChange={e=>setAnswer(e.target.value.replace(/[^0-9-]/g, '').slice(0, 8))} placeholder="Cevabını yaz" className="focus-number h-16 text-center text-3xl font-bold md:text-3xl placeholder:text-base placeholder:font-normal" /></div><div className="mx-auto mt-4 grid max-w-[260px] grid-cols-3 gap-2" aria-label="Sayısal cevap klavyesi">{[1,2,3,4,5,6,7,8,9].map(digit => <button type="button" key={digit} className="h-10 rounded-lg border border-border bg-white text-lg font-semibold shadow-sm active:translate-y-px" onClick={() => addAnswerDigit(digit)}>{digit}</button>)}<button type="button" className="h-10 rounded-lg border border-border bg-white text-xs" onClick={() => setAnswer(value => value.slice(0, -1))}>Sil</button><button type="button" className="h-10 rounded-lg border border-border bg-white text-lg font-semibold" onClick={() => addAnswerDigit(0)}>0</button><button type="button" className="h-10 rounded-lg border border-border bg-white text-xs" onClick={() => setAnswer('')}>Temizle</button></div></>}
                 <Button type="submit" disabled={savingAttempt} className="mt-6 h-11 px-6">{savingAttempt?<><Loader2 className="animate-spin"/> Kaydediliyor</>:<>Yanıtı kaydet <ArrowRight /></>}</Button>
                 <p className="mt-4 text-[11px] opacity-50">Yanıt gönderilince doğru cevap ve verdiğin cevap karşılaştırılır.</p>
-              </form>}
-              {phase === 'feedback' && feedbackAttempt && runConfig.mode.startsWith('soroban') && !feedbackAttempt.correct && <SorobanAnswerComparison studentValue={Math.max(0,feedbackAttempt.given)} correctValue={feedbackAttempt.expected} digits={runConfig.rods??5} onRetry={retryQuestion} onNext={round+1<questions.length?nextQuestion:()=>void finishSession()}/>} {/* Soroban comparison */}
-              {phase === 'feedback' && feedbackAttempt && (!runConfig.mode.startsWith('soroban') || feedbackAttempt.correct) && <div className="w-full max-w-xl text-center"><CheckCircle2 size={48} className={`mx-auto mb-5 ${feedbackAttempt.correct ? 'text-[#0a9b56]' : 'text-[#d97716]'}`} /><h2 className={`text-2xl font-black ${feedbackAttempt.correct ? 'text-[#08733e]' : 'text-[#a65c31]'}`}>{feedbackAttempt.correct ? 'DOĞRU' : feedbackAttempt.timeout ? 'SÜRE DOLDU' : 'BİRLİKTE KONTROL EDELİM'}</h2><div className="mt-5 grid grid-cols-2 gap-3 text-left"><div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4"><p className="text-[11px] font-black uppercase tracking-wide text-emerald-800">Doğru cevap</p><p className="focus-number mt-2 text-3xl font-black">{feedbackAttempt.expected}</p></div><div className="rounded-xl border border-rose-200 bg-rose-50 p-4"><p className="text-[11px] font-black uppercase tracking-wide text-rose-800">Senin cevabın</p><p className="focus-number mt-2 text-3xl font-black">{feedbackAttempt.timeout ? 'Cevap verilmedi' : feedbackAttempt.given}</p></div></div><p className="mt-4 text-xs opacity-60">{round + 1 < runConfig.rounds ? 'Bir sonraki soru otomatik açılacak.' : 'Seans özeti hazırlanıyor.'}</p></div>}
-              {phase === 'finished' && <div className="w-full max-w-3xl text-center"><p className="eyebrow text-[#6a9e82]">{modeLabels[runConfig.mode]} tamamlandı</p><h2 className="mt-3 text-3xl font-semibold tracking-tight">Çalışma performansın hazır.</h2><div className="my-7 grid grid-cols-2 gap-3 md:grid-cols-3"><div className="rounded-xl bg-[#edf5f0] p-4"><p className="text-3xl font-semibold">{result.total}</p><p className="mt-2 text-xs opacity-60">Soru</p></div><div className="rounded-xl bg-emerald-50 p-4"><p className="text-3xl font-semibold text-emerald-800">{result.correct}</p><p className="mt-2 text-xs opacity-60">Doğru</p></div><div className="rounded-xl bg-amber-50 p-4"><p className="text-3xl font-semibold text-amber-800">{result.wrong}</p><p className="mt-2 text-xs opacity-60">Yanlış</p></div><div className="rounded-xl bg-slate-50 p-4"><p className="text-3xl font-semibold">{result.timeout}</p><p className="mt-2 text-xs opacity-60">Süre aşımı</p></div><div className="rounded-xl bg-[#edf5f0] p-4"><p className="text-3xl font-semibold">%{result.accuracy}</p><p className="mt-2 text-xs opacity-60">Başarı</p></div><div className="rounded-xl bg-blue-50 p-4"><p className="text-3xl font-semibold">{(result.averageResponseMs/1000).toFixed(1)} sn</p><p className="mt-2 text-xs opacity-60">Ort. cevap</p></div></div>{timedReading && <div className="grid gap-3 rounded-xl border border-[#cbdad4] bg-[#f8fbf9] p-4 text-left sm:grid-cols-2"><div><p className="text-xs opacity-60">Kullanılan gösterim</p><p className="mt-1 font-bold">{durationLabel(runConfig.presentationDurationMs ?? 1000)}</p></div><div><p className="text-xs opacity-60">En hızlı doğru cevap</p><p className="mt-1 font-bold">{result.fastestCorrectMs === null ? 'Henüz yok' : `${(result.fastestCorrectMs/1000).toFixed(1)} sn`}</p></div></div>}<p className="mt-5 rounded-xl bg-[#fbf6e9] p-4 text-sm leading-6 text-[#6d5b36]">{timedReading ? progressionSuggestion(result.accuracy,result.total,runConfig.presentationDurationMs ?? 1000) : result.accuracy >= 80 ? 'Bu ayarlarda iyi bir temel oluşturdun. Hızı artırmadan önce birkaç tutarlı seans daha tamamla.' : 'Bu seviyeyi sağlamlaştırmak için aynı ayarda bir tur daha çalışabilirsin.'}</p><div className="mt-6 flex justify-center gap-3"><Button className="h-11 px-5" onClick={reset}><RotateCcw/> Yeni seans</Button><a href="/educator" className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-border px-4 text-xs font-semibold">Eğitimci görünümü <ArrowRight size={14}/></a></div><p className="mt-5 text-[11px] text-[#39715c]">Tüm yanıtlar merkezi sisteme kaydedildi ve seans kapatıldı.{saved?' Bu cihazda ayrıca kısa süreli bir yedek tutuldu.':''}</p></div>}
+              </form>}</PlayerPhase>
+              <PlayerPhase when="feedback">{feedbackAttempt && runConfig.mode.startsWith('soroban') && !feedbackAttempt.correct && <SorobanAnswerComparison studentValue={Math.max(0,feedbackAttempt.given)} correctValue={feedbackAttempt.expected} digits={runConfig.rods??5} onRetry={retryQuestion} onNext={round+1<questions.length?nextQuestion:()=>void finishSession()}/>} {/* Soroban comparison */}</PlayerPhase>
+              <PlayerPhase when="feedback">{feedbackAttempt && (!runConfig.mode.startsWith('soroban') || feedbackAttempt.correct) && <div className="w-full max-w-xl text-center"><CheckCircle2 size={48} className={`mx-auto mb-5 ${feedbackAttempt.correct ? 'text-[#0a9b56]' : 'text-[#d97716]'}`} /><h2 className={`text-2xl font-black ${feedbackAttempt.correct ? 'text-[#08733e]' : 'text-[#a65c31]'}`}>{feedbackAttempt.correct ? 'DOĞRU' : feedbackAttempt.timeout ? 'SÜRE DOLDU' : 'BİRLİKTE KONTROL EDELİM'}</h2><div className="mt-5 grid grid-cols-2 gap-3 text-left"><div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4"><p className="text-[11px] font-black uppercase tracking-wide text-emerald-800">Doğru cevap</p><p className="focus-number mt-2 text-3xl font-black">{feedbackAttempt.expected}</p></div><div className="rounded-xl border border-rose-200 bg-rose-50 p-4"><p className="text-[11px] font-black uppercase tracking-wide text-rose-800">Senin cevabın</p><p className="focus-number mt-2 text-3xl font-black">{feedbackAttempt.timeout ? 'Cevap verilmedi' : feedbackAttempt.given}</p></div></div><p className="mt-4 text-xs opacity-60">{round + 1 < runConfig.rounds ? 'Bir sonraki soru otomatik açılacak.' : 'Seans özeti hazırlanıyor.'}</p></div>}</PlayerPhase>
+              <PlayerPhase when="finished"><div className="w-full max-w-3xl text-center"><p className="eyebrow text-[#6a9e82]">{modeLabels[runConfig.mode]} tamamlandı</p><h2 className="mt-3 text-3xl font-semibold tracking-tight">Çalışma performansın hazır.</h2><div className="my-7 grid grid-cols-2 gap-3 md:grid-cols-3"><div className="rounded-xl bg-[#edf5f0] p-4"><p className="text-3xl font-semibold">{result.total}</p><p className="mt-2 text-xs opacity-60">Soru</p></div><div className="rounded-xl bg-emerald-50 p-4"><p className="text-3xl font-semibold text-emerald-800">{result.correct}</p><p className="mt-2 text-xs opacity-60">Doğru</p></div><div className="rounded-xl bg-amber-50 p-4"><p className="text-3xl font-semibold text-amber-800">{result.wrong}</p><p className="mt-2 text-xs opacity-60">Yanlış</p></div><div className="rounded-xl bg-slate-50 p-4"><p className="text-3xl font-semibold">{result.timeout}</p><p className="mt-2 text-xs opacity-60">Süre aşımı</p></div><div className="rounded-xl bg-[#edf5f0] p-4"><p className="text-3xl font-semibold">%{result.accuracy}</p><p className="mt-2 text-xs opacity-60">Başarı</p></div><div className="rounded-xl bg-blue-50 p-4"><p className="text-3xl font-semibold">{(result.averageResponseMs/1000).toFixed(1)} sn</p><p className="mt-2 text-xs opacity-60">Ort. cevap</p></div></div>{timedReading && <div className="grid gap-3 rounded-xl border border-[#cbdad4] bg-[#f8fbf9] p-4 text-left sm:grid-cols-2"><div><p className="text-xs opacity-60">Kullanılan gösterim</p><p className="mt-1 font-bold">{durationLabel(runConfig.presentationDurationMs ?? 1000)}</p></div><div><p className="text-xs opacity-60">En hızlı doğru cevap</p><p className="mt-1 font-bold">{result.fastestCorrectMs === null ? 'Henüz yok' : `${(result.fastestCorrectMs/1000).toFixed(1)} sn`}</p></div></div>}<p className="mt-5 rounded-xl bg-[#fbf6e9] p-4 text-sm leading-6 text-[#6d5b36]">{timedReading ? progressionSuggestion(result.accuracy,result.total,runConfig.presentationDurationMs ?? 1000) : result.accuracy >= 80 ? 'Bu ayarlarda iyi bir temel oluşturdun. Hızı artırmadan önce birkaç tutarlı seans daha tamamla.' : 'Bu seviyeyi sağlamlaştırmak için aynı ayarda bir tur daha çalışabilirsin.'}</p><div className="mt-6 flex justify-center gap-3"><Button className="h-11 px-5" onClick={reset}><RotateCcw/> Yeni seans</Button><a href="/educator" className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-border px-4 text-xs font-semibold">Eğitimci görünümü <ArrowRight size={14}/></a></div><p className="mt-5 text-[11px] text-[#39715c]">Tüm yanıtlar merkezi sisteme kaydedildi ve seans kapatıldı.{saved?' Bu cihazda ayrıca kısa süreli bir yedek tutuldu.':''}</p></div></PlayerPhase>
           </ExercisePlayer>
           {phase === 'finished' && runConfig.mode.startsWith('soroban') && attempts.some(attempt=>!attempt.correct&&attempt.attemptType!=='RETRY_AFTER_FEEDBACK') && <section className="rounded-2xl border-2 border-[#efb55f] bg-[#fff8e7] p-5"><h2 className="font-black text-[#78470c]">Yanlış soruları görsel incele</h2><p className="mt-1 text-sm text-[#8a672f]">Bir soruya dokun; verdiğin cevapla doğru boncuk dizilimini yan yana gör.</p><div className="mt-4 flex flex-wrap gap-2">{attempts.map((attempt,index)=>!attempt.correct&&attempt.attemptType!=='RETRY_AFTER_FEEDBACK'?<Button key={index} variant="outline" className="border-[#dc941f] bg-white" onClick={()=>setReviewAttempt(attempt)}>Soru {index+1}</Button>:null)}</div></section>}
           {reviewAttempt && runConfig.mode.startsWith('soroban') && <dialog open aria-label="Soroban soru incelemesi" className="fixed inset-0 z-50 m-0 grid h-full max-h-none w-full max-w-none place-items-center overflow-y-auto border-0 bg-[#102034]/65 p-4"><div className="w-full max-w-6xl rounded-3xl bg-white p-5 shadow-2xl md:p-8"><SorobanAnswerComparison studentValue={Math.max(0,reviewAttempt.given)} correctValue={reviewAttempt.expected} digits={runConfig.rods??5} onNext={()=>setReviewAttempt(null)}/><div className="mt-4 grid gap-2 rounded-xl bg-[#edf5ff] p-4 text-sm sm:grid-cols-2"><p><b>Cevap süresi:</b> {(reviewAttempt.elapsedMs/1000).toFixed(2)} sn</p><p><b>Gösterim süresi:</b> {durationLabel(reviewAttempt.stimulusDurationMs??0)}</p></div></div></dialog>}
