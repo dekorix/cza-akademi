@@ -3,11 +3,15 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import test from 'node:test';
 import ts from 'typescript';
+import { createServer } from 'vite';
 
-import { exerciseForMode, exerciseRegistry } from '../lib/exercise-registry.ts';
 import { createQuestion, defaultConfig, score, validateConfig } from '../lib/exercise-engine.ts';
 import * as anzan from '../lib/anzan-engine.ts';
 import { assignedEnginePath, freePracticePath, isAssignedEngineModule } from '../lib/work-center.ts';
+
+const vite = await createServer({ configFile:false, server:{ middlewareMode:true, hmr:false }, appType:'custom', logLevel:'error' });
+const { exerciseForMode, exerciseRegistry } = await vite.ssrLoadModule('/lib/exercise-registry.ts');
+test.after(async () => vite.close());
 
 const read = path => fs.readFileSync(new URL(path, import.meta.url), 'utf8');
 const dataModule = source => import(`data:text/javascript;base64,${Buffer.from(ts.transpileModule(source, {
