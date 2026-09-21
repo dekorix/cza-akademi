@@ -1,6 +1,10 @@
 import { neon } from '@neondatabase/serverless';
 import type { EngineReference } from '@/lib/engine-contract';
 import { engineDefinition } from '../engine-registry';
+import {
+  numericResponse,
+  validateCanonicalResponse,
+} from '../response-contract';
 
 export type WorkStudent = {
   academy_id: string;
@@ -77,6 +81,22 @@ export function resolvePersistenceEngine(engine: EngineReference | null) {
   return engine
     ? engineDefinition(engine.engineId, engine.engineVersion)
     : null;
+}
+
+export function validatePersistenceResponse(payload: Record<string, unknown>) {
+  const metadata =
+    payload.metadata && typeof payload.metadata === 'object'
+      ? (payload.metadata as Record<string, unknown>)
+      : {};
+  const hasType = Object.hasOwn(metadata, 'responseType');
+  const hasPayload = Object.hasOwn(metadata, 'responsePayload');
+  if (hasType || hasPayload) {
+    return validateCanonicalResponse({
+      type: metadata.responseType,
+      payload: metadata.responsePayload,
+    });
+  }
+  return numericResponse(payload.studentNumericAnswer as number);
 }
 
 export async function assignedSessionForRecipe(
@@ -185,6 +205,11 @@ export async function recordAssignedAttempt(
   trainingSessionId: string,
   payload: Record<string, unknown>,
 ) {
+  try {
+    validatePersistenceResponse(payload);
+  } catch {
+    throw new WorkCenterPersistenceError('invalid_attempt', 400);
+  }
   const sql = database();
   try {
     const rows = await sql`

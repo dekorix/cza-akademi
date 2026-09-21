@@ -47,13 +47,15 @@ ALTER TABLE public.question_attempts
   ),
   ADD CONSTRAINT question_attempts_response_k3c_check CHECK (
     (response_type IS NULL AND response_payload IS NULL)
-    OR (
+    OR COALESCE(
       response_type IS NOT NULL
       AND response_payload IS NOT NULL
       AND response_type = 'numeric'
       AND jsonb_typeof(response_payload) = 'object'
+      AND response_payload ? 'value'
       AND jsonb_typeof(response_payload->'value') = 'number'
-      AND (response_payload->>'value') ~ '^-?[0-9]+$'
+      AND (response_payload->>'value') ~ '^-?[0-9]+$',
+      false
     )
   );
 

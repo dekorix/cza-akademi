@@ -110,6 +110,26 @@ test('persistence resolves engines through the registry before opening the datab
     repositorySource.indexOf('resolvePersistenceEngine(input.engine)') <
       repositorySource.indexOf('const sql = database()', repositorySource.indexOf('export async function bindAssignedSession')),
   );
+  assert.deepEqual(
+    repository.validatePersistenceResponse({
+      studentNumericAnswer: 7,
+      metadata: { responseType: 'numeric', responsePayload: { value: 7 } },
+    }),
+    { type: 'numeric', payload: { value: 7 } },
+  );
+  for (const responsePayload of [{}, { value: null }, { value: '7' }, []]) {
+    assert.throws(
+      () => repository.validatePersistenceResponse({
+        studentNumericAnswer: 7,
+        metadata: { responseType: 'numeric', responsePayload },
+      }),
+      /malformed_generic_response/,
+    );
+  }
+  assert.deepEqual(
+    repository.validatePersistenceResponse({ studentNumericAnswer: 7, metadata: {} }),
+    { type: 'numeric', payload: { value: 7 } },
+  );
 });
 
 test('database preserves generic provenance integrity without duplicating the engine catalog', () => {
@@ -201,6 +221,20 @@ test('migration preserves legacy rows and stamps session to evidence provenance 
       db.exec(`UPDATE public.question_attempts SET response_type='numeric',response_payload=NULL WHERE id='10000000-0000-4000-8000-000000000004'`),
       /question_attempts_response_k3c_check/,
     );
+    for (const malformedPayload of [
+      '{}',
+      '{"value":null}',
+      '{"value":"7"}',
+      '[]',
+    ]) {
+      await assert.rejects(
+        db.query(
+          `UPDATE public.question_attempts SET response_type='numeric',response_payload=$1::jsonb WHERE id='10000000-0000-4000-8000-000000000004'`,
+          [malformedPayload],
+        ),
+        /question_attempts_response_k3c_check/,
+      );
+    }
 
     await db.exec(`INSERT INTO public.question_attempts VALUES (
       '10000000-0000-4000-8000-000000000007','10000000-0000-4000-8000-000000000003','{}',9
