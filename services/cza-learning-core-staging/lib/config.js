@@ -1,6 +1,8 @@
 const EXPECTED_PROJECT = 'hidden-glade-66748043';
 const EXPECTED_BRANCH = 'br-ancient-bread-b2puable';
 const EXPECTED_DATABASE = 'cza_learning';
+const EXPECTED_DATABASE_HOST =
+  'ep-falling-resonance-b2qnvtwf.c-6.eu-central-1.aws.neon.tech';
 
 export class StagingCoreConfigurationError extends Error {
   constructor() {
@@ -33,7 +35,7 @@ export function stagingDatabaseConfig(environment = process.env) {
     throw new StagingCoreConfigurationError();
   }
   if (
-    !url.hostname.endsWith('.neon.tech') ||
+    url.hostname !== EXPECTED_DATABASE_HOST ||
     decodeURIComponent(url.pathname.slice(1)) !== EXPECTED_DATABASE ||
     !url.username ||
     !url.password
@@ -48,4 +50,5 @@ export const stagingDatabaseIdentity = Object.freeze({
   projectId: EXPECTED_PROJECT,
   branchId: EXPECTED_BRANCH,
   database: EXPECTED_DATABASE,
+  hostname: EXPECTED_DATABASE_HOST,
 });

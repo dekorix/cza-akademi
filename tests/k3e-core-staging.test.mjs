@@ -164,15 +164,30 @@ test('null RPC outcomes reject invalid sessions for every mutating action', asyn
 
 test('database identity is pinned to the non-production branch and fails closed', () => {
   const base = {
-    DATABASE_URL: 'postgresql://staging:secret@ep-test.eu-central-1.aws.neon.tech/cza_learning?sslmode=require',
+    DATABASE_URL: 'postgresql://staging:secret@ep-falling-resonance-b2qnvtwf.c-6.eu-central-1.aws.neon.tech/cza_learning?sslmode=require',
     CZA_NEON_PROJECT_ID: 'hidden-glade-66748043',
     CZA_NEON_BRANCH_ID: 'br-ancient-bread-b2puable',
     CZA_NEON_DATABASE: 'cza_learning',
   };
   assert.equal(stagingDatabaseConfig(base).databaseUrl, base.DATABASE_URL);
+  assert.throws(() => stagingDatabaseConfig({
+    ...base,
+    DATABASE_URL: 'postgresql://staging:secret@ep-production-main.c-6.eu-central-1.aws.neon.tech/cza_learning?sslmode=require',
+  }));
+  assert.throws(() => stagingDatabaseConfig({
+    ...base,
+    DATABASE_URL: 'postgresql://staging:secret@ep-other-branch.c-6.eu-central-1.aws.neon.tech/cza_learning?sslmode=require',
+  }));
+  assert.throws(() => stagingDatabaseConfig({
+    ...base,
+    DATABASE_URL: 'postgresql://staging:secret@ep-foreign-project.c-6.eu-central-1.aws.neon.tech/cza_learning?sslmode=require',
+  }));
   assert.throws(() => stagingDatabaseConfig({ ...base, CZA_NEON_BRANCH_ID: 'br-aged-bird-b2ml5crw' }));
   assert.throws(() => stagingDatabaseConfig({ ...base, CZA_NEON_DATABASE: 'production' }));
   assert.throws(() => stagingDatabaseConfig({ ...base, DATABASE_URL: 'postgresql://user:secret@db.example.com/cza_learning' }));
+  assert.throws(() => stagingDatabaseConfig({ ...base, CZA_NEON_PROJECT_ID: undefined }));
+  assert.throws(() => stagingDatabaseConfig({ ...base, CZA_NEON_BRANCH_ID: undefined }));
+  assert.throws(() => stagingDatabaseConfig({ ...base, CZA_NEON_DATABASE: undefined }));
   assert.throws(() => stagingDatabaseConfig({}));
 });
 
