@@ -17,7 +17,13 @@ function nodeRequest(method, body, headers = {}) {
   return request;
 }
 
-async function invoke(handler, method, body, headers = {}) {
+function parsedNodeRequest(method, body, headers = {}) {
+  const request = nodeRequest(method, undefined, headers);
+  request.body = body;
+  return request;
+}
+
+async function invokeRequest(handler, request) {
   const responseHeaders = new Map();
   let completed = false;
   let responseBody = Buffer.alloc(0);
@@ -31,7 +37,7 @@ async function invoke(handler, method, body, headers = {}) {
       responseBody = value ? Buffer.from(value) : Buffer.alloc(0);
     },
   };
-  const invocation = handler(nodeRequest(method, body, headers), response);
+  const invocation = handler(request, response);
   await Promise.race([
     invocation,
     new Promise((_, reject) => setTimeout(() => reject(new Error('FUNCTION_INVOCATION_TIMEOUT')), TIMEOUT_MS)),
@@ -42,6 +48,14 @@ async function invoke(handler, method, body, headers = {}) {
     headers: responseHeaders,
     body: JSON.parse(responseBody.toString('utf8')),
   };
+}
+
+async function invoke(handler, method, body, headers = {}) {
+  return invokeRequest(handler, nodeRequest(method, body, headers));
+}
+
+async function invokeParsed(handler, body, headers = {}) {
+  return invokeRequest(handler, parsedNodeRequest('POST', body, headers));
 }
 
 test('Vercel Node default export completes GET with 405 instead of timing out', async () => {
@@ -87,4 +101,78 @@ test('Vercel Node bridge writes a valid canonical POST Response to res.end', asy
   assert.equal(response.status, 200);
   assert.equal(response.body.student.id, '11111111-1111-4111-8111-111111111111');
   assert.match(response.headers.get('content-type'), /^application\/json/);
+});
+
+test('Vercel Node bridge forwards a pre-parsed invalid action to canonical validation', async () => {
+  const response = await invokeParsed(vercelHandler, { action: 'unknown' }, {
+    'content-type': 'application/json',
+  });
+  assert.equal(response.status, 400);
+  assert.deepEqual(response.body, { ok: false, error: 'invalid_action' });
+});
+
+test('Vercel Node bridge forwards a pre-parsed request to canonical session validation', async () => {
+  const webHandler = createStudentHandler({
+    databaseFactory: () => ({ me: async () => null }),
+  });
+  const response = await invokeParsed(
+    createVercelNodeHandler(webHandler),
+    { action: 'me', sessionToken: 'expired-token' },
+    { 'content-type': 'application/json' },
+  );
+  assert.equal(response.status, 401);
+  assert.deepEqual(response.body, { ok: false, error: 'invalid_session' });
+});
+
+test('Vercel Node bridge completes a valid pre-parsed canonical POST', async () => {
+  const webHandler = createStudentHandler({
+    databaseFactory: () => ({
+      me: async () => ({ student: { id: '11111111-1111-4111-8111-111111111111' }, assignments: [], mastery: [] }),
+    }),
+  });
+  const response = await invokeParsed(
+    createVercelNodeHandler(webHandler),
+    { action: 'me', sessionToken: 'valid-token' },
+    { 'content-type': 'application/json' },
+  );
+  assert.equal(response.status, 200);
+  assert.equal(response.body.student.id, '11111111-1111-4111-8111-111111111111');
+});
+
+test('Vercel Node bridge accepts parsed string and byte body representations', async () => {
+  for (const body of [
+    JSON.stringify({ action: 'unknown' }),
+    Buffer.from(JSON.stringify({ action: 'unknown' })),
+    new Uint8Array(Buffer.from(JSON.stringify({ action: 'unknown' }))),
+  ]) {
+    const response = await invokeParsed(vercelHandler, body, {
+      'content-type': 'application/json',
+    });
+    assert.equal(response.status, 400);
+    assert.deepEqual(response.body, { ok: false, error: 'invalid_action' });
+  }
+});
+
+test('Vercel Node bridge preserves the body limit for reconstructed parsed JSON', async () => {
+  const response = await invokeParsed(
+    vercelHandler,
+    { action: 'login', username: 'x'.repeat(70_000), pin: '1234' },
+    { 'content-type': 'application/json' },
+  );
+  assert.equal(response.status, 413);
+  assert.deepEqual(response.body, { ok: false, error: 'request_too_large' });
+});
+
+test('Vercel Node bridge keeps content type and malformed body checks fail-closed', async () => {
+  const unsupported = await invokeParsed(vercelHandler, { action: 'unknown' }, {
+    'content-type': 'text/plain',
+  });
+  assert.equal(unsupported.status, 415);
+  assert.deepEqual(unsupported.body, { ok: false, error: 'unsupported_media_type' });
+
+  const malformed = await invokeParsed(vercelHandler, 7, {
+    'content-type': 'application/json',
+  });
+  assert.equal(malformed.status, 400);
+  assert.deepEqual(malformed.body, { ok: false, error: 'invalid_request' });
 });

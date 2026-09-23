@@ -31,6 +31,18 @@ function writeResponseHeaders(response, nodeResponse) {
   if (cookies.length) nodeResponse.setHeader('set-cookie', cookies);
 }
 
+function requestBody(nodeRequest) {
+  if (nodeRequest.body === undefined) return Readable.toWeb(nodeRequest);
+  if (typeof nodeRequest.body === 'string') return nodeRequest.body;
+  if (Buffer.isBuffer(nodeRequest.body) || nodeRequest.body instanceof Uint8Array) {
+    return nodeRequest.body;
+  }
+  if (nodeRequest.body !== null && typeof nodeRequest.body === 'object') {
+    return JSON.stringify(nodeRequest.body);
+  }
+  return '';
+}
+
 export function createVercelNodeHandler(webHandler = POST) {
   return async function vercelNodeHandler(nodeRequest, nodeResponse) {
     const headers = requestHeaders(nodeRequest.headers);
@@ -39,7 +51,7 @@ export function createVercelNodeHandler(webHandler = POST) {
     const request = new Request(requestUrl(nodeRequest, headers), {
       method,
       headers,
-      body: hasBody ? Readable.toWeb(nodeRequest) : undefined,
+      body: hasBody ? requestBody(nodeRequest) : undefined,
       ...(hasBody ? { duplex: 'half' } : {}),
     });
     const response = await webHandler(request);
