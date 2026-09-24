@@ -334,12 +334,18 @@ export async function POST(request: Request) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), UPSTREAM_TIMEOUT_MS);
   try {
+    const upstreamHeaders = new Headers({
+      'content-type': 'application/json',
+      accept: 'application/json',
+    });
+    const vercelBypassSecret =
+      process.env.CZA_CORE_VERCEL_BYPASS_SECRET?.trim();
+    if (vercelBypassSecret) {
+      upstreamHeaders.set('x-vercel-protection-bypass', vercelBypassSecret);
+    }
     const upstream = await fetch(coreUrl, {
       method: 'POST',
-      headers: {
-        'content-type': 'application/json',
-        accept: 'application/json',
-      },
+      headers: upstreamHeaders,
       body: JSON.stringify(payload),
       redirect: 'error',
       cache: 'no-store',
