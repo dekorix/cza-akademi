@@ -1,6 +1,11 @@
 import { neon } from '@neondatabase/serverless';
 import { allowRequest, rateLimited } from '@/lib/request-guard';
 import {
+  reportGuardStage,
+  reportUpstreamRedirect,
+  stagingDiagnosticsEnabled,
+} from '@/lib/k3e-staging-diagnostics';
+import {
   authenticatedStudent,
   readRequestCookie,
   revokeStudentSession,
@@ -125,11 +130,14 @@ export async function POST(request: Request) {
   ) => json(body, status, headers, [...responseCookies, ...extraCookies]);
 
   if (action === 'login') {
+    const diagnostic = stagingDiagnosticsEnabled(requestUrl);
     const gate = await allowRequest(
       request,
       'student-login',
       6,
       10 * 60 * 1000,
+      undefined,
+      diagnostic ? reportGuardStage : undefined,
     );
     if (!gate.allowed) {
       const response = rateLimited(gate);
@@ -332,6 +340,7 @@ export async function POST(request: Request) {
   }
 
   const controller = new AbortController();
+  const diagnostic = stagingDiagnosticsEnabled(requestUrl);
   const timeout = setTimeout(() => controller.abort(), UPSTREAM_TIMEOUT_MS);
   try {
     const upstreamHeaders = new Headers({
@@ -347,10 +356,18 @@ export async function POST(request: Request) {
       method: 'POST',
       headers: upstreamHeaders,
       body: JSON.stringify(payload),
-      redirect: 'error',
+      redirect: diagnostic ? 'manual' : 'error',
       cache: 'no-store',
       signal: controller.signal,
     });
+    if (diagnostic && upstream.status >= 300 && upstream.status < 400) {
+      reportUpstreamRedirect(
+        upstream.status,
+        upstream.headers.get('location'),
+        coreUrl,
+      );
+      return respond({ ok: false, error: 'core_unavailable' }, 502);
+    }
     const result = await readBoundedJson(upstream, MAX_REQUEST_BYTES);
     if (!result || typeof result !== 'object' || Array.isArray(result)) {
       return respond({ ok: false, error: 'core_invalid_response' }, 502);

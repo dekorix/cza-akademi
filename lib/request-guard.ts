@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto';
 import { neon } from '@neondatabase/serverless';
 import { trustedRequestAddress } from '@/lib/trusted-client-address';
+import type { GuardStage } from '@/lib/k3e-staging-diagnostics';
 
 export { trustedRequestAddress } from '@/lib/trusted-client-address';
 
@@ -65,6 +66,7 @@ export async function allowRequest(
   limit: number,
   windowMs: number,
   authenticatedSubject?: string,
+  onDiagnostic?: (stage: GuardStage) => void,
 ): Promise<RequestGate> {
   if (
     !SCOPE_PATTERN.test(scope) ||
@@ -75,17 +77,29 @@ export async function allowRequest(
     windowMs < 1000 ||
     windowMs > 86_400_000
   ) {
+    onDiagnostic?.('invalid_parameters');
     return { allowed: false, retryAfterSeconds: 30, unavailable: true };
   }
 
   const address = trustedRequestAddress(request);
   if (!address) {
+    const cf = (request as Request & { cf?: unknown }).cf;
+    onDiagnostic?.(
+      process.env.NODE_ENV === 'production' &&
+        process.env.CZA_TRUSTED_EDGE !== 'cloudflare'
+        ? 'trusted_edge_unconfigured'
+        : process.env.NODE_ENV === 'production' &&
+            (!cf || typeof cf !== 'object')
+          ? 'cloudflare_context_missing'
+          : 'client_address_unavailable',
+    );
     return { allowed: false, retryAfterSeconds: 30, unavailable: true };
   }
   const hash = subjectHash(address, scope, authenticatedSubject);
   const databaseUrl = process.env.DATABASE_URL;
   if (!databaseUrl) {
     if (process.env.NODE_ENV === 'production') {
+      onDiagnostic?.('database_unconfigured');
       return { allowed: false, retryAfterSeconds: 30, unavailable: true };
     }
     return localLimit(`${scope}:${hash}`, limit, windowMs);
@@ -104,8 +118,10 @@ export async function allowRequest(
     `;
     const row = rows[0] as DistributedGateRow | undefined;
     if (!row || typeof row.allowed !== 'boolean') {
+      onDiagnostic?.('sql_result_invalid');
       return { allowed: false, retryAfterSeconds: 30, unavailable: true };
     }
+    if (!row.allowed) onDiagnostic?.('quota_exceeded');
     return {
       allowed: row.allowed,
       retryAfterSeconds: row.allowed
@@ -113,6 +129,7 @@ export async function allowRequest(
         : Math.max(1, Number(row.retry_after_seconds) || 1),
     };
   } catch {
+    onDiagnostic?.('sql_call_failed');
     if (process.env.NODE_ENV !== 'production') {
       return localLimit(`${scope}:${hash}`, limit, windowMs);
     }
