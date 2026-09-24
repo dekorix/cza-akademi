@@ -33,6 +33,8 @@ export function friendlyCoreError(error: unknown) {
   if (code === 'session_required' || code === 'invalid_session') return 'Oturumun sona erdi. Yeniden giriş yap.';
   if (code === 'request_origin_rejected') return 'Güvenlik doğrulaması tamamlanamadı.';
   if (code === 'rate_limited') return 'Çok fazla deneme yapıldı. Lütfen kısa süre sonra yeniden dene.';
+  if (code === 'rate_limit_unavailable') return 'Güvenlik sayacı şu anda doğrulanamıyor. Lütfen biraz sonra yeniden dene.';
+  if (code === 'logout_revocation_failed' || code === 'database_unavailable') return 'Güvenli çıkış sunucuda tamamlanamadı.';
   if (code === 'session_not_created') return 'Bu çalışma oturumu açılamadı.';
   return 'Merkezi kayıt sistemine şu anda ulaşılamıyor. Bağlantını kontrol edip tekrar dene.';
 }

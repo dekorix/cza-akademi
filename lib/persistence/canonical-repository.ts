@@ -4,12 +4,14 @@ import type { CanonicalLearningRecord } from '@/lib/learning-contract-server';
 type AuthenticatedStudent = {
   academy_id: string;
   student_id: string;
+  session_id: string;
 };
 
 type PersistenceRow = {
   learning_record_id: string;
   replayed: boolean;
   canonical_payload_hash: string;
+  verification_status: 'client_reported';
 };
 
 export class CanonicalPersistenceError extends Error {
@@ -29,6 +31,9 @@ function databaseErrorCode(error: unknown) {
   }
   if (message.includes('CZA_SESSION_OWNERSHIP_INVALID')) {
     return new CanonicalPersistenceError('session_ownership_invalid', 403);
+  }
+  if (message.includes('CZA_STUDENT_SESSION_REVOKED')) {
+    return new CanonicalPersistenceError('session_required', 401);
   }
   if (
     message.includes('CZA_CONTRACT_INVALID') ||
@@ -52,10 +57,11 @@ export async function persistCanonicalLearningRecord(
 
   try {
     const rows = await sql`
-      SELECT learning_record_id, replayed, canonical_payload_hash
+      SELECT learning_record_id, replayed, canonical_payload_hash, verification_status
       FROM public.cza_student_record_learning(
         ${student.academy_id}::uuid,
         ${student.student_id}::uuid,
+        ${student.session_id}::uuid,
         ${record.trainingSessionId}::uuid,
         ${record.clientRecordId}::uuid,
         ${record.recordType}::text,
@@ -80,6 +86,7 @@ export async function persistCanonicalLearningRecord(
       learningRecordId: result.learning_record_id,
       replayed: result.replayed,
       payloadHash: result.canonical_payload_hash,
+      verificationStatus: result.verification_status,
     });
   } catch (error) {
     if (error instanceof CanonicalPersistenceError) throw error;

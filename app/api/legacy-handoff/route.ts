@@ -13,8 +13,8 @@ function json(body: unknown, status = 200, headers?: HeadersInit) {
 }
 
 export async function POST(request: Request) {
-  const gate = allowRequest(request, 'legacy-handoff', 10, 10 * 60 * 1000);
-  if (!gate.allowed) return rateLimited(gate.retryAfterSeconds);
+  const gate = await allowRequest(request, 'legacy-handoff', 10, 10 * 60 * 1000);
+  if (!gate.allowed) return rateLimited(gate);
   const origin = request.headers.get('origin');
   if (origin && origin !== new URL(request.url).origin) return json({ ok: false, error: 'request_origin_rejected' }, 403);
   if (!process.env.DATABASE_URL) return json({ ok: false, error: 'database_unavailable' }, 503);

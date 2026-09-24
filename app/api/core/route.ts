@@ -1,110 +1,169 @@
-const DEFAULT_CORE_URL =
-  'https://br-aged-bird-b2ml5crw-czastudent.compute.c-6.eu-central-1.aws.neon.tech/';
 import { neon } from '@neondatabase/serverless';
 import { allowRequest, rateLimited } from '@/lib/request-guard';
-import { authenticatedStudent, readRequestCookie } from '@/lib/student-session';
-import { LearningContractError, parseCanonicalLearningRecord } from '@/lib/learning-contract-server';
-import { CanonicalPersistenceError, persistCanonicalLearningRecord } from '@/lib/persistence/canonical-repository';
-
-const ALLOWED_ACTIONS = new Set([
-  'login',
-  'me',
-  'start',
-  'finish',
-  'interaction',
-  'attempt',
-  'module_record',
-  'logout',
-]);
+import {
+  authenticatedStudent,
+  readRequestCookie,
+  revokeStudentSession,
+  StudentSessionError,
+} from '@/lib/student-session';
+import {
+  configuredCoreUrl,
+  CoreRequestError,
+  parseCoreRequest,
+  readBoundedJson,
+  type CoreAction,
+} from '@/lib/core-request-security';
+import {
+  LearningContractError,
+  parseCanonicalLearningRecord,
+} from '@/lib/learning-contract-server';
+import {
+  CanonicalPersistenceError,
+  persistCanonicalLearningRecord,
+} from '@/lib/persistence/canonical-repository';
 
 const COOKIE_NAME = 'cza_student_session';
 const ASSIGNMENT_COOKIE = 'cza_assignment_recipe';
-const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const UUID_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const MAX_REQUEST_BYTES = 64 * 1024;
+const UPSTREAM_TIMEOUT_MS = 15_000;
 
 function readCookie(request: Request, name: string) {
   return readRequestCookie(request, name);
 }
 
-function sessionCookie(value: string, maxAge: number, secure: boolean) {
+function cookie(name: string, value: string, maxAge: number, secure: boolean) {
   return [
-    `${COOKIE_NAME}=${encodeURIComponent(value)}`,
+    `${name}=${encodeURIComponent(value)}`,
     'Path=/api/core',
     'HttpOnly',
     ...(secure ? ['Secure'] : []),
     'SameSite=Lax',
     `Max-Age=${maxAge}`,
   ].join('; ');
+}
+
+function sessionCookie(value: string, maxAge: number, secure: boolean) {
+  return cookie(COOKIE_NAME, value, maxAge, secure);
 }
 
 function assignmentCookie(value: string, maxAge: number, secure: boolean) {
-  return [
-    `${ASSIGNMENT_COOKIE}=${encodeURIComponent(value)}`,
-    'Path=/api/core',
-    'HttpOnly',
-    ...(secure ? ['Secure'] : []),
-    'SameSite=Lax',
-    `Max-Age=${maxAge}`,
-  ].join('; ');
+  return cookie(ASSIGNMENT_COOKIE, value, maxAge, secure);
 }
 
-function json(body: unknown, status = 200, headers?: HeadersInit) {
+function json(
+  body: unknown,
+  status = 200,
+  headers?: HeadersInit,
+  cookies: string[] = [],
+) {
   const responseHeaders = new Headers(headers);
   responseHeaders.set('content-type', 'application/json; charset=utf-8');
   responseHeaders.set('cache-control', 'no-store');
+  for (const value of cookies) responseHeaders.append('set-cookie', value);
   return new Response(JSON.stringify(body), {
     status,
     headers: responseHeaders,
   });
 }
 
+function lifecycleCookies(action: CoreAction, secure: boolean) {
+  const values: string[] = [];
+  if (action === 'login' || action === 'start') {
+    values.push(assignmentCookie('', 0, secure));
+  }
+  return values;
+}
+
 export async function POST(request: Request) {
-  const secureCookie = new URL(request.url).protocol === 'https:';
+  const requestUrl = new URL(request.url);
+  const secureCookie = requestUrl.protocol === 'https:';
+  if (process.env.NODE_ENV === 'production' && !secureCookie) {
+    return json({ ok: false, error: 'secure_transport_required' }, 400);
+  }
+
   const origin = request.headers.get('origin');
-  if (origin && origin !== new URL(request.url).origin) {
+  const fetchSite = request.headers.get('sec-fetch-site');
+  if (
+    (origin && origin !== requestUrl.origin) ||
+    (fetchSite && fetchSite !== 'same-origin' && fetchSite !== 'none')
+  ) {
     return json({ ok: false, error: 'request_origin_rejected' }, 403);
   }
 
-  let input: Record<string, unknown>;
+  let input;
   try {
-    const declaredLength = Number(request.headers.get('content-length') || '0');
-    if (Number.isFinite(declaredLength) && declaredLength > MAX_REQUEST_BYTES) {
-      return json({ ok: false, error: 'request_too_large' }, 413);
+    input = parseCoreRequest(await readBoundedJson(request, MAX_REQUEST_BYTES));
+  } catch (error) {
+    if (error instanceof CoreRequestError) {
+      return json({ ok: false, error: error.code }, error.status);
     }
-    const rawBody = await request.text();
-    if (new TextEncoder().encode(rawBody).byteLength > MAX_REQUEST_BYTES) {
-      return json({ ok: false, error: 'request_too_large' }, 413);
-    }
-    input = JSON.parse(rawBody) as Record<string, unknown>;
-  } catch {
     return json({ ok: false, error: 'invalid_request' }, 400);
   }
 
-  const action = typeof input.action === 'string' ? input.action : '';
-  if (!ALLOWED_ACTIONS.has(action)) {
-    return json({ ok: false, error: 'invalid_action' }, 400);
-  }
+  const action = input.action;
+  const responseCookies = lifecycleCookies(action, secureCookie);
+  const respond = (
+    body: unknown,
+    status = 200,
+    headers?: HeadersInit,
+    extraCookies: string[] = [],
+  ) => json(body, status, headers, [...responseCookies, ...extraCookies]);
 
   if (action === 'login') {
-    const gate = allowRequest(request, 'student-login', 6, 10 * 60 * 1000);
-    if (!gate.allowed) return rateLimited(gate.retryAfterSeconds);
+    const gate = await allowRequest(
+      request,
+      'student-login',
+      6,
+      10 * 60 * 1000,
+    );
+    if (!gate.allowed) {
+      const response = rateLimited(gate);
+      for (const value of responseCookies)
+        response.headers.append('set-cookie', value);
+      return response;
+    }
   }
 
   const sessionToken = readCookie(request, COOKIE_NAME);
   if (action !== 'login' && !sessionToken) {
-    return json({ ok: false, error: 'session_required' }, 401);
+    return respond({ ok: false, error: 'session_required' }, 401);
+  }
+
+  if (action === 'logout') {
+    try {
+      await revokeStudentSession(request);
+      return json({ ok: true, revoked: true }, 200, undefined, [
+        assignmentCookie('', 0, secureCookie),
+        sessionCookie('', 0, secureCookie),
+      ]);
+    } catch (error) {
+      const code =
+        error instanceof StudentSessionError
+          ? error.code
+          : 'logout_revocation_failed';
+      // Preserve both cookies so the user can retry durable revocation.
+      return json({ ok: false, error: code }, 503);
+    }
   }
 
   if (action === 'module_record') {
-    const gate = allowRequest(request, 'module-record', 120, 60 * 1000);
-    if (!gate.allowed) return rateLimited(gate.retryAfterSeconds);
-
     if (!process.env.DATABASE_URL) {
-      return json({ ok: false, error: 'database_unavailable' }, 503);
+      return respond({ ok: false, error: 'database_unavailable' }, 503);
     }
 
     const student = await authenticatedStudent(request);
-    if (!student) return json({ ok: false, error: 'session_required' }, 401);
+    if (!student) return respond({ ok: false, error: 'session_required' }, 401);
+
+    const gate = await allowRequest(
+      request,
+      'module-record',
+      120,
+      60 * 1000,
+      student.student_id,
+    );
+    if (!gate.allowed) return rateLimited(gate);
 
     try {
       const record = parseCanonicalLearningRecord(
@@ -112,30 +171,47 @@ export async function POST(request: Request) {
         request.headers.get('x-cza-contract-version'),
       );
       const persisted = await persistCanonicalLearningRecord(student, record);
-      return json({ ok: true, ...persisted }, persisted.replayed ? 200 : 201);
+      return respond(
+        { ok: true, ...persisted },
+        persisted.replayed ? 200 : 201,
+      );
     } catch (error) {
       if (error instanceof LearningContractError) {
-        return json({ ok: false, error: error.code }, 400);
+        return respond({ ok: false, error: error.code }, 400);
       }
       if (error instanceof CanonicalPersistenceError) {
-        return json({ ok: false, error: error.code }, error.status);
+        return respond({ ok: false, error: error.code }, error.status);
       }
-      return json({ ok: false, error: 'learning_persistence_unavailable' }, 503);
+      return respond(
+        { ok: false, error: 'learning_persistence_unavailable' },
+        503,
+      );
     }
   }
 
-  const payload = { ...input };
+  const payload: Record<string, unknown> = { ...input };
   delete payload.sessionToken;
   if (action !== 'login') payload.sessionToken = sessionToken;
 
-  let launchedAssignment = false;
   if (action === 'start') {
     const recipeId = readCookie(request, ASSIGNMENT_COOKIE);
+    if (
+      !recipeId &&
+      (payload.source === 'teacher_assignment' || payload.recipeId !== null)
+    ) {
+      return respond({ ok: false, error: 'assignment_launch_required' }, 403);
+    }
+
     if (recipeId) {
-      if (!UUID_PATTERN.test(recipeId)) return json({ ok: false, error: 'invalid_assignment_id' }, 400);
-      if (!process.env.DATABASE_URL) return json({ ok: false, error: 'database_unavailable' }, 503);
+      if (!UUID_PATTERN.test(recipeId)) {
+        return respond({ ok: false, error: 'invalid_assignment_id' }, 400);
+      }
+      if (!process.env.DATABASE_URL) {
+        return respond({ ok: false, error: 'database_unavailable' }, 503);
+      }
       const student = await authenticatedStudent(request);
-      if (!student) return json({ ok: false, error: 'session_required' }, 401);
+      if (!student)
+        return respond({ ok: false, error: 'session_required' }, 401);
       const sql = neon(process.env.DATABASE_URL);
       const recipes = await sql`
         SELECT id, module_code, settings
@@ -149,52 +225,86 @@ export async function POST(request: Request) {
           AND (expires_at IS NULL OR expires_at > now())
         LIMIT 1
       `;
-      if (!recipes.length) return json({ ok: false, error: 'assignment_not_found' }, 404);
-      const recipe = recipes[0] as { id: string; module_code: string; settings: Record<string, unknown> };
+      if (!recipes.length) {
+        return respond({ ok: false, error: 'assignment_not_found' }, 404);
+      }
+      const recipe = recipes[0] as {
+        id: string;
+        module_code: string;
+        settings: Record<string, unknown>;
+      };
       payload.recipeId = recipe.id;
       payload.moduleCode = recipe.module_code;
       payload.source = 'teacher_assignment';
       payload.settings = recipe.settings;
-      launchedAssignment = true;
+    } else {
+      payload.recipeId = null;
+      payload.source = 'free_practice';
     }
   }
 
-  const coreUrl = process.env.CZA_CORE_API_URL || DEFAULT_CORE_URL;
+  let coreUrl: string;
+  try {
+    coreUrl = configuredCoreUrl();
+  } catch (error) {
+    if (error instanceof CoreRequestError) {
+      return respond({ ok: false, error: error.code }, error.status);
+    }
+    return respond({ ok: false, error: 'core_configuration_unavailable' }, 503);
+  }
 
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), UPSTREAM_TIMEOUT_MS);
   try {
     const upstream = await fetch(coreUrl, {
       method: 'POST',
-      headers: { 'content-type': 'application/json' },
+      headers: {
+        'content-type': 'application/json',
+        accept: 'application/json',
+      },
       body: JSON.stringify(payload),
+      redirect: 'error',
+      cache: 'no-store',
+      signal: controller.signal,
     });
-    const result = (await upstream.json()) as Record<string, unknown>;
+    const result = await readBoundedJson(upstream, MAX_REQUEST_BYTES);
+    if (!result || typeof result !== 'object' || Array.isArray(result)) {
+      return respond({ ok: false, error: 'core_invalid_response' }, 502);
+    }
 
-    if (!upstream.ok || result.ok === false) {
-      const status = upstream.status >= 400 && upstream.status < 500 ? upstream.status : 502;
-      return json({ ok: false, error: result.error || 'core_unavailable' }, status);
+    const upstreamResult = result as Record<string, unknown>;
+    if (!upstream.ok || upstreamResult.ok === false) {
+      const status =
+        upstream.status >= 400 && upstream.status < 500 ? upstream.status : 502;
+      const error =
+        typeof upstreamResult.error === 'string'
+          ? upstreamResult.error
+          : 'core_unavailable';
+      return respond({ ok: false, error }, status);
     }
 
     if (action === 'login') {
-      const token = typeof result.sessionToken === 'string' ? result.sessionToken : '';
-      if (!token) return json({ ok: false, error: 'session_not_created' }, 502);
-      const safeResult = { ...result };
+      const token =
+        typeof upstreamResult.sessionToken === 'string'
+          ? upstreamResult.sessionToken
+          : '';
+      if (!token || token.length > 512) {
+        return respond({ ok: false, error: 'session_not_created' }, 502);
+      }
+      const safeResult = { ...upstreamResult };
       delete safeResult.sessionToken;
-      return json(safeResult, 200, { 'set-cookie': sessionCookie(token, 60 * 60 * 8, secureCookie) });
+      return respond(safeResult, 200, undefined, [
+        sessionCookie(token, 60 * 60 * 8, secureCookie),
+      ]);
     }
 
-    if (action === 'logout') {
-      return json(result, 200, { 'set-cookie': sessionCookie('', 0, secureCookie) });
+    return respond(upstreamResult);
+  } catch (error) {
+    if (error instanceof CoreRequestError) {
+      return respond({ ok: false, error: 'core_invalid_response' }, 502);
     }
-
-    if (launchedAssignment) {
-      return json(result, 200, { 'set-cookie': assignmentCookie('', 0, secureCookie) });
-    }
-
-    return json(result);
-  } catch {
-    if (action === 'logout') {
-      return json({ ok: true }, 200, { 'set-cookie': sessionCookie('', 0, secureCookie) });
-    }
-    return json({ ok: false, error: 'core_unavailable' }, 502);
+    return respond({ ok: false, error: 'core_unavailable' }, 502);
+  } finally {
+    clearTimeout(timeout);
   }
 }

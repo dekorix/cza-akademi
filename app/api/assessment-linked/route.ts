@@ -30,8 +30,8 @@ async function assessmentDb() {
 }
 
 export async function POST(request: Request) {
-  const gate = allowRequest(request, 'assessment-linked-create', 20, 60_000);
-  if (!gate.allowed) return rateLimited(gate.retryAfterSeconds);
+  const gate = await allowRequest(request, 'assessment-linked-create', 20, 60_000);
+  if (!gate.allowed) return rateLimited(gate);
 
   const educator = await authenticatedEducator(request);
   if (!educator) return json({ ok: false, error: 'educator_session_required' }, 401);

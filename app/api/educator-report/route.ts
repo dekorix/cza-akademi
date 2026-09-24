@@ -19,8 +19,8 @@ function json(body: unknown, status = 200) {
 }
 
 export async function POST(request: Request) {
-  const gate = allowRequest(request, 'educator-report', 20, 10 * 60 * 1000);
-  if (!gate.allowed) return rateLimited(gate.retryAfterSeconds);
+  const gate = await allowRequest(request, 'educator-report', 20, 10 * 60 * 1000);
+  if (!gate.allowed) return rateLimited(gate);
 
   const origin = request.headers.get('origin');
   if (origin && origin !== new URL(request.url).origin) {
