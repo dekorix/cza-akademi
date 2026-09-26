@@ -356,16 +356,18 @@ export async function POST(request: Request) {
       method: 'POST',
       headers: upstreamHeaders,
       body: JSON.stringify(payload),
-      redirect: diagnostic ? 'manual' : 'error',
+      redirect: 'manual',
       cache: 'no-store',
       signal: controller.signal,
     });
-    if (diagnostic && upstream.status >= 300 && upstream.status < 400) {
-      reportUpstreamRedirect(
-        upstream.status,
-        upstream.headers.get('location'),
-        coreUrl,
-      );
+    if (upstream.status >= 300 && upstream.status < 400) {
+      if (diagnostic) {
+        reportUpstreamRedirect(
+          upstream.status,
+          upstream.headers.get('location'),
+          coreUrl,
+        );
+      }
       return respond({ ok: false, error: 'core_unavailable' }, 502);
     }
     const result = await readBoundedJson(upstream, MAX_REQUEST_BYTES);

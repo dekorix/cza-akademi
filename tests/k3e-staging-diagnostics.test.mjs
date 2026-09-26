@@ -29,7 +29,12 @@ function load(file, dependencies, environment, logs, fetcher) {
       return dependencies[id];
     },
     process: { env: environment },
-    console: { info: (...args) => logs.push(args) },
+    console: Object.fromEntries(
+      ['debug', 'info', 'log', 'warn', 'error'].map((level) => [
+        level,
+        (...args) => logs.push(args),
+      ]),
+    ),
     URL,
     Request,
     Response,
@@ -138,6 +143,15 @@ function setup(
   };
 }
 
+async function assertNoSecretOutput(response, logs) {
+  const output = JSON.stringify({
+    body: await response.clone().text(),
+    headers: [...response.headers],
+    logs,
+  });
+  assert.equal(output.includes(secret), false);
+}
+
 test('guard stages distinguish parameters, edge, address, database, SQL and quota without changing 503/429', async () => {
   const s = setup();
   const stages = [];
@@ -194,7 +208,7 @@ test('guard stages distinguish parameters, edge, address, database, SQL and quot
   assert.equal(JSON.stringify(stages).includes(secret), false);
 });
 
-test('diagnostic flag and exact server target alone enable manual redirect, with one upstream request and masked output', async () => {
+test('diagnostics=1 rejects upstream 307 after one request and masks the redirect log', async () => {
   const calls = [];
   const s = setup(
     {
@@ -203,10 +217,11 @@ test('diagnostic flag and exact server target alone enable manual redirect, with
     },
     async (url, options) => {
       calls.push({ url, options });
-      return new Response(null, {
+      return new Response(JSON.stringify({ ok: false, error: secret }), {
         status: 307,
         headers: {
           location: `https://name:${secret}@vercel.com/login/${secret}?token=${secret}#${secret}`,
+          'set-cookie': `upstream-secret=${secret}`,
         },
       });
     },
@@ -215,6 +230,7 @@ test('diagnostic flag and exact server target alone enable manual redirect, with
     s.request(staging, 'me', { 'x-k3e-diagnostics': '1' }),
   );
   assert.equal(response.status, 502);
+  await assertNoSecretOutput(response, s.logs);
   assert.deepEqual(await response.json(), {
     ok: false,
     error: 'core_unavailable',
@@ -226,14 +242,21 @@ test('diagnostic flag and exact server target alone enable manual redirect, with
     calls[0].options.headers.get('x-vercel-protection-bypass'),
     secret,
   );
+  assert.equal(s.logs.length, 1);
+  assert.equal(s.logs[0][0], 'k3e_upstream_redirect');
   assert.equal(s.logs[0][1].status, 307);
   assert.equal(s.logs[0][1].host, 'vercel.com');
   assert.equal(s.logs[0][1].path, '/login/[masked]');
   assert.equal(JSON.stringify(s.logs).includes(secret), false);
 });
 
-test('off mode, wrong host, query and client header preserve redirect:error and do not log secrets', async () => {
+test('diagnostics=0, unset flag, wrong host, query and client header reject 307 without following or logging', async () => {
   for (const [env, url, headers] of [
+    [
+      { CZA_STAGING_RUNTIME_DIAGNOSTICS: '0' },
+      staging,
+      { 'x-k3e-diagnostics': '1' },
+    ],
     [{}, staging, { 'x-k3e-diagnostics': '1' }],
     [
       { CZA_STAGING_RUNTIME_DIAGNOSTICS: '1' },
@@ -245,16 +268,98 @@ test('off mode, wrong host, query and client header preserve redirect:error and 
     const calls = [];
     const s = setup(
       { ...env, CZA_CORE_VERCEL_BYPASS_SECRET: secret },
-      async (_url, options) => {
-        calls.push(options);
-        throw new Error(secret);
+      async (url, options) => {
+        calls.push({ url, options });
+        return new Response(JSON.stringify({ ok: false, error: secret }), {
+          status: 307,
+          headers: {
+            location: `https://vercel.com/login/${secret}?token=${secret}`,
+            'set-cookie': `upstream-secret=${secret}`,
+          },
+        });
       },
     );
     const response = await s.route.POST(s.request(url, 'me', headers));
     assert.equal(response.status, 502);
-    assert.equal((await response.json()).error, 'core_unavailable');
+    await assertNoSecretOutput(response, s.logs);
+    assert.deepEqual(await response.json(), {
+      ok: false,
+      error: 'core_unavailable',
+    });
     assert.equal(calls.length, 1);
-    assert.equal(calls[0].redirect, 'error');
+    assert.equal(calls[0].url, core);
+    assert.equal(calls[0].options.redirect, 'manual');
+    assert.equal(
+      calls[0].options.headers.get('x-vercel-protection-bypass'),
+      secret,
+    );
+    assert.deepEqual(s.logs, []);
+  }
+});
+
+test('upstream 200 JSON is preserved with the bypass header in both diagnostic modes', async () => {
+  const result = { ok: true, student: { id: 'synthetic-student' } };
+  for (const flag of ['0', '1']) {
+    const calls = [];
+    const s = setup(
+      {
+        CZA_STAGING_RUNTIME_DIAGNOSTICS: flag,
+        CZA_CORE_VERCEL_BYPASS_SECRET: secret,
+      },
+      async (url, options) => {
+        calls.push({ url, options });
+        return new Response(JSON.stringify(result), {
+          status: 200,
+          headers: { 'content-type': 'application/json' },
+        });
+      },
+    );
+    const response = await s.route.POST(s.request());
+    assert.equal(response.status, 200);
+    await assertNoSecretOutput(response, s.logs);
+    assert.deepEqual(await response.json(), result);
+    assert.equal(calls.length, 1);
+    assert.equal(calls[0].url, core);
+    assert.equal(calls[0].options.redirect, 'manual');
+    assert.equal(
+      calls[0].options.headers.get('x-vercel-protection-bypass'),
+      secret,
+    );
+    assert.deepEqual(JSON.parse(calls[0].options.body), {
+      action: 'me',
+      sessionToken: 'fake-session',
+    });
+    assert.deepEqual(s.logs, []);
+  }
+});
+
+test('upstream network exceptions return 502 without exposing secrets in either diagnostic mode', async () => {
+  for (const flag of ['0', '1']) {
+    const calls = [];
+    const s = setup(
+      {
+        CZA_STAGING_RUNTIME_DIAGNOSTICS: flag,
+        CZA_CORE_VERCEL_BYPASS_SECRET: secret,
+      },
+      async (url, options) => {
+        calls.push({ url, options });
+        throw new Error(secret);
+      },
+    );
+    const response = await s.route.POST(s.request());
+    assert.equal(response.status, 502);
+    await assertNoSecretOutput(response, s.logs);
+    assert.deepEqual(await response.json(), {
+      ok: false,
+      error: 'core_unavailable',
+    });
+    assert.equal(calls.length, 1);
+    assert.equal(calls[0].url, core);
+    assert.equal(calls[0].options.redirect, 'manual');
+    assert.equal(
+      calls[0].options.headers.get('x-vercel-protection-bypass'),
+      secret,
+    );
     assert.deepEqual(s.logs, []);
   }
 });
