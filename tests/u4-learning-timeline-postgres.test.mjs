@@ -39,13 +39,28 @@ const id = {
   recordA: '44000000-0000-4000-8000-000000000011', evidenceA: '44000000-0000-4000-8000-000000000012',
 };
 
-test('malicious client correctness cannot mint server_verified timeline evidence', async () => {
+async function verifyTimeline(statusType) {
   const db = new PGlite({ extensions: { pgcrypto } });
   const timeline = loadTimelineModule();
   const previous = process.env.CZA_TIMELINE_CURSOR_SECRET;
   process.env.CZA_TIMELINE_CURSOR_SECRET = 'u4-postgres-cursor-secret-at-least-32-bytes';
   try {
-    for (const migration of migrations) await db.exec(migration);
+    if (statusType === 'session_status') {
+      await db.exec("CREATE TYPE public.session_status AS ENUM ('in_progress','active','completed','abandoned','cancelled')");
+    }
+    for (const [index, migration] of migrations.entries()) {
+      // Only the isolated test's initial table definition differs from the text fixture.
+      const fixture = index === 0 && statusType === 'session_status'
+        ? migration.replace("status text NOT NULL DEFAULT 'active'\n    CHECK (status IN ('active', 'completed', 'cancelled'))",
+          "status public.session_status NOT NULL DEFAULT 'active'\n    CHECK (status IN ('active', 'completed', 'cancelled'))")
+        : migration;
+      await db.exec(fixture);
+    }
+    if (statusType === 'session_status') {
+      const column = await db.query(`SELECT udt_name FROM information_schema.columns
+        WHERE table_schema='public' AND table_name='training_sessions' AND column_name='status'`);
+      assert.equal(column.rows[0].udt_name, 'session_status');
+    }
     await db.exec(`
       INSERT INTO public.academies (id,name,environment) VALUES ('${id.academy}','U4 Demo','staging');
       INSERT INTO public.users (id,username,role) VALUES
@@ -76,6 +91,17 @@ test('malicious client correctness cannot mint server_verified timeline evidence
     const filters = { from: null, to: null, moduleCode: null, eventType: null, verificationStatus: null };
     const all = await timeline.readLearningTimeline({ sql, academyId: id.academy, studentId: id.studentA, limit: 50, cursor: null, filters });
     assert.equal(all.events.length, 5);
+    assert.deepEqual(new Set(all.events.map((event) => event.eventType)), new Set([
+      'ASSIGNMENT_AVAILABLE', 'WORK_COMPLETED', 'LEARNING_RESULT', 'ERROR_OBSERVED', 'SKILL_EVIDENCE',
+    ]));
+    assert.equal(all.events.find((event) => event.eventType === 'WORK_COMPLETED').status, 'completed');
+    await db.query("UPDATE public.training_sessions SET status='active', completed_at=NULL WHERE id=$1", [id.sessionA]);
+    const started = await timeline.readLearningTimeline({ sql, academyId: id.academy, studentId: id.studentA, limit: 50, cursor: null, filters });
+    assert.deepEqual(new Set(started.events.map((event) => event.eventType)), new Set([
+      'ASSIGNMENT_AVAILABLE', 'WORK_STARTED', 'LEARNING_RESULT', 'ERROR_OBSERVED', 'SKILL_EVIDENCE',
+    ]));
+    assert.equal(started.events.find((event) => event.eventType === 'WORK_STARTED').status, 'active');
+    await db.query("UPDATE public.training_sessions SET status='completed', completed_at=started_at WHERE id=$1", [id.sessionA]);
     assert.deepEqual(
       all.events.map((event) => event.eventId),
       all.events.map((event) => event.eventId).toSorted((a, b) => b.localeCompare(a)),
@@ -124,4 +150,8 @@ test('malicious client correctness cannot mint server_verified timeline evidence
     else process.env.CZA_TIMELINE_CURSOR_SECRET = previous;
     await db.close();
   }
-});
+}
+
+for (const statusType of ['text', 'session_status']) {
+  test(`timeline SQL with ${statusType}: union, isolation and untrusted correctness`, () => verifyTimeline(statusType));
+}

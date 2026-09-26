@@ -209,7 +209,7 @@ export async function readLearningTimeline({
                   WHEN session.status='completed' THEN 'ASSIGNMENT_COMPLETED'
                   ELSE 'ASSIGNMENT_STARTED' END::text,
              session.module_code, session.recipe_id, session.id, NULL::uuid,
-             COALESCE(recipe.name, module.name), session.status,
+             COALESCE(recipe.name, module.name), session.status::text,
              NULL::jsonb,
              NULL::jsonb, NULL::jsonb, NULL::text,
              'server_authoritative', 'server_verified', 'training_sessions'
