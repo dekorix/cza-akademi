@@ -203,7 +203,7 @@ export default function Studio() {
     finally { setAuthLoading(false); }
   }
   async function logout() {
-    if (sessionId) { try { await core('finish',{sessionId,aborted:Boolean(assignmentId)}); } catch { /* Kaydedilmiş sorular sunucuda kalır. */ } }
+    if (sessionId && phase !== 'finished') { try { await core('finish',{sessionId,aborted:Boolean(assignmentId)}); } catch { /* Kaydedilmiş sorular sunucuda kalır. */ } }
     try { await core('logout'); }
     catch (e) { setError(`${friendlyCoreError(e)} Güvenli çıkış tamamlanmadı; tekrar dene.`); return; }
     setStudent(null); setSessionId(null); resetPlayer(); setAttempts([]);
@@ -286,7 +286,9 @@ export default function Studio() {
   }, [phase, round, runConfig.mode, runConfig.rounds, sessionId, feedbackAttempt]);
   async function finishSession() {
     if (!sessionId || savingAttempt) return;
-    try { setSync('saving'); await core('finish',{sessionId,aborted:Boolean(assignmentId)}); setSync('ready'); if (assignmentId) window.location.assign('/work'); else { completePlayer(); setError(''); } }
+    const primaryCount = resumeOffset + attempts.filter(attempt => attempt.attemptType !== 'RETRY_AFTER_FEEDBACK').length;
+    const aborted = Boolean(assignmentId) && primaryCount < runConfig.rounds;
+    try { setSync('saving'); await core('finish',{sessionId,aborted}); setSync('ready'); if (assignmentId) window.location.assign('/work'); else { completePlayer(); setError(''); } }
     catch (e) { setSync('error'); setError(`${friendlyCoreError(e)} Çalışma kapatılmadı; tekrar dene.`); }
   }
   function reset() { setSessionId(null); setResumeOffset(0); resetPlayer(); setError(''); setAttempts([]); setReviewAttempt(null); setReviewReplayIndex(-1); setSettingsOpen(true); }

@@ -329,6 +329,24 @@ export async function POST(request: Request) {
     }
   }
 
+  // Assigned completion has one owner: U2. Legacy Core finish must never
+  // mark the row completed before canonical attempt/ledger validation.
+  if (action === 'finish' && workStudent && assignedTrainingSessionId) {
+    try {
+      const completion = await completeAssignedSession(
+        workStudent,
+        assignedTrainingSessionId,
+        input.aborted === true,
+      );
+      return respond({ ok: true, workCompletion: completion });
+    } catch (error) {
+      if (error instanceof WorkCenterPersistenceError) {
+        return respond({ ok: false, error: error.code }, error.status);
+      }
+      return respond({ ok: false, error: 'work_persistence_unavailable' }, 503);
+    }
+  }
+
   let coreUrl: string;
   try {
     coreUrl = configuredCoreUrl();
@@ -440,15 +458,6 @@ export async function POST(request: Request) {
         input.payload as Record<string, unknown>,
       );
       return respond({ ...upstreamResult, workProgress: progress });
-    }
-
-    if (action === 'finish' && workStudent && assignedTrainingSessionId) {
-      const completion = await completeAssignedSession(
-        workStudent,
-        assignedTrainingSessionId,
-        input.aborted === true,
-      );
-      return respond({ ...upstreamResult, workCompletion: completion });
     }
 
     return respond(upstreamResult);

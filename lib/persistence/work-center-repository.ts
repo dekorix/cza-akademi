@@ -21,6 +21,7 @@ type SessionRow = {
   completed_at: string | Date | null;
   attempt_count: number;
   correct_count: number;
+  canonical_completion?: boolean;
 };
 
 export class WorkCenterPersistenceError extends Error {
@@ -107,6 +108,17 @@ export async function assignedSessionForRecipe(
   const rows = await sql`
     SELECT sessions.id, sessions.recipe_id, sessions.module_code,
            sessions.status, sessions.started_at, sessions.completed_at,
+           EXISTS (
+             SELECT 1 FROM public.learning_records records
+             JOIN public.learning_evidence evidence
+               ON evidence.learning_record_id = records.id
+              AND evidence.academy_id = records.academy_id
+              AND evidence.student_id = records.student_id
+             WHERE records.training_session_id = sessions.id
+               AND records.academy_id = sessions.academy_id
+               AND records.student_id = sessions.student_id
+               AND records.module_code = sessions.module_code
+           ) AS canonical_completion,
            count(attempts.id) FILTER (
              WHERE COALESCE(attempts.metadata->>'attemptType', 'PRIMARY') <> 'RETRY_AFTER_FEEDBACK'
            )::int AS attempt_count,
@@ -130,6 +142,14 @@ export async function assignedSessionForRecipe(
   `;
   const row = rows[0] as SessionRow | undefined;
   if (!row) return null;
+  // A legacy completed row without a durable learning chain is not an
+  // accepted assignment. Do not hide it and create another logical session.
+  if (
+    row.status === 'completed' &&
+    (Number(row.attempt_count) < 1 || row.canonical_completion !== true)
+  ) {
+    throw new WorkCenterPersistenceError('work_completion_inconsistent', 409);
+  }
   return {
     sessionId: row.id,
     recipeId: row.recipe_id,
