@@ -144,9 +144,9 @@ export async function readEducatorAnalytics({ sql, educatorId, academyId, studen
       (SELECT count(*)::int FROM assignments WHERE ${dates} AND status='active' AND ($5::text IS NULL OR module_code=$5) AND ($6::text IS NULL OR status=$6)) assignment_active,
       (SELECT count(*)::int FROM assignments WHERE ${dates} AND status='completed' AND ($5::text IS NULL OR module_code=$5) AND ($6::text IS NULL OR status=$6)) assignment_completed,
       (SELECT count(*)::int FROM assignments WHERE ${dates} AND status='cancelled' AND ($5::text IS NULL OR module_code=$5) AND ($6::text IS NULL OR status=$6)) assignment_cancelled,
-      (SELECT count(*)::int FROM sessions WHERE ${dates} AND ($5::text IS NULL OR module_code=$5) AND ($7::text IS NULL OR status=$7)) session_total,
-      (SELECT count(*)::int FROM sessions WHERE ${dates} AND status='completed' AND ($5::text IS NULL OR module_code=$5) AND ($7::text IS NULL OR status=$7)) session_completed,
-      (SELECT max(occurred_at) FROM sessions WHERE ${dates} AND ($5::text IS NULL OR module_code=$5) AND ($7::text IS NULL OR status=$7)) last_activity_at,
+      (SELECT count(*)::int FROM sessions WHERE ${dates} AND ($5::text IS NULL OR module_code=$5) AND ($7::text IS NULL OR sessions.status::text=$7)) session_total,
+      (SELECT count(*)::int FROM sessions WHERE ${dates} AND status='completed' AND ($5::text IS NULL OR module_code=$5) AND ($7::text IS NULL OR sessions.status::text=$7)) session_completed,
+      (SELECT max(occurred_at) FROM sessions WHERE ${dates} AND ($5::text IS NULL OR module_code=$5) AND ($7::text IS NULL OR sessions.status::text=$7)) last_activity_at,
       (SELECT count(*)::int FROM attempts WHERE ${dates} AND ($5::text IS NULL OR module_code=$5)) attempt_total,
       (SELECT count(*)::int FROM attempts WHERE ${dates} AND is_correct AND ($5::text IS NULL OR module_code=$5)) correct_total,
       (SELECT count(*)::int FROM attempts WHERE ${dates} AND NOT is_correct AND ($5::text IS NULL OR module_code=$5)) wrong_total
@@ -161,7 +161,7 @@ export async function readEducatorAnalytics({ sql, educatorId, academyId, studen
         AND ($5::text IS NULL OR module_code=$5) GROUP BY module_code),
     s AS (SELECT module_code,count(*)::int session_count,count(*) FILTER(WHERE status='completed')::int completed_count
       FROM public.training_sessions WHERE ${common} AND ($3::timestamptz IS NULL OR started_at >= $3) AND ($4::timestamptz IS NULL OR started_at <= $4)
-        AND ($5::text IS NULL OR module_code=$5) AND ($6::text IS NULL OR status=$6) GROUP BY module_code),
+        AND ($5::text IS NULL OR module_code=$5) AND ($6::text IS NULL OR training_sessions.status::text=$6) GROUP BY module_code),
     q AS (SELECT module_code,count(*)::int attempt_count,count(*) FILTER(WHERE is_correct)::int correct_count
       FROM public.question_attempts WHERE ${common} AND ($3::timestamptz IS NULL OR created_at >= $3) AND ($4::timestamptz IS NULL OR created_at <= $4)
         AND ($5::text IS NULL OR module_code=$5) GROUP BY module_code)
@@ -213,7 +213,7 @@ export async function readEducatorAnalytics({ sql, educatorId, academyId, studen
     FROM public.training_sessions WHERE ${common}
       AND ($3::timestamptz IS NULL OR COALESCE(completed_at,last_activity_at,started_at) >= $3)
       AND ($4::timestamptz IS NULL OR COALESCE(completed_at,last_activity_at,started_at) <= $4)
-      AND ($5::text IS NULL OR module_code=$5) AND ($6::text IS NULL OR status=$6) ${cursorSql}
+      AND ($5::text IS NULL OR module_code=$5) AND ($6::text IS NULL OR training_sessions.status::text=$6) ${cursorSql}
     ORDER BY occurred_at DESC,id DESC LIMIT $${pageParams.length}`, pageParams);
   const page = sessionRows.slice(0, limit);
 
