@@ -83,7 +83,7 @@ function settingValue(key: string, value: string | number | boolean) {
 export function CentralStudentReport({ children, initialCode = '' }: { children?: ReactNode; initialCode?: string } = {}) {
   const [authenticated, setAuthenticated] = useState(false);
   const [checking, setChecking] = useState(true);
-  const [email] = useState('celikzihin.akademisi@gmail.com');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [code, setCode] = useState(initialCode);
   const [loading, setLoading] = useState(false);
@@ -172,9 +172,9 @@ export function CentralStudentReport({ children, initialCode = '' }: { children?
           id="educatorEmail"
           type="email"
           required
-          readOnly
           autoComplete="username"
           value={email}
+          onChange={(event) => setEmail(event.target.value)}
           className="mt-2 bg-muted/40"
         />
         <label

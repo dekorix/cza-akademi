@@ -8,6 +8,8 @@ import {
 import { neon } from '@neondatabase/serverless';
 import { requestBodySha256 } from '@/lib/educator-request-security';
 
+import { verifiedNeonIdentity } from '@/lib/educator-neon-ingress';
+
 export const EDUCATOR_COOKIE = 'cza_educator_session';
 const SITE_OWNER_EMAIL = 'habipcann65@gmail.com';
 export const EDUCATOR_EMAIL = 'celikzihin.akademisi@gmail.com';
@@ -314,7 +316,54 @@ export async function revokeLocalEducatorSession(request: Request) {
   return 'local-session' as const;
 }
 
+async function authenticatedNeonEducator(request: Request) {
+  const session = await verifiedNeonIdentity(request);
+  if (!session || !process.env.DATABASE_URL) return null;
+  const sql = neon(process.env.DATABASE_URL);
+  const rows = await sql`
+    SELECT id, academy_id, auth_user_id, email, display_name
+    FROM public.users
+    WHERE auth_user_id = ${session.id}
+      AND is_active = true AND role::text = 'educator'
+    LIMIT 2
+  `;
+  if (rows.length !== 1 || !rows[0].academy_id) return null;
+  const canonical = rows[0] as CanonicalEducator;
+  const secret = process.env.CZA_TRUSTED_PROXY_HMAC_SECRET || '';
+  if (Buffer.byteLength(secret) < 32) return null;
+  const timestamp = String(Math.floor(Date.now() / 1000));
+  const nonce = randomBytes(24).toString('hex');
+  const bodyHash = await requestBodySha256(request);
+  const headers = new Headers(request.headers);
+  // Private in-process handoff. The verified provider ID selected this row;
+  // the signed canonical email is context, never an email-to-role lookup.
+  const canonicalEmail = (canonical.email || '').trim().toLowerCase();
+  headers.set(PROXY_EMAIL_HEADER, canonicalEmail);
+  headers.set(PROXY_TIMESTAMP_HEADER, timestamp);
+  headers.set(PROXY_NONCE_HEADER, nonce);
+  headers.set(
+    PROXY_SIGNATURE_HEADER,
+    createHmac('sha256', secret)
+      .update(proxySignaturePayload(request, timestamp, nonce, bodyHash, canonicalEmail))
+      .digest('hex'),
+  );
+  const signed = new Request(request, { headers });
+  if (!(await trustedEducatorProxy(signed, bodyHash))) return null;
+  return {
+    id: canonical.auth_user_id,
+    email: canonical.email || '',
+    name: canonical.display_name || 'CZA Eğitimci',
+  };
+}
+
 export async function authenticatedEducator(request: Request) {
+  if (process.env.CZA_EDUCATOR_AUTH_MODE === 'neon') {
+    try {
+      return await authenticatedNeonEducator(request);
+    } catch {
+      return null;
+    }
+  }
   const proxy = await trustedEducatorProxy(request);
   if (!proxy) return null;
 

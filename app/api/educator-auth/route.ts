@@ -1,3 +1,4 @@
+import { handleNeonEducatorAuth, neonIngressAllowed } from '@/lib/educator-neon-ingress';
 import {
   allowAccountRequest,
   allowRequest,
@@ -41,6 +42,11 @@ async function authFetch(url: string, init: RequestInit) {
 }
 
 export async function GET(request: Request) {
+  if (process.env.CZA_EDUCATOR_AUTH_MODE === 'neon') {
+    return neonIngressAllowed(request)
+      ? json({ ok: true, service: 'cza-educator-auth', mode: 'neon' })
+      : json({ ok: false, error: 'request_origin_or_identity_rejected' }, 403);
+  }
   if (!(await educatorProxyRequestAllowed(request))) {
     return json(
       { ok: false, error: 'trusted_proxy_required', build: AUTH_BUILD },
@@ -57,7 +63,11 @@ export async function POST(request: Request) {
 
   let parsed;
   try {
-    parsed = await readEducatorAuthRequest(request);
+    parsed = await readEducatorAuthRequest(
+      process.env.CZA_EDUCATOR_AUTH_MODE === 'neon'
+        ? (request.clone() as Request)
+        : request,
+    );
   } catch (error) {
     if (error instanceof EducatorRequestError) {
       return json(
@@ -69,6 +79,9 @@ export async function POST(request: Request) {
       { ok: false, error: 'invalid_request', build: AUTH_BUILD },
       400,
     );
+  }
+  if (process.env.CZA_EDUCATOR_AUTH_MODE === 'neon') {
+    return handleNeonEducatorAuth(request, parsed.input, authenticatedEducator);
   }
   if (!(await educatorProxyRequestAllowed(request, parsed.bodySha256))) {
     return json(

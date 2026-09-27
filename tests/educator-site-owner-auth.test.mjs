@@ -30,6 +30,7 @@ function loadAuth({
   new Function('require', 'module', 'exports', js)(
     (id) => {
       if (id === 'node:crypto') return crypto;
+      if (id.includes('educator-neon-ingress')) return { verifiedNeonIdentity: async () => null };
       if (id.includes('educator-request-security')) {
         return {
           requestBodySha256: async (request) =>
