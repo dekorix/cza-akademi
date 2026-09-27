@@ -2,7 +2,6 @@ import { neon } from '@neondatabase/serverless';
 import { authenticatedEducator } from '@/lib/educator-auth';
 import { allowRequest, rateLimited } from '@/lib/request-guard';
 import { readStudentLearningProfile } from '@/lib/persistence/student-learning-profile';
-import { readCoachingProfileBridge } from '@/lib/persistence/coaching-center';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 function json(body: unknown, status = 200) {
@@ -32,7 +31,6 @@ export async function GET(request: Request) {
     if (!authorized.length) return json({ ok: false, error: 'student_not_authorized' }, 403);
     const profile = await readStudentLearningProfile({ sql, academyId: String(authorized[0].academy_id), studentId });
     if(!profile)return json({ ok: false, error: 'student_profile_not_found' }, 404);
-    profile.coaching=await readCoachingProfileBridge(sql,String(authorized[0].academy_id),studentId);
     return json({ ok: true, profile });
   } catch {
     return json({ ok: false, error: 'learning_profile_unavailable' }, 503);
