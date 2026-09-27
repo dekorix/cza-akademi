@@ -210,6 +210,22 @@ async function educatorDbUser() {
   return canonicalEducatorByAuthId(EDUCATOR_AUTH_USER_ID);
 }
 
+async function canonicalEducatorBySignedEmail(email: string) {
+  if (!process.env.DATABASE_URL) return null;
+  const sql = neon(process.env.DATABASE_URL);
+  const rows = await sql`
+    SELECT id, academy_id, auth_user_id, email, display_name
+    FROM public.users
+    WHERE lower(email) = lower(${email})
+      AND is_active = true
+      AND role::text = 'educator'
+    LIMIT 2
+  `;
+  // Never choose an academy arbitrarily, including when one match lacks an auth mapping.
+  if (rows.length !== 1 || !rows[0].auth_user_id || !rows[0].academy_id) return null;
+  return rows[0] as CanonicalEducator;
+}
+
 function educatorIdentity(row: CanonicalEducator) {
   return {
     id: row.auth_user_id,
@@ -305,6 +321,10 @@ export async function authenticatedEducator(request: Request) {
   const siteEmail = proxy?.educatorEmail || '';
   if (siteEmail === SITE_OWNER_EMAIL) {
     const canonical = await canonicalEducatorByAuthId(EDUCATOR_AUTH_USER_ID);
+    return canonical ? educatorIdentity(canonical) : null;
+  }
+  if (siteEmail) {
+    const canonical = await canonicalEducatorBySignedEmail(siteEmail);
     return canonical ? educatorIdentity(canonical) : null;
   }
   const sessionCookie = readCookie(request, EDUCATOR_COOKIE);

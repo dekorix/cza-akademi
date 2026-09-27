@@ -325,3 +325,43 @@ test('reset request, reset completion and login use separate distributed limits'
   assert.equal(blockedLoginResponse.status, 429);
   assert.equal(blockedLogin.passwordChecks(), 0);
 });
+
+test('me preserves dynamic signed educator and never creates a fixed-owner session', async () => {
+  const user = {
+    id: 'd3000000-0000-4000-8000-000000000003',
+    email: 'synthetic@example.invalid',
+    name: 'Synthetic Educator',
+  };
+  const { post } = route(
+    () => {
+      throw new Error('provider must not be called');
+    },
+    { authenticatedUser: user },
+  );
+  const response = await post(
+    request({ action: 'me' }, { 'oai-authenticated-user-email': user.email }),
+  );
+  assert.equal(response.status, 200);
+  assert.deepEqual((await response.json()).user, user);
+  assert.equal(response.headers.get('set-cookie'), null);
+});
+
+test('me still creates the existing fixed-owner local session', async () => {
+  const { post } = route(
+    () => {
+      throw new Error('provider must not be called');
+    },
+    { authenticatedUser: { id: '47c90485-e057-4ebe-a25c-9d7f236c5bd6' } },
+  );
+  const response = await post(
+    request(
+      { action: 'me' },
+      { 'oai-authenticated-user-email': 'habipcann65@gmail.com' },
+    ),
+  );
+  assert.equal(response.status, 200);
+  assert.equal(
+    response.headers.get('set-cookie'),
+    'session=cleared-or-created',
+  );
+});

@@ -89,6 +89,7 @@ export async function POST(request: Request) {
         401,
       );
     if (
+      user.id === EDUCATOR_AUTH_USER_ID &&
       !readCookie(request, EDUCATOR_COOKIE) &&
       request.headers.get('oai-authenticated-user-email')
     ) {
