@@ -10,7 +10,7 @@ export const STAGING_EDUCATOR_ORIGIN =
 export const STAGING_NEON_AUTH =
   'https://ep-falling-resonance-b2qnvtwf.neonauth.c-6.eu-central-1.aws.neon.tech/cza_learning/auth';
 export const NEON_EDUCATOR_COOKIE = '__Host-cza_neon_educator';
-const PROVIDER_COOKIE = '__Secure-neonauth.session_token';
+const PROVIDER_COOKIE = '__Secure-neon-auth.session_token';
 const protectedHeaders = [
   'oai-authenticated-user-email',
   'x-cza-proxy-timestamp',

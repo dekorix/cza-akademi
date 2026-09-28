@@ -12,6 +12,8 @@ const authBase =
 const token = 'test-only-opaque-session.signature';
 const secret = 'isolated-test-only-hmac-secret-32-bytes-minimum';
 const cookieName = '__Host-cza_neon_educator';
+// Independent fixture: observed live Neon Auth Set-Cookie, not imported from product.
+const observedProviderCookie = '__Secure-neon-auth.session_token';
 const aid = '10000000-0000-4000-8000-000000000001';
 const otherAid = '10000000-0000-4000-8000-000000000002';
 const uid = '20000000-0000-4000-8000-000000000001';
@@ -109,15 +111,12 @@ async function harness(t) {
         { token: 'must-not-return-provider-body' },
         {
           headers: {
-            'set-cookie': `__Secure-neonauth.session_token=${token}; HttpOnly; Secure; Path=/`,
+            'set-cookie': `${state.fail === 'wrong-cookie-name' ? '__Secure-neonauth.session_token' : observedProviderCookie}=${token}; HttpOnly; Secure; Path=/`,
           },
         },
       );
     }
-    assert.equal(
-      options.headers.cookie,
-      `__Secure-neonauth.session_token=${token}`,
-    );
+    assert.equal(options.headers.cookie, `${observedProviderCookie}=${token}`);
     if (url.endsWith('/sign-out')) {
       if (state.fail === 'logout') return new Response(null, { status: 503 });
       state.revoked = true;
@@ -511,4 +510,58 @@ test('body lifecycle: exact 64 KiB body hash and downstream bytes are preserved'
   assert.equal(r.bodyUsed, false);
   const response = await h.route.POST(r);
   assert.equal(response.status, 200);
+});
+
+test('provider cookie contract: observed login cookie is extracted and restored for get-session and logout', async (t) => {
+  const h = await harness(t);
+  const login = await h.route.POST(
+    req({
+      action: 'login',
+      email: 'test@example.invalid',
+      password: 'test-password',
+    }),
+  );
+  assert.equal(login.status, 200, 'observed provider cookie must be accepted');
+  const browserCookie = login.headers.get('set-cookie').split(';')[0];
+  assert.equal(browserCookie, `${cookieName}=${token}`);
+  const me = await h.route.POST(req('me', { cookie: browserCookie }));
+  assert.equal(me.status, 200);
+  const logout = await h.route.POST(req('logout', { cookie: browserCookie }));
+  assert.equal(logout.status, 200);
+  const sessionCalls = h.calls.filter((c) => c.url.includes('/get-session?'));
+  assert.equal(sessionCalls.length, 2);
+  const logoutCalls = h.calls.filter((c) => c.url.endsWith('/sign-out'));
+  assert.equal(logoutCalls.length, 1);
+  for (const call of [...sessionCalls, ...logoutCalls]) {
+    assert.equal(
+      call.options.headers.cookie,
+      '__Secure-neon-auth.session_token=' + token,
+    );
+    assert.ok(!call.options.headers.cookie.includes(cookieName));
+  }
+  assert.match(logout.headers.get('set-cookie'), /Max-Age=0/);
+  assert.equal(await h.auth.authenticatedEducator(signedIn()), null);
+});
+
+test('provider cookie contract: wrong legacy cookie name alone cannot create a session', async (t) => {
+  const h = await harness(t);
+  h.state.fail = 'wrong-cookie-name';
+  const response = await h.route.POST(
+    req({
+      action: 'login',
+      email: 'test@example.invalid',
+      password: 'test-password',
+    }),
+  );
+  assert.equal(response.status, 502);
+  assert.deepEqual(await response.json(), {
+    ok: false,
+    error: 'provider_session_cookie_missing',
+  });
+  assert.equal(response.headers.get('set-cookie'), null);
+  assert.equal(
+    h.calls.length,
+    1,
+    'must reject before session verification or canonical authentication',
+  );
 });
