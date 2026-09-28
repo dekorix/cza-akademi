@@ -229,7 +229,8 @@ export async function POST(request: Request) {
     let settings;
     let title: string | null;
     let instructions: string | null;
-    let startsAt: string | null;
+    let startsAt: string;
+    let requestedStartsAt: string | null;
     let expiresAt: string | null;
     try {
       const rawSettings = input.settings && typeof input.settings === 'object' && !Array.isArray(input.settings)
@@ -239,16 +240,14 @@ export async function POST(request: Request) {
         : defaultRecipeSettings(moduleCode);
       title = optionalText(input.title, 180);
       instructions = optionalText(input.instructions, 1000);
-      startsAt = optionalTimestamp(input.startsAt) || new Date().toISOString();
+      requestedStartsAt = optionalTimestamp(input.startsAt);
+      startsAt = requestedStartsAt || new Date().toISOString();
       expiresAt = optionalTimestamp(input.expiresAt);
     } catch {
       return json({ ok: false, error: 'invalid_assignment_input' }, 400);
     }
-    if (expiresAt && startsAt && Date.parse(expiresAt) <= Date.parse(startsAt)) {
-      return json({ ok: false, error: 'invalid_assignment_dates' }, 400);
-    }
     const resolvedTitle = title || `${assignableModules[moduleCode].label} · Atanan çalışma`;
-    const hash = requestHash({ studentId, moduleCode, title: resolvedTitle, instructions, settings, startsAt, expiresAt });
+    const hash = requestHash({ studentId, moduleCode, title: resolvedTitle, instructions, settings, startsAt: requestedStartsAt, expiresAt });
 
     const replay = await sql`
       SELECT id, request_hash FROM public.training_recipes
@@ -260,6 +259,9 @@ export async function POST(request: Request) {
     if (replay.length) {
       if (replay[0].request_hash !== hash) return json({ ok: false, error: 'idempotency_conflict' }, 409);
       return json({ ok: true, assignment: replay[0], replayed: true }, 200);
+    }
+    if (expiresAt && Date.parse(expiresAt) <= Date.parse(startsAt)) {
+      return json({ ok: false, error: 'invalid_assignment_dates' }, 400);
     }
 
     const existing = await sql`
