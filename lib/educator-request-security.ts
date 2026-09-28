@@ -91,7 +91,7 @@ export function parseEducatorAuthRequest(value: unknown): EducatorAuthRequest {
   fail('invalid_action');
 }
 
-async function readBoundedBytes(
+export async function readBoundedBytes(
   request: Pick<Request, 'headers' | 'body'>,
   maximumBytes: number,
 ) {

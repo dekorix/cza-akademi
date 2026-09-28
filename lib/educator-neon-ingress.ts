@@ -1,4 +1,8 @@
-import { type EducatorAuthRequest } from '@/lib/educator-request-security';
+import {
+  type EducatorAuthRequest,
+  EDUCATOR_MAX_REQUEST_BYTES,
+  readBoundedBytes,
+} from '@/lib/educator-request-security';
 import {
   allowAccountRequest,
   allowRequest,
@@ -207,7 +211,15 @@ export async function handleNeonEducatorAuth(
     const headers = new Headers(request.headers);
     // Only the new provider cookie is transported; never promote an existing local/owner cookie.
     headers.set('cookie', `${NEON_EDUCATOR_COOKIE}=${value}`);
-    const sessionRequest = new Request(request, { headers });
+    const body = await readBoundedBytes(
+      request.clone(),
+      EDUCATOR_MAX_REQUEST_BYTES,
+    );
+    const sessionRequest = new Request(request.url, {
+      method: request.method,
+      headers,
+      body,
+    });
     const user = await authenticate(sessionRequest);
     if (!user) {
       const revoked = await provider('/sign-out', value, {});

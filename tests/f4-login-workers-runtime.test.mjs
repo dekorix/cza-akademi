@@ -11,13 +11,25 @@ test('actual ingress runs in Workers: login, session validation, redirect reject
   const result = await build({
     stdin: {
       contents: `import {handleNeonEducatorAuth,verifiedNeonIdentity} from './lib/educator-neon-ingress.ts';
-      export default {async fetch(r){return handleNeonEducatorAuth(r,await r.clone().json(),async request=>await verifiedNeonIdentity(request)?{id:'test-educator',email:'test@example.invalid',name:'Test'}:null)}}`,
+      import {createTrackedAppRouteRequest} from './node_modules/vinext/dist/server/app-route-handler-runtime.js';
+      import {readEducatorAuthRequest,requestBodySha256} from './lib/educator-request-security.ts';
+      export default {async fetch(raw){
+        const r=createTrackedAppRouteRequest(raw).request;
+        const expectedBody=await r.clone().text();
+        const parsed=await readEducatorAuthRequest(r.clone());
+        return handleNeonEducatorAuth(r,parsed.input,async request=>{
+          if(request.url!==raw.url || request.method!==raw.method || await requestBodySha256(request)!==parsed.bodySha256) throw Error('request_integrity_changed');
+          if(await request.clone().text()!==expectedBody) throw Error('original_bytes_changed');
+          return await verifiedNeonIdentity(request)?{id:'test-educator',email:'test@example.invalid',name:'Test'}:null;
+        });
+      }}`,
       resolveDir: process.cwd(),
     },
     bundle: true,
     write: false,
     format: 'esm',
-    platform: 'browser',
+    platform: 'node',
+    external: ['node:*'],
     define: {
       'process.env.CZA_EDUCATOR_AUTH_MODE': '"neon"',
       'process.env.CZA_NEON_AUTH_BASE_URL':
@@ -80,14 +92,20 @@ test('actual ingress runs in Workers: login, session validation, redirect reject
   });
   try {
     const send = (action, cookie = '') =>
-      mf.dispatchFetch(origin + '/api/educator-auth', {
+      mf.dispatchFetch(origin + '/api/educator-auth?proof=bytes%2Funchanged', {
         method: 'POST',
         headers: { origin, 'content-type': 'application/json', cookie },
-        body: JSON.stringify({
-          action,
-          email: 'test@example.invalid',
-          password: 'isolated-test-password',
-        }),
+        body:
+          '\n  ' +
+          JSON.stringify(
+            action === 'login'
+              ? {
+                  action,
+                  email: 'test@example.invalid',
+                  password: 'isolated-test-password',
+                }
+              : { action },
+          ),
       });
     const login = await send('login');
     assert.equal(login.status, 200);
