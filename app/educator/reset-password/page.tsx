@@ -1,6 +1,5 @@
 'use client';
 import { useState } from 'react';
-import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -64,17 +63,18 @@ export default function ResetPassword() {
           onChange={(e) => setPassword(e.target.value)}
           placeholder="En az 8 karakter"
         />
-        <Button className="w-full" disabled={saving}>
+        <p className="text-sm text-muted-foreground">En az 8 karakter kullan.</p>
+        <Button type="submit" className="w-full" disabled={saving}>
           {saving ? 'Kaydediliyor…' : 'Parolayı kaydet'}
         </Button>
       </form>
       {message && <output className="mt-4 block">{message}</output>}
-      <Link
+      <a
         href="/educator?tab=reports"
         className="mt-5 inline-block font-semibold text-primary"
       >
         Eğitimci girişine dön
-      </Link>
+      </a>
     </main>
   );
 }
