@@ -80,14 +80,19 @@ async function provider(
   };
   if (value) headers.cookie = `${PROVIDER_COOKIE}=${value}`;
   if (body) headers['content-type'] = 'application/json';
-  return fetch(STAGING_NEON_AUTH + path, {
+  const response = await fetch(STAGING_NEON_AUTH + path, {
     method: body ? 'POST' : 'GET',
     headers,
     body: body ? JSON.stringify(body) : undefined,
     cache: 'no-store',
-    redirect: 'error',
+    redirect: 'manual',
     signal: AbortSignal.timeout(10000),
   });
+  // Workers rejects redirect:'error' before sending the request. Never follow
+  // provider redirects or forward credentials to a redirect destination.
+  if (response.status >= 300 && response.status < 400)
+    throw new Error('provider_redirect_rejected');
+  return response;
 }
 export async function verifiedNeonIdentity(
   request: Request,

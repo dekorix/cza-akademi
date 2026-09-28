@@ -192,7 +192,7 @@ export function CentralStudentReport({ children, initialCode = '' }: { children?
           onChange={(e) => setPassword(e.target.value)}
           className="mt-2"
         />
-        <Button className="mt-5 w-full" disabled={loading}>
+        <Button type="submit" className="mt-5 w-full" disabled={loading}>
           {loading ? <Loader2 className="animate-spin" /> : <KeyRound />} Giriş
           yap
         </Button>

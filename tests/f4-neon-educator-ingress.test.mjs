@@ -95,7 +95,7 @@ async function harness(t) {
   const fetcher = async (url, options) => {
     calls.push({ url, options });
     assert.ok(url.startsWith(authBase + '/'));
-    assert.equal(options.redirect, 'error');
+    assert.equal(options.redirect, 'manual');
     assert.equal(options.cache, 'no-store');
     assert.equal(options.headers.origin, origin);
     assert.ok(!JSON.stringify(options).includes(secret));
