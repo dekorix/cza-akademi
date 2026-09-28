@@ -114,7 +114,9 @@ async function readBoundedBytes(
       if (done) break;
       received += value.byteLength;
       if (received > maximumBytes) {
-        await reader.cancel('request_too_large');
+        // A cloned stream's cancellation waits for its sibling. Reject now;
+        // observe cancellation failure without delaying the size-limit response.
+        void reader.cancel('request_too_large').catch(() => {});
         fail('request_too_large', 413);
       }
       chunks.push(value);

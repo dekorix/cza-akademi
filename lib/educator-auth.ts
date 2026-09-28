@@ -347,7 +347,10 @@ async function authenticatedNeonEducator(request: Request) {
       .update(proxySignaturePayload(request, timestamp, nonce, bodyHash, canonicalEmail))
       .digest('hex'),
   );
-  const signed = new Request(request, { headers });
+  // The original body must remain readable by the downstream route. HMAC
+  // verification receives its exact bounded digest, so this private envelope
+  // needs only the original URL/method and signed headers, not body ownership.
+  const signed = new Request(request.url, { method: request.method, headers });
   if (!(await trustedEducatorProxy(signed, bodyHash))) return null;
   return {
     id: canonical.auth_user_id,

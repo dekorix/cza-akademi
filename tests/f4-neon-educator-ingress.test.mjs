@@ -179,7 +179,18 @@ async function harness(t) {
     env,
     fetcher,
   );
-  return { db, state, env, auth, route, students, ingress, calls };
+  return {
+    db,
+    state,
+    env,
+    auth,
+    route,
+    students,
+    ingress,
+    calls,
+    modules,
+    fetcher,
+  };
 }
 
 test('normal login without proxy signature, verified-ID canonical mapping and linked student API', async (t) => {
@@ -394,4 +405,110 @@ test('canonical can_view revocation is respected on the next actual student-list
   const response = await h.students.GET(signedIn());
   assert.equal(response.status, 200);
   assert.deepEqual((await response.json()).students, []);
+});
+
+test('body lifecycle: actual assignment POST remains readable after authenticated handoff', async (t) => {
+  const h = await harness(t);
+  await h.db.exec(`
+    ALTER TABLE teacher_student_links ADD COLUMN academy_id uuid DEFAULT '${aid}';
+    CREATE TYPE session_status AS ENUM ('active','in_progress','completed');
+    CREATE TABLE training_recipes(id uuid,student_id uuid,academy_id uuid,assigned_by uuid,module_code text,name text,instructions text,settings jsonb,starts_at timestamptz,expires_at timestamptz,is_active boolean,cancelled_at timestamptz,created_at timestamptz,source text);
+    CREATE TABLE training_sessions(id uuid,recipe_id uuid,status session_status,last_activity_at timestamptz,completed_at timestamptz);
+  `);
+  // These imports are not reached by the real list branch; auth and SQL remain real.
+  for (const name of [
+    'assessment-routing',
+    'assessment-learning-response',
+    'assessment-report',
+    'cza-work-recommendations',
+  ])
+    h.modules['@/lib/' + name] = {};
+  h.modules['@/lib/training-recipes'] = { assignableModules: [] };
+  const assignments = load(
+    'app/api/educator-assignments/route.ts',
+    h.modules,
+    h.env,
+    h.fetcher,
+  );
+  const input = { action: 'list', studentId: sid };
+  const r = req(
+    input,
+    { cookie: `${cookieName}=${token}` },
+    '/api/educator-assignments',
+  );
+  const response = await assignments.POST(r);
+  assert.equal(response.status, 200);
+  assert.deepEqual(await response.json(), { ok: true, assignments: [] });
+  const raw = req(
+    input,
+    { cookie: `${cookieName}=${token}` },
+    '/api/educator-assignments?source=panel',
+  );
+  assert.ok(await h.auth.authenticatedEducator(raw));
+  assert.equal(raw.bodyUsed, false);
+  assert.deepEqual(await raw.json(), input);
+});
+
+test('body lifecycle: undeclared and chunked oversized auth bodies return 413 without sibling cancellation', async (t) => {
+  const h = await harness(t);
+  for (const chunked of [false, true]) {
+    const body = chunked
+      ? new ReadableStream({
+          start(controller) {
+            controller.enqueue(new Uint8Array(32768));
+            controller.enqueue(new Uint8Array(32769));
+            // Deliberately keep the network source open: rejection cannot wait for EOF.
+          },
+        })
+      : 'x'.repeat(65537);
+    const r = new Request(origin + '/api/educator-auth', {
+      method: 'POST',
+      headers: { origin, 'content-type': 'application/json' },
+      body,
+      ...(chunked ? { duplex: 'half' } : {}),
+    });
+    const pending = h.route.POST(r);
+    let timer;
+    const result = await Promise.race([
+      pending,
+      new Promise((resolve) => {
+        timer = setTimeout(() => resolve(null), 500);
+      }),
+    ]);
+    clearTimeout(timer);
+    // Cleanup only AFTER observing the deadline, never to make the assertion pass.
+    void r.body.cancel().catch(() => {});
+    await pending;
+    assert.ok(result, '413 must complete before test cleanup cancels sibling');
+    assert.equal(result.status, 413);
+    assert.equal((await result.json()).error, 'request_too_large');
+  }
+  assert.equal(h.calls.length, 0);
+  assert.equal(
+    (await h.db.query('SELECT count(*)::int AS n FROM test_nonces')).rows[0].n,
+    0,
+  );
+});
+
+test('body lifecycle: exact 64 KiB body hash and downstream bytes are preserved', async (t) => {
+  const h = await harness(t);
+  const body = ' '.repeat(65536 - 15) + '{"action":"me"}';
+  assert.equal(Buffer.byteLength(body), 65536);
+  const r = new Request(origin + '/api/educator-auth', {
+    method: 'POST',
+    headers: {
+      origin,
+      'content-type': 'application/json',
+      cookie: `${cookieName}=${token}`,
+    },
+    body,
+  });
+  const security = h.modules['@/lib/educator-request-security'];
+  assert.equal(
+    await security.requestBodySha256(r),
+    crypto.createHash('sha256').update(body).digest('hex'),
+  );
+  assert.equal(r.bodyUsed, false);
+  const response = await h.route.POST(r);
+  assert.equal(response.status, 200);
 });
