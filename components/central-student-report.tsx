@@ -5,6 +5,7 @@ import { CheckCircle2, KeyRound, Loader2, Search, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { educatorAuthRequest, educatorAuthError } from '@/lib/educator-auth-client';
+import { EducatorAssignmentReport } from '@/components/educator-assignment-report';
 
 type WorkRecommendation = {
   id: string;
@@ -263,6 +264,7 @@ export function CentralStudentReport({ children, initialCode = '' }: { children?
                 </p>
               </div>
               <div className="grid grid-cols-4 gap-3 text-center">
+                <p className="col-span-4 text-xs font-semibold text-muted-foreground">Öğrenci geneli toplamları</p>
                 {[
                   ['Soru', report.summary.total],
                   ['Doğru', report.summary.correct],
@@ -298,6 +300,8 @@ export function CentralStudentReport({ children, initialCode = '' }: { children?
               )}
             </div>
           </section>
+
+          {report.student.id && <EducatorAssignmentReport studentId={report.student.id} />}
 
           {report.assessmentRouting && (
             <section className="rounded-xl border border-[#c9d9d1] bg-[#f5faf7] p-6">
