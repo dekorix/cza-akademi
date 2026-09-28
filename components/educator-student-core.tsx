@@ -186,7 +186,7 @@ export function EducatorStudentCore() {
         <div className="mt-4 space-y-2">
           {loadingList ? <output className="block py-5 text-sm">Öğrenciler yükleniyor…</output> :
             students.length ? students.map((student) => (
-              <button key={student.id} type="button" onClick={() => { setLoadingDetail(true); setMessage(''); setSelectedId(student.id); }}
+              <button key={student.id} type="button" onClick={() => { if (student.id === selectedId) return; setLoadingDetail(true); setMessage(''); setSelectedId(student.id); }}
                 className={`w-full rounded-xl border p-3 text-left transition ${
                   selectedId === student.id ? 'border-[#5f927e] bg-[#edf7f2]' : 'border-[#e2e8e5] hover:bg-[#f7faf8]'
                 }`}>
