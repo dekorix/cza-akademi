@@ -21,6 +21,12 @@ export type LearningProfile = {
     skillCode: string; moduleCode: string; recordCount: number;
     provenance: Exclude<ReportProvenance, 'MIXED'>; sourceReferences: string[];
   }>;
+  recentRecords: Array<{
+    recordId: string; sessionId: string | null; moduleCode: string;
+    recordOrigin: string; recordVerification: string;
+    evidenceId: string | null; evidenceVerification: string | null;
+    evidenceAuthority: string | null; provenance: Exclude<ReportProvenance, 'MIXED'>;
+  }>;
   errors: Array<{ errorType: string; count: number; provenance: 'CLIENT_REPORTED'; sourceReference: string }>;
   process: {
     supportLevels: Array<{ supportLevel: string; count: number; provenance: Exclude<ReportProvenance, 'MIXED'> }>;
@@ -46,6 +52,10 @@ function timestamp(value: unknown) {
   return null;
 }
 
+function optionalText(value: unknown) {
+  return typeof value === 'string' ? value : null;
+}
+
 function textArray(value: unknown) {
   return Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string').slice(0, 5) : [];
 }
@@ -54,7 +64,7 @@ export async function readStudentLearningProfile({ sql, academyId, studentId, ca
   sql: QueryClient; academyId: string; studentId: string; calculatedAt?: Date;
 }): Promise<LearningProfile | null> {
   const params = [academyId, studentId];
-  const [identityRows, coverageRows, moduleRows, skillRows, errorRows, supportRows, periodRows] = await Promise.all([
+  const [identityRows, coverageRows, moduleRows, skillRows, errorRows, supportRows, periodRows, recentRows] = await Promise.all([
     sql.query(`SELECT s.id,concat_ws(' ',s.first_name,s.last_name) name,
       LEAST(minimum.recipe_at,minimum.session_at,minimum.record_at) recorded_from
       FROM public.students s
@@ -145,6 +155,14 @@ export async function readStudentLearningProfile({ sql, academyId, studentId, ca
       (SELECT count(*)::int FROM public.question_attempts a WHERE a.academy_id=$1::uuid AND a.student_id=$2::uuid AND a.created_at>=p.from_at AND a.created_at<p.to_at) attempts,
       (SELECT count(*) FILTER(WHERE a.is_correct)::int FROM public.question_attempts a WHERE a.academy_id=$1::uuid AND a.student_id=$2::uuid AND a.created_at>=p.from_at AND a.created_at<p.to_at) correct
       FROM periods p ORDER BY p.from_at DESC`, [...params, calculatedAt.toISOString()]),
+    sql.query(`SELECT r.id::text record_id,r.training_session_id::text session_id,r.module_code,
+      r.record_origin,r.verification_status record_verification,
+      e.id::text evidence_id,e.verification_status evidence_verification,
+      e.verification_authority evidence_authority
+      FROM public.learning_records r LEFT JOIN public.learning_evidence e
+        ON e.learning_record_id=r.id AND e.academy_id=r.academy_id AND e.student_id=r.student_id
+      WHERE r.academy_id=$1::uuid AND r.student_id=$2::uuid
+      ORDER BY r.completed_at DESC,r.id,e.id LIMIT 24`, params),
   ]);
 
   if (!identityRows.length) return null;
@@ -176,6 +194,18 @@ export async function readStudentLearningProfile({ sql, academyId, studentId, ca
       provenance: resolveEvidenceProvenance({ authority: row.has_client === true ? 'work_center_completion:v1' : row.all_trusted === true ? 'canonical_server_evaluator:v1' : null,
         evidenceVerificationStatus: row.all_trusted === true ? 'server_verified' : 'client_reported', parentRecordOrigin: row.all_trusted === true ? 'server_authoritative' : 'client_reported', parentVerificationStatus: row.all_trusted === true ? 'server_verified' : 'client_reported' }),
       sourceReferences: textArray(row.source_references) })),
+    recentRecords: recentRows.map(row => ({
+      recordId: String(row.record_id), sessionId: optionalText(row.session_id),
+      moduleCode: String(row.module_code), recordOrigin: String(row.record_origin),
+      recordVerification: String(row.record_verification),
+      evidenceId: optionalText(row.evidence_id),
+      evidenceVerification: optionalText(row.evidence_verification),
+      evidenceAuthority: optionalText(row.evidence_authority),
+      provenance: resolveEvidenceProvenance({
+        authority: row.evidence_authority, evidenceVerificationStatus: row.evidence_verification,
+        parentRecordOrigin: row.record_origin, parentVerificationStatus: row.record_verification,
+      }),
+    })),
     errors: errorRows.map(row => ({ errorType: String(row.error_type), count: integer(row.count), provenance: 'CLIENT_REPORTED', sourceReference: 'question_attempts' })),
     process: { supportLevels, strategy: null, selfCorrection: null, repetition: null, transfer: null,
       insufficiencyReason: supportLevels.length ? null : 'Yardım, strateji, öz-düzeltme, tekrar veya transfer için yeterli kayıt yok.' },

@@ -22,7 +22,7 @@ function loadModules(){
   return profile.exports;
 }
 
-test('readStudentLearningProfile executes all seven production PostgreSQL queries with lifecycle and provenance fixes',async()=>{
+test('readStudentLearningProfile executes all eight production PostgreSQL queries with lifecycle and provenance fixes',async()=>{
   const db=new PGlite();
   const academy='10000000-0000-4000-8000-000000000001';
   const student='10000000-0000-4000-8000-000000000002';
@@ -34,7 +34,7 @@ test('readStudentLearningProfile executes all seven production PostgreSQL querie
       CREATE TABLE public.training_recipes(id uuid PRIMARY KEY,academy_id uuid,student_id uuid,module_code text,is_active boolean DEFAULT true,cancelled_at timestamptz,created_at timestamptz,starts_at timestamptz);
       CREATE TABLE public.training_sessions(id uuid PRIMARY KEY,academy_id uuid,student_id uuid,module_code text,recipe_id uuid,status text,started_at timestamptz,last_activity_at timestamptz,completed_at timestamptz);
       CREATE TABLE public.question_attempts(id uuid PRIMARY KEY,academy_id uuid,student_id uuid,module_code text,training_session_id uuid,is_correct boolean,error_type text,created_at timestamptz);
-      CREATE TABLE public.learning_records(id uuid PRIMARY KEY,academy_id uuid,student_id uuid,module_code text,record_origin text,verification_status text,support_level text,skills jsonb,completed_at timestamptz,created_at timestamptz);
+      CREATE TABLE public.learning_records(id uuid PRIMARY KEY,academy_id uuid,student_id uuid,module_code text,training_session_id uuid,record_origin text,verification_status text,support_level text,skills jsonb,completed_at timestamptz,created_at timestamptz);
       CREATE TABLE public.learning_evidence(id uuid PRIMARY KEY,learning_record_id uuid,academy_id uuid,student_id uuid,skill_code text,verification_status text,verification_authority text,observed_at timestamptz);
       INSERT INTO public.students VALUES ('${student}','${academy}','Demo','Öğrenci','active');
       INSERT INTO public.modules VALUES ('finger_read','Parmak Okuma');
@@ -48,18 +48,19 @@ test('readStudentLearningProfile executes all seven production PostgreSQL querie
       INSERT INTO public.question_attempts VALUES
         ('40000000-0000-4000-8000-000000000001','${academy}','${student}','finger_read','30000000-0000-4000-8000-000000000001',true,'NONE','2026-09-16T10:02:00Z');
       INSERT INTO public.learning_records VALUES
-        ('50000000-0000-4000-8000-000000000001','${academy}','${student}','finger_read','client_reported','client_reported','guided','["record-only"]','2026-09-16T10:05:00Z','2026-09-16T10:05:00Z'),
-        ('50000000-0000-4000-8000-000000000002','${academy}','${student}','finger_read','client_reported','client_reported','independent','["legacy-skill"]','2026-09-15T10:05:00Z','2026-09-15T10:05:00Z'),
-        ('50000000-0000-4000-8000-000000000003','${academy}','${student}','finger_read','server_authoritative','server_verified','independent','["trusted-skill"]','2026-09-14T10:05:00Z','2026-09-14T10:05:00Z');
+        ('50000000-0000-4000-8000-000000000001','${academy}','${student}','finger_read','30000000-0000-4000-8000-000000000001','client_reported','client_reported','guided','["record-only"]','2026-09-16T10:05:00Z','2026-09-16T10:05:00Z'),
+        ('50000000-0000-4000-8000-000000000002','${academy}','${student}','finger_read','30000000-0000-4000-8000-000000000002','client_reported','client_reported','independent','["legacy-skill"]','2026-09-15T10:05:00Z','2026-09-15T10:05:00Z'),
+        ('50000000-0000-4000-8000-000000000003','${academy}','${student}','finger_read','30000000-0000-4000-8000-000000000002','server_authoritative','server_verified','independent','["trusted-skill"]','2026-09-14T10:05:00Z','2026-09-14T10:05:00Z');
       INSERT INTO public.learning_evidence VALUES
-        ('60000000-0000-4000-8000-000000000001','50000000-0000-4000-8000-000000000002','${academy}','${student}','legacy-skill','server_verified','work_center_completion:v1','2026-09-15T10:05:00Z'),
+        ('60000000-0000-4000-8000-000000000001','50000000-0000-4000-8000-000000000002','${academy}','${student}',NULL,'server_verified','work_center_completion:v1','2026-09-15T10:05:00Z'),
         ('60000000-0000-4000-8000-000000000002','50000000-0000-4000-8000-000000000003','${academy}','${student}','trusted-skill','server_verified','canonical_server_evaluator:v1','2026-09-14T10:05:00Z');
     `);
     let queryCount=0;
     const sql={query:async(text,params)=>{queryCount+=1;return(await db.query(text,params)).rows;}};
     const {readStudentLearningProfile}=loadModules();
     const result=await readStudentLearningProfile({sql,academyId:academy,studentId:student,calculatedAt:new Date('2026-09-18T00:00:00Z')});
-    assert.equal(queryCount,7);
+    assert.ok(Array.isArray(result.recentRecords),'record and evidence identities are present in canonical profile');
+    assert.equal(queryCount,8);
     assert.deepEqual(result.studyPattern.assignments,{active:1,completed:1,cancelled:1});
     assert.equal(result.studyPattern.sessions.completed,2,'cancelled assignment history remains visible');
     const recordOnly=result.skills.find((skill)=>skill.skillCode==='record-only');
@@ -69,5 +70,12 @@ test('readStudentLearningProfile executes all seven production PostgreSQL querie
     assert.equal(legacy.provenance,'CLIENT_REPORTED');
     assert.equal(legacy.recordCount,1,'record skill and matching evidence are not double counted');
     assert.equal(result.skills.find((skill)=>skill.skillCode==='trusted-skill').provenance,'SERVER_AUTHORITATIVE');
+    const completion=result.recentRecords.find(row=>row.recordId==='50000000-0000-4000-8000-000000000002');
+    assert.equal(completion.sessionId,'30000000-0000-4000-8000-000000000002');
+    assert.equal(completion.evidenceId,'60000000-0000-4000-8000-000000000001');
+    assert.equal(completion.recordVerification,'client_reported');
+    assert.equal(completion.evidenceVerification,'server_verified');
+    assert.equal(completion.provenance,'CLIENT_REPORTED','server-verified completion does not verify client skill');
+    assert.equal(result.recentRecords.find(row=>row.recordId==='50000000-0000-4000-8000-000000000003').provenance,'SERVER_AUTHORITATIVE');
   }finally{await db.close();}
 });

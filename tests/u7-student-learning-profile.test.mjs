@@ -66,7 +66,7 @@ test('legacy and parent client provenance stay client reported while trusted fix
     {skill_code:'trusted',module_code:'finger_read',record_count:1,source_references:['e3'],has_client:false,all_trusted:true,expected:'SERVER_AUTHORITATIVE'},
     {skill_code:'unknown',module_code:'finger_read',record_count:1,source_references:['e4'],has_client:false,all_trusted:false,expected:'CLIENT_REPORTED'},
   ]){
-    const responses=[base,coverage,moduleRows,[fixture],errors,support,periods];
+    const responses=[base,coverage,moduleRows,[fixture],errors,support,periods,[]];
     const result=await profile.readStudentLearningProfile({sql:{query:async()=>responses.shift()},academyId:'a',studentId:'s',calculatedAt:new Date('2026-09-17T12:00:00Z')});
     assert.equal(result.skills[0].provenance,fixture.expected);
   }
@@ -74,7 +74,7 @@ test('legacy and parent client provenance stay client reported while trusted fix
 
 test('forged correctness remains client reported and empty history is never false zero',async()=>{
   const profile=loadProfile();const responses=[[{id:'s',name:'Empty',recorded_from:null}],[{assignments:0,sessions:0,attempts:0,records:0,evidence:0,active_assignments:0,completed_assignments:0,cancelled_assignments:0,completed_sessions:0,active_days_30:0,last_study_at:null,data_through:null}],
-    [{module_code:'finger_read',module_name:'Parmak',assignments:0,sessions:0,records:1,client_records:1,trusted_records:0,attempts:0,correct:0,source_references:['learning_records']}],[],[],[],[{label:'LAST_30_DAYS',from_at:'2026-08-18T00:00:00Z',to_at:'2026-09-17T00:00:00Z',sessions:0,records:1,client_records:1,trusted_records:0,attempts:0,correct:0}]];
+    [{module_code:'finger_read',module_name:'Parmak',assignments:0,sessions:0,records:1,client_records:1,trusted_records:0,attempts:0,correct:0,source_references:['learning_records']}],[],[],[],[{label:'LAST_30_DAYS',from_at:'2026-08-18T00:00:00Z',to_at:'2026-09-17T00:00:00Z',sessions:0,records:1,client_records:1,trusted_records:0,attempts:0,correct:0}],[]];
   const result=await profile.readStudentLearningProfile({sql:{query:async()=>responses.shift()},academyId:'a',studentId:'s',calculatedAt:new Date('2026-09-17T00:00:00Z')});
   assert.equal(result.modules[0].clientReportedAccuracy,null);assert.equal(result.periods[0].clientReportedAccuracy,null);
   assert.equal(result.modules[0].provenance,'CLIENT_REPORTED');assert.equal(result.periods[0].provenance,'CLIENT_REPORTED');
@@ -92,5 +92,7 @@ test('profile rendering is responsive, bounded, traceable and does not reinterpr
   for(const breakpoint of ['sm:grid-cols-2','lg:grid-cols-5','xl:grid-cols-2'])assert.match(ui,new RegExp(breakpoint.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')));
   assert.match(profileSource,/\[1:5\] source_references/);assert.match(profileSource,/LIMIT 24/);assert.match(profileSource,/LIMIT 12/);
   assert.match(ui,/<Badge value=\{skill\.provenance\}/);assert.doesNotMatch(ui,/verificationStatus\s*===\s*['"]server_verified/);
+  assert.match(ui,/profile\.recentRecords\.map/);assert.match(ui,/record\.sessionId/);assert.match(ui,/record\.recordId/);assert.match(ui,/record\.evidenceId/);
+  assert.match(ui,/record\.recordVerification/);assert.match(ui,/record\.evidenceVerification/);assert.match(ui,/record\.provenance/);
   assert.doesNotMatch(ui,/min-w-\[[1-9][0-9]{3,}px\]/);
 });
