@@ -7,26 +7,10 @@ function json(body: unknown, status = 200) {
   return Response.json(body, { status, headers: { 'cache-control': 'no-store' } });
 }
 
-async function assessmentDb() {
+function assessmentDb() {
   const url = process.env.DATABASE_URL;
   if (!url) throw new Error('database_unavailable');
-  const sql = neon(url);
-
-  await sql`
-    CREATE TABLE IF NOT EXISTS public.assessment_sessions (
-      id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-      template_code text NOT NULL,
-      student_label text NULL,
-      status text NOT NULL DEFAULT 'active',
-      current_task_code text NULL,
-      started_at timestamptz NOT NULL DEFAULT now(),
-      completed_at timestamptz NULL,
-      metadata jsonb NOT NULL DEFAULT '{}'::jsonb
-    )
-  `;
-  await sql`ALTER TABLE public.assessment_sessions ADD COLUMN IF NOT EXISTS student_id uuid NULL`;
-  await sql`CREATE INDEX IF NOT EXISTS assessment_sessions_student_id_idx ON public.assessment_sessions(student_id)`;
-  return sql;
+  return neon(url);
 }
 
 export async function POST(request: Request) {
@@ -47,27 +31,29 @@ export async function POST(request: Request) {
   if (!studentId) return json({ ok: false, error: 'student_required' }, 400);
 
   try {
-    const sql = await assessmentDb();
+    const sql = assessmentDb();
     const students = await sql`
       SELECT
         s.id,
         concat_ws(' ', s.first_name, s.last_name) AS name,
         i.identifier_value AS code,
-        u.username
-      FROM public.students s
-      LEFT JOIN public.users u ON u.id = s.user_id
+        student_user.username
+      FROM public.users educator_user
+      JOIN public.teacher_student_links link
+        ON link.teacher_id = educator_user.id
+       AND link.academy_id = educator_user.academy_id
+       AND link.can_view = true
+      JOIN public.students s
+        ON s.id = link.student_id
+       AND s.academy_id = educator_user.academy_id
+      LEFT JOIN public.users student_user ON student_user.id = s.user_id
       LEFT JOIN public.student_external_identifiers i
-        ON i.student_id = s.id AND i.identifier_type = 'campus_student_code'
-      WHERE s.id = ${studentId}::uuid
-        AND EXISTS (
-          SELECT 1
-          FROM public.teacher_student_links l
-          JOIN public.users t ON t.id = l.teacher_id
-          WHERE l.student_id = s.id
-            AND l.can_view = true
-            AND t.auth_user_id = ${educator.id}
-            AND t.is_active = true
-        )
+        ON i.student_id = s.id
+       AND i.identifier_type = 'campus_student_code'
+      WHERE educator_user.auth_user_id = ${educator.id}::uuid
+        AND educator_user.is_active = true
+        AND educator_user.role::text = 'educator'
+        AND s.id = ${studentId}::uuid
       LIMIT 1
     `;
 
