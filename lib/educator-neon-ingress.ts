@@ -74,7 +74,9 @@ async function provider(
   path:
     | '/sign-in/email'
     | '/get-session?disableCookieCache=true&disableRefresh=true'
-    | '/sign-out',
+    | '/sign-out'
+    | '/request-password-reset'
+    | '/reset-password',
   value = '',
   body?: object,
 ) {
@@ -138,14 +140,15 @@ export async function handleNeonEducatorAuth(
   request: Request,
   input: EducatorAuthRequest,
   authenticate: (request: Request) => Promise<EducatorIdentity | null>,
+  isEducatorEmail: (email: string) => Promise<boolean>,
 ) {
   if (!neonIngressAllowed(request))
     return reply('request_origin_or_identity_rejected', 403);
   const gate = await allowRequest(
     request,
     'educator-neon-' + input.action,
-    input.action === 'login' ? 6 : 60,
-    60000,
+    input.action === 'reset' ? 5 : input.action === 'login' ? 6 : 60,
+    input.action === 'reset' ? 15 * 60 * 1000 : 60000,
   );
   if (!gate.allowed) return rateLimited(gate);
   if (input.action === 'me') {
@@ -174,9 +177,57 @@ export async function handleNeonEducatorAuth(
       return reply('logout_revocation_failed', 503);
     }
   }
-  // Password recovery remains the existing provider's responsibility; no local reset/session fallback.
-  if (input.action !== 'login')
-    return reply('neon_password_recovery_not_enabled', 400);
+  if (input.action === 'request-reset') {
+    const email = input.email;
+    if (!email || !email.includes('@')) return reply('invalid_request', 400);
+    const accountGate = await allowAccountRequest(
+      'educator-neon-reset-request',
+      3,
+      30 * 60 * 1000,
+      email,
+    );
+    if (!accountGate.allowed) return rateLimited(accountGate);
+    try {
+      // The public response does not disclose whether this address is an educator.
+      if (await isEducatorEmail(email)) {
+        const response = await provider('/request-password-reset', '', {
+          email,
+          redirectTo: `${STAGING_EDUCATOR_ORIGIN}/educator/reset-password`,
+        });
+        if (!response.ok) return reply('reset_unavailable', 502);
+      }
+      return Response.json(
+        { ok: true, delivery: 'email' },
+        { headers: { 'cache-control': 'no-store' } },
+      );
+    } catch {
+      return reply('reset_unavailable', 502);
+    }
+  }
+  if (input.action === 'reset') {
+    if (
+      !input.token ||
+      input.newPassword.length < 8 ||
+      input.newPassword.length > 128
+    )
+      return reply('invalid_reset', 400);
+    try {
+      const response = await provider('/reset-password', '', {
+        token: input.token,
+        newPassword: input.newPassword,
+      });
+      if (response.status === 400 || response.status === 401)
+        return reply('invalid_reset', 400);
+      if (!response.ok) return reply('reset_unavailable', 502);
+      return Response.json(
+        { ok: true, signedIn: false },
+        { headers: { 'cache-control': 'no-store' } },
+      );
+    } catch {
+      return reply('reset_unavailable', 502);
+    }
+  }
+  if (input.action !== 'login') return reply('invalid_action', 400);
   if (!input.email || input.password.length < 8)
     return reply('invalid_credentials', 401);
   const accountGate = await allowAccountRequest(

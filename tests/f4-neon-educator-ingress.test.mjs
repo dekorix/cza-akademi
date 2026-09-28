@@ -101,6 +101,20 @@ async function harness(t) {
     assert.ok(!JSON.stringify(options).includes(secret));
     if (state.fail === 'network') throw new Error('sensitive-upstream-error');
     if (state.fail === 'redirect') return new Response(null, { status: 307 });
+    if (
+      url.endsWith('/request-password-reset') ||
+      url.endsWith('/reset-password')
+    ) {
+      assert.equal(options.headers.cookie, undefined);
+      if (state.fail === 'reset-invalid')
+        return Response.json({ code: 'INVALID_TOKEN' }, { status: 400 });
+      if (state.fail === 'reset-service')
+        return Response.json(
+          { error: 'sensitive-upstream-error' },
+          { status: 503 },
+        );
+      return Response.json({ ok: true });
+    }
     if (url.endsWith('/sign-in/email')) {
       if (state.fail === 'credentials')
         return Response.json({ error: 'bad password' }, { status: 401 });
@@ -563,5 +577,111 @@ test('provider cookie contract: wrong legacy cookie name alone cannot create a s
     h.calls.length,
     1,
     'must reject before session verification or canonical authentication',
+  );
+});
+
+test('Neon reset requests only the unique active canonical educator and never creates a session', async (t) => {
+  const h = await harness(t);
+  const email = 'canonical@example.invalid';
+  const response = await h.route.POST(req({ action: 'request-reset', email }));
+  assert.equal(response.status, 200);
+  assert.equal(response.headers.get('set-cookie'), null);
+  const calls = h.calls.filter((c) =>
+    c.url.endsWith('/request-password-reset'),
+  );
+  assert.equal(calls.length, 1);
+  assert.deepEqual(JSON.parse(calls[0].options.body), {
+    email,
+    redirectTo: origin + '/educator/reset-password',
+  });
+  const unknown = await h.route.POST(
+    req({ action: 'request-reset', email: 'unknown@example.invalid' }),
+  );
+  assert.equal(unknown.status, 200);
+  assert.deepEqual(await unknown.json(), await response.json());
+  assert.equal(h.calls.length, 1);
+  await h.db.exec("UPDATE users SET role='student'");
+  assert.equal(
+    (await h.route.POST(req({ action: 'request-reset', email }))).status,
+    200,
+  );
+  assert.equal(h.calls.length, 1);
+});
+
+test('Neon reset rejects ambiguous and inactive educator mapping without provider email', async (t) => {
+  const h = await harness(t);
+  const email = 'canonical@example.invalid';
+  await h.db.exec(
+    `INSERT INTO users SELECT '20000000-0000-4000-8000-000000000002','${otherAid}',auth_user_id,email,display_name,role,is_active,username FROM users`,
+  );
+  assert.equal(
+    (await h.route.POST(req({ action: 'request-reset', email }))).status,
+    200,
+  );
+  assert.equal(h.calls.length, 0);
+  await h.db.exec(
+    "DELETE FROM users WHERE id='20000000-0000-4000-8000-000000000002'; UPDATE users SET is_active=false",
+  );
+  assert.equal(
+    (await h.route.POST(req({ action: 'request-reset', email }))).status,
+    200,
+  );
+  assert.equal(h.calls.length, 0);
+});
+
+test('Neon reset token completes at provider without a local educator session', async (t) => {
+  const h = await harness(t);
+  const input = {
+    action: 'reset',
+    token: 'isolated-reset-token',
+    newPassword: 'new-test-password',
+  };
+  const response = await h.route.POST(req(input));
+  assert.equal(response.status, 200);
+  assert.deepEqual(await response.json(), { ok: true, signedIn: false });
+  assert.equal(response.headers.get('set-cookie'), null);
+  assert.deepEqual(JSON.parse(h.calls[0].options.body), {
+    token: input.token,
+    newPassword: input.newPassword,
+  });
+  assert.equal((await h.route.POST(req({ ...input, token: '' }))).status, 400);
+  assert.equal(h.calls.length, 1);
+});
+
+test('Neon reset provider failures, invalid token and rate gate are safe', async (t) => {
+  const h = await harness(t);
+  const input = {
+    action: 'reset',
+    token: 'sensitive-token',
+    newPassword: 'sensitive-password',
+  };
+  for (const [fail, expected] of [
+    ['reset-invalid', 400],
+    ['reset-service', 502],
+    ['network', 502],
+    ['redirect', 502],
+  ]) {
+    h.state.fail = fail;
+    const response = await h.route.POST(req(input));
+    assert.equal(response.status, expected);
+    assert.equal(response.headers.get('set-cookie'), null);
+    const body = await response.text();
+    for (const sensitive of [
+      input.token,
+      input.newPassword,
+      'sensitive-upstream-error',
+    ])
+      assert.ok(!body.includes(sensitive));
+  }
+  h.state.fail = '';
+  h.state.rateDenied = true;
+  assert.equal((await h.route.POST(req(input))).status, 429);
+  assert.equal(
+    (
+      await h.route.POST(
+        req({ action: 'request-reset', email: 'canonical@example.invalid' }),
+      )
+    ).status,
+    429,
   );
 });

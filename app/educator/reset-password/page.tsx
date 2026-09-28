@@ -1,8 +1,12 @@
 'use client';
 import { useState } from 'react';
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { educatorAuthRequest, educatorAuthError } from '@/lib/educator-auth-client';
+import {
+  educatorAuthRequest,
+  educatorAuthError,
+} from '@/lib/educator-auth-client';
 
 export default function ResetPassword() {
   const [password, setPassword] = useState('');
@@ -16,14 +20,23 @@ export default function ResetPassword() {
     setMessage('');
     const token = new URLSearchParams(location.search).get('token') || '';
     try {
-      const result = await educatorAuthRequest({ action: 'reset', token, newPassword: password }) as { signedIn?: boolean; build?: string };
+      const result = (await educatorAuthRequest({
+        action: 'reset',
+        token,
+        newPassword: password,
+      })) as { signedIn?: boolean; build?: string };
       setPassword('');
+      window.history.replaceState(null, '', '/educator/reset-password');
       if (result.signedIn) {
-        setMessage('Parola kaydedildi. Güvenli eğitimci oturumu açıldı; panele yönlendiriliyorsun…');
+        setMessage(
+          'Parola kaydedildi. Güvenli eğitimci oturumu açıldı; panele yönlendiriliyorsun…',
+        );
         window.location.replace('/educator?tab=students&auth=reset');
         return;
       }
-      setMessage('Parola kaydedildi ancak güvenli eğitimci oturumu açılamadı. Lütfen yeniden giriş yap.');
+      setMessage(
+        'Parola kaydedildi. Eğitimci girişinden yeni parolanla oturum aç.',
+      );
     } catch (error) {
       setMessage(educatorAuthError(error));
     } finally {
@@ -33,9 +46,12 @@ export default function ResetPassword() {
 
   return (
     <main className="mx-auto max-w-md p-8">
-      <p className="text-xs font-semibold text-primary">CZA Auth · reset-autologin-v1</p>
+      <p className="text-xs font-semibold text-primary">CZA Eğitimci Merkezi</p>
       <h1 className="mt-2 text-2xl font-semibold">Eğitimci parolası oluştur</h1>
-      <p className="mt-2 text-sm text-muted-foreground">Parolan kaydedildiğinde aynı güvenli işlem içinde Eğitimci Merkezi oturumu da açılır.</p>
+      <p className="mt-2 text-sm text-muted-foreground">
+        Bağlantıdaki doğrulama koduyla parolanı belirle. Ardından yeni parolanla
+        giriş yap.
+      </p>
       <form onSubmit={submit} className="mt-6 space-y-4">
         <Input
           type="password"
@@ -48,10 +64,17 @@ export default function ResetPassword() {
           onChange={(e) => setPassword(e.target.value)}
           placeholder="En az 8 karakter"
         />
-        <Button className="w-full" disabled={saving}>{saving ? 'Kaydediliyor ve giriş açılıyor…' : 'Parolayı kaydet ve giriş yap'}</Button>
+        <Button className="w-full" disabled={saving}>
+          {saving ? 'Kaydediliyor…' : 'Parolayı kaydet'}
+        </Button>
       </form>
-      {message && <p role="status" className="mt-4">{message}</p>}
-      <a href="/educator?tab=reports" className="mt-5 inline-block font-semibold text-primary">Eğitimci girişine dön</a>
+      {message && <output className="mt-4 block">{message}</output>}
+      <Link
+        href="/educator?tab=reports"
+        className="mt-5 inline-block font-semibold text-primary"
+      >
+        Eğitimci girişine dön
+      </Link>
     </main>
   );
 }

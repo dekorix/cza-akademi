@@ -1,4 +1,7 @@
-import { handleNeonEducatorAuth, neonIngressAllowed } from '@/lib/educator-neon-ingress';
+import {
+  handleNeonEducatorAuth,
+  neonIngressAllowed,
+} from '@/lib/educator-neon-ingress';
 import {
   allowAccountRequest,
   allowRequest,
@@ -10,6 +13,7 @@ import {
 } from '@/lib/educator-request-security';
 import {
   authenticatedEducator,
+  canonicalNeonEducatorEmail,
   authUrl,
   createLocalEducatorSession,
   educatorCookie,
@@ -81,7 +85,12 @@ export async function POST(request: Request) {
     );
   }
   if (process.env.CZA_EDUCATOR_AUTH_MODE === 'neon') {
-    return handleNeonEducatorAuth(request, parsed.input, authenticatedEducator);
+    return handleNeonEducatorAuth(
+      request,
+      parsed.input,
+      authenticatedEducator,
+      canonicalNeonEducatorEmail,
+    );
   }
   if (!(await educatorProxyRequestAllowed(request, parsed.bodySha256))) {
     return json(

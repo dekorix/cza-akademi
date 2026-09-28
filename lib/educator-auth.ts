@@ -15,7 +15,12 @@ const SITE_OWNER_EMAIL = 'habipcann65@gmail.com';
 export const EDUCATOR_EMAIL = 'celikzihin.akademisi@gmail.com';
 export const EDUCATOR_AUTH_USER_ID = '47c90485-e057-4ebe-a25c-9d7f236c5bd6';
 const LOCAL_PREFIX = 'local.';
-const SCRYPT_OPTIONS = { N: 16384, r: 16, p: 1, maxmem: 128 * 16384 * 16 * 2 } as const;
+const SCRYPT_OPTIONS = {
+  N: 16384,
+  r: 16,
+  p: 1,
+  maxmem: 128 * 16384 * 16 * 2,
+} as const;
 const PROXY_EMAIL_HEADER = 'oai-authenticated-user-email';
 const PROXY_TIMESTAMP_HEADER = 'x-cza-proxy-timestamp';
 const PROXY_NONCE_HEADER = 'x-cza-proxy-nonce';
@@ -79,10 +84,17 @@ export async function trustedEducatorProxy(
   if (Buffer.byteLength(secret, 'utf8') < 32) return null;
 
   const timestamp = (request.headers.get(PROXY_TIMESTAMP_HEADER) || '').trim();
-  const nonce = (request.headers.get(PROXY_NONCE_HEADER) || '').trim().toLowerCase();
-  const signature = (request.headers.get(PROXY_SIGNATURE_HEADER) || '').trim().toLowerCase();
-  const educatorEmail = (request.headers.get(PROXY_EMAIL_HEADER) || '').trim().toLowerCase();
-  if (!/^\d{10}$/.test(timestamp) || !/^[0-9a-f]{64}$/.test(signature)) return null;
+  const nonce = (request.headers.get(PROXY_NONCE_HEADER) || '')
+    .trim()
+    .toLowerCase();
+  const signature = (request.headers.get(PROXY_SIGNATURE_HEADER) || '')
+    .trim()
+    .toLowerCase();
+  const educatorEmail = (request.headers.get(PROXY_EMAIL_HEADER) || '')
+    .trim()
+    .toLowerCase();
+  if (!/^\d{10}$/.test(timestamp) || !/^[0-9a-f]{64}$/.test(signature))
+    return null;
   if (!/^[0-9a-f]{32,128}$/.test(nonce)) return null;
   if (educatorEmail.length > 254 || /[\r\n]/.test(educatorEmail)) return null;
 
@@ -117,7 +129,11 @@ export async function trustedEducatorProxy(
     )
     .digest();
   const supplied = Buffer.from(signature, 'hex');
-  if (supplied.length !== expected.length || !timingSafeEqual(supplied, expected)) return null;
+  if (
+    supplied.length !== expected.length ||
+    !timingSafeEqual(supplied, expected)
+  )
+    return null;
 
   if (!(await consumeProxyNonce(nonce, timestampSeconds))) {
     return null;
@@ -159,15 +175,24 @@ function neonAuthBase() {
 
 function derivePasswordKey(password: string, salt: string) {
   return new Promise<Buffer>((resolve, reject) => {
-    nodeScrypt(password.normalize('NFKC'), salt, 64, SCRYPT_OPTIONS, (error, key) => {
-      if (error) reject(error);
-      else resolve(key as Buffer);
-    });
+    nodeScrypt(
+      password.normalize('NFKC'),
+      salt,
+      64,
+      SCRYPT_OPTIONS,
+      (error, key) => {
+        if (error) reject(error);
+        else resolve(key as Buffer);
+      },
+    );
   });
 }
 
 export function readCookie(request: Request, name: string) {
-  const value = (request.headers.get('cookie') || '').split(';').map(v=>v.trim()).find(v=>v.startsWith(`${name}=`));
+  const value = (request.headers.get('cookie') || '')
+    .split(';')
+    .map((v) => v.trim())
+    .find((v) => v.startsWith(`${name}=`));
   if (!value) return '';
   const encoded = value.slice(name.length + 1);
   if (encoded.length > 4096) return '';
@@ -179,7 +204,14 @@ export function readCookie(request: Request, name: string) {
 }
 
 export function educatorCookie(value: string, maxAge: number, secure: boolean) {
-  return [`${EDUCATOR_COOKIE}=${encodeURIComponent(value)}`,'Path=/api','HttpOnly',...(secure?['Secure']:[]),'SameSite=Lax',`Max-Age=${maxAge}`].join('; ');
+  return [
+    `${EDUCATOR_COOKIE}=${encodeURIComponent(value)}`,
+    'Path=/api',
+    'HttpOnly',
+    ...(secure ? ['Secure'] : []),
+    'SameSite=Lax',
+    `Max-Age=${maxAge}`,
+  ].join('; ');
 }
 
 function tokenHash(token: string) {
@@ -224,8 +256,14 @@ async function canonicalEducatorBySignedEmail(email: string) {
     LIMIT 2
   `;
   // Never choose an academy arbitrarily, including when one match lacks an auth mapping.
-  if (rows.length !== 1 || !rows[0].auth_user_id || !rows[0].academy_id) return null;
+  if (rows.length !== 1 || !rows[0].auth_user_id || !rows[0].academy_id)
+    return null;
   return rows[0] as CanonicalEducator;
+}
+
+export async function canonicalNeonEducatorEmail(email: string) {
+  const row = await canonicalEducatorBySignedEmail(email);
+  return row?.email?.toLowerCase() === email.toLowerCase();
 }
 
 function educatorIdentity(row: CanonicalEducator) {
@@ -251,10 +289,17 @@ export async function verifyEducatorPassword(password: string) {
   `;
   const stored = typeof rows[0]?.password === 'string' ? rows[0].password : '';
   const [salt, keyHex, extra] = stored.split(':');
-  if (extra !== undefined || !/^[0-9a-f]{32}$/i.test(salt || '') || !/^[0-9a-f]{128}$/i.test(keyHex || '')) return false;
+  if (
+    extra !== undefined ||
+    !/^[0-9a-f]{32}$/i.test(salt || '') ||
+    !/^[0-9a-f]{128}$/i.test(keyHex || '')
+  )
+    return false;
   const derived = await derivePasswordKey(password, salt);
   const expected = Buffer.from(keyHex, 'hex');
-  return derived.length === expected.length && timingSafeEqual(derived, expected);
+  return (
+    derived.length === expected.length && timingSafeEqual(derived, expected)
+  );
 }
 
 export async function createLocalEducatorSession(request: Request) {
@@ -271,12 +316,17 @@ export async function createLocalEducatorSession(request: Request) {
   `;
   return {
     cookieValue: `${LOCAL_PREFIX}${token}`,
-    user: { id: EDUCATOR_AUTH_USER_ID, email: EDUCATOR_EMAIL, name: educator.display_name || 'CZA Eğitimci' },
+    user: {
+      id: EDUCATOR_AUTH_USER_ID,
+      email: EDUCATOR_EMAIL,
+      name: educator.display_name || 'CZA Eğitimci',
+    },
   };
 }
 
 async function localEducator(cookieValue: string) {
-  if (!cookieValue.startsWith(LOCAL_PREFIX) || !process.env.DATABASE_URL) return null;
+  if (!cookieValue.startsWith(LOCAL_PREFIX) || !process.env.DATABASE_URL)
+    return null;
   const token = cookieValue.slice(LOCAL_PREFIX.length);
   if (!/^[a-f0-9]{64}$/i.test(token)) return null;
   const sql = neon(process.env.DATABASE_URL);
@@ -294,8 +344,16 @@ async function localEducator(cookieValue: string) {
   `;
   if (!rows.length) return null;
   await sql`UPDATE public.educator_sessions SET last_seen_at = now() WHERE id = ${rows[0].session_id}::uuid`;
-  const row = rows[0] as { auth_user_id: string; email: string | null; display_name: string };
-  return { id: row.auth_user_id, email: row.email || EDUCATOR_EMAIL, name: row.display_name || 'CZA Eğitimci' };
+  const row = rows[0] as {
+    auth_user_id: string;
+    email: string | null;
+    display_name: string;
+  };
+  return {
+    id: row.auth_user_id,
+    email: row.email || EDUCATOR_EMAIL,
+    name: row.display_name || 'CZA Eğitimci',
+  };
 }
 
 export async function revokeLocalEducatorSession(request: Request) {
@@ -304,7 +362,8 @@ export async function revokeLocalEducatorSession(request: Request) {
   if (!cookieValue.startsWith(LOCAL_PREFIX)) return 'external-session' as const;
   if (!process.env.DATABASE_URL) throw new Error('logout_revocation_failed');
   const token = cookieValue.slice(LOCAL_PREFIX.length);
-  if (!/^[a-f0-9]{64}$/i.test(token)) throw new Error('logout_revocation_failed');
+  if (!/^[a-f0-9]{64}$/i.test(token))
+    throw new Error('logout_revocation_failed');
   const sql = neon(process.env.DATABASE_URL);
   await sql`
     UPDATE public.educator_sessions
@@ -344,7 +403,15 @@ async function authenticatedNeonEducator(request: Request) {
   headers.set(
     PROXY_SIGNATURE_HEADER,
     createHmac('sha256', secret)
-      .update(proxySignaturePayload(request, timestamp, nonce, bodyHash, canonicalEmail))
+      .update(
+        proxySignaturePayload(
+          request,
+          timestamp,
+          nonce,
+          bodyHash,
+          canonicalEmail,
+        ),
+      )
       .digest('hex'),
   );
   // The original body must remain readable by the downstream route. HMAC
@@ -388,11 +455,18 @@ export async function authenticatedEducator(request: Request) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 5000);
   try {
-    const response = await fetch(authUrl('/get-session'),{headers:{cookie:sessionCookie},cache:'no-store',signal:controller.signal});
+    const response = await fetch(authUrl('/get-session'), {
+      headers: { cookie: sessionCookie },
+      cache: 'no-store',
+      signal: controller.signal,
+    });
     if (!response.ok) return null;
-    const data = await response.json() as {user?:{id?:string;email?:string;name?:string}};
+    const data = (await response.json()) as {
+      user?: { id?: string; email?: string; name?: string };
+    };
     const userEmail = (data.user?.email || '').trim().toLowerCase();
-    if (data.user?.id !== EDUCATOR_AUTH_USER_ID || userEmail !== EDUCATOR_EMAIL) return null;
+    if (data.user?.id !== EDUCATOR_AUTH_USER_ID || userEmail !== EDUCATOR_EMAIL)
+      return null;
     const canonical = await canonicalEducatorByAuthId(data.user.id);
     return canonical ? educatorIdentity(canonical) : null;
   } catch {
