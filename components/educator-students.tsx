@@ -76,8 +76,7 @@ export function EducatorStudents({ onReport }: { onReport: (studentId: string) =
       sessionStorage.removeItem(storageKey);
       setAssessmentSessions(current => ({ ...current, [student.id]: sessionId }));
       setAssessmentMessage(`${student.name} için P2 değerlendirmesi merkezi öğrenci dosyasına bağlandı.`);
-      const opened = window.open(`/assessment?session=${encodeURIComponent(sessionId)}`, '_blank', 'noopener,noreferrer');
-      if (!opened) window.location.href = `/assessment?session=${encodeURIComponent(sessionId)}`;
+      window.location.assign(`/educator/assessment?session=${encodeURIComponent(sessionId)}`);
     } catch (error) {
       setAssessmentMessage(error instanceof Error ? error.message : 'Değerlendirme başlatılamadı.');
     } finally { setAssessmentBusyId(''); }
