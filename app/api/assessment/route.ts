@@ -127,7 +127,7 @@ function mutable(status: string) {
 export async function POST(request: Request) {
   let input: Record<string, unknown>;
   try {
-    input = (await request.json()) as Record<string, unknown>;
+    input = (await request.clone().json()) as Record<string, unknown>;
   } catch {
     return json({ ok: false, error: 'invalid_request' }, 400);
   }

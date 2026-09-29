@@ -51,10 +51,16 @@ function readCookie(request: Request, name: string) {
   return readRequestCookie(request, name);
 }
 
-function cookie(name: string, value: string, maxAge: number, secure: boolean) {
+function cookie(
+  name: string,
+  value: string,
+  maxAge: number,
+  secure: boolean,
+  path = '/api/core',
+) {
   return [
     `${name}=${encodeURIComponent(value)}`,
-    'Path=/api/core',
+    'Path=' + path,
     'HttpOnly',
     ...(secure ? ['Secure'] : []),
     'SameSite=Lax',
@@ -64,6 +70,14 @@ function cookie(name: string, value: string, maxAge: number, secure: boolean) {
 
 function sessionCookie(value: string, maxAge: number, secure: boolean) {
   return cookie(COOKIE_NAME, value, maxAge, secure);
+}
+
+function assessmentSessionCookie(
+  value: string,
+  maxAge: number,
+  secure: boolean,
+) {
+  return cookie(COOKIE_NAME, value, maxAge, secure, '/api/assessment');
 }
 
 function assignmentCookie(value: string, maxAge: number, secure: boolean) {
@@ -158,6 +172,7 @@ export async function POST(request: Request) {
       return json({ ok: true, revoked: true }, 200, undefined, [
         assignmentCookie('', 0, secureCookie),
         sessionCookie('', 0, secureCookie),
+        assessmentSessionCookie('', 0, secureCookie),
       ]);
     } catch (error) {
       const code =
@@ -416,6 +431,7 @@ export async function POST(request: Request) {
       delete safeResult.sessionToken;
       return respond(safeResult, 200, undefined, [
         sessionCookie(token, 60 * 60 * 8, secureCookie),
+        assessmentSessionCookie(token, 60 * 60 * 8, secureCookie),
       ]);
     }
 

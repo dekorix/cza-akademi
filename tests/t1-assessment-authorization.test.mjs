@@ -50,7 +50,10 @@ function routeLoader({ db, studentState, educatorState }) {
         return { authenticatedStudent: async () => studentState.value };
       }
       if (id.includes('educator-auth')) {
-        return { authenticatedEducator: async () => educatorState.value };
+        return {
+          authenticatedEducator: async (request) =>
+            educatorState.requireFreshBody && request.bodyUsed ? null : educatorState.value,
+        };
       }
       throw new Error('unexpected import: ' + id);
     },
@@ -298,6 +301,19 @@ test('T1 P2 assessment authorization, provenance and lifecycle guards', async (t
       assert.equal(await count('assessment_observations', ids.sessionA), before);
     });
 
+    await t.test('normal educator session can read linked assessment before body ownership transfers', async () => {
+      studentState.value = null;
+      educatorState.value = educatorA;
+      educatorState.requireFreshBody = true;
+      try {
+        const response = await request(post, 'get', { sessionId: ids.cancelledA });
+        assert.equal(response.status, 200);
+        assert.equal((await response.json()).session.id, ids.cancelledA);
+      } finally {
+        educatorState.requireFreshBody = false;
+      }
+    });
+
     await t.test('can_view=false creates zero observation', async () => {
       educatorState.value = educatorA;
       await db.query(
@@ -444,4 +460,11 @@ test('T1 P2 assessment authorization, provenance and lifecycle guards', async (t
   } finally {
     await db.close();
   }
+});
+
+test('student session cookie is delivered to canonical assessment API', () => {
+  const source = read('app/api/core/route.ts');
+  assert.ok(source.includes("return cookie(COOKIE_NAME, value, maxAge, secure, '/api/assessment')"));
+  assert.ok(source.includes('assessmentSessionCookie(token, 60 * 60 * 8, secureCookie)'));
+  assert.ok(source.includes("assessmentSessionCookie('', 0, secureCookie)"));
 });
