@@ -118,6 +118,7 @@ export function EducatorStudentCore() {
   const [loadingDetail, setLoadingDetail] = useState(true);
   const [message, setMessage] = useState('');
   const [detailVersion, setDetailVersion] = useState(0);
+  const [assessmentBusy, setAssessmentBusy] = useState(false);
 
   const loadStudents = useCallback(async (search = '') => {
     setLoadingList(true);
@@ -172,6 +173,36 @@ export function EducatorStudentCore() {
     return () => controller.abort();
   }, [selectedId, detailVersion]);
 
+  async function startAssessment() {
+    if (!detail || assessmentBusy) return;
+    const studentId = detail.student.id;
+    const storageKey = `cza:p2:cycle:${studentId}`;
+    let assessmentCycleKey = sessionStorage.getItem(storageKey);
+    if (!assessmentCycleKey) {
+      assessmentCycleKey = crypto.randomUUID();
+      sessionStorage.setItem(storageKey, assessmentCycleKey);
+    }
+    setAssessmentBusy(true);
+    setMessage('');
+    try {
+      const response = await fetch('/api/assessment-linked', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ studentId, assessmentCycleKey }),
+      });
+      const data = await response.json();
+      if (!response.ok || data.ok !== true || !data.session?.id) {
+        throw new Error(data.error || 'Değerlendirme oturumu açılamadı.');
+      }
+      sessionStorage.removeItem(storageKey);
+      window.location.assign(`/educator/assessment?session=${encodeURIComponent(String(data.session.id))}`);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'Değerlendirme başlatılamadı.');
+    } finally {
+      setAssessmentBusy(false);
+    }
+  }
+
   return (
     <section className="grid gap-6 xl:grid-cols-[320px_minmax(0,1fr)]">
       <aside className="self-start rounded-2xl border bg-white p-5 shadow-sm xl:sticky xl:top-5">
@@ -205,6 +236,9 @@ export function EducatorStudentCore() {
             <p className="text-xs font-bold uppercase tracking-[.16em] text-[#b9d7ca]">Merkezî öğrenci dosyası</p>
             <h2 className="mt-2 text-2xl font-bold sm:text-3xl">{detail.student.name}</h2>
             <p className="mt-2 text-sm text-[#d5e8e0]">{detail.student.campusCode || detail.student.username || 'Tek Student ID'} · {detail.student.id}</p>
+            <Button type="button" className="mt-4" disabled={assessmentBusy} onClick={() => void startAssessment()}>
+              {assessmentBusy ? 'Değerlendirme açılıyor…' : 'Başlangıç değerlendirmesini aç'}
+            </Button>
             <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
               {[
                 ['Aktif çalışma', detail.work.active.length],
