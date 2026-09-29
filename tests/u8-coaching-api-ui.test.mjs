@@ -1,6 +1,6 @@
 /* oxlint-disable typescript/no-floating-promises -- node:test registrations are intentionally top-level. */
 import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';import ts from 'typescript';
-const read=p=>fs.readFileSync(new URL(p,import.meta.url),'utf8');const transpile=v=>ts.transpileModule(v,{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX}}).outputText;
+const read=p=>fs.readFileSync(new URL(p,import.meta.url),'utf8').replace(/\r\n/g,'\n');const transpile=v=>ts.transpileModule(v,{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX}}).outputText;
 const educatorSource=read('../app/api/educator-coaching/route.ts'),studentSource=read('../app/api/core/coaching/route.ts'),ui=read('../components/coaching-center.tsx'),hardening=read('../db/migrations/20260918_u8_coaching_core_hardening_v2.sql'),atomicity=read('../db/migrations/20260918_u8_atomicity_guard_v3.sql'),migration=read('../db/migrations/20260918_u8_coaching_core_v1.sql')+hardening+atomicity,repository=read('../lib/persistence/coaching-center.ts');
 class CoachingError extends Error{constructor(code,status=400){super(code);this.code=code;this.status=status;}}
 function load(source,{educator=null,student=null}={}){const holder={exports:{}};const calls=[];const functions={

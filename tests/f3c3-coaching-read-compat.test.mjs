@@ -515,3 +515,162 @@ test('cursor binds academy, student and view; reapply preserves seeded data', as
     0,
   );
 });
+
+test('LGS weekly canonical recipe progress is identical for student and educator', async () => {
+  const weeklyRecipe = id(190),
+    weeklyPlan = id(191);
+  await insert('training_recipes', {
+    id: weeklyRecipe,
+    academy_id: academy,
+    student_id: student,
+    module_code: null,
+    assigned_by: educator,
+    source: 'teacher_assignment',
+    name: 'LGS Matematik haftası',
+    settings: '{}',
+    instructions: 'Kesirleri tekrar et',
+    is_active: true,
+    task_kind: 'academic',
+    academic_subject: 'Matematik',
+    academic_topic: 'Kesirler',
+    target_questions: 20,
+    target_minutes: 30,
+  });
+  await insert('coaching_plans', {
+    id: weeklyPlan,
+    academy_id: academy,
+    student_id: student,
+    program_id: id(101),
+    coach_id: educator,
+    title: 'LGS Matematik haftası',
+    period_start: '2026-09-29',
+    period_end: '2026-10-05',
+    monthly_focus: 'Kesirler',
+    status: 'published',
+    client_request_id: id(192),
+    request_hash: 'b'.repeat(64),
+  });
+  await insert('coaching_plan_items', {
+    academy_id: academy,
+    student_id: student,
+    plan_id: weeklyPlan,
+    recipe_id: weeklyRecipe,
+    scheduled_for: '2026-09-30',
+  });
+  for (const [n, questions, minutes] of [
+    [193, 3, 10],
+    [195, 4, 15],
+  ])
+    await insert('coaching_study_logs', {
+      id: id(n),
+      academy_id: academy,
+      student_id: student,
+      recipe_id: weeklyRecipe,
+      reported_by: studentRole,
+      question_count: questions,
+      duration_minutes: minutes,
+      client_request_id: id(n + 1),
+      request_hash: 'c'.repeat(64),
+    });
+  const educatorRead = await repo.readCoachingCenter(sql, actor);
+  const studentRead = await repo.readCoachingCenter(
+    sql,
+    { ...actor, userId: studentRole },
+    { studentView: true },
+  );
+  const item = (result) =>
+    result.plans.find((p) => p.id === weeklyPlan).items[0];
+  assert.deepEqual(item(studentRead), item(educatorRead));
+  assert.equal(item(studentRead).recipeId, weeklyRecipe);
+  assert.equal(item(studentRead).subject, 'Matematik');
+  assert.equal(item(studentRead).topic, 'Kesirler');
+  assert.equal(item(studentRead).targetQuestions, 20);
+  assert.equal(item(studentRead).targetMinutes, 30);
+  assert.equal(item(studentRead).studyLogCount, 2);
+  assert.equal(item(studentRead).reportedQuestions, 7);
+  assert.equal(item(studentRead).reportedMinutes, 25);
+  assert.equal(item(studentRead).progressProvenance, 'CLIENT_REPORTED');
+  assert.equal(studentRead.programs[0].exam_year, 2027);
+  assert.equal(studentRead.programs[0].period_label, '2026-2027');
+  assert.equal(studentRead.goals[0].target.school, 'Synthetic');
+  assert.equal(
+    (
+      await repo.readCoachingCenter(sql, {
+        ...actor,
+        studentId: foreign,
+        academyId: otherAcademy,
+      })
+    ).plans.some((p) => p.id === weeklyPlan),
+    false,
+  );
+  const profile = await repo.readCoachingProfileBridge(sql, academy, student);
+  assert.equal(profile.latestTask.recipeId, weeklyRecipe);
+  assert.equal(profile.performanceProvenance, 'CLIENT_REPORTED');
+  const source = fs.readFileSync(
+    path.join(root, 'components/coaching-center.tsx'),
+    'utf8',
+  );
+  const compiled = ts.transpileModule(source, {
+    compilerOptions: {
+      module: ts.ModuleKind.CommonJS,
+      jsx: ts.JsxEmit.ReactJSX,
+    },
+  }).outputText;
+  function render(data, audience) {
+    const mod = { exports: {} };
+    let hook = 0;
+    const jsx = (type, props) => ({ type, props: props || {} });
+    const react = {
+      useState: (initial) => [hook++ === 0 ? data : initial, () => {}],
+      useMemo: (fn) => fn(),
+      useCallback: (fn) => fn,
+      useEffect: () => {},
+    };
+    // oxlint-disable-next-line typescript/no-implied-eval -- isolated component harness
+    new Function('require', 'module', 'exports', compiled)(
+      (name) => {
+        if (name === 'react') return react;
+        if (name === 'react/jsx-runtime') return { jsx, jsxs: jsx };
+        if (name === 'lucide-react')
+          return new Proxy({}, { get: (_target, key) => key });
+        if (name.endsWith('/button') || name.endsWith('/input'))
+          return { Button: 'button', Input: 'input' };
+        throw new Error(name);
+      },
+      mod,
+      mod.exports,
+    );
+    const walk = (node) =>
+      Array.isArray(node)
+        ? node.map(walk).join(' ')
+        : node && typeof node === 'object'
+          ? walk(node.props?.children)
+          : node == null
+            ? ''
+            : String(node);
+    return walk(
+      mod.exports.CoachingCenter({ audience, studentId: student }),
+    ).replace(/\s+/g, ' ');
+  }
+  for (const audience of ['student', 'educator']) {
+    const view = render(
+      audience === 'student' ? studentRead : educatorRead,
+      audience,
+    );
+    for (const label of [
+      'LGS hedefi',
+      '2026-2027',
+      'Synthetic',
+      'Haftalık çalışma adımı',
+      'Matematik',
+      'Kesirler',
+      '20 soru',
+      '30 dakika',
+      '2 çalışma',
+      '7 soru',
+      '25 dakika',
+      'İstemci bildirimi; doğrulanmış beceri veya sınav sonucu değildir.',
+    ])
+      assert.ok(view.includes(label), audience + ': ' + label);
+  }
+});
