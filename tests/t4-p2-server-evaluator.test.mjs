@@ -293,10 +293,10 @@ test('T4 attempt rejects old pinned session without mutation',async()=>{
   } finally { await db.close(); }
 });
 
-async function postReview(route,sessionId,attemptId,decision='correct') {
+async function postReview(route,sessionId,attemptId,decision='correct',taskCode='MAT-02A') {
   const response=await route(new Request('https://staging.example/api/assessment',{
     method:'POST',body:JSON.stringify({action:'review_attempt',sessionId,attemptId,
-      taskCode:'MAT-02A',decision}),
+      taskCode,decision}),
   }));
   return {http:response.status,body:await response.json()};
 }
@@ -349,6 +349,44 @@ test('educator reviews one unassessable attempt; replay never adds a route',asyn
     await assert.rejects(db.query(`UPDATE assessment_attempts SET educator_review =
       '{"origin":"server_evaluated"}'::jsonb WHERE session_id=$1`,[sessionId]),
       /T4_EVALUATION_IMMUTABLE/);
+  } finally { await db.close(); }
+});
+
+test('forged review task code is rejected before first decision and on replay',async()=>{
+  const db=await setup();
+  try {
+    const sessionId=await seed(db);
+    const attempt=await postAttempt(loadAssessmentRoute(db),sessionId,
+      '[Sözlü cevap — eğitmen değerlendirecek]',randomUUID());
+    assert.equal(attempt.http,200);
+    const route=loadAssessmentRoute(db,null,educatorAuth);
+    const forged=await postReview(route,sessionId,attempt.body.attemptId,'correct','MAT-03A');
+    assert.equal(forged.http,409,JSON.stringify(forged.body));
+    let state=(await db.query(`SELECT current_task_code FROM assessment_sessions WHERE id=$1`,
+      [sessionId])).rows[0];
+    let rows=(await db.query(`SELECT task_code,educator_review FROM assessment_attempts
+      WHERE session_id=$1`,[sessionId])).rows;
+    assert.equal(state.current_task_code,'MAT-02A');
+    assert.equal(rows.length,1);
+    assert.equal(rows[0].task_code,'MAT-02A');
+    assert.equal(rows[0].educator_review,null);
+
+    const valid=await postReview(route,sessionId,attempt.body.attemptId);
+    assert.equal(valid.http,200,JSON.stringify(valid.body));
+    assert.equal(valid.body.nextTaskCode,'MAT-02B');
+    const forgedReplay=await postReview(route,sessionId,attempt.body.attemptId,
+      'correct','MAT-03A');
+    assert.equal(forgedReplay.http,409,JSON.stringify(forgedReplay.body));
+    state=(await db.query(`SELECT current_task_code FROM assessment_sessions WHERE id=$1`,
+      [sessionId])).rows[0];
+    rows=(await db.query(`SELECT task_code,educator_review FROM assessment_attempts
+      WHERE session_id=$1`,[sessionId])).rows;
+    assert.equal(state.current_task_code,'MAT-02B');
+    assert.equal(rows.length,1);
+    assert.equal(rows[0].task_code,'MAT-02A');
+    assert.deepEqual(rows[0].educator_review,{
+      origin:'educator_observed',decision:'correct',nextTaskCode:'MAT-02B',
+    });
   } finally { await db.close(); }
 });
 

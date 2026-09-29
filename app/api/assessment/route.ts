@@ -356,18 +356,25 @@ export async function POST(request: Request) {
       if (!sessionId || !attemptId || !taskCode) {
         return json({ ok: false, error: 'missing_fields' }, 400);
       }
-      const nextTaskCode = educatorReviewNext(taskCode, decision);
-      if (!nextTaskCode) return json({ ok: false, error: 'invalid_review' }, 400);
       const access = await educatorAccess(request, sql, sessionId);
       if (!access) return json({ ok: false, error: 'educator_not_authorized' }, 403);
       if (p2DefinitionStatus(access.session.definition_contract) !== 'current_t4') {
         return json({ ok: false, error: 'assessment_definition_mismatch' }, 409);
       }
+      const stored = await sql`
+        SELECT task_code FROM public.assessment_attempts
+        WHERE id = ${attemptId}::uuid AND session_id = ${sessionId}::uuid
+          AND client_attempt_id IS NOT NULL
+        LIMIT 1
+      `;
+      if (!stored.length) return json({ ok: false, error: 'assessment_review_not_mutable' }, 409);
+      const nextTaskCode = educatorReviewNext(stored[0].task_code, decision);
+      if (!nextTaskCode) return json({ ok: false, error: 'invalid_review' }, 400);
       try {
         const rows = await sql`
           SELECT * FROM public.cza_t4_review_assessment_attempt(
             ${sessionId}::uuid, ${attemptId}::uuid, ${access.educator.id},
-            ${decision}, ${nextTaskCode})
+            ${taskCode}, ${decision}, ${nextTaskCode})
         `;
         if (!rows.length) return json({ ok: false, error: 'assessment_review_not_mutable' }, 409);
         return json({ ok: true, attemptId: rows[0].attempt_id,

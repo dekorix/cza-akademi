@@ -118,7 +118,7 @@ EXECUTE FUNCTION public.cza_t4_keep_assessment_evaluation();
 
 CREATE OR REPLACE FUNCTION public.cza_t4_review_assessment_attempt(
   p_session_id uuid, p_attempt_id uuid, p_auth_user_id text,
-  p_decision text, p_next_task_code text
+  p_task_code text, p_decision text, p_next_task_code text
 ) RETURNS TABLE(attempt_id uuid, next_task_code text, replayed boolean)
 LANGUAGE plpgsql SECURITY INVOKER AS $$
 DECLARE
@@ -127,6 +127,7 @@ DECLARE
   v_review jsonb;
 BEGIN
   IF p_session_id IS NULL OR p_attempt_id IS NULL OR NULLIF(p_auth_user_id,'') IS NULL
+     OR NULLIF(p_task_code,'') IS NULL
      OR p_decision IS NULL OR p_decision NOT IN ('correct','incorrect')
      OR NULLIF(p_next_task_code,'') IS NULL THEN
     RAISE EXCEPTION 'T4_INVALID_REVIEW' USING ERRCODE='22023';
@@ -149,6 +150,9 @@ BEGIN
     AND attempt.client_attempt_id IS NOT NULL
   FOR UPDATE;
   IF NOT FOUND THEN RETURN; END IF;
+  IF v_attempt.task_code IS DISTINCT FROM p_task_code THEN
+    RAISE EXCEPTION 'T4_REVIEW_TASK_MISMATCH' USING ERRCODE='23505';
+  END IF;
   IF v_attempt.educator_review IS NOT NULL THEN
     IF v_attempt.educator_review->>'decision' <> p_decision
        OR v_attempt.educator_review->>'nextTaskCode' <> p_next_task_code THEN
@@ -178,11 +182,11 @@ BEGIN
   RETURN QUERY SELECT p_attempt_id, p_next_task_code, false;
 END $$;
 REVOKE ALL ON FUNCTION public.cza_t4_review_assessment_attempt(
-  uuid,uuid,text,text,text) FROM PUBLIC;
+  uuid,uuid,text,text,text,text) FROM PUBLIC;
 DO $$ BEGIN
   IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname='cza_owner') THEN
     GRANT EXECUTE ON FUNCTION public.cza_t4_review_assessment_attempt(
-      uuid,uuid,text,text,text) TO cza_owner;
+      uuid,uuid,text,text,text,text) TO cza_owner;
   END IF;
 END $$;
 COMMIT;
