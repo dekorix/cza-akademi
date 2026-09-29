@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import ts from 'typescript';
 import { randomUUID } from 'node:crypto';
+import { execFileSync } from 'node:child_process';
 import { PGlite } from '@electric-sql/pglite';
 import { pgcrypto } from '@electric-sql/pglite/contrib/pgcrypto';
 
@@ -11,7 +12,9 @@ const root = path.resolve(import.meta.dirname, '..');
 const read = (name) => fs.readFileSync(path.join(root, name), 'utf8');
 
 function loadRoute(relativePath, { db, educatorState, extra = {} }) {
-  const source = read(relativePath);
+  const source = process.env.T2_REPORT_PARENT && relativePath === 'app/api/educator-report/route.ts'
+    ? execFileSync('git', ['show', '0981f4b999d3cd092ee914ce57ef7dc5078191e1:app/api/educator-report/route.ts'], { cwd: root, encoding: 'utf8' })
+    : read(relativePath);
   const js = ts.transpileModule(source, {
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
   }).outputText;
@@ -29,6 +32,7 @@ function loadRoute(relativePath, { db, educatorState, extra = {} }) {
   // oxlint-disable-next-line typescript/no-implied-eval -- isolated route harness
   new Function('require', 'module', 'exports', 'process', 'Request', 'Response', 'URL', 'URLSearchParams', js)(
     (id) => {
+      if (id in extra) return extra[id];
       if (id === '@neondatabase/serverless') return { neon };
       if (id.includes('educator-auth')) {
         return { authenticatedEducator: async () => educatorState.value };
@@ -43,7 +47,7 @@ function loadRoute(relativePath, { db, educatorState, extra = {} }) {
         return { assessmentTasks: [{ id: 'MAT-01A', rubric: [] }] };
       }
       if (id.includes('assessment-definition')) {
-        return { currentP2Definition: () => ({ definitionId: 'CZA_1_TO_2', assessmentVersion: 1, blueprintId: 'P2_1_TO_2', blueprintVersion: 1, itemBankSha256: 'a'.repeat(64), routingSha256: 'b'.repeat(64), taskMappingVersion: 'LEGACY_ROUTING_V1', serverEvaluatorId: 'NONE_CLIENT_REPORTED', serverEvaluatorVersion: '0', rubricVersion: 'LEGACY_P2_RUBRIC_V1', answerKeyVersion: 'LEGACY_P2_ANSWER_KEY_V1' }) };
+        return { currentP2Definition: () => ({ definitionId: 'CZA_1_TO_2', assessmentVersion: 1, blueprintId: 'P2_1_TO_2', blueprintVersion: 1, itemBankSha256: 'a'.repeat(64), routingSha256: 'b'.repeat(64), taskMappingVersion: 'LEGACY_ROUTING_V1', serverEvaluatorId: 'NONE_CLIENT_REPORTED', serverEvaluatorVersion: '0', rubricVersion: 'LEGACY_P2_RUBRIC_V1', answerKeyVersion: 'LEGACY_P2_ANSWER_KEY_V1' }), p2DefinitionStatus: (value) => value == null ? 'legacy_unversioned' : value.definitionId === 'CZA_1_TO_2' && value.itemBankSha256 === 'a'.repeat(64) ? 'current' : 'mismatch' };
       }
       if (id.includes('assessment-learning-response')) {
         return { calculateLearningResponse: () => ({ score: 0 }) };
@@ -54,7 +58,6 @@ function loadRoute(relativePath, { db, educatorState, extra = {} }) {
       if (id.includes('cza-work-recommendations')) {
         return { buildCzaWorkRecommendations: () => [] };
       }
-      if (id in extra) return extra[id];
       throw new Error('unexpected import: ' + id);
     },
     commonJsModule,
@@ -289,5 +292,72 @@ test('T1 P2 request handlers contain no runtime schema DDL', () => {
     assert.doesNotMatch(source, /\bCREATE\s+TABLE\b/i);
     assert.doesNotMatch(source, /\bALTER\s+TABLE\b/i);
     assert.doesNotMatch(source, /\bCREATE\s+INDEX\b/i);
+  }
+});
+
+test('T2 educator report rejects drift and labels legacy without weakening linked scope', async () => {
+  const { db, ids } = await setup();
+  const educatorState = { value: { id: ids.educatorAuthA } };
+  let evaluations = 0;
+  const post = loadRoute('app/api/educator-report/route.ts', {
+    db, educatorState,
+    extra: {
+      '@/lib/assessment-learning-response': {
+        calculateLearningResponse: () => { evaluations++; return { score: 0 }; },
+      },
+      '@/lib/assessment-report': {
+        generateAssessmentReport: () => ({ evidenceCoverage: 0, skills: [] }),
+      },
+    },
+  });
+  const legacyId = randomUUID();
+  const mismatchedId = randomUUID();
+  const report = async (studentId) => post(new Request('https://cza.test/api/educator-report', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ studentId }),
+  }));
+  try {
+    await db.query(
+      `INSERT INTO assessment_sessions(id,template_code,student_id,status,completed_at)
+       VALUES($1,'CZA_1_TO_2_V1',$2,'completed',now())`,
+      [legacyId, ids.studentA],
+    );
+    await db.query(
+      `INSERT INTO assessment_sessions(id,template_code,student_id,status,completed_at,definition_contract)
+       VALUES($1,'CZA_1_TO_2_V1',$2,'completed',now()+interval '1 day',$3::jsonb)`,
+      [mismatchedId, ids.studentA, JSON.stringify({
+        definitionId: 'CZA_1_TO_2', assessmentVersion: 1, blueprintId: 'P2_1_TO_2',
+        blueprintVersion: 1, itemBankSha256: 'c'.repeat(64), routingSha256: 'b'.repeat(64),
+        taskMappingVersion: 'LEGACY_ROUTING_V1', serverEvaluatorId: 'NONE_CLIENT_REPORTED',
+        serverEvaluatorVersion: '0', rubricVersion: 'LEGACY_P2_RUBRIC_V1',
+        answerKeyVersion: 'LEGACY_P2_ANSWER_KEY_V1',
+      })],
+    );
+    const mismatch = await report(ids.studentA);
+    assert.equal(mismatch.status, 200);
+    const mismatchBody = await mismatch.json();
+    assert.equal(mismatchBody.assessmentDefinitionStatus, 'mismatch');
+    assert.equal(mismatchBody.assessmentRouting, null);
+    assert.equal(evaluations, 0);
+    assert.equal(mismatchBody.student.id, ids.studentA);
+    assert.ok(mismatchBody.summary);
+    educatorState.value = { id: ids.educatorAuthB };
+    assert.equal((await report(ids.studentA)).status, 404);
+    educatorState.value = { id: ids.educatorAuthCross };
+    assert.equal((await report(ids.studentA)).status, 404);
+    educatorState.value = { id: ids.educatorAuthA };
+    assert.equal((await report(ids.studentB)).status, 404);
+    assert.equal(evaluations, 0);
+
+    await db.query('DELETE FROM assessment_sessions WHERE id=$1', [mismatchedId]);
+    const legacy = await report(ids.studentA);
+    assert.equal(legacy.status, 200);
+    const legacyBody = await legacy.json();
+    assert.equal(legacyBody.assessmentDefinitionStatus, 'legacy_unversioned');
+    assert.equal(legacyBody.assessmentRouting.sessionId, legacyId);
+    assert.equal(evaluations, 1);
+  } finally {
+    await db.close();
   }
 });
