@@ -62,7 +62,7 @@ export async function POST(request: Request) {
          AND s.academy_id = t.academy_id
         LEFT JOIN public.student_external_identifiers campus
           ON campus.student_id = s.id AND campus.identifier_type = 'campus_student_code'
-        WHERE t.auth_user_id = ${educator.id}::uuid
+        WHERE t.auth_user_id::text = ${educator.id}::text
           AND t.is_active = true
           AND t.role::text = 'educator'
           AND s.id = ${studentId}::uuid
@@ -79,7 +79,7 @@ export async function POST(request: Request) {
           ON s.id = l.student_id
          AND s.academy_id = t.academy_id
         JOIN public.student_external_identifiers i ON i.student_id = s.id
-        WHERE t.auth_user_id = ${educator.id}::uuid
+        WHERE t.auth_user_id::text = ${educator.id}::text
           AND t.is_active = true
           AND t.role::text = 'educator'
           AND i.identifier_value = ${code}

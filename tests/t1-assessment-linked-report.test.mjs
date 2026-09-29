@@ -13,7 +13,7 @@ const read = (name) => fs.readFileSync(path.join(root, name), 'utf8');
 
 function loadRoute(relativePath, { db, educatorState, extra = {} }) {
   const source = process.env.T2_REPORT_PARENT && relativePath === 'app/api/educator-report/route.ts'
-    ? execFileSync('git', ['show', '0981f4b999d3cd092ee914ce57ef7dc5078191e1:app/api/educator-report/route.ts'], { cwd: root, encoding: 'utf8' })
+    ? execFileSync('git', ['show', '915881872aa4625bac6b13c0f811564854890ecf:app/api/educator-report/route.ts'], { cwd: root, encoding: 'utf8' })
     : read(relativePath);
   const js = ts.transpileModule(source, {
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
@@ -297,6 +297,12 @@ test('T1 P2 request handlers contain no runtime schema DDL', () => {
 
 test('T2 educator report rejects drift and labels legacy without weakening linked scope', async () => {
   const { db, ids } = await setup();
+  await db.exec('ALTER TABLE public.users ALTER COLUMN auth_user_id TYPE text USING auth_user_id::text');
+  await db.query(
+    `INSERT INTO student_external_identifiers(student_id,identifier_type,identifier_value)
+     VALUES($1,'campus_student_code','T2-REPORT-A'),($2,'campus_student_code','T2-REPORT-B')`,
+    [ids.studentA, ids.studentB],
+  );
   const educatorState = { value: { id: ids.educatorAuthA } };
   let evaluations = 0;
   const post = loadRoute('app/api/educator-report/route.ts', {
@@ -312,11 +318,12 @@ test('T2 educator report rejects drift and labels legacy without weakening linke
   });
   const legacyId = randomUUID();
   const mismatchedId = randomUUID();
-  const report = async (studentId) => post(new Request('https://cza.test/api/educator-report', {
+  const requestReport = async (body) => post(new Request('https://cza.test/api/educator-report', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ studentId }),
+    body: JSON.stringify(body),
   }));
+  const report = (studentId) => requestReport({ studentId });
   try {
     await db.query(
       `INSERT INTO assessment_sessions(id,template_code,student_id,status,completed_at)
@@ -342,10 +349,15 @@ test('T2 educator report rejects drift and labels legacy without weakening linke
     assert.equal(evaluations, 0);
     assert.equal(mismatchBody.student.id, ids.studentA);
     assert.ok(mismatchBody.summary);
+    const byCode = await requestReport({ studentCode: 'T2-REPORT-A' });
+    assert.equal(byCode.status, 200);
+    assert.equal((await byCode.json()).assessmentDefinitionStatus, 'mismatch');
     educatorState.value = { id: ids.educatorAuthB };
     assert.equal((await report(ids.studentA)).status, 404);
+    assert.equal((await requestReport({ studentCode: 'T2-REPORT-A' })).status, 404);
     educatorState.value = { id: ids.educatorAuthCross };
     assert.equal((await report(ids.studentA)).status, 404);
+    assert.equal((await requestReport({ studentCode: 'T2-REPORT-A' })).status, 404);
     educatorState.value = { id: ids.educatorAuthA };
     assert.equal((await report(ids.studentB)).status, 404);
     assert.equal(evaluations, 0);
