@@ -42,3 +42,9 @@ export function evaluateP2TextAttempt(
     responseOrigin: verdict === 'unassessable' ? 'client_reported' : 'server_evaluated',
   };
 }
+
+export function educatorReviewNext(taskCode: string, decision: unknown): string | null {
+  const route = assessmentRoutingRuleSet().adaptiveNext[taskCode];
+  if (!route || (decision !== 'correct' && decision !== 'incorrect')) return null;
+  return route[decision];
+}

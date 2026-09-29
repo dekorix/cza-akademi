@@ -49,6 +49,7 @@ export default function EducatorAssessmentPage() {
 
   const currentTask = useMemo(() => tasks.find(t => t.id === session?.current_task_code), [tasks,session]);
   const lastAttempt = attempts.at(-1);
+  const pendingReview = attempts.find(a => a.server_evaluation?.needsEducatorReview && !a.educator_review);
   const lastTaskCode = lastAttempt?.task_code || currentTask?.id || '';
   const lastTask = tasks.find(t => t.id === lastTaskCode);
 
@@ -67,6 +68,13 @@ export default function EducatorAssessmentPage() {
       setLearningResponse(data.learningResponse || null);
     } catch (err) { setMessage(err instanceof Error ? err.message : 'Oturum okunamadı.'); }
   }
+
+  useEffect(() => {
+    const id = new URLSearchParams(window.location.search).get('session');
+    if (!id) return;
+    const timer = window.setTimeout(() => { setSessionId(id); void refresh(id); }, 0);
+    return () => window.clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     if (!sessionId) return;
@@ -91,6 +99,18 @@ export default function EducatorAssessmentPage() {
       await callAssessment({ action:'observe', sessionId, taskCode:lastTaskCode, observationCodes:selectedCodes, educatorNote:note, confidence });
       setSelectedCodes([]); setNote(''); setMessage('Eğitmen gözlemi kaydedildi.'); await refresh();
     } catch (err) { setMessage(err instanceof Error ? err.message : 'Gözlem kaydedilemedi.'); }
+    finally { setBusy(false); }
+  }
+
+  async function reviewAttempt(decision: 'correct' | 'incorrect') {
+    if (!sessionId || !pendingReview?.id || busy) return;
+    setBusy(true);
+    try {
+      await callAssessment({ action:'review_attempt', sessionId,
+        attemptId:pendingReview.id, taskCode:pendingReview.task_code, decision });
+      setMessage('Eğitmen gözlemi kaydedildi. Öğrenci sonraki göreve geçebilir.');
+      await refresh();
+    } catch (err) { setMessage(err instanceof Error ? err.message : 'İnceleme kaydedilemedi.'); }
     finally { setBusy(false); }
   }
 
@@ -143,6 +163,17 @@ export default function EducatorAssessmentPage() {
 
         <div className="space-y-6">
           <section className="rounded-2xl border border-[#cfe4d9] bg-white p-6 shadow-sm"><div className="flex flex-wrap items-center justify-between gap-4"><div><p className="text-xs font-bold uppercase tracking-[.14em] text-[#5d8c7d]">Aktif oturum</p><h2 className="mt-1 text-2xl font-semibold">{session?.student_label || studentLabel}</h2><p className="mt-1 text-xs text-muted-foreground">Durum: {session?.status} · {attempts.length} görev tamamlandı</p></div><div className="flex flex-wrap gap-2"><a href={reportUrl()} className="inline-flex h-9 items-center justify-center gap-2 rounded-md border border-[#c9d9d1] bg-white px-3 text-sm font-semibold text-[#315f50] transition hover:bg-[#f3f8f5]"><FileText size={15}/> Raporu aç</a><Button variant="outline" onClick={()=>refresh()}><RefreshCw/> Yenile</Button></div></div><div className="mt-5 rounded-xl bg-[#f4f9f6] p-4"><p className="text-xs font-semibold text-[#4c6f64]">Öğrenci bağlantısı</p><div className="mt-2 flex flex-col gap-2 sm:flex-row"><code className="min-w-0 flex-1 overflow-hidden text-ellipsis whitespace-nowrap rounded-lg border bg-white px-3 py-3 text-xs">{childUrl()}</code><Button onClick={copyLink} variant="outline"><Clipboard/> Kopyala</Button></div></div></section>
+
+          {pendingReview && <section className="rounded-2xl border border-[#e8d7ac] bg-white p-6 shadow-sm">
+            <h2 className="text-lg font-semibold">Eğitmen incelemesi bekleniyor</h2>
+            <p className="mt-2 text-sm text-muted-foreground">{tasks.find(t => t.id === pendingReview.task_code)?.title || pendingReview.task_code}</p>
+            <p className="mt-2 rounded-xl bg-[#fff9e9] p-4 text-sm">{pendingReview.answer_text || 'Sözlü yanıt'}</p>
+            <p className="mt-3 text-xs text-muted-foreground">Bu karar eğitmen gözlemi olarak kaydedilir; sunucu doğrulaması değildir.</p>
+            <div className="mt-4 flex gap-2">
+              <Button type="button" disabled={busy} onClick={() => reviewAttempt('correct')}>Yeterli, sonraki görev</Button>
+              <Button type="button" variant="outline" disabled={busy} onClick={() => reviewAttempt('incorrect')}>Destek görevi</Button>
+            </div>
+          </section>}
 
           <section className="rounded-2xl border bg-white p-6 shadow-sm"><div className="flex items-center gap-3"><Sparkles className="text-[#c69428]"/><div><p className="text-xs font-bold uppercase tracking-[.14em] text-[#9c7c39]">Şu anda çocuk ekranında</p><h2 className="mt-1 text-xl font-semibold">{currentTask?.title || (session?.status==='completed'?'Değerlendirme tamamlandı':'Görev bekleniyor')}</h2></div></div>{currentTask&&<><p className="mt-5 rounded-xl bg-[#fff9e9] p-5 text-lg font-semibold leading-7 text-[#463f2a]">“{currentTask.childInstruction}”</p><div className="mt-4 rounded-xl border border-[#d8e7df] p-4"><p className="text-xs font-bold uppercase tracking-[.12em] text-[#5d8c7d]">Eğitmene özel yönerge</p><p className="mt-2 text-sm leading-6">{currentTask.educatorInstruction}</p></div></>}</section>
 

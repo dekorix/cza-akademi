@@ -12,6 +12,10 @@ const migration=(name)=>read('db/migrations/'+name);
 const student='c8612ac1-6d04-4990-8385-e7c60234efbc';
 const academy='25b9fbf5-e819-4b71-882a-aba91e1524ba';
 const other='e3911386-e62c-4439-91ad-e08a190f7c98';
+const educatorId='a1111111-1111-4111-8111-111111111111';
+const educatorAuth='auth-linked-educator';
+const unlinkedId='a2222222-2222-4222-8222-222222222222';
+const crossId='a3333333-3333-4333-8333-333333333333';
 const contract=(version=2)=>({
   definitionId:'CZA_1_TO_2',assessmentVersion:version,blueprintId:'P2_1_TO_2',
   blueprintVersion:1,itemBankSha256:'a'.repeat(64),routingSha256:'b'.repeat(64),
@@ -62,6 +66,17 @@ async function setup() {
       self_corrected boolean NOT NULL DEFAULT false,rubric_scores jsonb NOT NULL DEFAULT '{}'::jsonb,
       response_latency_ms integer,total_response_time_ms integer,
       created_at timestamptz NOT NULL DEFAULT now());
+    CREATE TABLE public.users(
+      id uuid PRIMARY KEY,auth_user_id text,academy_id uuid,role text,is_active boolean);
+    CREATE TABLE public.teacher_student_links(
+      teacher_id uuid,student_id uuid,academy_id uuid,can_view boolean);
+    INSERT INTO public.users VALUES
+      ('${educatorId}','${educatorAuth}','${academy}','educator',true),
+      ('${unlinkedId}','auth-unlinked','${academy}','educator',true),
+      ('${crossId}','auth-cross','11111111-1111-4111-8111-111111111111','educator',true);
+    INSERT INTO public.teacher_student_links VALUES
+      ('${educatorId}','${student}','${academy}',true),
+      ('${crossId}','${student}','11111111-1111-4111-8111-111111111111',true);
     CREATE TABLE public.assessment_observations(
       id uuid PRIMARY KEY DEFAULT gen_random_uuid(),session_id uuid,task_code text,
       observation_codes jsonb,educator_note text,confidence integer,
@@ -180,7 +195,7 @@ test('route update failure rolls back inserted attempt',async()=>{
   } finally { await db.close(); }
 });
 
-function loadAssessmentRoute(db, actor=student) {
+function loadAssessmentRoute(db, actor=student, educator=null) {
   process.env.DATABASE_URL='postgresql://test.invalid/isolated';
   const sql=(strings,...values)=>{
     const query=strings.reduce((s,x,i)=>s+x+(i<values.length?'$'+(i+1):''),'');
@@ -199,7 +214,7 @@ function loadAssessmentRoute(db, actor=student) {
     if(id.includes('student-session')) return {
       authenticatedStudent:async()=>actor?{student_id:actor,academy_id:academy}:null,
     };
-    if(id.includes('educator-auth')) return {authenticatedEducator:async()=>null};
+    if(id.includes('educator-auth')) return {authenticatedEducator:async()=>educator?{id:educator}:null};
     if(id.includes('assessment-learning-response')) return {calculateLearningResponse:()=>({})};
     if(id.includes('assessment-report')) return {generateAssessmentReport:()=>({})};
     throw Error(id);
@@ -275,5 +290,135 @@ test('T4 attempt rejects old pinned session without mutation',async()=>{
     const oldId=await seed(db,randomUUID(),1);
     assert.equal((await record(db,oldId)).rows.length,0);
     assert.equal((await db.query('SELECT count(*)::int n FROM assessment_attempts')).rows[0].n,0);
+  } finally { await db.close(); }
+});
+
+async function postReview(route,sessionId,attemptId,decision='correct') {
+  const response=await route(new Request('https://staging.example/api/assessment',{
+    method:'POST',body:JSON.stringify({action:'review_attempt',sessionId,attemptId,
+      taskCode:'MAT-02A',decision}),
+  }));
+  return {http:response.status,body:await response.json()};
+}
+async function postFinish(route,sessionId) {
+  const response=await route(new Request('https://staging.example/api/assessment',{
+    method:'POST',body:JSON.stringify({action:'finish',sessionId}),
+  }));
+  return {http:response.status,body:await response.json()};
+}
+
+test('educator reviews one unassessable attempt; replay never adds a route',async()=>{
+  const db=await setup();
+  try {
+    const sessionId=await seed(db);
+    const studentRoute=loadAssessmentRoute(db);
+    const attemptKey=randomUUID();
+    const attempt=await postAttempt(studentRoute,sessionId,
+      '[Sözlü cevap — eğitmen değerlendirecek]',attemptKey);
+    assert.equal(attempt.http,200,JSON.stringify(attempt.body));
+    assert.equal(attempt.body.needsEducatorReview,true);
+    assert.equal((await postFinish(studentRoute,sessionId)).http,409);
+    const reviewRoute=loadAssessmentRoute(db,null,educatorAuth);
+    const reviewed=await postReview(reviewRoute,sessionId,attempt.body.attemptId);
+    assert.equal(reviewed.http,200,JSON.stringify(reviewed.body));
+    assert.equal(reviewed.body.nextTaskCode,'MAT-02B');
+    assert.equal(reviewed.body.observationOrigin,'educator_observed');
+    const replay=await postReview(reviewRoute,sessionId,attempt.body.attemptId);
+    assert.equal(replay.http,200);
+    assert.equal(replay.body.replayed,true);
+    const studentReplay=await postAttempt(studentRoute,sessionId,
+      '[Sözlü cevap — eğitmen değerlendirecek]',attemptKey);
+    assert.equal(studentReplay.http,200);
+    assert.equal(studentReplay.body.replayed,true);
+    assert.equal(studentReplay.body.needsEducatorReview,false);
+    assert.equal(studentReplay.body.nextTaskCode,'MAT-02B');
+    assert.equal((await postReview(reviewRoute,sessionId,attempt.body.attemptId,'incorrect')).http,409);
+    const rows=(await db.query(`SELECT server_evaluation,educator_review,
+      educator_reviewed_by,server_next_task_code FROM assessment_attempts
+      WHERE session_id=$1`,[sessionId])).rows;
+    assert.equal(rows.length,1);
+    assert.equal(rows[0].server_evaluation.verdict,'unassessable');
+    assert.equal(rows[0].server_evaluation.responseOrigin,'client_reported');
+    assert.deepEqual(rows[0].educator_review,{
+      origin:'educator_observed',decision:'correct',nextTaskCode:'MAT-02B',
+    });
+    assert.equal(rows[0].educator_reviewed_by,educatorId);
+    assert.equal(rows[0].server_next_task_code,null);
+    assert.equal((await db.query('SELECT current_task_code FROM assessment_sessions WHERE id=$1',
+      [sessionId])).rows[0].current_task_code,'MAT-02B');
+    await assert.rejects(db.query(`UPDATE assessment_attempts SET educator_review =
+      '{"origin":"server_evaluated"}'::jsonb WHERE session_id=$1`,[sessionId]),
+      /T4_EVALUATION_IMMUTABLE/);
+  } finally { await db.close(); }
+});
+
+test('unlinked, cross-academy, student and closed-session reviews mutate nothing',async()=>{
+  const db=await setup();
+  try {
+    const sessionId=await seed(db);
+    const attempt=await postAttempt(loadAssessmentRoute(db),sessionId,
+      '[Sözlü cevap — eğitmen değerlendirecek]');
+    const id=attempt.body.attemptId;
+    for(const educator of ['auth-unlinked','auth-cross',null]) {
+      const response=await postReview(loadAssessmentRoute(db,student,educator),sessionId,id);
+      assert.equal(response.http,403,JSON.stringify(response.body));
+    }
+    await db.query('UPDATE teacher_student_links SET can_view=false WHERE teacher_id=$1',
+      [educatorId]);
+    assert.equal((await postReview(loadAssessmentRoute(db,null,educatorAuth),sessionId,id)).http,403);
+    await db.query('UPDATE teacher_student_links SET can_view=true WHERE teacher_id=$1',
+      [educatorId]);
+    await db.query('UPDATE users SET is_active=false WHERE id=$1',[educatorId]);
+    assert.equal((await postReview(loadAssessmentRoute(db,null,educatorAuth),sessionId,id)).http,403);
+    await db.query('UPDATE users SET is_active=true WHERE id=$1',[educatorId]);
+    await db.query("UPDATE assessment_sessions SET status='completed' WHERE id=$1",[sessionId]);
+    const closed=await postReview(loadAssessmentRoute(db,null,educatorAuth),sessionId,id);
+    assert.equal(closed.http,409,JSON.stringify(closed.body));
+    assert.equal((await db.query('SELECT educator_review FROM assessment_attempts WHERE id=$1',
+      [id])).rows[0].educator_review,null);
+    assert.equal((await db.query('SELECT current_task_code FROM assessment_sessions WHERE id=$1',
+      [sessionId])).rows[0].current_task_code,'MAT-02A');
+  } finally { await db.close(); }
+});
+
+test('concurrent educator reviews produce one durable decision and route',async()=>{
+  const db=await setup();
+  try {
+    const sessionId=await seed(db);
+    const attempt=await postAttempt(loadAssessmentRoute(db),sessionId,
+      '[Sözlü cevap — eğitmen değerlendirecek]');
+    const route=loadAssessmentRoute(db,null,educatorAuth);
+    const [first,second]=await Promise.all([
+      postReview(route,sessionId,attempt.body.attemptId),
+      postReview(route,sessionId,attempt.body.attemptId),
+    ]);
+    assert.equal(first.http,200,JSON.stringify(first.body));
+    assert.equal(second.http,200,JSON.stringify(second.body));
+    assert.equal([first.body.replayed,second.body.replayed].filter(x=>x===false).length,1);
+    assert.equal((await db.query('SELECT count(*)::int n FROM assessment_attempts')).rows[0].n,1);
+    assert.equal((await db.query('SELECT current_task_code FROM assessment_sessions WHERE id=$1',
+      [sessionId])).rows[0].current_task_code,'MAT-02B');
+  } finally { await db.close(); }
+});
+
+test('review transition failure rolls back educator observation',async()=>{
+  const db=await setup();
+  try {
+    const sessionId=await seed(db);
+    const attempt=await postAttempt(loadAssessmentRoute(db),sessionId,
+      '[Sözlü cevap — eğitmen değerlendirecek]');
+    await db.exec(`CREATE FUNCTION public.reject_review_route() RETURNS trigger
+      LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'review route unavailable'; END $$;
+      CREATE TRIGGER reject_review_route BEFORE UPDATE OF current_task_code
+      ON public.assessment_sessions FOR EACH ROW EXECUTE FUNCTION public.reject_review_route();`);
+    const response=await postReview(loadAssessmentRoute(db,null,educatorAuth),
+      sessionId,attempt.body.attemptId);
+    assert.equal(response.http,503);
+    const stored=(await db.query(`SELECT educator_review,educator_reviewed_by
+      FROM assessment_attempts WHERE id=$1`,[attempt.body.attemptId])).rows[0];
+    assert.equal(stored.educator_review,null);
+    assert.equal(stored.educator_reviewed_by,null);
+    assert.equal((await db.query('SELECT current_task_code FROM assessment_sessions WHERE id=$1',
+      [sessionId])).rows[0].current_task_code,'MAT-02A');
   } finally { await db.close(); }
 });

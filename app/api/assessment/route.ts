@@ -1,6 +1,6 @@
 import { neon } from '@neondatabase/serverless';
 import { createHash } from 'node:crypto';
-import { evaluateP2TextAttempt } from '@/lib/assessment-server-evaluator';
+import { educatorReviewNext, evaluateP2TextAttempt } from '@/lib/assessment-server-evaluator';
 import { assessmentTasks } from '@/lib/assessment-routing';
 import { p2DefinitionStatus } from '@/lib/assessment-definition';
 import { calculateLearningResponse, type AssessmentAttemptRecord } from '@/lib/assessment-learning-response';
@@ -268,7 +268,8 @@ export async function POST(request: Request) {
           if (!rows.length) return json({ ok: false, error: 'assessment_session_not_mutable' }, 409);
           return json({ ok: true, attemptId: rows[0].attempt_id,
             nextTaskCode: rows[0].next_task_code, replayed: rows[0].replayed,
-            verdict: evaluation.verdict, needsEducatorReview: evaluation.needsEducatorReview });
+            verdict: evaluation.verdict,
+            needsEducatorReview: evaluation.needsEducatorReview && !rows[0].next_task_code });
         } catch (error) {
           if ((error as { code?: string }).code === '23505') {
             return json({ ok: false, error: 'assessment_attempt_conflict' }, 409);
@@ -345,6 +346,39 @@ export async function POST(request: Request) {
       }
 
       return json({ ok: true, attemptId: inserted[0].id });
+    }
+
+    if (action === 'review_attempt') {
+      const sessionId = uuid(input.sessionId);
+      const attemptId = uuid(input.attemptId);
+      const taskCode = typeof input.taskCode === 'string' ? input.taskCode : '';
+      const decision = input.decision;
+      if (!sessionId || !attemptId || !taskCode) {
+        return json({ ok: false, error: 'missing_fields' }, 400);
+      }
+      const nextTaskCode = educatorReviewNext(taskCode, decision);
+      if (!nextTaskCode) return json({ ok: false, error: 'invalid_review' }, 400);
+      const access = await educatorAccess(request, sql, sessionId);
+      if (!access) return json({ ok: false, error: 'educator_not_authorized' }, 403);
+      if (p2DefinitionStatus(access.session.definition_contract) !== 'current_t4') {
+        return json({ ok: false, error: 'assessment_definition_mismatch' }, 409);
+      }
+      try {
+        const rows = await sql`
+          SELECT * FROM public.cza_t4_review_assessment_attempt(
+            ${sessionId}::uuid, ${attemptId}::uuid, ${access.educator.id},
+            ${decision}, ${nextTaskCode})
+        `;
+        if (!rows.length) return json({ ok: false, error: 'assessment_review_not_mutable' }, 409);
+        return json({ ok: true, attemptId: rows[0].attempt_id,
+          nextTaskCode: rows[0].next_task_code, replayed: rows[0].replayed,
+          observationOrigin: 'educator_observed' });
+      } catch (error) {
+        if ((error as { code?: string }).code === '23505') {
+          return json({ ok: false, error: 'assessment_review_conflict' }, 409);
+        }
+        throw error;
+      }
     }
 
     if (action === 'score') {
@@ -490,6 +524,12 @@ export async function POST(request: Request) {
             current_task_code = NULL
         WHERE id = ${sessionId}::uuid
           AND status = 'active'
+          AND NOT EXISTS (
+            SELECT 1 FROM public.assessment_attempts pending
+            WHERE pending.session_id = ${sessionId}::uuid
+              AND pending.server_evaluation->>'needsEducatorReview' = 'true'
+              AND pending.educator_review IS NULL
+          )
         RETURNING id, status, completed_at
       `;
 
