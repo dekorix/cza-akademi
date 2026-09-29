@@ -76,7 +76,7 @@ async function educatorSessionAccess(
     FROM public.assessment_sessions session
     JOIN public.students student ON student.id = session.student_id
     JOIN public.users educator
-      ON educator.auth_user_id = ${educator.id}::uuid
+      ON educator.auth_user_id::text = ${educator.id}::text
      AND educator.is_active = true
      AND educator.role::text = 'educator'
      AND educator.academy_id = student.academy_id

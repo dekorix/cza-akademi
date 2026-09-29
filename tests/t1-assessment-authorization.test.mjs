@@ -468,3 +468,20 @@ test('student session cookie is delivered to canonical assessment API', () => {
   assert.ok(source.includes('assessmentSessionCookie(token, 60 * 60 * 8, secureCookie)'));
   assert.ok(source.includes("assessmentSessionCookie('', 0, secureCookie)"));
 });
+
+test('staging text auth_user_id permits linked educator assessment read', async () => {
+  const { db, ids } = await setup();
+  try {
+    await db.exec('ALTER TABLE public.users ALTER COLUMN auth_user_id TYPE text USING auth_user_id::text');
+    const post = routeLoader({
+      db,
+      studentState: { value: null },
+      educatorState: { value: { id: ids.educatorAuthA } },
+    });
+    const response = await request(post, 'get', { sessionId: ids.cancelledA });
+    assert.equal(response.status, 200);
+    assert.equal((await response.json()).session.id, ids.cancelledA);
+  } finally {
+    await db.close();
+  }
+});
