@@ -33,7 +33,7 @@ function load(file, resolve) {
   new Function('require','module','exports',js)(resolve,mod,mod.exports);
   return mod.exports;
 }
-const task={id:'MAT-02A'};
+const task={id:'MAT-02A',groupId:'MAT-02',skillWeights:[{skillId:'math_reasoning',weight:1}]};
 const routing=load('lib/assessment-routing.ts',(id)=>{
   if(id.includes('assessment-math')) return {mathTasks:[task],extendedMathTasks:[]};
   if(id.includes('assessment-engine')) return {warmupTasks:[]};
@@ -45,6 +45,7 @@ const evaluator=load('lib/assessment-server-evaluator.ts',(id)=>{
   if(id.includes('assessment-routing')) return routing;
   throw Error(id);
 });
+const outcome=load('lib/assessment-learning-outcome.ts',(id)=>{ throw Error(id); });
 
 async function setup() {
   const db=new PGlite();
@@ -215,8 +216,9 @@ function loadAssessmentRoute(db, actor=student, educator=null) {
       authenticatedStudent:async()=>actor?{student_id:actor,academy_id:academy}:null,
     };
     if(id.includes('educator-auth')) return {authenticatedEducator:async()=>educator?{id:educator}:null};
-    if(id.includes('assessment-learning-response')) return {calculateLearningResponse:()=>({})};
-    if(id.includes('assessment-report')) return {generateAssessmentReport:()=>({})};
+    if(id.includes('assessment-learning-response')) return {calculateLearningResponse:(attempts)=>({attemptCount:attempts.length})};
+    if(id.includes('assessment-learning-outcome')) return outcome;
+    if(id.includes('assessment-report')) return {generateAssessmentReport:(attempts)=>({attemptCount:attempts.length})};
     throw Error(id);
   }).POST;
 }
@@ -273,6 +275,15 @@ test('actual read keeps old pinned contract and rejects unknown contract',async(
     assert.equal(old.http,200,JSON.stringify(old.body));
     assert.equal(old.body.definitionStatus,'current');
     assert.equal(old.body.session.definition_contract.serverEvaluatorId,'NONE_CLIENT_REPORTED');
+    assert.equal(old.body.learningOutcome.score,null);
+    const freshId=await seed(db);
+    await record(db,freshId);
+    const fresh=await read(freshId);
+    assert.equal(fresh.http,200,JSON.stringify(fresh.body));
+    assert.equal(fresh.body.learningOutcome.counts.server_evaluated,1);
+    assert.equal(fresh.body.learningOutcome.score,null);
+    assert.equal(fresh.body.report.attemptCount,0);
+    assert.equal(fresh.body.learningResponse.attemptCount,0);
     const changedId=randomUUID();
     await db.query(`INSERT INTO assessment_sessions
       (id,student_id,template_code,current_task_code,definition_contract)

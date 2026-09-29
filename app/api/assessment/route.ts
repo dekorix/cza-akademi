@@ -4,6 +4,7 @@ import { educatorReviewNext, evaluateP2TextAttempt } from '@/lib/assessment-serv
 import { assessmentTasks } from '@/lib/assessment-routing';
 import { p2DefinitionStatus } from '@/lib/assessment-definition';
 import { calculateLearningResponse, type AssessmentAttemptRecord } from '@/lib/assessment-learning-response';
+import { deriveP2LearningOutcome, type P2OutcomeAttempt } from '@/lib/assessment-learning-outcome';
 import { generateAssessmentReport, type ReportAttempt, type ReportObservation } from '@/lib/assessment-report';
 import { authenticatedStudent } from '@/lib/student-session';
 import { authenticatedEducator } from '@/lib/educator-auth';
@@ -184,19 +185,26 @@ export async function POST(request: Request) {
         ORDER BY created_at ASC
       `;
 
+      const learningOutcome = deriveP2LearningOutcome(
+        attempts as P2OutcomeAttempt[], assessmentTasks, definitionStatus,
+      );
+      // The earlier report accepts client telemetry as scores. Keep T4 evidence
+      // out of that legacy calculation; the T5 outcome carries verified scoring.
+      const legacyAttempts = definitionStatus === 'current_t4' ? [] : attempts;
       const learningResponse = calculateLearningResponse(
-        attempts as AssessmentAttemptRecord[],
+        legacyAttempts as AssessmentAttemptRecord[],
         assessmentTasks,
       );
       const report = generateAssessmentReport(
-        attempts as ReportAttempt[],
+        legacyAttempts as ReportAttempt[],
         observations as ReportObservation[],
         assessmentTasks,
         learningResponse,
       );
 
       if (action === 'report') {
-        return json({ ok: true, session: sessions[0], definitionStatus, report });
+        return json({ ok: true, session: sessions[0], definitionStatus,
+          learningOutcome, legacyReportOrigin: definitionStatus === 'current_t4' ? null : 'client_reported', report });
       }
       return json({
         ok: true,
@@ -206,6 +214,8 @@ export async function POST(request: Request) {
         observations,
         tasks: assessmentTasks,
         learningResponse,
+        learningOutcome,
+        legacyReportOrigin: definitionStatus === 'current_t4' ? null : 'client_reported',
         report,
       });
     }

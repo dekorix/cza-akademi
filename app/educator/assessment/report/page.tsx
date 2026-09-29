@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { AssessmentReport } from '@/components/assessment-report';
 import type { CzaAssessmentReport } from '@/lib/assessment-report';
+import type { P2LearningOutcome } from '@/lib/assessment-learning-outcome';
 
 async function loadReport(sessionId: string) {
   const response = await fetch('/api/assessment', {
@@ -22,6 +23,8 @@ export default function EducatorAssessmentReportPage() {
   const [sessionId,setSessionId] = useState('');
   const [studentLabel,setStudentLabel] = useState('Öğrenci');
   const [report,setReport] = useState<CzaAssessmentReport | null>(null);
+  const [learningOutcome,setLearningOutcome] = useState<P2LearningOutcome | null>(null);
+  const [definitionStatus,setDefinitionStatus] = useState('');
   const [status,setStatus] = useState<'idle'|'loading'|'ready'|'error'>('idle');
   const [message,setMessage] = useState('');
 
@@ -44,6 +47,8 @@ export default function EducatorAssessmentReportPage() {
       const data = await loadReport(id.trim());
       setStudentLabel(data.session?.student_label || 'Öğrenci');
       setReport(data.report || null);
+      setLearningOutcome(data.learningOutcome || null);
+      setDefinitionStatus(data.definitionStatus || '');
       setStatus('ready');
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'Rapor açılamadı.');
@@ -59,7 +64,13 @@ export default function EducatorAssessmentReportPage() {
 
       {status==='idle'&&<section className="rounded-3xl border border-dashed bg-white p-12 text-center"><FileText className="mx-auto text-[#7e9c91]" size={36}/><h1 className="mt-4 text-2xl font-semibold">CZA Bütüncül Değerlendirme Raporu</h1><p className="mx-auto mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">Bir değerlendirme oturumu seçildiğinde 14 beceri kanıtı, matematik derin taraması, öğrenme tepkisi, strateji profili ve veliye anlaşılır öneriler tek raporda oluşturulur.</p></section>}
       {status==='loading'&&<section className="rounded-3xl border bg-white p-12 text-center"><RefreshCw className="mx-auto animate-spin text-[#226f60]" size={32}/><p className="mt-4 text-sm text-muted-foreground">Ham kanıtlar rapora dönüştürülüyor…</p></section>}
-      {status==='ready'&&report&&<AssessmentReport report={report} studentLabel={studentLabel}/>} 
+      {status==='ready'&&learningOutcome&&<section className="mb-6 rounded-2xl border border-[#cfe4d9] bg-white p-6">
+        <h2 className="text-lg font-semibold text-[#18372f]">Kaynağa göre öğrenme sonucu</h2>
+        <p className="mt-2 text-sm">Doğrulanmış puan: {learningOutcome.score == null ? 'Kanıt yetersiz' : `${learningOutcome.score}/100`}</p>
+        <p className="mt-2 text-sm text-muted-foreground">Sunucuda değerlendirilen: {learningOutcome.counts.server_evaluated} · Eğitmen gözlemi: {learningOutcome.counts.educator_observed} · İstemci bildirimi: {learningOutcome.counts.client_reported}</p>
+        <p className="mt-2 text-xs text-muted-foreground">Puan yalnız iki farklı görev ailesinden en az iki sunucu değerlendirmesi bulunan becerilerle, en az iki beceri yeterli olduğunda hesaplanır. Eğitmen gözlemi ve istemci bildirimi puana katılmaz.</p>
+      </section>}
+      {status==='ready'&&definitionStatus!=='current_t4'&&report&&<><p className="mb-4 rounded-xl border border-[#ecdcb0] bg-[#fff9e9] p-4 text-sm">Aşağıdaki eski rapor istemci bildirimine dayanır; doğrulanmış öğrenme düzeyi değildir.</p><AssessmentReport report={report} studentLabel={studentLabel}/></>}
     </div>
   </main>;
 }
