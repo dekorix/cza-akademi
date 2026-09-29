@@ -40,6 +40,9 @@ function routeLoader({ db, studentState, educatorState }) {
     (id) => {
       if (id === '@neondatabase/serverless') return { neon };
       if (id.includes('assessment-routing')) return { assessmentTasks };
+      if (id.includes('assessment-definition')) {
+        return { p2DefinitionStatus: (value) => value == null ? 'legacy_unversioned' : value.definitionId === 'CZA_1_TO_2' ? 'current' : 'mismatch' };
+      }
       if (id.includes('assessment-learning-response')) {
         return { calculateLearningResponse: () => ({ score: 0 }) };
       }
@@ -75,6 +78,7 @@ async function setup() {
     '20260917_u3_educator_student_access_v1.sql',
     '20260908_assessment_engine_v1.sql',
     '20260928_t1_assessment_observer_provenance_v1.sql',
+    '20260929_t2_p2_assessment_definition_contract_v1.sql',
   ]) {
     await db.exec(read('db/migrations/' + migration));
   }
@@ -481,6 +485,40 @@ test('staging text auth_user_id permits linked educator assessment read', async 
     const response = await request(post, 'get', { sessionId: ids.cancelledA });
     assert.equal(response.status, 200);
     assert.equal((await response.json()).session.id, ids.cancelledA);
+  } finally {
+    await db.close();
+  }
+});
+
+test('T2 mismatched pinned session rejects read and mutations without a partial attempt', async () => {
+  const { db, ids } = await setup();
+  const sessionId = randomUUID();
+  const contract = {
+    definitionId: 'UNKNOWN_P2', assessmentVersion: 1, blueprintId: 'P2_1_TO_2',
+    blueprintVersion: 1, itemBankSha256: 'a'.repeat(64), routingSha256: 'b'.repeat(64),
+    taskMappingVersion: 'LEGACY_ROUTING_V1', serverEvaluatorId: 'NONE_CLIENT_REPORTED',
+    serverEvaluatorVersion: '0', rubricVersion: 'LEGACY_P2_RUBRIC_V1',
+    answerKeyVersion: 'LEGACY_P2_ANSWER_KEY_V1',
+  };
+  try {
+    await db.query(
+      `INSERT INTO assessment_sessions(id,template_code,student_id,status,definition_contract)
+       VALUES($1,'CZA_1_TO_2_V1',$2,'active',$3::jsonb)`,
+      [sessionId, ids.studentA, JSON.stringify(contract)],
+    );
+    const studentState = { value: { student_id: ids.studentA, academy_id: ids.academyA } };
+    const educatorState = { value: null };
+    const post = routeLoader({ db, studentState, educatorState });
+    for (const [action, fields] of [
+      ['get', {}], ['attempt', { taskCode: 'MAT-01A' }], ['finish', {}],
+    ]) {
+      const response = await request(post, action, { sessionId, ...fields });
+      assert.equal(response.status, 409);
+      assert.equal((await response.json()).error, 'assessment_definition_mismatch');
+    }
+    assert.equal((await db.query(
+      'SELECT count(*)::int AS count FROM assessment_attempts WHERE session_id=$1', [sessionId],
+    )).rows[0].count, 0);
   } finally {
     await db.close();
   }

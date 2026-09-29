@@ -1,5 +1,6 @@
 import { neon } from '@neondatabase/serverless';
 import { assessmentTasks } from '@/lib/assessment-routing';
+import { currentP2Definition } from '@/lib/assessment-definition';
 import { authenticatedEducator } from '@/lib/educator-auth';
 import { allowRequest, rateLimited } from '@/lib/request-guard';
 
@@ -50,7 +51,7 @@ export async function POST(request: Request) {
       LEFT JOIN public.student_external_identifiers i
         ON i.student_id = s.id
        AND i.identifier_type = 'campus_student_code'
-      WHERE educator_user.auth_user_id = ${educator.id}::uuid
+      WHERE educator_user.auth_user_id::text = ${educator.id}::text
         AND educator_user.is_active = true
         AND educator_user.role::text = 'educator'
         AND s.id = ${studentId}::uuid
@@ -80,15 +81,17 @@ export async function POST(request: Request) {
         template_code,
         student_label,
         current_task_code,
-        metadata
+        metadata,
+        definition_contract
       ) VALUES (
         ${student.id}::uuid,
         'CZA_1_TO_2_V1',
         ${studentLabel},
         ${firstTask},
-        ${JSON.stringify(metadata)}::jsonb
+        ${JSON.stringify(metadata)}::jsonb,
+        ${JSON.stringify(currentP2Definition())}::jsonb
       )
-      RETURNING id, student_id, template_code, student_label, status, current_task_code, started_at, metadata
+      RETURNING id, student_id, template_code, student_label, status, current_task_code, started_at, metadata, definition_contract
     `;
 
     return json({

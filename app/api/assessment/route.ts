@@ -1,5 +1,6 @@
 import { neon } from '@neondatabase/serverless';
 import { assessmentTasks } from '@/lib/assessment-routing';
+import { p2DefinitionStatus } from '@/lib/assessment-definition';
 import { calculateLearningResponse, type AssessmentAttemptRecord } from '@/lib/assessment-learning-response';
 import { generateAssessmentReport, type ReportAttempt, type ReportObservation } from '@/lib/assessment-report';
 import { authenticatedStudent } from '@/lib/student-session';
@@ -50,7 +51,7 @@ async function studentSessionAccess(
   student: { student_id: string; academy_id: string },
 ) {
   const rows = await sql`
-    SELECT session.id, session.student_id, session.status
+    SELECT session.id, session.student_id, session.status, session.definition_contract
     FROM public.assessment_sessions session
     JOIN public.students student ON student.id = session.student_id
     WHERE session.id = ${sessionId}::uuid
@@ -58,7 +59,7 @@ async function studentSessionAccess(
       AND student.academy_id = ${student.academy_id}::uuid
     LIMIT 1
   `;
-  return rows[0] as { id: string; student_id: string; status: string } | undefined;
+  return rows[0] as { id: string; student_id: string; status: string; definition_contract: unknown } | undefined;
 }
 
 async function educatorSessionAccess(
@@ -71,6 +72,7 @@ async function educatorSessionAccess(
       session.id,
       session.student_id,
       session.status,
+      session.definition_contract,
       educator.id AS observer_user_id,
       educator.academy_id AS observer_academy_id
     FROM public.assessment_sessions session
@@ -92,6 +94,7 @@ async function educatorSessionAccess(
     id: string;
     student_id: string;
     status: string;
+    definition_contract: unknown;
     observer_user_id: string;
     observer_academy_id: string;
   } | undefined;
@@ -151,10 +154,14 @@ export async function POST(request: Request) {
 
       const access = await readAccess(request, sql, sessionId);
       if (!access) return json({ ok: false, error: 'session_not_authorized' }, 403);
+      const definitionStatus = p2DefinitionStatus(access.session.definition_contract);
+      if (definitionStatus === 'mismatch') {
+        return json({ ok: false, error: 'assessment_definition_mismatch' }, 409);
+      }
 
       const sessions = await sql`
         SELECT id, student_id, template_code, student_label, status,
-               current_task_code, started_at, completed_at, metadata
+               current_task_code, started_at, completed_at, metadata, definition_contract
         FROM public.assessment_sessions
         WHERE id = ${sessionId}::uuid
         LIMIT 1
@@ -187,11 +194,12 @@ export async function POST(request: Request) {
       );
 
       if (action === 'report') {
-        return json({ ok: true, session: sessions[0], report });
+        return json({ ok: true, session: sessions[0], definitionStatus, report });
       }
       return json({
         ok: true,
         session: sessions[0],
+        definitionStatus,
         attempts,
         observations,
         tasks: assessmentTasks,
@@ -212,6 +220,10 @@ export async function POST(request: Request) {
 
       const student = await authenticatedStudent(request);
       if (!student) return json({ ok: false, error: 'student_session_required' }, 401);
+      const ownedSession = await studentSessionAccess(sql, sessionId, student);
+      if (ownedSession && p2DefinitionStatus(ownedSession.definition_contract) === 'mismatch') {
+        return json({ ok: false, error: 'assessment_definition_mismatch' }, 409);
+      }
 
       const shownAt =
         typeof input.shownAt === 'number' ? new Date(input.shownAt) : new Date();
@@ -314,6 +326,9 @@ export async function POST(request: Request) {
 
       const access = await educatorAccess(request, sql, sessionId);
       if (!access) return json({ ok: false, error: 'educator_not_authorized' }, 403);
+      if (p2DefinitionStatus(access.session.definition_contract) === 'mismatch') {
+        return json({ ok: false, error: 'assessment_definition_mismatch' }, 409);
+      }
       if (!mutable(access.session.status)) {
         return json({ ok: false, error: 'assessment_session_not_mutable' }, 409);
       }
@@ -365,6 +380,9 @@ export async function POST(request: Request) {
 
       const access = await educatorAccess(request, sql, sessionId);
       if (!access) return json({ ok: false, error: 'educator_not_authorized' }, 403);
+      if (p2DefinitionStatus(access.session.definition_contract) === 'mismatch') {
+        return json({ ok: false, error: 'assessment_definition_mismatch' }, 409);
+      }
       if (!mutable(access.session.status)) {
         return json({ ok: false, error: 'assessment_session_not_mutable' }, 409);
       }
@@ -423,6 +441,9 @@ export async function POST(request: Request) {
 
       const access = await readAccess(request, sql, sessionId);
       if (!access) return json({ ok: false, error: 'session_not_authorized' }, 403);
+      if (p2DefinitionStatus(access.session.definition_contract) === 'mismatch') {
+        return json({ ok: false, error: 'assessment_definition_mismatch' }, 409);
+      }
 
       if (access.session.status === 'completed') {
         return json({ ok: true, status: 'completed', replayed: true });

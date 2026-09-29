@@ -42,6 +42,9 @@ function loadRoute(relativePath, { db, educatorState, extra = {} }) {
       if (id.includes('assessment-routing')) {
         return { assessmentTasks: [{ id: 'MAT-01A', rubric: [] }] };
       }
+      if (id.includes('assessment-definition')) {
+        return { currentP2Definition: () => ({ definitionId: 'CZA_1_TO_2', assessmentVersion: 1, blueprintId: 'P2_1_TO_2', blueprintVersion: 1, itemBankSha256: 'a'.repeat(64), routingSha256: 'b'.repeat(64), taskMappingVersion: 'LEGACY_ROUTING_V1', serverEvaluatorId: 'NONE_CLIENT_REPORTED', serverEvaluatorVersion: '0', rubricVersion: 'LEGACY_P2_RUBRIC_V1', answerKeyVersion: 'LEGACY_P2_ANSWER_KEY_V1' }) };
+      }
       if (id.includes('assessment-learning-response')) {
         return { calculateLearningResponse: () => ({ score: 0 }) };
       }
@@ -74,6 +77,7 @@ async function setup() {
     '20260907_central_identity.sql',
     '20260908_assessment_engine_v1.sql',
     '20260928_t1_assessment_observer_provenance_v1.sql',
+    '20260929_t2_p2_assessment_definition_contract_v1.sql',
   ]) {
     await db.exec(read('db/migrations/' + migration));
   }
@@ -131,6 +135,7 @@ async function setup() {
 
 test('T1 linked assessment creation uses canonical educator + same-academy can_view scope', async () => {
   const { db, ids } = await setup();
+  await db.exec('ALTER TABLE public.users ALTER COLUMN auth_user_id TYPE text USING auth_user_id::text');
   const educatorState = { value: { id: ids.educatorAuthA } };
   const post = loadRoute('app/api/assessment-linked/route.ts', { db, educatorState });
   try {
@@ -147,12 +152,22 @@ test('T1 linked assessment creation uses canonical educator + same-academy can_v
 
     const session = (
       await db.query(
-        'SELECT student_id,status FROM assessment_sessions WHERE id=$1',
+        'SELECT student_id,status,definition_contract FROM assessment_sessions WHERE id=$1',
         [validBody.session.id],
       )
     ).rows[0];
     assert.equal(session.student_id, ids.studentA);
     assert.equal(session.status, 'active');
+    assert.equal(session.definition_contract.definitionId, 'CZA_1_TO_2');
+    assert.equal(session.definition_contract.assessmentVersion, 1);
+    assert.equal(session.definition_contract.serverEvaluatorId, 'NONE_CLIENT_REPORTED');
+    await assert.rejects(
+      db.query('UPDATE assessment_sessions SET definition_contract=NULL WHERE id=$1', [validBody.session.id]),
+      /ASSESSMENT_DEFINITION_IMMUTABLE/,
+    );
+    await db.exec(read('db/migrations/20260929_t2_p2_assessment_definition_contract_v1.sql'));
+    const pinned = (await db.query('SELECT definition_contract FROM assessment_sessions WHERE id=$1', [validBody.session.id])).rows[0];
+    assert.deepEqual(pinned.definition_contract, session.definition_contract);
 
     const before = Number(
       (await db.query('SELECT count(*)::int count FROM assessment_sessions')).rows[0].count,
