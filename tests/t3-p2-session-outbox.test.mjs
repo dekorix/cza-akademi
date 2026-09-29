@@ -73,13 +73,14 @@ function loadRoute(db, auth = { id: 'signed-educator' }) {
         return { assessmentTasks: [{ id: 'WARM-01' }] };
       if (id.includes('assessment-definition'))
         return {
-          currentP2Definition: () => ({
+          t4P2Definition: () => ({
             definitionId: 'CZA_1_TO_2',
-            assessmentVersion: 1,
+            assessmentVersion: 2,
             itemBankSha256: currentHash,
           }),
           p2DefinitionStatus: (contract) =>
-            contract?.itemBankSha256 === currentHash ? 'current' : 'mismatch',
+            contract?.itemBankSha256 !== currentHash ? 'mismatch'
+              : contract?.assessmentVersion === 2 ? 'current_t4' : 'current',
         };
       if (id.includes('educator-auth'))
         return { authenticatedEducator: async () => auth };
@@ -110,15 +111,16 @@ test('one canonical session and outbox event survive replay, status changes and 
   const db = await setup();
   try {
     const legacyId = '9a19c798-7edb-45c5-94d2-978b16f44811';
-    await db.query(
-      "INSERT INTO assessment_sessions(id,student_id,template_code,status) VALUES ($1,$2,'CZA_1_TO_2_V1','completed')",
-      [legacyId, studentId],
-    );
     const route = loadRoute(db);
     const first = await post(route);
     assert.equal(first.status, 200, JSON.stringify(first.body));
     assert.equal(first.body.replayed, false);
     assert.equal(first.body.session.student_id, studentId);
+    assert.equal(first.body.session.definition_contract.assessmentVersion, 2);
+    await db.query(
+      "INSERT INTO assessment_sessions(id,student_id,template_code,status) VALUES ($1,$2,'CZA_1_TO_2_V1','completed')",
+      [legacyId, studentId],
+    );
     const replay = await post(route);
     assert.equal(replay.status, 200);
     assert.equal(replay.body.replayed, true);
@@ -160,7 +162,7 @@ test('one canonical session and outbox event survive replay, status changes and 
     currentHash = 'changed';
     const mismatch = await post(route);
     assert.equal(mismatch.status, 409);
-    assert.equal(mismatch.body.error, 'assessment_cycle_conflict');
+    assert.equal(mismatch.body.error, 'assessment_definition_mismatch');
     assert.equal(
       (
         await db.query(
@@ -210,4 +212,38 @@ test('linked scope and atomic outbox failure do not leave partial sessions', asy
   } finally {
     await db.close();
   }
+});
+
+test('legacy unkeyed P2 session blocks a second automatic INITIAL',async()=>{
+  currentHash='a';
+  const db=await setup();
+  try {
+    const legacyId='9a19c798-7edb-45c5-94d2-978b16f44811';
+    await db.query(
+      "INSERT INTO assessment_sessions(id,student_id,template_code,status) VALUES ($1,$2,'CZA_1_TO_2_V1','completed')",
+      [legacyId,studentId],
+    );
+    const denied=await post(loadRoute(db));
+    assert.equal(denied.status,409,JSON.stringify(denied.body));
+    assert.equal(denied.body.error,'legacy_initial_requires_explicit_cycle');
+    assert.equal((await db.query('SELECT count(*)::int n FROM assessment_sessions')).rows[0].n,1);
+    assert.equal((await db.query('SELECT count(*)::int n FROM assessment_session_outbox')).rows[0].n,0);
+  } finally { await db.close(); }
+});
+test('existing T3 INITIAL replays its old pinned definition without upgrading',async()=>{
+  currentHash='a';
+  const db=await setup();
+  try {
+    const id='1c07bea4-11e5-4f7b-a79f-513f168e695b';
+    const old={definitionId:'CZA_1_TO_2',assessmentVersion:1,itemBankSha256:'a'};
+    await db.query(`INSERT INTO assessment_sessions
+      (id,student_id,template_code,status,definition_contract,assessment_cycle_key,assessment_cycle_type)
+      VALUES ($1,$2,'CZA_1_TO_2_V1','active',$3::jsonb,$4::uuid,'INITIAL')`,
+      [id,studentId,JSON.stringify(old),cycleKey]);
+    const replay=await post(loadRoute(db),'fcfb0681-33c5-411d-b571-5d98e0f7837a');
+    assert.equal(replay.status,200,JSON.stringify(replay.body));
+    assert.equal(replay.body.session.id,id);
+    assert.deepEqual(replay.body.session.definition_contract,old);
+    assert.equal((await db.query('SELECT count(*)::int n FROM assessment_sessions')).rows[0].n,1);
+  } finally { await db.close(); }
 });

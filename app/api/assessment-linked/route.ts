@@ -1,6 +1,6 @@
 import { neon } from '@neondatabase/serverless';
 import { assessmentTasks } from '@/lib/assessment-routing';
-import { currentP2Definition, p2DefinitionStatus } from '@/lib/assessment-definition';
+import { t4P2Definition, p2DefinitionStatus } from '@/lib/assessment-definition';
 import { authenticatedEducator } from '@/lib/educator-auth';
 import { allowRequest, rateLimited } from '@/lib/request-guard';
 
@@ -86,16 +86,25 @@ export async function POST(request: Request) {
         INSERT INTO public.assessment_sessions (
           student_id, template_code, student_label, current_task_code,
           metadata, definition_contract, assessment_cycle_key, assessment_cycle_type
-        ) VALUES (
-          ${student.id}::uuid, 'CZA_1_TO_2_V1', ${studentLabel}, ${firstTask},
+        )
+        SELECT ${student.id}::uuid, 'CZA_1_TO_2_V1', ${studentLabel}, ${firstTask},
           ${JSON.stringify(metadata)}::jsonb,
-          ${JSON.stringify(currentP2Definition())}::jsonb,
+          ${JSON.stringify(t4P2Definition())}::jsonb,
           ${cycleKey}::uuid, 'INITIAL'
+        WHERE NOT EXISTS (
+          SELECT 1 FROM public.assessment_sessions legacy
+          WHERE legacy.student_id = ${student.id}::uuid
+            AND legacy.template_code = 'CZA_1_TO_2_V1'
+            AND legacy.assessment_cycle_type IS NULL
+        ) OR EXISTS (
+          SELECT 1 FROM public.assessment_sessions initial
+          WHERE initial.student_id = ${student.id}::uuid
+            AND initial.template_code = 'CZA_1_TO_2_V1'
+            AND initial.assessment_cycle_type = 'INITIAL'
         )
         ON CONFLICT (student_id, template_code, assessment_cycle_type)
           WHERE assessment_cycle_type IS NOT NULL
         DO UPDATE SET id = public.assessment_sessions.id
-          WHERE public.assessment_sessions.definition_contract = EXCLUDED.definition_contract
         RETURNING id, student_id, template_code, student_label, status,
                   current_task_code, started_at, metadata, definition_contract
       ),
@@ -108,8 +117,9 @@ export async function POST(request: Request) {
       SELECT session_row.*, EXISTS(SELECT 1 FROM event_row) AS event_created
       FROM session_row
     `;
-    if (!rows.length) return json({ ok: false, error: 'assessment_cycle_conflict' }, 409);
-    if (p2DefinitionStatus(rows[0].definition_contract) === 'mismatch') {
+    if (!rows.length) return json({ ok: false, error: 'legacy_initial_requires_explicit_cycle' }, 409);
+    const definitionStatus = p2DefinitionStatus(rows[0].definition_contract);
+    if (definitionStatus === 'mismatch') {
       return json({ ok: false, error: 'assessment_definition_mismatch' }, 409);
     }
     const { event_created: eventCreated, ...session } = rows[0];

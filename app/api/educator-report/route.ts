@@ -95,7 +95,7 @@ export async function POST(request: Request) {
     sql`SELECT module_code,target_number,student_numeric_answer,is_correct,error_type,error_detail,total_response_time_ms,created_at,metadata FROM public.question_attempts WHERE student_id=${student.id} ORDER BY created_at DESC LIMIT 30`,
   ]);
 
-  let assessmentDefinitionStatus: null | 'legacy_unversioned' | 'current' | 'mismatch' = null;
+  let assessmentDefinitionStatus: null | 'legacy_unversioned' | 'current' | 'current_t4' | 'mismatch' = null;
   let assessmentRouting: null | {
     sessionId: string;
     templateCode: string;

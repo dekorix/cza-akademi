@@ -1,4 +1,6 @@
 import { neon } from '@neondatabase/serverless';
+import { createHash } from 'node:crypto';
+import { evaluateP2TextAttempt } from '@/lib/assessment-server-evaluator';
 import { assessmentTasks } from '@/lib/assessment-routing';
 import { p2DefinitionStatus } from '@/lib/assessment-definition';
 import { calculateLearningResponse, type AssessmentAttemptRecord } from '@/lib/assessment-learning-response';
@@ -246,6 +248,35 @@ export async function POST(request: Request) {
         typeof input.answerPayload === 'object' && input.answerPayload
           ? input.answerPayload
           : {};
+      if (ownedSession && p2DefinitionStatus(ownedSession.definition_contract) === 'current_t4') {
+        const clientAttemptId = uuid(input.clientAttemptId);
+        if (!clientAttemptId) return json({ ok: false, error: 'client_attempt_id_required' }, 400);
+        const mode = (answerPayload as Record<string, unknown>).responseMode;
+        const evaluation = evaluateP2TextAttempt(taskCode, answerText, mode);
+        const trustedPayload = { responseMode: mode === 'TEXT' ? 'TEXT' : 'OTHER',
+          clientTelemetry: 'client_reported' };
+        const hash = createHash('sha256').update(JSON.stringify({ taskCode,
+          answerText, responseMode: trustedPayload.responseMode })).digest('hex');
+        try {
+          const rows = await sql`
+            SELECT * FROM public.cza_t4_record_assessment_attempt(
+              ${sessionId}::uuid, ${student.student_id}::uuid, ${student.academy_id}::uuid,
+              ${taskCode}, ${clientAttemptId}::uuid, ${hash}, ${answerText},
+              ${JSON.stringify(trustedPayload)}::jsonb, ${JSON.stringify(evaluation)}::jsonb,
+              ${evaluation.nextTaskCode})
+          `;
+          if (!rows.length) return json({ ok: false, error: 'assessment_session_not_mutable' }, 409);
+          return json({ ok: true, attemptId: rows[0].attempt_id,
+            nextTaskCode: rows[0].next_task_code, replayed: rows[0].replayed,
+            verdict: evaluation.verdict, needsEducatorReview: evaluation.needsEducatorReview });
+        } catch (error) {
+          if ((error as { code?: string }).code === '23505') {
+            return json({ ok: false, error: 'assessment_attempt_conflict' }, 409);
+          }
+          throw error;
+        }
+      }
+
       const answerChanges = Math.max(
         0,
         Math.min(1000, Number(input.answerChanges ?? 0)),

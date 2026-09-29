@@ -22,7 +22,8 @@ export default function AssessmentStudentPage() {
   const [tasks, setTasks] = useState<AssessmentTask[]>([]);
   const [currentCode, setCurrentCode] = useState('');
   const [answer, setAnswer] = useState('');
-  const [status, setStatus] = useState<'loading' | 'ready' | 'done' | 'error'>('loading');
+  const [status, setStatus] = useState<'loading' | 'ready' | 'review' | 'done' | 'error'>('loading');
+  const [definitionStatus, setDefinitionStatus] = useState('');
   const [error, setError] = useState('');
   const [verbal, setVerbal] = useState(false);
   const shownAt = useRef(Date.now());
@@ -39,9 +40,14 @@ export default function AssessmentStudentPage() {
     setSessionId(id);
     callAssessment({ action: 'get', sessionId: id })
       .then((data) => {
+        setDefinitionStatus(data.definitionStatus || '');
         setTasks(data.tasks || []);
         setCurrentCode(data.session?.current_task_code || data.tasks?.[0]?.id || '');
-        setStatus(data.session?.status === 'completed' ? 'done' : 'ready');
+        const pendingReview = data.definitionStatus === 'current_t4' &&
+          data.attempts?.some((attempt: { task_code: string; server_evaluation?: { needsEducatorReview?: boolean } }) =>
+            attempt.task_code === data.session?.current_task_code &&
+            attempt.server_evaluation?.needsEducatorReview);
+        setStatus(data.session?.status === 'completed' ? 'done' : pendingReview ? 'review' : 'ready');
       })
       .catch((err) => {
         setError(err instanceof Error ? err.message : 'Bağlantı açılamadı.');
@@ -64,9 +70,13 @@ export default function AssessmentStudentPage() {
     touch();
     const completedAt = Date.now();
     const route = routeAssessmentTask(task.id, answer);
-    const nextTask = route.nextTaskCode ? tasks.find((item) => item.id === route.nextTaskCode) : undefined;
+    const attemptKey = `cza:p2:attempt:${sessionId}:${task.id}`;
+    const clientAttemptId = definitionStatus === 'current_t4'
+      ? (sessionStorage.getItem(attemptKey) || crypto.randomUUID()) : undefined;
+    if (clientAttemptId) sessionStorage.setItem(attemptKey, clientAttemptId);
     try {
-      await callAssessment({
+      const saved = await callAssessment({
+        clientAttemptId,
         action: 'attempt',
         sessionId,
         taskCode: task.id,
@@ -84,8 +94,15 @@ export default function AssessmentStudentPage() {
           needsEducatorReview: route.needsEducatorReview,
           responseMode: verbal ? 'SPEAK' : 'TEXT',
         },
-        nextTaskCode: nextTask?.id,
+        nextTaskCode: definitionStatus === 'current_t4' ? undefined : route.nextTaskCode,
       });
+      if (clientAttemptId) sessionStorage.removeItem(attemptKey);
+      if (definitionStatus === 'current_t4' && saved.needsEducatorReview) {
+        setStatus('review');
+        return;
+      }
+      const nextCode = definitionStatus === 'current_t4' ? saved.nextTaskCode : route.nextTaskCode;
+      const nextTask = nextCode ? tasks.find((item) => item.id === nextCode) : undefined;
       if (!nextTask) {
         await callAssessment({ action: 'finish', sessionId });
         setStatus('done');
@@ -105,6 +122,7 @@ export default function AssessmentStudentPage() {
 
   if (status === 'loading') return <main className="flex min-h-screen items-center justify-center bg-[#f7fbf8] text-sm text-muted-foreground">CZA değerlendirme alanı hazırlanıyor…</main>;
   if (status === 'error') return <main className="flex min-h-screen items-center justify-center bg-[#f7fbf8] p-6"><div className="max-w-lg rounded-3xl border bg-white p-8 text-center"><p className="text-xl font-semibold">Bağlantıyı açamadık</p><p className="mt-3 text-sm text-muted-foreground">{error}</p></div></main>;
+  if (status === 'review') return <main className="flex min-h-screen items-center justify-center bg-[#f7fbf8] p-6"><div className="max-w-lg rounded-3xl border bg-white p-8 text-center"><p className="text-xl font-semibold">Yanıtın kaydedildi</p><p className="mt-3 text-sm text-muted-foreground">Bu yanıtın sonraki adımını eğitmenin değerlendirecek. Oturumu açık tutabilir veya daha sonra geri dönebilirsin.</p></div></main>;
   if (status === 'done') return <main className="flex min-h-screen items-center justify-center bg-[#f7fbf8] p-6"><div className="max-w-xl rounded-3xl border border-[#c7e5d5] bg-white p-9 text-center shadow-sm"><span className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#e5f6ed] text-[#226f60]"><CheckCircle2 size={34}/></span><h1 className="mt-5 text-3xl font-bold text-[#18372f]">Harika bir keşif yaptık!</h1><p className="mt-3 text-base leading-7 text-muted-foreground">Burada sadece doğru cevaplara değil, nasıl düşündüğüne, hangi yolu seçtiğine ve yeni bir fikri nasıl kullandığına baktık.</p></div></main>;
 
   if (!task) return null;
