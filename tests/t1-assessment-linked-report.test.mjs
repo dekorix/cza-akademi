@@ -81,6 +81,7 @@ async function setup() {
     '20260908_assessment_engine_v1.sql',
     '20260928_t1_assessment_observer_provenance_v1.sql',
     '20260929_t2_p2_assessment_definition_contract_v1.sql',
+    '20260929_t3_p2_assessment_session_outbox_v1.sql',
   ]) {
     await db.exec(read('db/migrations/' + migration));
   }
@@ -141,12 +142,13 @@ test('T1 linked assessment creation uses canonical educator + same-academy can_v
   await db.exec('ALTER TABLE public.users ALTER COLUMN auth_user_id TYPE text USING auth_user_id::text');
   const educatorState = { value: { id: ids.educatorAuthA } };
   const post = loadRoute('app/api/assessment-linked/route.ts', { db, educatorState });
+  const assessmentCycleKey = randomUUID();
   try {
     const valid = await post(
       new Request('https://cza.test/api/assessment-linked', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ studentId: ids.studentA, teacherId: ids.educatorB }),
+        body: JSON.stringify({ studentId: ids.studentA, teacherId: ids.educatorB, assessmentCycleKey }),
       }),
     );
     assert.equal(valid.status, 200);
@@ -183,7 +185,7 @@ test('T1 linked assessment creation uses canonical educator + same-academy can_v
           new Request('https://cza.test/api/assessment-linked', {
             method: 'POST',
             headers: { 'content-type': 'application/json' },
-            body: JSON.stringify({ studentId: ids.studentA }),
+            body: JSON.stringify({ studentId: ids.studentA, assessmentCycleKey }),
           }),
         )
       ).status,
@@ -197,7 +199,7 @@ test('T1 linked assessment creation uses canonical educator + same-academy can_v
           new Request('https://cza.test/api/assessment-linked', {
             method: 'POST',
             headers: { 'content-type': 'application/json' },
-            body: JSON.stringify({ studentId: ids.studentA }),
+            body: JSON.stringify({ studentId: ids.studentA, assessmentCycleKey }),
           }),
         )
       ).status,
@@ -211,7 +213,7 @@ test('T1 linked assessment creation uses canonical educator + same-academy can_v
           new Request('https://cza.test/api/assessment-linked', {
             method: 'POST',
             headers: { 'content-type': 'application/json' },
-            body: JSON.stringify({ studentId: ids.studentB }),
+            body: JSON.stringify({ studentId: ids.studentB, assessmentCycleKey }),
           }),
         )
       ).status,
@@ -228,7 +230,7 @@ test('T1 linked assessment creation uses canonical educator + same-academy can_v
           new Request('https://cza.test/api/assessment-linked', {
             method: 'POST',
             headers: { 'content-type': 'application/json' },
-            body: JSON.stringify({ studentId: ids.studentA }),
+            body: JSON.stringify({ studentId: ids.studentA, assessmentCycleKey }),
           }),
         )
       ).status,

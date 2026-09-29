@@ -1,6 +1,6 @@
 import { neon } from '@neondatabase/serverless';
 import { assessmentTasks } from '@/lib/assessment-routing';
-import { currentP2Definition } from '@/lib/assessment-definition';
+import { currentP2Definition, p2DefinitionStatus } from '@/lib/assessment-definition';
 import { authenticatedEducator } from '@/lib/educator-auth';
 import { allowRequest, rateLimited } from '@/lib/request-guard';
 
@@ -30,6 +30,10 @@ export async function POST(request: Request) {
 
   const studentId = typeof input.studentId === 'string' ? input.studentId.trim() : '';
   if (!studentId) return json({ ok: false, error: 'student_required' }, 400);
+  const cycleKey = typeof input.assessmentCycleKey === 'string' ? input.assessmentCycleKey : '';
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(cycleKey)) {
+    return json({ ok: false, error: 'assessment_cycle_key_required' }, 400);
+  }
 
   try {
     const sql = assessmentDb();
@@ -75,28 +79,44 @@ export async function POST(request: Request) {
       createdByEducatorId: educator.id,
     };
 
+    // The session and its outbox event are committed by one database statement.
+    // Any duplicate initial cycle returns the same session without resetting its lifecycle.
     const rows = await sql`
-      INSERT INTO public.assessment_sessions (
-        student_id,
-        template_code,
-        student_label,
-        current_task_code,
-        metadata,
-        definition_contract
-      ) VALUES (
-        ${student.id}::uuid,
-        'CZA_1_TO_2_V1',
-        ${studentLabel},
-        ${firstTask},
-        ${JSON.stringify(metadata)}::jsonb,
-        ${JSON.stringify(currentP2Definition())}::jsonb
+      WITH session_row AS (
+        INSERT INTO public.assessment_sessions (
+          student_id, template_code, student_label, current_task_code,
+          metadata, definition_contract, assessment_cycle_key, assessment_cycle_type
+        ) VALUES (
+          ${student.id}::uuid, 'CZA_1_TO_2_V1', ${studentLabel}, ${firstTask},
+          ${JSON.stringify(metadata)}::jsonb,
+          ${JSON.stringify(currentP2Definition())}::jsonb,
+          ${cycleKey}::uuid, 'INITIAL'
+        )
+        ON CONFLICT (student_id, template_code, assessment_cycle_type)
+          WHERE assessment_cycle_type IS NOT NULL
+        DO UPDATE SET id = public.assessment_sessions.id
+          WHERE public.assessment_sessions.definition_contract = EXCLUDED.definition_contract
+        RETURNING id, student_id, template_code, student_label, status,
+                  current_task_code, started_at, metadata, definition_contract
+      ),
+      event_row AS (
+        INSERT INTO public.assessment_session_outbox (session_id, event_type)
+        SELECT id, 'P2_ASSESSMENT_SESSION_CREATED' FROM session_row
+        ON CONFLICT (session_id, event_type) DO NOTHING
+        RETURNING id
       )
-      RETURNING id, student_id, template_code, student_label, status, current_task_code, started_at, metadata, definition_contract
+      SELECT session_row.*, EXISTS(SELECT 1 FROM event_row) AS event_created
+      FROM session_row
     `;
-
+    if (!rows.length) return json({ ok: false, error: 'assessment_cycle_conflict' }, 409);
+    if (p2DefinitionStatus(rows[0].definition_contract) === 'mismatch') {
+      return json({ ok: false, error: 'assessment_definition_mismatch' }, 409);
+    }
+    const { event_created: eventCreated, ...session } = rows[0];
     return json({
       ok: true,
-      session: rows[0],
+      session,
+      replayed: !eventCreated,
       student: {
         id: student.id,
         name: studentLabel,
@@ -105,8 +125,7 @@ export async function POST(request: Request) {
       },
       tasks: assessmentTasks,
     });
-  } catch (error) {
-    const message = error instanceof Error ? error.message : 'assessment_link_unavailable';
-    return json({ ok: false, error: message }, 500);
+  } catch {
+    return json({ ok: false, error: 'assessment_link_unavailable' }, 503);
   }
 }
