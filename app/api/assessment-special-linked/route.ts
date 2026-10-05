@@ -15,6 +15,7 @@ import {
 
 const MAX_REQUEST_BYTES = 64 * 1024;
 const MAX_SUMMARY_BYTES = 16 * 1024;
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 function json(body: unknown, status = 200) {
   return Response.json(body, {
@@ -205,6 +206,7 @@ export async function POST(request: Request) {
       const studentId = sanitizeShortText(input.studentId, 80);
       const profileCode = input.profileCode;
       if (!studentId) return json({ ok: false, error: 'student_required' }, 400);
+      if (!UUID_PATTERN.test(studentId)) return json({ ok: false, error: 'student_id_invalid' }, 400);
       if (!isSpecialProfileCode(profileCode)) return json({ ok: false, error: 'special_profile_invalid' }, 400);
 
       const student = await educatorStudent(sql, educator.id, studentId);
@@ -274,6 +276,7 @@ export async function POST(request: Request) {
 
     const sessionId = sanitizeShortText(input.sessionId, 80);
     if (!sessionId) return json({ ok: false, error: 'session_required' }, 400);
+    if (!UUID_PATTERN.test(sessionId)) return json({ ok: false, error: 'session_id_invalid' }, 400);
     const bundle = await sessionBundle(sql, educator.id, sessionId);
     if (!bundle) return json({ ok: false, error: 'special_session_not_found' }, 404);
     const profileCode = profileFromSession(bundle.session);
