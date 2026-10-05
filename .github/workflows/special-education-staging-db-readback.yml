@@ -1,0 +1,54 @@
+name: CZA Special Education Staging DB Readback
+
+on:
+  push:
+    branches:
+      - feature/special-education-dyslexia-v1
+    paths:
+      - 'scripts/qa/special-staging-db-readback.mjs'
+      - '.github/workflows/special-education-staging-db-readback.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  staging-db-readback:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    environment: CZA-STAGING-SECURITY
+    steps:
+      - name: Checkout exact branch head
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.13.0'
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Verify staging secret is explicitly present
+        env:
+          CZA_STAGING_DATABASE_URL: ${{ secrets.CZA_STAGING_DATABASE_URL }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "${CZA_STAGING_DATABASE_URL:-}" ]; then
+            echo "STAGING_DB_READBACK=BLOCKED"
+            echo "REASON=CZA_STAGING_DATABASE_URL_MISSING"
+            exit 2
+          fi
+
+      - name: Run synthetic write readback and cleanup
+        env:
+          CZA_STAGING_DATABASE_URL: ${{ secrets.CZA_STAGING_DATABASE_URL }}
+        run: node scripts/qa/special-staging-db-readback.mjs
