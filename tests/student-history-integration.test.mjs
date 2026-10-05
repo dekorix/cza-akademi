@@ -18,6 +18,8 @@ test('studio closes a session and publishes one canonical module record with a s
   assert.match(records, /schemaVersion:\s*'CZA_MODULE_RECORD_V1'/);
   assert.match(records, /contractVersion:\s*'1\.0\.0'/);
   assert.match(records, /trainingSessionId:/);
+  assert.match(records, /canonicalSkillCode/);
+  assert.match(records, /\.map\(canonicalSkillCode\)/);
 });
 
 test('student history is session-bound and reads only the authenticated academy and student ledger', () => {
