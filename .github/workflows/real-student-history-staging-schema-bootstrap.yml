@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   apply-approved-ledger-migration:
-    runs-on: ubuntu-24.04
+    runs-on: cza-history-bootstrap-c0507fa1
     timeout-minutes: 10
     environment: CZA-STAGING-SECURITY
     steps:
@@ -22,76 +22,16 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Verify staging target
+      - name: Enable Corepack
+        shell: powershell
+        run: corepack enable
+
+      - name: Install dependencies
+        shell: powershell
+        run: corepack pnpm install --frozen-lockfile
+
+      - name: Apply and verify approved canonical ledger migration
         env:
           CZA_STAGING_DATABASE_URL: ${{ secrets.CZA_STAGING_DATABASE_URL }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          if [ -z "${CZA_STAGING_DATABASE_URL:-}" ]; then
-            echo "STAGING_SCHEMA_BOOTSTRAP=BLOCKED"
-            echo "REASON=CZA_STAGING_DATABASE_URL_MISSING"
-            exit 2
-          fi
-          node <<'NODE'
-          const raw = process.env.CZA_STAGING_DATABASE_URL || '';
-          let parsed;
-          try { parsed = new URL(raw); }
-          catch {
-            console.error('STAGING_SCHEMA_BOOTSTRAP=BLOCKED');
-            console.error('REASON=INVALID_STAGING_DATABASE_URL');
-            process.exit(2);
-          }
-          const host = parsed.hostname.toLowerCase();
-          if (
-            !host.endsWith('.neon.tech') ||
-            parsed.pathname !== '/cza_learning' ||
-            /(^|[.-])(prod|production)([.-]|$)/.test(host)
-          ) {
-            console.error('STAGING_SCHEMA_BOOTSTRAP=BLOCKED');
-            console.error('REASON=UNSAFE_DATABASE_TARGET');
-            process.exit(2);
-          }
-          console.log('STAGING_TARGET_SAFETY=PASS');
-          NODE
-
-      - name: Ensure PostgreSQL client
-        shell: bash
-        run: |
-          set -euo pipefail
-          if ! command -v psql >/dev/null 2>&1; then
-            sudo apt-get update -y
-            sudo apt-get install -y postgresql-client
-          fi
-          psql --version
-
-      - name: Apply approved canonical ledger migration
-        env:
-          CZA_STAGING_DATABASE_URL: ${{ secrets.CZA_STAGING_DATABASE_URL }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          psql "${CZA_STAGING_DATABASE_URL}" \
-            -v ON_ERROR_STOP=1 \
-            -f db/migrations/20260913_canonical_learning_ledger_v1.sql
-          echo "STAGING_SCHEMA_BOOTSTRAP=PASS"
-
-      - name: Verify canonical ledger objects
-        env:
-          CZA_STAGING_DATABASE_URL: ${{ secrets.CZA_STAGING_DATABASE_URL }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          result="$(psql "${CZA_STAGING_DATABASE_URL}" -Atqc "
-            SELECT
-              (to_regclass('public.learning_records') IS NOT NULL)::int || ':' ||
-              (to_regclass('public.learning_evidence') IS NOT NULL)::int || ':' ||
-              (to_regprocedure(
-                'public.cza_student_record_learning(uuid,uuid,uuid,uuid,text,text,text,text,text,text,timestamptz,timestamptz,text,jsonb,jsonb,jsonb)'
-              ) IS NOT NULL)::int
-          ")"
-          if [ "${result}" != "1:1:1" ]; then
-            echo "STAGING_SCHEMA_VERIFY=FAIL"
-            exit 1
-          fi
-          echo "STAGING_SCHEMA_VERIFY=PASS"
+        shell: powershell
+        run: node scripts/qa/apply-staging-ledger-migration.mjs
