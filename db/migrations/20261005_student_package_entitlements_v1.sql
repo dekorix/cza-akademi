@@ -37,6 +37,7 @@ CREATE TABLE IF NOT EXISTS public.student_package_enrollments (
   starts_at timestamptz NOT NULL DEFAULT now(),
   ends_at timestamptz NULL,
   cancelled_at timestamptz NULL,
+  cancelled_by uuid NULL REFERENCES public.users(id) ON DELETE RESTRICT,
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now(),
   CHECK (ends_at IS NULL OR ends_at > starts_at)
@@ -202,11 +203,10 @@ DECLARE
   v_updated integer;
 BEGIN
   UPDATE public.student_package_enrollments
-  SET status = 'cancelled', cancelled_at = now(), updated_at = now()
+  SET status = 'cancelled', cancelled_at = now(), cancelled_by = p_cancelled_by, updated_at = now()
   WHERE id = p_enrollment_id
     AND academy_id = p_academy_id
     AND student_id = p_student_id
-    AND activated_by = p_cancelled_by
     AND status = 'active';
 
   GET DIAGNOSTICS v_updated = ROW_COUNT;
