@@ -41,3 +41,27 @@
 
 @media(max-width:1100px){.special-grid{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:760px){.special-area{padding:17px}.special-head{flex-direction:column}.special-grid{grid-template-columns:1fr}.wide-label{grid-column:auto}.spoken-card{margin-top:30px;padding:21px}.spoken-card h2{font-size:29px}.verdict-grid,.pattern-box{grid-template-columns:1fr}}
+
+
+/* Disleksi Alan 02 · Harf–Ses Otomatikliği */
+.letter-task-card{margin-top:34px;border:1px solid #d9e4f4;border-radius:28px;padding:26px;background:linear-gradient(145deg,#fbfdff,#f4f8ff);box-shadow:0 16px 38px rgba(56,91,137,.08)}
+.letter-task-card h2{margin:15px 0 24px;padding-right:30px;font-size:30px;line-height:1.2}
+.letter-task-type{display:inline-flex;align-items:center;border-radius:999px;padding:7px 10px;background:#e9f0ff;color:#496a9b;font-size:10px;font-weight:900;letter-spacing:.08em}
+.single-letter-card{min-height:250px;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:26px;border:2px solid #cfdcf2;background:#fff}
+.single-letter-card span,.sound-prompt span,.letter-reference span,.delay-stage span{font-size:10px;font-weight:900;letter-spacing:.09em;color:#8295ab}
+.single-letter-card b{margin-top:8px;font-size:138px;line-height:1;font-weight:850;color:#193651}
+.letter-strip{display:grid;grid-template-columns:repeat(5,minmax(80px,1fr));gap:12px}
+.letter-strip span{position:relative;min-height:132px;display:flex;align-items:center;justify-content:center;border:2px solid #d9e4ef;border-radius:22px;background:#fff;font-size:64px;font-weight:850;color:#193651}
+.letter-strip small{position:absolute;left:10px;top:8px;font-size:10px;color:#9aabba}
+.sound-prompt,.letter-reference{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;min-width:150px;min-height:110px;margin:0 12px 18px 0;padding:14px;border-radius:18px;border:1px solid #d9e4ef;background:#fff}
+.sound-prompt b{margin-top:5px;font-size:34px;color:#355f91}.letter-reference b{margin-top:4px;font-size:64px;color:#193651}
+.letter-choice-grid{display:grid;grid-template-columns:repeat(4,minmax(90px,1fr));gap:12px;margin-top:8px}
+.letter-choice{min-height:132px;border:2px solid #d9e4ef;border-radius:22px;background:#fff;color:#193651;font-size:68px;font-weight:850;cursor:pointer;transition:.16s ease;box-shadow:0 7px 18px rgba(23,50,77,.04)}
+.letter-choice:hover{transform:translateY(-2px);border-color:#8eafe3;box-shadow:0 11px 26px rgba(23,50,77,.08)}
+.delay-stage{min-height:240px;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:26px;border:2px solid #d4e0f1;background:#fff}
+.delay-stage b{margin:8px 0;font-size:132px;line-height:1;color:#193651}
+.delay-stage small{font-size:12px;color:#8092a3}.hidden-stimulus b{color:#8aa0b5}
+.choice-evidence{margin:10px 0 12px;padding:11px 12px;border-radius:13px;background:#f3f7fb;border:1px solid #e1e9f1}
+.choice-evidence span{display:block;font-size:9px;font-weight:900;letter-spacing:.07em;color:#8194a3;text-transform:uppercase}.choice-evidence b{display:block;margin-top:5px;font-size:22px}
+@media(max-width:900px){.letter-strip{grid-template-columns:repeat(4,1fr)}.letter-choice-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:600px){.letter-task-card{padding:18px}.letter-task-card h2{font-size:25px}.letter-strip{grid-template-columns:repeat(2,1fr)}.letter-strip span,.letter-choice{min-height:104px;font-size:50px}.single-letter-card b,.delay-stage b{font-size:100px}}
