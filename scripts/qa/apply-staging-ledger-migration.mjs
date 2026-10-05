@@ -160,28 +160,34 @@ function semantic(statement) {
     .toUpperCase();
 }
 
-const migrationFiles = [
-  '../../db/migrations/20260913_canonical_learning_ledger_v1.sql',
-  '../../db/migrations/20261005_canonical_learning_student_session_binding_v1.sql',
-];
-
-const statements = migrationFiles.flatMap(relativePath => {
-  const migration = fs.readFileSync(new URL(relativePath, import.meta.url), 'utf8');
-  return splitSql(migration).filter(statement => {
-    const normalized = semantic(statement);
-    return normalized !== 'BEGIN' && normalized !== 'COMMIT';
-  });
-});
-
-if (!statements.length) {
-  console.error('STAGING_SCHEMA_BOOTSTRAP=FAIL');
-  console.error('REASON=MIGRATION_EMPTY');
-  process.exit(1);
-}
-
 const sql = neon(url);
 
 try {
+  const preflight = await sql`
+    SELECT
+      (to_regclass('public.learning_records') IS NOT NULL) AS learning_records,
+      (to_regclass('public.learning_evidence') IS NOT NULL) AS learning_evidence
+  `;
+  const basePresent = preflight[0]?.learning_records === true && preflight[0]?.learning_evidence === true;
+
+  const migrationFiles = [
+    ...(!basePresent ? ['../../db/migrations/20260913_canonical_learning_ledger_v1.sql'] : []),
+    '../../db/migrations/20261005_canonical_learning_student_session_binding_v1.sql',
+  ];
+
+  const statements = migrationFiles.flatMap(relativePath => {
+    const migration = fs.readFileSync(new URL(relativePath, import.meta.url), 'utf8');
+    return splitSql(migration).filter(statement => {
+      const normalized = semantic(statement);
+      return normalized !== 'BEGIN' && normalized !== 'COMMIT';
+    });
+  });
+
+  if (!statements.length) {
+    throw new Error('MIGRATION_EMPTY');
+  }
+
+  console.log('BASE_LEDGER_PRESENT=' + basePresent);
   await sql.transaction(statements.map(statement => sql.query(statement)));
 
   const rows = await sql`
