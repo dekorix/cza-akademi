@@ -47,6 +47,7 @@ function errorText(code: string) {
 export default function SpecialEducationProgramPage() {
   const [studentId, setStudentId] = useState('');
   const [assessmentSessionId, setAssessmentSessionId] = useState('');
+  const [prioritySeed, setPrioritySeed] = useState('');
   const [preview, setPreview] = useState<Preview | null>(null);
   const [selected, setSelected] = useState<string[]>([]);
   const [sessionsPerWeek, setSessionsPerWeek] = useState(3);
@@ -60,6 +61,7 @@ export default function SpecialEducationProgramPage() {
     const query = new URLSearchParams(window.location.search);
     setStudentId(query.get('studentId') || '');
     setAssessmentSessionId(query.get('assessmentSessionId') || '');
+    setPrioritySeed(query.get('priorities') || '');
   }, []);
 
   useEffect(() => {
@@ -70,7 +72,12 @@ export default function SpecialEducationProgramPage() {
     void fetch('/api/educator-special-programs', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ action: 'preview', studentId, assessmentSessionId }),
+      body: JSON.stringify({
+        action: 'preview',
+        studentId,
+        assessmentSessionId,
+        selectedPriorityKeys: prioritySeed.split(',').map(value => value.trim()).filter(Boolean).slice(0, 4),
+      }),
     })
       .then(async response => {
         const data = await response.json() as Preview & { error?: string };
@@ -86,7 +93,7 @@ export default function SpecialEducationProgramPage() {
       })
       .finally(() => { if (active) setBusy(false); });
     return () => { active = false; };
-  }, [studentId, assessmentSessionId]);
+  }, [studentId, assessmentSessionId, prioritySeed]);
 
   const selectedPriorities = useMemo(
     () => preview?.draft.priorities.filter(priority => selected.includes(priority.key)) || [],
