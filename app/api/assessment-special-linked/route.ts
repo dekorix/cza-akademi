@@ -181,6 +181,8 @@ export async function POST(request: Request) {
 
   const educator = await authenticatedEducator(request);
   if (!educator) return json({ ok: false, error: 'educator_session_required' }, 401);
+  const educatorId = educator.id;
+  if (!educatorId) return json({ ok: false, error: 'educator_identity_invalid' }, 401);
 
   let input: Record<string, unknown>;
   try {
@@ -209,7 +211,7 @@ export async function POST(request: Request) {
       if (!UUID_PATTERN.test(studentId)) return json({ ok: false, error: 'student_id_invalid' }, 400);
       if (!isSpecialProfileCode(profileCode)) return json({ ok: false, error: 'special_profile_invalid' }, 400);
 
-      const student = await educatorStudent(sql, educator.id, studentId);
+      const student = await educatorStudent(sql, educatorId, studentId);
       if (!student) return json({ ok: false, error: 'student_not_linked_to_educator' }, 403);
 
       const templateCode = specialTemplateCode(profileCode);
@@ -220,12 +222,12 @@ export async function POST(request: Request) {
         WHERE student_id = ${student.id}::uuid
           AND template_code = ${templateCode}
           AND status = 'active'
-          AND metadata->>'createdByEducatorId' = ${educator.id}
+          AND metadata->>'createdByEducatorId' = ${educatorId}
         ORDER BY started_at DESC
         LIMIT 1
       `;
       if (existing.length) {
-        const bundle = await sessionBundle(sql, educator.id, String(existing[0].id));
+        const bundle = await sessionBundle(sql, educatorId, String(existing[0].id));
         return json({ ok: true, resumed: true, ...bundle }, 200);
       }
 
@@ -236,7 +238,7 @@ export async function POST(request: Request) {
         profileCode,
         centralStudentId: student.id,
         campusStudentCode: student.code || null,
-        createdByEducatorId: educator.id,
+        createdByEducatorId: educatorId,
         grade: sanitizeShortText(input.grade, 80) || null,
         readingStage: sanitizeShortText(input.readingStage, 120) || null,
         birthDate: sanitizeShortText(input.birthDate, 20) || null,
@@ -277,7 +279,7 @@ export async function POST(request: Request) {
     const sessionId = sanitizeShortText(input.sessionId, 80);
     if (!sessionId) return json({ ok: false, error: 'session_required' }, 400);
     if (!UUID_PATTERN.test(sessionId)) return json({ ok: false, error: 'session_id_invalid' }, 400);
-    const bundle = await sessionBundle(sql, educator.id, sessionId);
+    const bundle = await sessionBundle(sql, educatorId, sessionId);
     if (!bundle) return json({ ok: false, error: 'special_session_not_found' }, 404);
     const profileCode = profileFromSession(bundle.session);
     if (!profileCode) return json({ ok: false, error: 'special_session_profile_invalid' }, 409);
