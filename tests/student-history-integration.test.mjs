@@ -5,6 +5,9 @@ import fs from 'node:fs';
 const studio = fs.readFileSync(new URL('../app/studio/page.tsx', import.meta.url), 'utf8');
 const records = fs.readFileSync(new URL('../lib/core-records.ts', import.meta.url), 'utf8');
 const studentHistory = fs.readFileSync(new URL('../app/api/student-history/route.ts', import.meta.url), 'utf8');
+const studentSession = fs.readFileSync(new URL('../lib/student-session.ts', import.meta.url), 'utf8');
+const canonicalRepository = fs.readFileSync(new URL('../lib/persistence/canonical-repository.ts', import.meta.url), 'utf8');
+const sessionBindingMigration = fs.readFileSync(new URL('../db/migrations/20261005_canonical_learning_student_session_binding_v1.sql', import.meta.url), 'utf8');
 const studentHistoryUi = fs.readFileSync(new URL('../components/student-learning-history.tsx', import.meta.url), 'utf8');
 const studentPortal = fs.readFileSync(new URL('../app/page.tsx', import.meta.url), 'utf8');
 const educatorReport = fs.readFileSync(new URL('../app/api/educator-report/route.ts', import.meta.url), 'utf8');
@@ -20,6 +23,16 @@ test('studio closes a session and publishes one canonical module record with a s
   assert.match(records, /trainingSessionId:/);
   assert.match(records, /canonicalSkillCode/);
   assert.match(records, /\.map\(canonicalSkillCode\)/);
+});
+
+test('authenticated student session identity is carried into canonical persistence', () => {
+  assert.match(studentSession, /ss\.id AS student_session_id/);
+  assert.match(studentSession, /student_session_id: string/);
+  assert.match(canonicalRepository, /student\.student_session_id/);
+  assert.match(canonicalRepository, /CZA_STUDENT_SESSION_OWNERSHIP_INVALID/);
+  assert.match(sessionBindingMigration, /record_origin = 'client_reported'/);
+  assert.match(sessionBindingMigration, /student_session_id IS NOT NULL/);
+  assert.match(sessionBindingMigration, /CZA_STUDENT_SESSION_OWNERSHIP_INVALID/);
 });
 
 test('student history is session-bound and reads only the authenticated academy and student ledger', () => {
