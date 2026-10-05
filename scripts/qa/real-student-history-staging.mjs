@@ -53,6 +53,8 @@ try {
       ts.academy_id,
       ts.student_id,
       ts.module_code,
+      ts.started_at AS session_started_at,
+      ts.completed_at AS session_completed_at,
       l.teacher_id AS educator_user_id
     FROM public.training_sessions ts
     JOIN public.students s
@@ -67,7 +69,9 @@ try {
     JOIN public.users t
       ON t.id = l.teacher_id
      AND t.is_active = true
-    ORDER BY COALESCE(ts.completed_at, ts.started_at) DESC NULLS LAST
+    WHERE ts.status = 'completed'
+      AND ts.completed_at IS NOT NULL
+    ORDER BY ts.completed_at DESC
     LIMIT 1
   `;
 
@@ -80,14 +84,15 @@ try {
   const fixture = fixtures[0];
   const clientRecordId = crypto.randomUUID();
   const marker = 'CZA-QA-REAL-HISTORY-' + Date.now();
-  const completedAt = new Date();
-  const startedAt = new Date(completedAt.getTime() - 15000);
+  const startedAt = new Date(fixture.session_started_at);
+  const completedAt = new Date(fixture.session_completed_at);
+  const durationMs = Math.max(0, completedAt.getTime() - startedAt.getTime());
   const performance = {
     total: 3,
     correct: 2,
     wrong: 1,
     accuracy: 67,
-    durationMs: 15000,
+    durationMs,
     source: 'SYNTHETIC_QA',
   };
   const skills = ['qa_history'];
