@@ -7,6 +7,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Input } from '@/components/ui/input';
 import { core, coreStudent, friendlyCoreError, studentName, type CoreStudent } from '@/lib/core-client';
+import { StudentLearningHistory } from '@/components/student-learning-history';
 
 const modules = [
   { title: 'Parmak tekniği', detail: 'Oku, parmaklarınla göster ve anında geri bildirim al', icon: Hand, color: '#f8eee3', ink: '#a56730', level: 'Learning Core bağlı', progress: 1, href: '/paritmetik' },
@@ -183,10 +184,7 @@ export function StudentPortal({ area }: { area: 'main' | 'work' }) {
         </section>
 
         <div className="mt-7 grid gap-5 xl:grid-cols-[1fr_300px]">
-          <section id="development" className="scroll-mt-6 rounded-xl border border-border bg-white p-6">
-            <div className="flex items-center justify-between"><h2 className="font-semibold">Çaban gelişime dönüşüyor</h2><span className="text-[11px] text-muted-foreground">Kayıtların geldikçe güncellenecek</span></div>
-            <p className="mt-6 rounded-xl bg-secondary/40 p-5 text-sm leading-6 text-muted-foreground">Bu bölümde çalışma süren, doğru–yanlış sayın, başarı oranın ve haftalık gelişimin kendi kayıtlarından gösterilecek. Geçmiş Kampüs verilerin de aktarım sonrasında “Geçmiş gelişimim” bölümüne eklenecek.</p>
-          </section>
+          <StudentLearningHistory />
           <section className="rounded-xl border border-[#e7decc] bg-[#faf6ec] p-6"><div className="mb-3 flex items-center gap-2"><span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#e9dfc8] text-[11px] font-semibold">CZA</span><h2 className="text-sm font-semibold">Eğitimcinden bir not</h2></div><p className="text-xs leading-6 text-[#786b54]">Eğitimcin sana kişisel not bıraktığında burada görünecek.</p><p className="mt-4 text-[10px] text-[#998967]">Henüz kişisel not yok</p></section>
         </div>
         <footer className="mt-8 flex flex-wrap items-center justify-between gap-2 border-t border-border pt-5 text-[10px] text-muted-foreground"><a href="/" className="font-semibold text-primary">CZA Öğrenci Paneline dön</a><button className="underline underline-offset-2" onClick={() => setNotice('Çalışma sonuçların merkezî öğrenci kaydına işlenir. Geçmiş Kampüs değerlendirmelerin kontrollü aktarım sonrasında burada da görünür.')}>Kayıtlarım hakkında</button></footer>
