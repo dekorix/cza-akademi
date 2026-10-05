@@ -127,7 +127,7 @@ export function canonicalSessionRecord(input: {
       timeoutCount: primaryAttempts.filter(attempt => attempt.timeout).length,
       retryCount: input.attempts.length - primaryAttempts.length,
     },
-    skills: definition?.skills ?? [],
+    skills: Array.from(new Set((definition?.skills ?? []).map(canonicalSkillCode).filter(Boolean))),
     metadata: {
       engine: 'cza-exercise-engine-v14',
       exerciseMode: input.config.mode,
