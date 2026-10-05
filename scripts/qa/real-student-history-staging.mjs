@@ -93,7 +93,7 @@ try {
       to_regclass('public.learning_records')::text AS learning_records,
       to_regclass('public.learning_evidence')::text AS learning_evidence,
       to_regprocedure(
-        'public.cza_student_record_learning(uuid,uuid,uuid,uuid,text,text,text,text,text,text,timestamptz,timestamptz,text,jsonb,jsonb,jsonb)'
+        'public.cza_student_record_learning(uuid,uuid,uuid,uuid,uuid,text,text,text,text,text,text,timestamptz,timestamptz,text,jsonb,jsonb,jsonb)'
       )::text AS record_function
   `;
   const schemaRow = schema[0] || {};
@@ -111,6 +111,7 @@ try {
       ts.module_code,
       ts.started_at AS session_started_at,
       ts.completed_at AS session_completed_at,
+      session_seed.student_user_id,
       l.teacher_id AS educator_user_id
     FROM public.training_sessions ts
     JOIN public.students s
@@ -119,6 +120,18 @@ try {
     JOIN public.modules m
       ON m.code = ts.module_code
      AND m.is_active = true
+    JOIN LATERAL (
+      SELECT ss.student_user_id
+      FROM public.student_sessions ss
+      JOIN public.users su
+        ON su.id = ss.student_user_id
+       AND su.is_active = true
+       AND su.role = 'student'
+      WHERE ss.student_id = ts.student_id
+        AND ss.academy_id = ts.academy_id
+      ORDER BY ss.created_at DESC
+      LIMIT 1
+    ) session_seed ON true
     JOIN public.teacher_student_links l
       ON l.student_id = ts.student_id
      AND l.can_view = true
@@ -139,7 +152,9 @@ try {
 
   const fixture = fixtures[0];
   const clientRecordId = crypto.randomUUID();
+  const studentSessionId = crypto.randomUUID();
   const marker = 'CZA-QA-REAL-HISTORY-' + Date.now();
+  const qaTokenHash = crypto.createHash('sha256').update(marker + ':session').digest('hex');
   const startedAt = new Date(fixture.session_started_at);
   const completedAt = new Date(fixture.session_completed_at);
   const durationMs = Math.max(0, completedAt.getTime() - startedAt.getTime());
@@ -160,11 +175,28 @@ try {
 
   const tx = await sql.transaction([
     sql`
+      INSERT INTO public.student_sessions (
+        id, academy_id, student_id, student_user_id, token_hash,
+        expires_at, last_seen_at, user_agent
+      ) VALUES (
+        ${studentSessionId}::uuid,
+        ${fixture.academy_id}::uuid,
+        ${fixture.student_id}::uuid,
+        ${fixture.student_user_id}::uuid,
+        ${qaTokenHash},
+        now() + interval '1 hour',
+        now(),
+        'CZA_REAL_HISTORY_QA'
+      )
+      RETURNING id
+    `,
+    sql`
       SELECT learning_record_id, replayed, canonical_payload_hash
       FROM public.cza_student_record_learning(
         ${fixture.academy_id}::uuid,
         ${fixture.student_id}::uuid,
         ${fixture.training_session_id}::uuid,
+        ${studentSessionId}::uuid,
         ${clientRecordId}::uuid,
         'module_record',
         '1.0.0',
@@ -181,8 +213,8 @@ try {
       )
     `,
     sql`
-      SELECT id, academy_id, student_id, training_session_id, module_code,
-             performance, skills, metadata
+      SELECT id, academy_id, student_id, training_session_id, student_session_id,
+             record_origin, module_code, performance, skills, metadata
       FROM public.learning_records
       WHERE academy_id = ${fixture.academy_id}::uuid
         AND student_id = ${fixture.student_id}::uuid
@@ -212,6 +244,7 @@ try {
         ${fixture.academy_id}::uuid,
         ${fixture.student_id}::uuid,
         ${fixture.training_session_id}::uuid,
+        ${studentSessionId}::uuid,
         ${clientRecordId}::uuid,
         'module_record',
         '1.0.0',
@@ -234,25 +267,36 @@ try {
         AND metadata->>'qaMarker' = ${marker}
       RETURNING id
     `,
+    sql`
+      DELETE FROM public.student_sessions
+      WHERE id = ${studentSessionId}::uuid
+        AND token_hash = ${qaTokenHash}
+      RETURNING id
+    `,
   ]);
 
-  const first = tx[0]?.[0];
-  const studentRead = tx[1]?.[0];
-  const educatorRead = tx[2]?.[0];
-  const replay = tx[3]?.[0];
-  const deleted = tx[4] || [];
+  const createdSession = tx[0]?.[0];
+  const first = tx[1]?.[0];
+  const studentRead = tx[2]?.[0];
+  const educatorRead = tx[3]?.[0];
+  const replay = tx[4]?.[0];
+  const deleted = tx[5] || [];
+  const deletedSession = tx[6] || [];
 
   const checks = {
+    authenticatedSessionCreated: String(createdSession?.id || '') === studentSessionId,
     firstInsert: Boolean(first?.learning_record_id) && first?.replayed === false,
     studentReadback: String(studentRead?.id || '') === String(first?.learning_record_id || ''),
     educatorReadback: String(educatorRead?.id || '') === String(first?.learning_record_id || ''),
     sameStudent: String(studentRead?.student_id || '') === String(fixture.student_id),
     sameAcademy: String(studentRead?.academy_id || '') === String(fixture.academy_id),
     sameSession: String(studentRead?.training_session_id || '') === String(fixture.training_session_id),
+    sameStudentSession: String(studentRead?.student_session_id || '') === studentSessionId,
+    currentOrigin: studentRead?.record_origin === 'client_reported',
     sameModule: studentRead?.module_code === fixture.module_code,
     replayed: replay?.replayed === true && String(replay?.learning_record_id || '') === String(first?.learning_record_id || ''),
     sameHash: replay?.canonical_payload_hash === first?.canonical_payload_hash,
-    cleanupInTransaction: deleted.length === 1,
+    cleanupInTransaction: deleted.length === 1 && deletedSession.length === 1,
   };
 
   if (Object.values(checks).some(value => value !== true)) {
@@ -265,7 +309,12 @@ try {
     WHERE academy_id = ${fixture.academy_id}::uuid
       AND client_record_id = ${clientRecordId}::uuid
   `;
-  if (Number(residue[0]?.count || 0) !== 0) {
+  const sessionResidue = await sql`
+    SELECT count(*)::int AS count
+    FROM public.student_sessions
+    WHERE id = ${studentSessionId}::uuid
+  `;
+  if (Number(residue[0]?.count || 0) !== 0 || Number(sessionResidue[0]?.count || 0) !== 0) {
     throw new Error('staging_qa_residue_detected');
   }
 
