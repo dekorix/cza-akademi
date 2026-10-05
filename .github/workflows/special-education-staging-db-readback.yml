@@ -126,4 +126,4 @@ jobs:
       - name: Synthetic program write readback cleanup
         env:
           CZA_STAGING_DATABASE_URL: ${{ secrets.CZA_STAGING_DATABASE_URL }}
-        run: node scripts/qa/special-program-staging-proof.mjs
+        run: node --experimental-strip-types scripts/qa/special-program-staging-proof.mjs
