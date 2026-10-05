@@ -4,6 +4,7 @@ import { neon } from '@neondatabase/serverless';
 import { buildSpecialLearningProfile } from '../../lib/special-learning-profile.ts';
 import { buildSpecialEducationProgramDraft } from '../../lib/special-education-program.ts';
 import { buildSpecialDailyWork } from '../../lib/special-daily-work.ts';
+import { buildSpecialReassessmentPlan, compareSpecialReassessment } from '../../lib/special-reassessment.ts';
 
 const url = process.env.CZA_STAGING_DATABASE_URL || '';
 if (!url) {
@@ -207,6 +208,63 @@ try {
   };
   if (Object.values(dailyChecks).some(value=>value!==true)) throw new Error('daily_session_readback_mismatch:'+JSON.stringify(dailyChecks));
 
+  await sql`
+    UPDATE public.special_education_programs
+    SET status='completed', completed_at=now(), updated_at=now()
+    WHERE id=${programId}::uuid
+  `;
+
+  const reassessmentPlan=buildSpecialReassessmentPlan(profile,{id:programId,plan:draft});
+  const reassessmentInputs=reassessmentPlan.areas.map(area=>({
+    key:area.key,
+    label:area.label,
+    probes:[
+      {verdict:'MATCH',support:'INDEPENDENT',flags:[]},
+      {verdict:'MATCH',support:'INDEPENDENT',flags:[]},
+      {verdict:'PARTIAL',support:'VERBAL_PROMPT',flags:[]},
+    ],
+  }));
+  const comparison=compareSpecialReassessment(profile,{id:programId,plan:draft},reassessmentInputs);
+  if (!comparison.areas.length || comparison.overallOutcome==='INSUFFICIENT') throw new Error('reassessment_compare_failed');
+
+  const reassessmentRows=await sql`
+    INSERT INTO public.special_education_reassessments(
+      program_id,academy_id,student_id,baseline_session_id,profile_code,status,
+      plan,evidence,comparison,completed_by,completed_at
+    ) VALUES(
+      ${programId}::uuid,${academyId}::uuid,${studentId}::uuid,${sessionId}::uuid,
+      'SP-DYS','completed',
+      ${JSON.stringify(reassessmentPlan)}::jsonb,
+      ${JSON.stringify(reassessmentInputs)}::jsonb,
+      ${JSON.stringify(comparison)}::jsonb,
+      ${educatorUserId}::uuid,now()
+    )
+    RETURNING id
+  `;
+  const reassessmentId=String(reassessmentRows[0].id);
+
+  const reassessmentReadback=await sql`
+    SELECT id,program_id,baseline_session_id,profile_code,status,
+           comparison->>'overallOutcome' AS overall_outcome,
+           comparison->>'nextDecision' AS next_decision,
+           jsonb_array_length(comparison->'areas') AS area_count
+    FROM public.special_education_reassessments
+    WHERE id=${reassessmentId}::uuid
+    LIMIT 1
+  `;
+  if (reassessmentReadback.length!==1) throw new Error('reassessment_readback_missing');
+  const reassessmentRow=reassessmentReadback[0];
+  const reassessmentChecks={
+    program:String(reassessmentRow.program_id)===programId,
+    baseline:String(reassessmentRow.baseline_session_id)===sessionId,
+    profile:reassessmentRow.profile_code==='SP-DYS',
+    completed:reassessmentRow.status==='completed',
+    outcome:Boolean(reassessmentRow.overall_outcome),
+    decision:Boolean(reassessmentRow.next_decision),
+    areas:Number(reassessmentRow.area_count)===comparison.areas.length,
+  };
+  if (Object.values(reassessmentChecks).some(value=>value!==true)) throw new Error('reassessment_readback_mismatch:'+JSON.stringify(reassessmentChecks));
+
   await cleanup();
 
   const residue=await sql`
@@ -226,6 +284,10 @@ try {
   console.log('DAILY_SESSION_WRITE=PASS');
   console.log('DAILY_SESSION_READBACK=PASS');
   console.log('DAILY_PROGRESS=PASS');
+  console.log('REASSESSMENT_PLAN=PASS');
+  console.log('REASSESSMENT_COMPARE=PASS');
+  console.log('REASSESSMENT_WRITE=PASS');
+  console.log('REASSESSMENT_READBACK=PASS');
   console.log('PROGRAM_CLEANUP=PASS');
 } catch (error) {
   await cleanup();
