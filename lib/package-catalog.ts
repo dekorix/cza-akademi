@@ -100,3 +100,12 @@ export function packageReadiness(packageCode: PackageCode) {
     pendingLabels: all.filter(item => !item.ready).map(item => item.label),
   };
 }
+
+
+const readyAccessCodeSet = new Set(
+  Object.values(packageCatalog).flatMap(pack => pack.access.filter(item => item.ready).map(item => item.code)),
+);
+
+export function isReadyAccessCode(value: string) {
+  return readyAccessCodeSet.has(value);
+}
