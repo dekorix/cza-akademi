@@ -76,6 +76,24 @@ type Report = {
     metadata?: { sequence?: number[] };
   }[];
   specialEducationProfile?: SpecialLearningProfile | null;
+  specialEducationProgram?: null | {
+    id: string;
+    profileCode: string;
+    profileLabel: string;
+    version: number;
+    status: string;
+    durationWeeks: number;
+    sessionsPerWeek: number;
+    sessionMinutes: number;
+    completedSessions: number;
+    totalSessions: number;
+    progress: number;
+    currentWeek: number;
+    approvedAt: string | null;
+    startsAt: string | null;
+    endsAt: string | null;
+    completedAt: string | null;
+  };
   assessmentRouting?: null | {
     sessionId: string;
     templateCode: string;
@@ -420,7 +438,30 @@ export function CentralStudentReport({ children, initialCode = '' }: { children?
                 </div>
               )}
 
-              {report.student.id && (
+              {report.specialEducationProgram ? (
+                <div className="mt-5 rounded-lg border border-[#ceddeb] bg-white p-5">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <b className="text-sm">
+                        {report.specialEducationProgram.status === 'completed' ? 'Bireysel program tamamlandı' : 'Bireysel program aktif'}
+                      </b>
+                      <p className="mt-1 text-[11px] text-muted-foreground">
+                        v{report.specialEducationProgram.version} · {report.specialEducationProgram.currentWeek}. hafta · {report.specialEducationProgram.sessionsPerWeek} oturum/hafta · {report.specialEducationProgram.sessionMinutes} dk
+                      </p>
+                    </div>
+                    <span className={`rounded-full px-3 py-1 text-[10px] font-bold ${report.specialEducationProgram.status === 'completed' ? 'bg-[#edf8f2] text-[#276151]' : 'bg-[#eef4fb] text-[#385a78]'}`}>
+                      {report.specialEducationProgram.completedSessions}/{report.specialEducationProgram.totalSessions} oturum
+                    </span>
+                  </div>
+                  <div className="mt-4 h-2 overflow-hidden rounded-full bg-[#e9eef4]">
+                    <div className="h-full rounded-full bg-[#557fa5]" style={{ width: `${report.specialEducationProgram.progress}%` }}/>
+                  </div>
+                  <div className="mt-2 flex items-center justify-between text-[10px] text-muted-foreground">
+                    <span>%{report.specialEducationProgram.progress} tamamlandı</span>
+                    <span>{report.specialEducationProgram.status === 'completed' ? 'Yeniden ölçüm sırada' : 'Öğrenci günlük çalışma panelinde görüyor'}</span>
+                  </div>
+                </div>
+              ) : report.student.id && (
                 <div className="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-[#ceddeb] bg-white p-4">
                   <div>
                     <b className="text-sm">Sonraki adım: eğitimci onaylı bireysel program</b>
