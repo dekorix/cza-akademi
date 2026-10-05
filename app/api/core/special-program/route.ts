@@ -198,7 +198,7 @@ export async function POST(request: Request) {
 
     try {
       const sessions = await sql`
-        SELECT s.id, s.program_id, s.session_index, p.duration_weeks, p.sessions_per_week
+        SELECT s.id, s.program_id, s.session_index, s.plan_snapshot, p.duration_weeks, p.sessions_per_week
         FROM public.special_education_program_sessions s
         JOIN public.special_education_programs p ON p.id = s.program_id
         WHERE s.id = ${sessionId}::uuid
@@ -210,13 +210,23 @@ export async function POST(request: Request) {
       `;
       if (!sessions.length) return json({ ok: false, error: 'special_program_session_not_found' }, 404);
       const current = sessions[0] as Record<string, unknown>;
+      const snapshot = current.plan_snapshot && typeof current.plan_snapshot === 'object' && !Array.isArray(current.plan_snapshot)
+        ? current.plan_snapshot as Record<string, unknown>
+        : {};
+      const expectedKeys = Array.isArray(snapshot.priorityKeys) ? snapshot.priorityKeys.map(String).filter(Boolean) : [];
+      const completedKeys = Array.isArray(input.completedPriorityKeys)
+        ? input.completedPriorityKeys.map(String).map(value => value.trim()).filter(Boolean).slice(0, 8)
+        : [];
+      if (expectedKeys.length && expectedKeys.some(key => !completedKeys.includes(key))) {
+        return json({ ok: false, error: 'special_program_activities_incomplete' }, 409);
+      }
 
       await sql`
         UPDATE public.special_education_program_sessions
         SET status = 'completed',
             completed_at = now(),
             updated_at = now(),
-            student_reflection = ${JSON.stringify({ reflection, note, source: 'STUDENT', schemaVersion: 1 })}::jsonb
+            student_reflection = ${JSON.stringify({ reflection, note, completedPriorityKeys: completedKeys, source: 'STUDENT', schemaVersion: 1 })}::jsonb
         WHERE id = ${sessionId}::uuid
       `;
 
