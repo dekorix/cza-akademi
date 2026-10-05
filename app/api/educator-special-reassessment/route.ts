@@ -3,6 +3,7 @@ import { authenticatedEducator } from '@/lib/educator-auth';
 import { allowRequest, rateLimited } from '@/lib/request-guard';
 import { buildSpecialLearningProfile } from '@/lib/special-learning-profile';
 import { buildSpecialReassessmentPlan, compareSpecialReassessment } from '@/lib/special-reassessment';
+import type { ReassessmentAreaInput, ReassessmentVerdict, ReassessmentSupport } from '@/lib/special-reassessment';
 import type { SpecialEducationProgramDraft } from '@/lib/special-education-program';
 
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -16,16 +17,18 @@ function sanitizeFlags(value:unknown){
   if(!Array.isArray(value)) return [] as string[];
   return value.map(String).map(v=>v.trim().slice(0,80)).filter(Boolean).slice(0,10);
 }
-function normalizeAreas(value:unknown){
-  if(!Array.isArray(value)) return [] as {
-    key:string;label:string;probes:{verdict:'MATCH'|'PARTIAL'|'DIFFERENT'|'NO_RESPONSE';support:'INDEPENDENT'|'VERBAL_PROMPT'|'VISUAL_PROMPT'|'MODELED'|'PHYSICAL_ASSIST';flags:string[]}[]
-  };
+function normalizeAreas(value:unknown):ReassessmentAreaInput[]{
+  if(!Array.isArray(value)) return [];
   return value.slice(0,8).map(area=>{
     const row=area&&typeof area==='object'&&!Array.isArray(area)?area as Record<string,unknown>:{};
     const probes=Array.isArray(row.probes)?row.probes.slice(0,3).map(item=>{
       const probe=item&&typeof item==='object'&&!Array.isArray(item)?item as Record<string,unknown>:{};
-      const verdict=typeof probe.verdict==='string'&&VERDICTS.has(probe.verdict)?probe.verdict:'NO_RESPONSE';
-      const support=typeof probe.support==='string'&&SUPPORTS.has(probe.support)?probe.support:'PHYSICAL_ASSIST';
+      const verdict:ReassessmentVerdict=typeof probe.verdict==='string'&&VERDICTS.has(probe.verdict)
+        ? probe.verdict as ReassessmentVerdict
+        : 'NO_RESPONSE';
+      const support:ReassessmentSupport=typeof probe.support==='string'&&SUPPORTS.has(probe.support)
+        ? probe.support as ReassessmentSupport
+        : 'PHYSICAL_ASSIST';
       return {verdict,support,flags:sanitizeFlags(probe.flags)};
     }):[];
     return {
@@ -33,7 +36,7 @@ function normalizeAreas(value:unknown){
       label:typeof row.label==='string'?row.label.trim().slice(0,160):'',
       probes,
     };
-  }).filter(area=>area.key);
+  }).filter((area):area is ReassessmentAreaInput=>Boolean(area.key));
 }
 
 export async function POST(request:Request){
