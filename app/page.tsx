@@ -7,6 +7,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Input } from '@/components/ui/input';
 import { core, coreStudent, friendlyCoreError, studentName, type CoreStudent } from '@/lib/core-client';
+import { SpecialProgramToday } from '@/components/special-program-today';
 
 const modules = [
   { title: 'Parmak tekniği', detail: 'Oku, parmaklarınla göster ve anında geri bildirim al', icon: Hand, color: '#f8eee3', ink: '#a56730', level: 'Learning Core bağlı', progress: 1, href: '/paritmetik' },
@@ -129,6 +130,8 @@ export function StudentPortal({ area }: { area: 'main' | 'work' }) {
           <div><p className="eyebrow mb-2 text-primary">Bugün kendine bir adım daha yaklaş</p><h1 className="text-[27px] font-semibold leading-tight tracking-[-.035em] md:text-[34px]">Merhaba {displayName}, çalışma alanın hazır.</h1><p className="mt-2 text-sm text-muted-foreground">Acele etmeden, doğru teknikle ilerle. Her tamamlanan çalışma güvenli öğrenci kaydına işlenir.</p></div>
           <span className="rounded-lg border border-[#b9daca] bg-[#edf8f2] px-3 py-2 text-xs font-semibold text-[#276151]">Merkezî kayıt etkin</span>
         </div>
+
+        <SpecialProgramToday />
 
         <a href="/studio" className="group mb-7 flex min-h-36 flex-col justify-between gap-5 overflow-hidden rounded-2xl border border-[#77ad9c] bg-[linear-gradient(120deg,#174e46,#237d6c_55%,#315f86)] p-6 text-white shadow-[0_14px_34px_rgba(25,78,70,.22)] transition hover:-translate-y-0.5 hover:shadow-[0_18px_40px_rgba(25,78,70,.28)] sm:flex-row sm:items-center md:p-8"><div className="flex items-center gap-5"><span className="grid h-16 w-16 shrink-0 place-items-center rounded-2xl bg-white/15 ring-1 ring-white/25"><BrainCircuit size={34}/></span><div><p className="text-xs font-bold uppercase tracking-[.14em] text-[#cdebdc]">Bütün çalışmalar tek merkezde</p><h2 className="mt-2 text-2xl font-bold md:text-3xl">Egzersiz Stüdyosunu Aç</h2><p className="mt-2 max-w-2xl text-sm leading-6 text-[#e1f1eb]">Parmak, Soroban, Toplama–Çıkarma, Flash ve Sesli Anzan çalışmalarını seç; süreni ve seviyeni ayarla.</p></div></div><span className="inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-xl bg-[#f4d46c] px-6 font-bold text-[#263d39] shadow-sm transition group-hover:bg-[#ffe58a]">Stüdyoya gir <ArrowRight size={18}/></span></a>
 
