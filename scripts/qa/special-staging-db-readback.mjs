@@ -1,7 +1,18 @@
 import crypto from 'node:crypto';
+import process from 'node:process';
+import readline from 'node:readline';
 import { neon } from '@neondatabase/serverless';
 
-const url = process.env.CZA_STAGING_DATABASE_URL || '';
+async function readSecretLine() {
+  const input = readline.createInterface({ input: process.stdin, terminal: false });
+  for await (const line of input) {
+    input.close();
+    return line.trim();
+  }
+  return '';
+}
+
+const url = process.env.CZA_STAGING_DATABASE_URL || await readSecretLine();
 if (!url) {
   console.error('STAGING_DB_READBACK=BLOCKED');
   console.error('REASON=CZA_STAGING_DATABASE_URL_MISSING');
@@ -18,7 +29,7 @@ try {
 }
 
 const host = parsed.hostname.toLowerCase();
-if (!host || /(^|[.-])(prod|production)([.-]|$)/.test(host)) {
+if (!host || !host.endsWith('.neon.tech') || parsed.pathname !== '/cza_learning' || /(^|[.-])(prod|production)([.-]|$)/.test(host)) {
   console.error('STAGING_DB_READBACK=BLOCKED');
   console.error('REASON=PRODUCTION_LIKE_HOST_REJECTED');
   process.exit(2);
