@@ -187,6 +187,75 @@ export async function POST(request: Request) {
     specialEducationProfile = null;
   }
 
+  let specialEducationProgram: null | {
+    id: string;
+    profileCode: string;
+    profileLabel: string;
+    version: number;
+    status: string;
+    durationWeeks: number;
+    sessionsPerWeek: number;
+    sessionMinutes: number;
+    completedSessions: number;
+    totalSessions: number;
+    progress: number;
+    currentWeek: number;
+    approvedAt: string | null;
+    startsAt: string | null;
+    endsAt: string | null;
+    completedAt: string | null;
+  } = null;
+
+  try {
+    const rows = await sql`
+      SELECT p.id, p.profile_code, p.version, p.status, p.duration_weeks,
+             p.sessions_per_week, p.session_minutes, p.approved_at, p.starts_at,
+             p.ends_at, p.completed_at, p.plan->>'profileLabel' AS profile_label,
+             (
+               SELECT count(*)::int
+               FROM public.special_education_program_sessions s
+               WHERE s.program_id = p.id
+                 AND s.student_id = p.student_id
+                 AND s.status = 'completed'
+             ) AS completed_sessions
+      FROM public.special_education_programs p
+      WHERE p.student_id = ${student.id}::uuid
+        AND p.academy_id = ${student.academy_id}::uuid
+        AND p.status IN ('active','completed')
+      ORDER BY CASE WHEN p.status = 'active' THEN 0 ELSE 1 END, p.created_at DESC
+      LIMIT 1
+    `;
+    if (rows.length) {
+      const row = rows[0] as Record<string, unknown>;
+      const durationWeeks = Number(row.duration_weeks || 4);
+      const sessionsPerWeek = Number(row.sessions_per_week || 1);
+      const completedSessions = Number(row.completed_sessions || 0);
+      const totalSessions = durationWeeks * sessionsPerWeek;
+      specialEducationProgram = {
+        id: String(row.id),
+        profileCode: String(row.profile_code || ''),
+        profileLabel: String(row.profile_label || 'Özel Eğitim Bireysel Programı'),
+        version: Number(row.version || 1),
+        status: String(row.status || 'active'),
+        durationWeeks,
+        sessionsPerWeek,
+        sessionMinutes: Number(row.session_minutes || 0),
+        completedSessions,
+        totalSessions,
+        progress: totalSessions ? Math.min(100, Math.round((completedSessions / totalSessions) * 100)) : 0,
+        currentWeek: row.status === 'completed'
+          ? durationWeeks
+          : Math.min(durationWeeks, Math.max(1, Math.floor(completedSessions / sessionsPerWeek) + 1)),
+        approvedAt: row.approved_at ? String(row.approved_at) : null,
+        startsAt: row.starts_at ? String(row.starts_at) : null,
+        endsAt: row.ends_at ? String(row.ends_at) : null,
+        completedAt: row.completed_at ? String(row.completed_at) : null,
+      };
+    }
+  } catch {
+    specialEducationProgram = null;
+  }
+
   return json({
     ok: true,
     student: {
@@ -199,5 +268,6 @@ export async function POST(request: Request) {
     recent,
     assessmentRouting,
     specialEducationProfile,
+    specialEducationProgram,
   });
 }
