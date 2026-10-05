@@ -160,14 +160,17 @@ function semantic(statement) {
     .toUpperCase();
 }
 
-const migration = fs.readFileSync(
-  new URL('../../db/migrations/20260913_canonical_learning_ledger_v1.sql', import.meta.url),
-  'utf8',
-);
+const migrationFiles = [
+  '../../db/migrations/20260913_canonical_learning_ledger_v1.sql',
+  '../../db/migrations/20261005_canonical_learning_student_session_binding_v1.sql',
+];
 
-const statements = splitSql(migration).filter(statement => {
-  const normalized = semantic(statement);
-  return normalized !== 'BEGIN' && normalized !== 'COMMIT';
+const statements = migrationFiles.flatMap(relativePath => {
+  const migration = fs.readFileSync(new URL(relativePath, import.meta.url), 'utf8');
+  return splitSql(migration).filter(statement => {
+    const normalized = semantic(statement);
+    return normalized !== 'BEGIN' && normalized !== 'COMMIT';
+  });
 });
 
 if (!statements.length) {
@@ -186,7 +189,7 @@ try {
       (to_regclass('public.learning_records') IS NOT NULL) AS learning_records,
       (to_regclass('public.learning_evidence') IS NOT NULL) AS learning_evidence,
       (to_regprocedure(
-        'public.cza_student_record_learning(uuid,uuid,uuid,uuid,text,text,text,text,text,text,timestamptz,timestamptz,text,jsonb,jsonb,jsonb)'
+        'public.cza_student_record_learning(uuid,uuid,uuid,uuid,uuid,text,text,text,text,text,text,timestamptz,timestamptz,text,jsonb,jsonb,jsonb)'
       ) IS NOT NULL) AS record_function
   `;
 
