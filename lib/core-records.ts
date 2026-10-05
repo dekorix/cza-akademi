@@ -22,7 +22,7 @@ export function trainingSettings(config: ExerciseConfig) {
     exerciseType: definition?.id,
     practiceMode: config.practiceMode ?? 'free_practice',
     feedbackMode: config.feedbackMode ?? feedbackModeFor(config.practiceMode ?? 'free_practice'),
-    skills: Array.from(new Set((definition?.skills ?? []).map(canonicalSkillCode).filter(Boolean))),
+    skills: definition?.skills ?? [],
     skillProfile: config.mode === 'flash' ? 'anzan.visual' : config.mode === 'audio' ? 'anzan.auditory' : undefined,
     difficultyProfile: ['flash','audio'].includes(config.mode) ? anzanDifficulty(config) : undefined,
     exercise: config,
