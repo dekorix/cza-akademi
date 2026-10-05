@@ -96,6 +96,25 @@ type Report = {
     lastReflection: string | null;
     lastSessionAt: string | null;
   };
+  specialEducationReassessment?: null | {
+    id: string;
+    programId: string;
+    profileCode: string;
+    completedAt: string | null;
+    comparison: {
+      overallOutcome?: string;
+      nextDecision?: string;
+      note?: string;
+      areas?: {
+        key: string;
+        label: string;
+        baselineScore: number | null;
+        afterScore: number | null;
+        outcome: string;
+        nextStep: string;
+      }[];
+    };
+  };
   assessmentRouting?: null | {
     sessionId: string;
     templateCode: string;
@@ -467,6 +486,62 @@ export function CentralStudentReport({ children, initialCode = '' }: { children?
                       Son öğrenci geri bildirimi: <b>{report.specialEducationProgram.lastReflection === 'EASY' ? 'Kolaydı' : report.specialEducationProgram.lastReflection === 'HARD' ? 'Zordu' : 'İyiydi'}</b>
                       {report.specialEducationProgram.lastSessionAt ? ` · ${new Date(report.specialEducationProgram.lastSessionAt).toLocaleString('tr-TR')}` : ''}
                     </p>
+                  )}
+
+                  {report.specialEducationProgram.status === 'completed' && !report.specialEducationReassessment && report.student.id && (
+                    <a
+                      href={`/educator/special-reassessment?studentId=${encodeURIComponent(report.student.id)}&programId=${encodeURIComponent(report.specialEducationProgram.id)}`}
+                      className="mt-4 inline-flex min-h-10 items-center justify-center rounded-lg bg-[#385a78] px-4 text-xs font-semibold text-white"
+                    >
+                      Yeniden ölçümü başlat
+                    </a>
+                  )}
+
+                  {report.specialEducationReassessment && (
+                    <div className="mt-5 rounded-xl border border-[#b9daca] bg-[#edf8f2] p-4 text-[#276151]">
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div>
+                          <b className="text-sm">Program sonrası karşılaştırma tamamlandı</b>
+                          <p className="mt-1 text-[11px]">
+                            {report.specialEducationReassessment.comparison.overallOutcome === 'IMPROVED'
+                              ? 'Belirgin gelişim'
+                              : report.specialEducationReassessment.comparison.overallOutcome === 'PERSISTENT_PRIORITY'
+                                ? 'Öncelik sürüyor'
+                                : report.specialEducationReassessment.comparison.overallOutcome === 'MIXED'
+                                  ? 'Karışık / kısmi gelişim'
+                                  : 'Ek kanıt gerekli'}
+                          </p>
+                        </div>
+                        <span className="rounded-full bg-white px-3 py-1 text-[10px] font-bold">
+                          {report.specialEducationReassessment.completedAt
+                            ? new Date(report.specialEducationReassessment.completedAt).toLocaleDateString('tr-TR')
+                            : 'tamamlandı'}
+                        </span>
+                      </div>
+                      {Array.isArray(report.specialEducationReassessment.comparison.areas) && report.specialEducationReassessment.comparison.areas.length > 0 && (
+                        <div className="mt-4 grid gap-2 md:grid-cols-2">
+                          {report.specialEducationReassessment.comparison.areas.map(area => (
+                            <div key={area.key} className="rounded-lg bg-white/80 p-3">
+                              <b className="text-xs">{area.label}</b>
+                              <p className="mt-1 text-[10px]">
+                                Başlangıç {area.baselineScore == null ? '—' : area.baselineScore.toFixed(2)}
+                                {' → '}
+                                Şimdi {area.afterScore == null ? '—' : area.afterScore.toFixed(2)}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      <p className="mt-4 text-xs leading-5">
+                        {report.specialEducationReassessment.comparison.nextDecision === 'CLOSE_OR_MAINTAIN'
+                          ? 'Karar: hedefleri kapat veya bakım düzeyinde izle.'
+                          : report.specialEducationReassessment.comparison.nextDecision === 'EXPERT_REVIEW_CONSIDER'
+                            ? 'Karar: kalıcı ve işlevsel güçlük sürüyorsa yetkili uzman değerlendirmesi düşünülebilir.'
+                            : report.specialEducationReassessment.comparison.nextDecision === 'COLLECT_MORE_EVIDENCE'
+                              ? 'Karar: ek yeni örneklerle daha fazla kanıt topla.'
+                              : 'Karar: hedefli desteği sürdür ve yeni program gereksinimini eğitimci gözden geçirsin.'}
+                      </p>
+                    </div>
                   )}
                 </div>
               ) : report.student.id && (
