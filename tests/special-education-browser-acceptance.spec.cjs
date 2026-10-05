@@ -46,6 +46,8 @@ test.describe('CZA Özel Eğitim Başlangıç Değerlendirmesi V1 kabul', () => 
     const codes = ['SP-SLD','SP-DYSC','SP-DYSG','SP-ASD','SP-LANG','SP-ATTN','SP-DELAY','SP-COG','SP-MIX'];
     for (const code of codes) {
       await page.goto(BASE, { waitUntil: 'networkidle' });
+      await page.evaluate(() => localStorage.clear());
+      await page.reload({ waitUntil: 'networkidle' });
       await page.locator('.special-card[data-code="' + code + '"]').click();
 
       await expect(page.locator('.profile-coverage')).toBeVisible();
