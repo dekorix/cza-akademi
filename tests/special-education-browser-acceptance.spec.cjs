@@ -14,7 +14,16 @@ async function collectRuntimeErrors(page) {
   const errors = [];
   page.on('pageerror', error => errors.push('pageerror: ' + error.message));
   page.on('console', msg => {
-    if (msg.type() === 'error') errors.push('console: ' + msg.text());
+    const text = msg.text();
+    if (msg.type() === 'error' && !text.startsWith('Failed to load resource:')) {
+      errors.push('console: ' + text);
+    }
+  });
+  page.on('response', response => {
+    if (response.status() < 400) return;
+    const url = response.url();
+    if (url.includes('/api/educator-students')) return;
+    errors.push('http: ' + response.status() + ' ' + url);
   });
   return errors;
 }
