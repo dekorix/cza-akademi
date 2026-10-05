@@ -13,7 +13,10 @@
         {id:'SLD05',area:'Dikkat / Bellek',title:'Kuralı Tut',child:'2-5-8 dizisini dinle. Önce aynı sırayla, sonra tersten söyle.',stimulus:'2 – 5 – 8',focus:'İşitsel çalışma belleği · manipülasyon',educator:'Aynı sıra ve ters sıra performansını ayır.',probe:'Diziyi tekrar etmek destek sayılır.',related:'SP-ATTN'},
         {id:'SLD06',area:'Öğrenme Tepkisi',title:'Modelden Sonra Dene',child:'Örnek: “ba + lık → balık”. Şimdi “sa + rı” için aynı yöntemi kullan.',stimulus:'sa + rı',focus:'Kısa öğretimden yararlanma',educator:'Bir model ver, sonra yeni örnekte performansı kaydet.',probe:'Ek model gerekiyorsa desteğe işle.'},
         {id:'SLD07',area:'Transfer',title:'Yeni Duruma Taşı',child:'Aynı birleştirme yolunu “li + mon” için kullan.',stimulus:'li + mon',focus:'Yakın transfer · strateji kararlılığı',educator:'Modeli tekrar etmeden uygulat.',probe:'İlk transfer cevabını koru.'},
-        {id:'SLD08',area:'Üstbiliş',title:'Nasıl Öğrendin?',child:'Zor gelen bir görevde sana en çok ne yardım etti? Bana kendi cümlenle anlat.',stimulus:'Kısa öz-değerlendirme',focus:'Strateji farkındalığı · yardım kullanımı',educator:'Tek doğru cevap arama. Çocuğun kendi öğrenme dilini kaydet.',probe:'Seçenek sunmadan önce serbest yanıt al.'}
+        {id:'SLD08',area:'Üstbiliş',title:'Nasıl Öğrendin?',child:'Zor gelen bir görevde sana en çok ne yardım etti? Bana kendi cümlenle anlat.',stimulus:'Kısa öz-değerlendirme',focus:'Strateji farkındalığı · yardım kullanımı',educator:'Tek doğru cevap arama. Çocuğun kendi öğrenme dilini kaydet.',probe:'Seçenek sunmadan önce serbest yanıt al.'},
+        {id:'SLD09',area:'Görsel / Ortografik İşleme',title:'Benzer Biçimi Ayır',child:'“kalem” ile tamamen aynı olanı seç.',stimulus:'kalem → kalem / kalen / kaelm / kelam',focus:'Kelime biçimi · harf sırası · görsel seçicilik',educator:'Okuma doğruluğundan bağımsız olarak biçim ve sıra kontrolünü gözle.',probe:'“Harfleri tek tek kontrol edebilirsin” dışında ipucu verme.',related:'SP-DYS'},
+        {id:'SLD10',area:'İşitsel İşleme / Transfer',title:'Duyduğunu Dönüştür',child:'“bal” kelimesini dinle. Başındaki /b/ yerine /d/ koy ve yeni kelimeyi söyle.',stimulus:'bal → b yerine d',focus:'İşitsel işlem · çalışma belleği · yeni kurala transfer',educator:'Kelimeyi zihinde tutma ile ses değiştirmeyi birlikte gözle.',probe:'Kelimeyi tekrar etmek destek sayılır.',related:'SP-DYS'}
+
       ]
     },
     'SP-DYSC': {
@@ -29,7 +32,10 @@
         {id:'DYC05',area:'İşlem Stratejisi',title:'8 + 7’yi Nasıl Bulursun?',child:'Cevabı bul ve nasıl düşündüğünü anlat.',stimulus:'8 + 7 = ?',focus:'Toplama stratejisi · sayısal esneklik',educator:'Parmak, sayarak devam, 10’a tamamlama gibi stratejileri yargılamadan kaydet.',probe:'Tek bir “iyi yöntem” dayatma.'},
         {id:'DYC06',area:'Problem',title:'Değişimi İzle',child:'Ece’nin 9 kalemi vardı. 3’ünü arkadaşına verdi. Kaç kalemi kaldı?',stimulus:'9 kalem → 3 verildi → ?',focus:'Problem dili · işlem seçimi · nicelik değişimi',educator:'Yanlışsa bunun dil mi, işlem mi, sayı bilgisi mi olduğunu ayırmaya çalış.',probe:'Somut nesne kullanırsa desteği materyal olarak not et.'},
         {id:'DYC07',area:'Öğrenme Tepkisi',title:'10’a Tamamlama Modeli',child:'Örnek: 8 + 5 için 8’e 2 ekleyip 10 yapabiliriz, 3 kalır; 13 olur. Şimdi 7 + 6 için dene.',stimulus:'7 + 6',focus:'Modelden strateji öğrenme',educator:'Model sonrası stratejiyi kullanıp kullanmadığını gözle.',probe:'İkinci model gerekirse desteğe işle.'},
-        {id:'DYC08',area:'Transfer',title:'Yeni İşleme Taşı',child:'Aynı 10’a tamamlama fikrini 9 + 5 için kullan.',stimulus:'9 + 5',focus:'Matematik stratejisi transferi',educator:'Önceki modeli tekrar etmeden uygulat.',probe:'İlk transfer performansı ana kanıttır.'}
+        {id:'DYC08',area:'Transfer',title:'Yeni İşleme Taşı',child:'Aynı 10’a tamamlama fikrini 9 + 5 için kullan.',stimulus:'9 + 5',focus:'Matematik stratejisi transferi',educator:'Önceki modeli tekrar etmeden uygulat.',probe:'İlk transfer performansı ana kanıttır.'},
+        {id:'DYC09',area:'Matematiksel Çalışma Belleği',title:'İki Adımı Zihinde Tut',child:'5 ile 3’ü topla. Çıkan sonuca 2 daha ekle. Sonuç kaç?',stimulus:'5 + 3, sonra +2',focus:'Ara sonucu tutma · sıralı zihinsel işlem',educator:'İlk ara sonucu unutma, başa dönme veya işlemleri karıştırmayı kaydet.',probe:'İlk ara sonucu sen söylersen bunu destek olarak işaretle.'},
+        {id:'DYC10',area:'Sayı Doğrusu / Konum',title:'Sayı Nerede Durur?',child:'0 ile 20 arasındaki çizgide 14 sayısının yaklaşık yerini göster.',stimulus:'0 ───────────── 20',focus:'Sayı büyüklüğü · uzamsal sayı temsili',educator:'Kesin santimetre değil, göreli konumu ve stratejiyi gözle.',probe:'10’un yerini referans olarak göstermek görsel destek sayılır.'}
+
       ]
     },
     'SP-DYSG': {
@@ -45,7 +51,10 @@
         {id:'DYG05',area:'Yazma Hızı',title:'Bir Dakikalık Üretim',child:'“Bugün okulda...” diye başlayan kısa bir cümle yaz.',stimulus:'Bugün okulda ...',focus:'Yazılı üretim akışı · hız · içerik',educator:'Süreyi kaydet ama hız tek başına olumsuz yorumlanmaz. Duraklama ve fikir üretimini ayır.',probe:'Sözel fikir ipucu destek sayılır.'},
         {id:'DYG06',area:'Kopya–Dikte Ayrımı',title:'Aynı Kelime İki Yolla',child:'Önce “kalem”i kopyala. Sonra yazıyı kapatıp kelimeyi duyunca yeniden yaz.',stimulus:'kalem',focus:'Görsel kopya ile işitsel kodlama farkı',educator:'İki üretimi yan yana karşılaştır.',probe:'Kapatıldıktan sonra kelimeyi yeniden gösterme.'},
         {id:'DYG07',area:'Öz-Kontrol',title:'Yazdığını Oku',child:'Yazdığın cümleyi sesli oku ve değiştirmek istediğin bir yer var mı bak.',stimulus:'Kendi yazısı',focus:'Yazı-okuma çapraz kontrolü',educator:'Kendi hatasını fark edip etmediğini kaydet.',probe:'Hatanın yerini söyleme.'},
-        {id:'DYG08',area:'Transfer',title:'Yeni Cümle',child:'Şimdi benzer uzunlukta yeni bir cümle yaz: “Kedi pencereye çıktı.”',stimulus:'Kedi pencereye çıktı.',focus:'Yeni yazma durumuna transfer',educator:'Önceki düzenleme stratejilerinin sürüp sürmediğini izle.',probe:'İlk üretimi ana kanıt olarak tut.'}
+        {id:'DYG08',area:'Transfer',title:'Yeni Cümle',child:'Şimdi benzer uzunlukta yeni bir cümle yaz: “Kedi pencereye çıktı.”',stimulus:'Kedi pencereye çıktı.',focus:'Yeni yazma durumuna transfer',educator:'Önceki düzenleme stratejilerinin sürüp sürmediğini izle.',probe:'İlk üretimi ana kanıt olarak tut.'},
+        {id:'DYG09',area:'Yazım / Ortografik Bellek',title:'Gördün, Kapandı, Yaz',child:'“limon” kelimesine kısa süre bak. Kelime kapandıktan sonra hatırladığın gibi yaz.',stimulus:'limon → 3 sn → kapat',focus:'Ortografik bellek · harf sırası · yazılı geri çağırma',educator:'Kopyalama ile gecikmeli yazma farkını kaydet.',probe:'Kelimeyi ikinci kez göstermek görsel destek sayılır.'},
+        {id:'DYG10',area:'Yazılı İfade / Planlama',title:'Üç Bilgiyi Cümlede Birleştir',child:'“çocuk – park – top” kelimelerini kullanarak anlamlı bir cümle yaz.',stimulus:'çocuk · park · top',focus:'Yazılı ifade · cümle planlama · kelime sınırları',educator:'Fikir üretme ile el yazısı mekaniklerini ayrı değerlendir.',probe:'Sözel cümle kurdurmak destek olarak kaydedilir.'}
+
       ]
     },
     'SP-ASD': {
@@ -61,7 +70,10 @@
         {id:'ASD05',area:'Oyun / Sembol',title:'Nesneyle Yeni Oyun',child:'Oyuncak bardak ve kaşıkla istediğin kısa oyunu kur.',stimulus:'Oyuncak bardak + kaşık + bebek',focus:'İşlevsel/sembolik oyun · esneklik',educator:'Tek doğru oyun bekleme. Nesneyi işlevsel, sembolik veya tekrarlı kullanım biçimini not et.',probe:'Bir sembolik örnek modellemek destek sayılır.'},
         {id:'ASD06',area:'Esneklik',title:'Kural Değişti',child:'Önce kırmızı blokları kutuya koy. Sonra kural değişiyor: şimdi büyük blokları koy.',stimulus:'Renk ve boyutu değişen bloklar',focus:'Bilişsel esneklik · geçiş toleransı',educator:'Eski kuralı sürdürme, yeni kurala geçiş ve duygusal düzenlemeyi ayrı kaydet.',probe:'Görsel kural kartı kullanırsan desteğe yaz.'},
         {id:'ASD07',area:'Duyusal / Düzenleme',title:'Tercih ve Rahatsızlık',child:'İki farklı dokulu materyal sunulur; hangisini tercih ettiğini veya istemediğini gösterebilir.',stimulus:'Yumuşak kumaş + pütürlü top',focus:'Duyusal tepki · tercih bildirme · düzenleme',educator:'Kaçınma veya arama davranışını “iyi/kötü” diye puanlama; katılımı ve iletişimi kaydet.',probe:'Zorlayarak temas ettirme.'},
-        {id:'ASD08',area:'Öğrenme / Transfer',title:'Model Sonrası Yeni Örnek',child:'Eğitmen bir blok dizilimi gösterir; sonra farklı renklerle aynı kuralı kurmasını ister.',stimulus:'kırmızı-mavi-kırmızı → sarı-yeşil-?',focus:'Modelden öğrenme · örüntü transferi',educator:'Yeni yüzeyde kuralı genelleyip genellemediğini gözle.',probe:'İlk modelden sonra ikinci modeli destek olarak kaydet.'}
+        {id:'ASD08',area:'Öğrenme / Transfer',title:'Model Sonrası Yeni Örnek',child:'Eğitmen bir blok dizilimi gösterir; sonra farklı renklerle aynı kuralı kurmasını ister.',stimulus:'kırmızı-mavi-kırmızı → sarı-yeşil-?',focus:'Modelden öğrenme · örüntü transferi',educator:'Yeni yüzeyde kuralı genelleyip genellemediğini gözle.',probe:'İlk modelden sonra ikinci modeli destek olarak kaydet.'},
+        {id:'ASD09',area:'Duygu / Sosyal İpucu',title:'Yüzden ve Durumdan Anla',child:'Bir çocuk oyuncağı kırılınca yüzü üzgün görünüyor. Sence ne hissediyor ve neden?',stimulus:'Kısa sosyal durum + duygu yüzü',focus:'Duygu ipucu · durumla duygu eşleme · sosyal çıkarım',educator:'Sözel açıklama zorunlu değil; işaret, seçim veya kısa yanıt kabul edilir.',probe:'“Üzgün mü?” gibi cevabı içeren soru sorma.'},
+        {id:'ASD10',area:'Geçiş / Genelleme',title:'Etkinlik Değişiyor',child:'Sevdiği kısa etkinlik bittikten sonra görsel “bitti → yeni etkinlik” kartıyla başka göreve geçilir.',stimulus:'Bitti kartı + yeni etkinlik',focus:'Geçiş toleransı · görsel destek kullanımı · düzenleme',educator:'Geçiş süresi, protesto, yardım türü ve yeni etkinliğe katılımı ayrı kaydet.',probe:'Görsel program standart destek olabilir; ek fiziksel/sözel yardım ayrıca kaydedilir.'}
+
       ]
     },
     'SP-LANG': {
@@ -77,7 +89,10 @@
         {id:'LAN05',area:'Neden–Sonuç',title:'Neden?',child:'Ece montunu giydi çünkü dışarısı çok soğuktu. Ece neden montunu giydi?',stimulus:'Kısa cümle',focus:'Neden-sonuç dili · anlama',educator:'Soruyu tekrar ihtiyacı ve cevabın ilişkisini gözle.',probe:'Seçenek verme.'},
         {id:'LAN06',area:'Sözcük Erişim Hızı',title:'Bir Dakikada Kategori',child:'Bana bildiğin hayvan isimlerini söyle.',stimulus:'Kategori: hayvanlar',focus:'Sözcük erişimi · kategori içinde üretim',educator:'Tekrar, uzun boşluk ve kümelenme stratejilerini not et. Norm puanı üretme.',probe:'Örnek hayvan adı verme.'},
         {id:'LAN07',area:'Öğrenme Tepkisi',title:'Yeni Sözcüğü Öğren',child:'“Luma” bu oyunda mavi küçük topun adı olsun. Şimdi “luma”yı bana ver.',stimulus:'Yeni uydurma etiket + nesne',focus:'Yeni sözcük eşleme · kısa öğrenme',educator:'Bir kez eşleştir, sonra seçme görevinde öğrenme tepkisini izle.',probe:'İkinci öğretim desteğe yazılır.'},
-        {id:'LAN08',area:'Transfer',title:'Yeni Bağlamda Kullan',child:'“Luma masanın altında” cümlesinde luma nedir ve nerede?',stimulus:'Yeni öğrenilen sözcük yeni cümlede',focus:'Yeni sözcüğü bağlama taşıma',educator:'Öğrenilen etiketi yeni dil bağlamında kullanıp kullanmadığını izle.',probe:'Nesneyi tekrar göstermeden önce serbest yanıt al.'}
+        {id:'LAN08',area:'Transfer',title:'Yeni Bağlamda Kullan',child:'“Luma masanın altında” cümlesinde luma nedir ve nerede?',stimulus:'Yeni öğrenilen sözcük yeni cümlede',focus:'Yeni sözcüğü bağlama taşıma',educator:'Öğrenilen etiketi yeni dil bağlamında kullanıp kullanmadığını izle.',probe:'Nesneyi tekrar göstermeden önce serbest yanıt al.'},
+        {id:'LAN09',area:'Sesletim / Konuşma Anlaşılırlığı',title:'Yakın Sesli Sözcükler',child:'“sal – şal”, “cam – çam” çiftlerini sırayla söyle.',stimulus:'sal / şal · cam / çam',focus:'Konuşma sesi üretimi · yakın ses ayrımı · anlaşılırlık',educator:'Sesletim gözlemini tanı olarak yorumlama; hangi ses/konumda anlaşılabilirlik değiştiğini kaydet.',probe:'Ayna veya ağız modeli kullanırsan destek olarak kaydet.'},
+        {id:'LAN10',area:'Pragmatik Dil / Karşılıklılık',title:'Kısa Konuşmayı Sürdür',child:'Eğitmen “Bugün seni mutlu eden bir şey oldu mu?” diye sorar; yanıta göre bir takip sorusu yöneltir.',stimulus:'2 turluk doğal konuşma',focus:'Konuyu sürdürme · karşılıklı iletişim · uygun yanıt',educator:'Göz teması zorunlu kriter değildir. Konuşma sırası ve anlamlı karşılıklılığı gözle.',probe:'Yanıt seçenekleri sunmak destek sayılır.'}
+
       ]
     },
     'SP-ATTN': {
@@ -93,7 +108,10 @@
         {id:'ATT05',area:'Bilişsel Esneklik',title:'Kural Değiştir',child:'İlk turda kırmızıları seç. İkinci turda renk değil, yuvarlak olanları seç.',stimulus:'Renk + şekil kartları',focus:'Set değiştirme · eski kuralı bırakma',educator:'Geçişte perseverasyon ve gecikmeyi izle.',probe:'Yeni kuralı görsel kartla göstermek destek sayılır.'},
         {id:'ATT06',area:'Planlama',title:'En Kısa Yol',child:'Üç işi yapacaksın: kitabı çantaya koy, kalemi kutuya koy, sandalyeyi düzelt. Sence hangi sırayla başlamak iyi olur?',stimulus:'3 günlük görev',focus:'Plan kurma · göreve başlama',educator:'Tek doğru sıra yok. Plan açıklaması ve uygulama tutarlılığını gözle.',probe:'Sırayı sen verme.'},
         {id:'ATT07',area:'Hata Kontrolü',title:'Kendi Taramana Bak',child:'Az önceki hedef avını yeniden kontrol et. Kaçırdığın bir şey var mı?',stimulus:'Önceki hedef avı',focus:'Öz-izleme · hata farkındalığı',educator:'Kendiliğinden kontrol stratejisini kaydet.',probe:'Hatanın yerini işaretleme.'},
-        {id:'ATT08',area:'Transfer',title:'Yeni Hedef, Aynı Strateji',child:'Şimdi yalnız “63” sayılarını bul.',stimulus:'36 63 83 63 33 36 63 68 63 36',focus:'Seçici dikkat stratejisini yeni hedefe taşıma',educator:'İlk görevdeki tarama stratejisini genelleyip genellemediğini izle.',probe:'Yeni görevi ayrıca modelleme.'}
+        {id:'ATT08',area:'Transfer',title:'Yeni Hedef, Aynı Strateji',child:'Şimdi yalnız “63” sayılarını bul.',stimulus:'36 63 83 63 33 36 63 68 63 36',focus:'Seçici dikkat stratejisini yeni hedefe taşıma',educator:'İlk görevdeki tarama stratejisini genelleyip genellemediğini izle.',probe:'Yeni görevi ayrıca modelleme.'},
+        {id:'ATT09',area:'Göreve Başlama / Başlatma',title:'Planla ve Başla',child:'Önünde üç materyal var. “Bu şekli aynen yap” yönergesinden sonra ne zaman ve nasıl başladığını gözlemle.',stimulus:'Basit model + 3 materyal',focus:'Göreve başlatma · plan kurma · gereksiz gecikme',educator:'Başlama süresini, materyal seçimini ve yardım bekleme davranışını kaydet.',probe:'“Şuradan başla” demek yönlendirici destek sayılır.'},
+        {id:'ATT10',area:'Çift Görev / Esnek Dikkat',title:'İki Kuralı Birlikte Tut',child:'Kırmızı şekillerde yalnız daireyi, mavi şekillerde yalnız kareyi işaretle.',stimulus:'Kırmızı/mavi daire-kare karışık dizi',focus:'Kural sürdürme · seçici dikkat · çalışma belleği',educator:'Renk kuralı ile şekil kuralının karışıp karışmadığını ve hata sonrası toparlanmayı izle.',probe:'Kuralları görsel kartta açık tutmak görsel destek olarak kaydedilir.'}
+
       ]
     },
     'SP-DELAY': {
@@ -109,7 +127,10 @@
         {id:'DEL05',area:'Sosyal / Oyun',title:'Sıralı Oyun',child:'Topu iki tur karşılıklı yuvarlayın.',stimulus:'Top',focus:'Sıra alma · ortak etkinlik',educator:'Başlatma, bekleme ve karşı tarafa yönelme davranışını kaydet.',probe:'Sözel “sıra sende” desteğini not et.'},
         {id:'DEL06',area:'Özbakım',title:'Günlük Adım',child:'Montun fermuarını açma/kapama veya çantayı düzenleme gibi yaşa uygun kısa bir işi dene.',stimulus:'Günlük yaşam materyali',focus:'Günlük yaşam katılımı · bağımsızlık',educator:'Görev çocuğun yaşına ve motor durumuna uygun seçilmeli.',probe:'Fiziksel yardım düzeyini açıkça kaydet.'},
         {id:'DEL07',area:'Öğrenme Tepkisi',title:'Modeli İzle',child:'Eğitmen iki bloktan kısa bir model kurar; çocuk aynısını dener.',stimulus:'2 bloklu model',focus:'Taklit yoluyla öğrenme',educator:'İlk model sonrası performansı kaydet.',probe:'İkinci model desteğe yazılır.'},
-        {id:'DEL08',area:'Transfer',title:'Yeni Renklerle Kur',child:'Aynı yapıyı farklı renkli bloklarla kur.',stimulus:'Farklı renk, aynı yapı',focus:'Model bilgisini yeni malzemeye taşıma',educator:'Yüzey değiştiğinde yapının kuralını koruyor mu izle.',probe:'Eski modeli yanında bırakmak görsel destek sayılır.'}
+        {id:'DEL08',area:'Transfer',title:'Yeni Renklerle Kur',child:'Aynı yapıyı farklı renkli bloklarla kur.',stimulus:'Farklı renk, aynı yapı',focus:'Model bilgisini yeni malzemeye taşıma',educator:'Yüzey değiştiğinde yapının kuralını koruyor mu izle.',probe:'Eski modeli yanında bırakmak görsel destek sayılır.'},
+        {id:'DEL09',area:'Kaba Motor / Beden Planlama',title:'İki Hareketi Sırayla Yap',child:'Önce iki adım ileri git, sonra ellerini başının üstünde birleştir.',stimulus:'2 aşamalı kaba motor yönerge',focus:'Kaba motor planlama · beden farkındalığı · sıra',educator:'Motor kapasite, yönerge anlama ve taklidi birbirinden ayırmaya çalış.',probe:'Hareketi modellemek görsel/motor destek sayılır.'},
+        {id:'DEL10',area:'Güvenlik / Günlük Yaşam',title:'Güvenli Seçimi Göster',child:'Sıcak bir bardağa dokunmak mı, bir yetişkinden yardım istemek mi daha güvenli?',stimulus:'İki günlük yaşam seçeneği',focus:'Temel güvenlik bilgisi · yardım isteme',educator:'Yaşa ve gelişim düzeyine uygun senaryo seç. Korkutucu içerik kullanma.',probe:'Seçenekleri sadeleştirmek dil desteği olarak kaydedilir.'}
+
       ]
     },
     'SP-COG': {
@@ -125,7 +146,10 @@
         {id:'COG05',area:'Öğrenme Eğrisi',title:'İkinci Benzer Görev',child:'■ = 3 ve ○ = 2. ■ + ○ kaç eder?',stimulus:'■ = 3   ○ = 2',focus:'Benzer görevde öğrenme hızlanması',educator:'İlk sembol görevine göre daha az destek/süre gerekip gerekmediğini not et.',probe:'İlk stratejiyi sen hatırlatma.'},
         {id:'COG06',area:'Gecikmeli Kalıcılık',title:'Biraz Sonra Hatırla',child:'Az önce ▲ ve ● için kullandığımız ilk kuralı hatırlıyor musun?',stimulus:'Gecikmeli geri çağırma',focus:'Kısa gecikmeli kalıcılık',educator:'Araya başka görev koyduktan sonra sor.',probe:'İlk kuralı yeniden öğretme.'},
         {id:'COG07',area:'Strateji',title:'Nasıl Çözdün?',child:'Biraz önceki sembol sorusunda hangi yolu kullandın?',stimulus:'Kısa öz-açıklama',focus:'Strateji farkındalığı',educator:'Çocuğun kendi diliyle yöntemi anlatmasına izin ver.',probe:'Seçenek sunmadan önce serbest anlatım al.'},
-        {id:'COG08',area:'Uzak Transfer',title:'Yeni Yüzey, Aynı Mantık',child:'Bu kez renkler sayı olsun: mavi = 4, sarı = 1. Mavi ile sarıyı toplarsak?',stimulus:'Mavi=4 · Sarı=1',focus:'Yeni temsile transfer',educator:'Sembolden renge yüzey değişiminde kural öğrenme mantığını taşıyor mu izle.',probe:'Önceki örneği tekrar anlatma.'}
+        {id:'COG08',area:'Uzak Transfer',title:'Yeni Yüzey, Aynı Mantık',child:'Bu kez renkler sayı olsun: mavi = 4, sarı = 1. Mavi ile sarıyı toplarsak?',stimulus:'Mavi=4 · Sarı=1',focus:'Yeni temsile transfer',educator:'Sembolden renge yüzey değişiminde kural öğrenme mantığını taşıyor mu izle.',probe:'Önceki örneği tekrar anlatma.'},
+        {id:'COG09',area:'Problem Çözme / Yeni Yol',title:'İlk Yol Çalışmazsa',child:'Üç parçayla hedef şekli kurmayı dene. İlk denemen olmazsa başka bir yol bul.',stimulus:'3 parçalı basit yapboz / blok problemi',focus:'Problem çözme · strateji değiştirme · sebat',educator:'Deneme sayısı, strateji değişikliği ve yardım arama biçimini kaydet.',probe:'Parçanın yerini göstermek görsel destek sayılır.'},
+        {id:'COG10',area:'Destek Azaltma / Kalıcılık',title:'İpucunu Çek ve Yeniden Dene',child:'Önce kısa bir ipucuyla öğrendiğin kuralı şimdi ipucu olmadan yeni örnekte kullan.',stimulus:'Önceki kurala benzer yeni örnek',focus:'Destek azaltma · bağımsızlaşma · kalıcılık',educator:'İpucu varken ve ipucu kalkınca performansı ayrı kaydet.',probe:'İpucunu yeniden vermek destek düzeyini yükseltir.'}
+
       ]
     },
     'SP-MIX': {
@@ -142,16 +166,47 @@
         {id:'MIX06',area:'Bellek',title:'Üç Öğeyi Tut',child:'2 – 5 – 8 dizisini aynı sırayla tekrar et.',stimulus:'2 – 5 – 8',focus:'İşitsel kısa süreli bellek',educator:'Öğe ve sıra hatasını ayır.',probe:'Bir tekrar destek sayılır.',related:'SP-COG'},
         {id:'MIX07',area:'Sosyal / Gelişim',title:'Sıra Al',child:'Topla iki tur karşılıklı oyun oynayın.',stimulus:'Top',focus:'Ortak etkinlik · sıra alma',educator:'Karşılıklılık, dikkat paylaşımı ve yardım ihtiyacını gözle.',probe:'Sözel yönlendirmeyi destek olarak kaydet.',related:'SP-ASD'},
         {id:'MIX08',area:'Öğrenme Tepkisi',title:'Modelden Öğren',child:'Eğitmen kırmızı-mavi-kırmızı dizisini kurar. Şimdi sarı-yeşil-? dizisini tamamla.',stimulus:'R-M-R → S-Y-?',focus:'Modelden kural çıkarma',educator:'Yeni renklere kuralı taşıyıp taşımadığını gözle.',probe:'İkinci model destek sayılır.',related:'SP-COG'},
-        {id:'MIX09',area:'Yönlendirme',title:'Hangi Tür Yardım İşe Yarıyor?',child:'Zor görevlerde sana en çok ne yardım ediyor: görmek, duymak, yapmak, tekrar etmek, yoksa başka bir şey?',stimulus:'Öğrenme tercihi üzerine kısa konuşma',focus:'Yardım biçimi · üstbiliş',educator:'Tercihi kalıcı “öğrenme stili” etiketi olarak kullanma; yalnız o oturumdaki destek tepkisini kaydet.',probe:'Çocuk cevap veremezse örnekleri seçenek olarak sun.'}
+        {id:'MIX09',area:'Yönlendirme',title:'Hangi Tür Yardım İşe Yarıyor?',child:'Zor görevlerde sana en çok ne yardım ediyor: görmek, duymak, yapmak, tekrar etmek, yoksa başka bir şey?',stimulus:'Öğrenme tercihi üzerine kısa konuşma',focus:'Yardım biçimi · üstbiliş',educator:'Tercihi kalıcı “öğrenme stili” etiketi olarak kullanma; yalnız o oturumdaki destek tepkisini kaydet.',probe:'Çocuk cevap veremezse örnekleri seçenek olarak sun.'},
+        {id:'MIX10',area:'Adaptif Yönlendirme / Transfer',title:'Yeni Kuralı Genelle',child:'Kısa bir örnekte öğrendiğin kuralı farklı materyalle yeniden uygula.',stimulus:'Model → farklı materyal → aynı kural',focus:'Genel öğrenme tepkisi · transfer · hangi derin profile ihtiyaç olduğu',educator:'Başarıdan çok hangi destek türüyle öğrenip genellediğini kaydet.',probe:'İkinci model gerekiyorsa ilgili destek alanını işaretle.',related:'SP-COG'}
+
       ]
     }
   };
 
+  const profileDomains = {
+    'SP-SLD':['Ortak Temel Tarama','Okuma / Fonolojik İşleme','Yazma / Kodlama','Matematiksel Öğrenme','Görsel / Ortografik İşleme','İşitsel İşleme','Çalışma Belleği','Dikkat / Yürütücü İşlevler','Öğrenme Tepkisi','Transfer / Üstbiliş'],
+    'SP-DYSC':['Sayı Hissi','Sembol–Nicelik Eşleme','Sayı Dizisi','Basamak Değeri','İşlem Stratejileri','Problem Dili','Matematiksel Çalışma Belleği','Sayı Doğrusu / Uzamsal Temsil','Öğrenme Tepkisi','Transfer / Hata Kontrolü'],
+    'SP-DYSG':['Grafomotor Kontrol','Harf Biçimi ve Yön','Kopyalama','Dikte / Ses-Harf Kodlama','Kelime Sınırı ve Sayfa Düzeni','Yazma Hızı / Akış','Ortografik Bellek','Yazılı İfade','Öz-Kontrol','Transfer'],
+    'SP-ASD':['Ortak Dikkat','İşlevsel İletişim','Alıcı Dil / Yönerge','Taklit','Sosyal Karşılıklılık','Oyun / Sembolik Oyun','Bilişsel Esneklik','Duyusal Düzenleme','Duygu / Sosyal İpuçları','Geçiş / Genelleme'],
+    'SP-LANG':['Alıcı Dil','İfade Edici Dil','Sözcük Dağarcığı','Sözcük Erişimi','Dilbilgisel Yapı','Olay Sırası / Anlatı','Neden–Sonuç','Sesletim / Anlaşılırlık','Pragmatik Dil','Yeni Sözcük Öğrenme / Transfer'],
+    'SP-ATTN':['Seçici Dikkat','Sürdürülen Dikkat','Ketleme','Çalışma Belleği','Bilişsel Esneklik','Planlama','Göreve Başlama','Hata Kontrolü','Çift Görev / Kural Sürdürme','Transfer'],
+    'SP-DELAY':['İletişim','Alıcı Dil','İfade / Seçim Bildirme','Biliş / Problem Çözme','İnce Motor / Grafomotor','Kaba Motor','Sosyal Etkileşim / Oyun','Özbakım','Güvenlik','Öğrenme Tepkisi / Transfer'],
+    'SP-COG':['Kodlama','Örüntü / Kural Keşfi','Yeni Kural Öğrenme','Bilişsel Esneklik','Problem Çözme','Öğrenme Eğrisi','Gecikmeli Kalıcılık','Strateji Farkındalığı','Destek Azaltma','Uzak Transfer'],
+    'SP-MIX':['Okuma','Yazma','Matematik','Dil','Dikkat','Bellek','Sosyal / Gelişim','Motor / Günlük Yaşam','Öğrenme Tepkisi','Adaptif Yönlendirme / Transfer']
+  };
+
+
   function activateProfiles() {
+    var canonicalNames = {
+      'SP-DYS':'Disleksi / Okuma Güçlüğü Tarama Profili',
+      'SP-SLD':'Özgül Öğrenme Güçlüğü Eğitsel Profili',
+      'SP-DYSC':'Diskalkuli / Matematik Öğrenme Güçlüğü',
+      'SP-DYSG':'Disgrafi / Yazılı Anlatım-Yazma Güçlüğü',
+      'SP-ASD':'Otizm Spektrumu Eğitsel Profili',
+      'SP-LANG':'Dil ve Konuşma Gelişimi',
+      'SP-ATTN':'Dikkat – Odaklanma – Yürütücü İşlevler',
+      'SP-DELAY':'Gelişimsel Gecikme',
+      'SP-COG':'Bilişsel / Öğrenme Hızı Profili',
+      'SP-MIX':'Karma Profil'
+    };
     var existing = {};
-    specialProfiles.forEach(function (p) { existing[p[0]]=p; p[3]=1; });
-    if(!existing['SP-DELAY']) specialProfiles.splice(specialProfiles.length-1,0,['SP-DELAY','Gelişimsel Gecikme','İletişim, biliş, motor, özbakım, oyun ve öğrenme tepkisini birlikte tarar.',1,'GELİŞİM']);
-    if(!existing['SP-COG']) specialProfiles.splice(specialProfiles.length-1,0,['SP-COG','Bilişsel / Öğrenme Hızı Profili','Öğrenme temposu, strateji, kalıcılık ve transferi tanısal etiket üretmeden inceler.',1,'ÖĞRENME']);
+    specialProfiles.forEach(function (p) {
+      existing[p[0]]=p;
+      p[3]=1;
+      if (canonicalNames[p[0]]) p[1]=canonicalNames[p[0]];
+    });
+    if(!existing['SP-DELAY']) specialProfiles.splice(specialProfiles.length-1,0,['SP-DELAY',canonicalNames['SP-DELAY'],'İletişim, biliş, motor, özbakım, oyun ve öğrenme tepkisini birlikte tarar.',1,'GELİŞİM']);
+    if(!existing['SP-COG']) specialProfiles.splice(specialProfiles.length-1,0,['SP-COG',canonicalNames['SP-COG'],'Öğrenme temposu, strateji, kalıcılık ve transferi tanısal etiket üretmeden inceler.',1,'ÖĞRENME']);
   }
 
   function ensureState(){
@@ -182,9 +237,11 @@
 
   function intake(){
     var p=profile();
+    var manifest=profileDomains[state.specialGenericCode]||[];
     app.innerHTML='<main class="page"><section class="hero special-generic-accent"><div class="top-actions"><button class="text-btn" id="sgHome">← Değerlendirme merkezine dön</button><span class="step-chip">Özel Eğitim · Eğitsel Profil</span></div>' +
       '<div class="intake-head"><div><div class="eyebrow">'+esc(p.short).toUpperCase()+'</div><h1>'+esc(p.title)+'</h1><p>'+esc(p.disclaimer)+'</p></div><div class="age-orbit"><b>'+p.tasks.length+'</b><span>görev ailesi</span></div></div>' +
       '<div class="clinical-boundary"><b>Tanısal sınır:</b> Bu bölüm klinik tanı, IQ, gelişim yaşı veya tıbbi karar üretmez. Eğitimsel kanıt, destek ihtiyacı ve yönlendirme önerisi üretir.</div>' +
+      '<div class="profile-coverage"><div class="coverage-head"><b>Bu profilde taranan başlıklar</b><span>'+manifest.length+'/10 alan dolu</span></div><div class="coverage-grid">'+manifest.map(function(item,i){return '<div><span>'+String(i+1).padStart(2,'0')+'</span><b>'+esc(item)+'</b></div>';}).join('')+'</div><div class="three-layer-flow"><span><b>1</b> Ortak Temel Tarama</span><span><b>2</b> Alan Derinleştirme</span><span><b>3</b> Adaptif İnceleme + Transfer</span></div></div>' +
       '<div class="form-panel"><div class="form-grid"><label>Öğrencinin adı<input id="sgName" value="'+esc(state.name||'')+'" placeholder="Örn. Deniz"></label><label>Doğum tarihi<input id="sgBirth" type="date" value="'+esc(state.birth||'')+'"></label><label>Sınıf / gelişim düzeyi<input id="sgGrade" value="'+esc(state.grade||'')+'" placeholder="Örn. 2. sınıf / 48 ay"></label><label>Eğitimci<input id="sgAssessor" value="'+esc(state.assessor||'')+'" placeholder="İsteğe bağlı"></label><label class="wide-label">İlk gözlem / başvuru nedeni<textarea id="sgConcern" placeholder="Somut örnek yazın...">'+esc(state.concerns||'')+'</textarea></label></div>' +
       '<div class="form-footer"><div id="sgErr" class="error"></div><button class="primary-btn" id="sgStart">Adaptif taramayı başlat →</button></div></div></section></main>';
     document.getElementById('sgHome').onclick=function(){state.screen='home';render();};
