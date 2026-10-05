@@ -102,7 +102,7 @@ export function packageReadiness(packageCode: PackageCode) {
 }
 
 
-const readyAccessCodeSet = new Set(
+const readyAccessCodeSet: Set<string> = new Set(
   Object.values(packageCatalog).flatMap(pack => pack.access.filter(item => item.ready).map(item => item.code)),
 );
 
