@@ -278,6 +278,42 @@ export async function POST(request: Request) {
     specialEducationProgram = null;
   }
 
+  let specialEducationReassessment: null | {
+    id: string;
+    programId: string;
+    profileCode: string;
+    completedAt: string | null;
+    comparison: Record<string, unknown>;
+  } = null;
+
+  if (specialEducationProgram) {
+    try {
+      const rows = await sql`
+        SELECT id, program_id, profile_code, comparison, completed_at
+        FROM public.special_education_reassessments
+        WHERE program_id = ${specialEducationProgram.id}::uuid
+          AND student_id = ${student.id}::uuid
+          AND academy_id = ${student.academy_id}::uuid
+          AND status = 'completed'
+        LIMIT 1
+      `;
+      if (rows.length) {
+        const row = rows[0] as Record<string, unknown>;
+        specialEducationReassessment = {
+          id: String(row.id),
+          programId: String(row.program_id),
+          profileCode: String(row.profile_code || ''),
+          completedAt: row.completed_at ? String(row.completed_at) : null,
+          comparison: row.comparison && typeof row.comparison === 'object' && !Array.isArray(row.comparison)
+            ? row.comparison as Record<string, unknown>
+            : {},
+        };
+      }
+    } catch {
+      specialEducationReassessment = null;
+    }
+  }
+
   return json({
     ok: true,
     student: {
@@ -291,5 +327,6 @@ export async function POST(request: Request) {
     assessmentRouting,
     specialEducationProfile,
     specialEducationProgram,
+    specialEducationReassessment,
   });
 }
