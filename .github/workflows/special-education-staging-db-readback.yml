@@ -10,6 +10,7 @@ on:
       - 'db/migrations/20261005_special_education_programs_v1.sql'
       - 'db/migrations/20261005_special_education_program_sessions_v1.sql'
       - 'db/migrations/20261005_special_education_reassessments_v1.sql'
+      - 'db/migrations/20261005_student_package_entitlements_v1.sql'
       - 'lib/special-reassessment.ts'
       - 'lib/special-daily-work.ts'
       - '.github/workflows/special-education-staging-db-readback.yml'
@@ -111,6 +112,7 @@ jobs:
           psql "$CZA_STAGING_DATABASE_URL" -v ON_ERROR_STOP=1 -f db/migrations/20261005_special_education_programs_v1.sql
           psql "$CZA_STAGING_DATABASE_URL" -v ON_ERROR_STOP=1 -f db/migrations/20261005_special_education_program_sessions_v1.sql
           psql "$CZA_STAGING_DATABASE_URL" -v ON_ERROR_STOP=1 -f db/migrations/20261005_special_education_reassessments_v1.sql
+          psql "$CZA_STAGING_DATABASE_URL" -v ON_ERROR_STOP=1 -f db/migrations/20261005_student_package_entitlements_v1.sql
 
       - name: Verify migration objects
         env:
@@ -119,9 +121,15 @@ jobs:
           test "$(psql "$CZA_STAGING_DATABASE_URL" -Atc "SELECT to_regclass('public.special_education_programs')::text")" = "special_education_programs"
           test "$(psql "$CZA_STAGING_DATABASE_URL" -Atc "SELECT to_regclass('public.special_education_program_sessions')::text")" = "special_education_program_sessions"
           test "$(psql "$CZA_STAGING_DATABASE_URL" -Atc "SELECT to_regclass('public.special_education_reassessments')::text")" = "special_education_reassessments"
+          test "$(psql "$CZA_STAGING_DATABASE_URL" -Atc "SELECT to_regclass('public.student_package_decisions')::text")" = "student_package_decisions"
+          test "$(psql "$CZA_STAGING_DATABASE_URL" -Atc "SELECT to_regclass('public.student_package_enrollments')::text")" = "student_package_enrollments"
+          test "$(psql "$CZA_STAGING_DATABASE_URL" -Atc "SELECT to_regclass('public.student_access_entitlements')::text")" = "student_access_entitlements"
           echo "SPECIAL_PROGRAM_SCHEMA=PASS"
           echo "SPECIAL_DAILY_SESSION_SCHEMA=PASS"
           echo "SPECIAL_REASSESSMENT_SCHEMA=PASS"
+          echo "PACKAGE_DECISION_SCHEMA=PASS"
+          echo "PACKAGE_ENROLLMENT_SCHEMA=PASS"
+          echo "STUDENT_ENTITLEMENT_SCHEMA=PASS"
 
       - name: Synthetic program write readback cleanup
         env:
