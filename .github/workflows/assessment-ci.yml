@@ -39,7 +39,7 @@ jobs:
         run: pnpm build
 
       - name: Targeted CZA Core integration tests
-        run: node --experimental-strip-types --test tests/core-records.test.mjs tests/work-student-id-integration.test.mjs tests/cza-work-recommendations.test.mjs tests/real-assignment-auth-integration.test.mjs tests/educator-auth-route.test.mjs tests/e3-development-assessment.test.mjs tests/e3-assessment-content-v2.test.mjs tests/special-assessment-contract.test.mjs tests/special-learning-profile.test.mjs tests/special-education-program.test.mjs tests/special-education-program-auth.test.mjs tests/special-daily-work.test.mjs tests/special-daily-work-auth.test.mjs tests/special-reassessment.test.mjs tests/special-reassessment-auth.test.mjs
+        run: node --experimental-strip-types --test tests/core-records.test.mjs tests/work-student-id-integration.test.mjs tests/cza-work-recommendations.test.mjs tests/real-assignment-auth-integration.test.mjs tests/educator-auth-route.test.mjs tests/e3-development-assessment.test.mjs tests/e3-assessment-content-v2.test.mjs tests/special-assessment-contract.test.mjs tests/special-learning-profile.test.mjs tests/special-education-program.test.mjs tests/special-education-program-auth.test.mjs tests/special-daily-work.test.mjs tests/special-daily-work-auth.test.mjs tests/special-reassessment.test.mjs tests/special-reassessment-auth.test.mjs tests/special-parent-report.test.mjs tests/special-family-report-auth.test.mjs
 
       - name: Start built app
         run: |
@@ -62,6 +62,7 @@ jobs:
           curl -fsS http://127.0.0.1:8787/educator/assessment/report > /tmp/assessment-report.html
           curl -fsS http://127.0.0.1:8787/educator/special-program > /tmp/special-program.html
           curl -fsS http://127.0.0.1:8787/educator/special-reassessment > /tmp/special-reassessment.html
+          curl -fsS http://127.0.0.1:8787/educator/family-report > /tmp/family-report.html
           curl -fsS http://127.0.0.1:8787/special-work > /tmp/special-work.html
           curl -fsS http://127.0.0.1:8787/educator/assessment/e3/report > /tmp/assessment-e3-report.html
           curl -fsS http://127.0.0.1:8787/work > /tmp/work.html
@@ -73,6 +74,7 @@ jobs:
           test -s /tmp/assessment-report.html
           test -s /tmp/special-program.html
           test -s /tmp/special-reassessment.html
+          test -s /tmp/family-report.html
           test -s /tmp/special-work.html
           test -s /tmp/assessment-e3-report.html
           test -s /tmp/work.html
@@ -91,6 +93,7 @@ jobs:
           app/educator/assessment
           app/educator/special-program
           app/educator/special-reassessment
+          app/educator/family-report
           app/special-work
           app/assignment
           app/api/core
@@ -99,6 +102,7 @@ jobs:
           app/api/assessment-special-linked
           app/api/educator-special-programs
           app/api/educator-special-reassessment
+          app/api/educator-special-family-report
           app/api/core/special-program
           app/api/educator-auth
           app/api/educator-assignments
@@ -122,6 +126,7 @@ jobs:
           lib/special-education-program.ts
           lib/special-daily-work.ts
           lib/special-reassessment.ts
+          lib/special-parent-report.ts
           lib/preschool-e3.ts
           lib/preschool-e3-protocol.ts
           lib/cza-work-recommendations.ts
