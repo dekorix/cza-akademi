@@ -1,6 +1,13 @@
 name: CZA Special Program Staging Migration and Proof
 
 on:
+  push:
+    branches:
+      - feature/special-education-dyslexia-v1
+    paths:
+      - 'db/migrations/20261005_special_education_programs_v1.sql'
+      - 'scripts/qa/special-program-staging-proof.mjs'
+      - '.github/workflows/special-program-staging-proof.yml'
   workflow_dispatch:
 
 permissions:
