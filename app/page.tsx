@@ -10,11 +10,11 @@ import { core, coreStudent, friendlyCoreError, studentName, type CoreStudent } f
 import { SpecialProgramToday } from '@/components/special-program-today';
 
 const modules = [
-  { title: 'Parmak tekniği', detail: 'Oku, parmaklarınla göster ve anında geri bildirim al', icon: Hand, color: '#f8eee3', ink: '#a56730', level: 'Learning Core bağlı', progress: 1, href: '/paritmetik' },
-  { title: 'Soroban öğretimi', detail: 'Anla, birlikte yap, kendin dene', icon: BrainCircuit, color: '#e8f3ee', ink: '#23796e', level: '8 derslik temel rota', progress: 0, href: '/learn' },
-  { title: 'Toplama / Çıkarma', detail: 'Soroban, parmak veya zihinden işlem çöz', icon: Target, color: '#e8f2fb', ink: '#315a83', level: 'Ayar kontrollü çalışma', progress: 0, href: '/arithmetic' },
-  { title: 'Flash Anzan', detail: 'Zihnindeki abaküsü çalıştır', icon: Sparkles, color: '#eeedf9', ink: '#7765aa', level: 'Seviye 1', progress: 32, href: '/studio?mode=flash' },
-  { title: 'Sesli Anzan', detail: 'Dinle, canlandır, hesapla', icon: AudioLines, color: '#eef1f4', ink: '#6c7b8d', level: 'Sıradaki adım', progress: 0, href: '/studio?mode=audio' },
+  { title: 'Parmak tekniği', accessCode: 'finger_read', detail: 'Oku, parmaklarınla göster ve anında geri bildirim al', icon: Hand, color: '#f8eee3', ink: '#a56730', level: 'Learning Core bağlı', progress: 1, href: '/paritmetik' },
+  { title: 'Soroban öğretimi', accessCode: 'soroban_course', detail: 'Anla, birlikte yap, kendin dene', icon: BrainCircuit, color: '#e8f3ee', ink: '#23796e', level: '8 derslik temel rota', progress: 0, href: '/learn' },
+  { title: 'Toplama / Çıkarma', accessCode: 'arithmetic', detail: 'Soroban, parmak veya zihinden işlem çöz', icon: Target, color: '#e8f2fb', ink: '#315a83', level: 'Ayar kontrollü çalışma', progress: 0, href: '/arithmetic' },
+  { title: 'Flash Anzan', accessCode: 'flash_anzan', detail: 'Zihnindeki abaküsü çalıştır', icon: Sparkles, color: '#eeedf9', ink: '#7765aa', level: 'Seviye 1', progress: 32, href: '/studio?mode=flash' },
+  { title: 'Sesli Anzan', accessCode: 'audio_anzan', detail: 'Dinle, canlandır, hesapla', icon: AudioLines, color: '#eef1f4', ink: '#6c7b8d', level: 'Sıradaki adım', progress: 0, href: '/studio?mode=audio' },
 ];
 
 const CAMPUS_V14_URL = 'https://script.google.com/macros/s/AKfycbwIS-o_6HB8GiA-pLhR-zK4aRZCqo_kz_dpUJFWA94NqMUT2E22tu6tThHPSAT0Ro92/exec?v=14';
@@ -22,6 +22,8 @@ const CAMPUS_V14_URL = 'https://script.google.com/macros/s/AKfycbwIS-o_6HB8GiA-p
 export function StudentPortal({ area }: { area: 'main' | 'work' }) {
   const [authLoading, setAuthLoading] = useState(true);
   const [student, setStudent] = useState<CoreStudent | null>(null);
+  const [accessCodes, setAccessCodes] = useState<string[]>([]);
+  const [accessLoaded, setAccessLoaded] = useState(false);
   const [username, setUsername] = useState('');
   const [pin, setPin] = useState('');
   const [loginError, setLoginError] = useState('');
@@ -54,6 +56,24 @@ export function StudentPortal({ area }: { area: 'main' | 'work' }) {
     }
     void restoreStudent();
   }, []);
+
+  useEffect(() => {
+    if (!student) {
+      setAccessCodes([]);
+      setAccessLoaded(false);
+      return;
+    }
+    let active = true;
+    setAccessLoaded(false);
+    void fetch('/api/core/access', { cache: 'no-store' })
+      .then(async response => response.ok ? response.json() : { ok: false, accessCodes: [] })
+      .then(data => {
+        if (active) setAccessCodes(data?.ok === true && Array.isArray(data.accessCodes) ? data.accessCodes.map(String) : []);
+      })
+      .catch(() => { if (active) setAccessCodes([]); })
+      .finally(() => { if (active) setAccessLoaded(true); });
+    return () => { active = false; };
+  }, [student]);
 
   async function login(event: React.SyntheticEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -175,13 +195,37 @@ export function StudentPortal({ area }: { area: 'main' | 'work' }) {
         <section id="learning-path" className="mt-9 scroll-mt-6">
           <div className="mb-4 flex items-center justify-between"><div><h2 className="text-lg font-semibold tracking-tight">Beceri atölyelerim</h2><p className="mt-1 text-xs text-muted-foreground">Her atölye, kendi gelişim basamaklarınla ilerler.</p></div></div>
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            {modules.map(module => <a href={module.href} key={module.title} className="group relative overflow-hidden rounded-2xl border-2 p-5 shadow-sm transition-transform hover:-translate-y-1 hover:shadow-lg" style={{ borderColor: `${module.ink}45`, background: `linear-gradient(145deg, #ffffff 35%, ${module.color})` }}>
-              <span className="absolute inset-x-0 top-0 h-1.5" style={{ background: module.ink }} />
-              <div className="mb-5 flex items-center justify-between"><span className="flex h-12 w-12 items-center justify-center rounded-xl shadow-sm ring-1 ring-white" style={{ background: module.color, color: module.ink }}><module.icon size={25} strokeWidth={2} /></span><span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/80 shadow-sm transition-transform group-hover:translate-x-1" style={{ color: module.ink }}><ChevronRight size={18} /></span></div>
-              <h3 className="text-base font-bold" style={{ color: module.ink }}>{module.title}</h3><p className="mt-2 min-h-10 text-xs font-medium leading-5 text-[#52606d]">{module.detail}</p>
-              <div className="mb-2 mt-5 flex justify-between text-[10px] font-medium"><span style={{ color: module.ink }}>{module.level}</span><span className="text-muted-foreground">{module.progress ? `%${module.progress}` : 'Keşfet'}</span></div>
-              <div className="h-1 overflow-hidden rounded-full bg-muted"><div className="h-full rounded-full" style={{ width: `${Math.max(module.progress, 4)}%`, background: module.ink }} /></div>
-            </a>)}
+            {modules.map(module => {
+              const unlocked = accessLoaded && accessCodes.includes(module.accessCode);
+              return <a
+                href={unlocked ? module.href : '#'}
+                key={module.title}
+                aria-disabled={!unlocked}
+                onClick={event => {
+                  if (!unlocked) {
+                    event.preventDefault();
+                    setNotice(accessLoaded ? 'Bu atölye paket erişimine bağlı. Eğitimcin paket aktivasyonu yaptığında otomatik açılır.' : 'Paket erişimin doğrulanıyor.');
+                  }
+                }}
+                className={`group relative overflow-hidden rounded-2xl border-2 p-5 shadow-sm transition-transform ${unlocked ? 'hover:-translate-y-1 hover:shadow-lg' : 'cursor-not-allowed opacity-70'}`}
+                style={{ borderColor: `${module.ink}45`, background: `linear-gradient(145deg, #ffffff 35%, ${module.color})` }}
+              >
+                <span className="absolute inset-x-0 top-0 h-1.5" style={{ background: module.ink }} />
+                <div className="mb-5 flex items-center justify-between">
+                  <span className="flex h-12 w-12 items-center justify-center rounded-xl shadow-sm ring-1 ring-white" style={{ background: module.color, color: module.ink }}><module.icon size={25} strokeWidth={2} /></span>
+                  <span className="flex min-h-8 items-center justify-center rounded-full bg-white/80 px-2 text-[9px] font-bold shadow-sm" style={{ color: module.ink }}>
+                    {unlocked ? <ChevronRight size={18} /> : 'KİLİTLİ'}
+                  </span>
+                </div>
+                <h3 className="text-base font-bold" style={{ color: module.ink }}>{module.title}</h3>
+                <p className="mt-2 min-h-10 text-xs font-medium leading-5 text-[#52606d]">{module.detail}</p>
+                <div className="mb-2 mt-5 flex justify-between text-[10px] font-medium">
+                  <span style={{ color: module.ink }}>{unlocked ? module.level : 'Paket erişimi gerekli'}</span>
+                  <span className="text-muted-foreground">{unlocked ? (module.progress ? `%${module.progress}` : 'Keşfet') : 'Kapalı'}</span>
+                </div>
+                <div className="h-1 overflow-hidden rounded-full bg-muted"><div className="h-full rounded-full" style={{ width: unlocked ? `${Math.max(module.progress, 4)}%` : '0%', background: module.ink }} /></div>
+              </a>;
+            })}
           </div>
         </section>
 
