@@ -37,7 +37,7 @@ if (!host || !host.endsWith('.neon.tech') || parsed.pathname !== '/cza_learning'
 
 const sql = neon(url);
 const sessionId = crypto.randomUUID();
-const studentId = crypto.randomUUID();
+let studentId = '';
 const marker = 'CZA-QA-SPECIAL-' + Date.now();
 const taskCode = 'DYS-PH01';
 
@@ -58,6 +58,34 @@ try {
   if (!row.sessions || !row.attempts || !row.observations) {
     throw new Error('canonical_assessment_tables_missing');
   }
+
+  const syntheticStudents = await sql`
+    SELECT DISTINCT s.id AS student_id
+    FROM public.students s
+    JOIN public.users student_user ON student_user.id = s.user_id
+    JOIN public.teacher_student_links link
+      ON link.student_id = s.id
+      AND link.can_view = true
+    JOIN public.users educator_user
+      ON educator_user.id = link.teacher_id
+      AND educator_user.is_active = true
+    LEFT JOIN public.student_external_identifiers ext
+      ON ext.student_id = s.id
+      AND ext.identifier_type = 'campus_student_code'
+    WHERE s.status = 'active'
+      AND (
+        lower(student_user.username) LIKE '%synthetic%'
+        OR lower(student_user.username) LIKE '%sentetik%'
+        OR lower(student_user.username) LIKE 'qa-%'
+        OR lower(student_user.username) LIKE 'test-%'
+        OR lower(COALESCE(ext.identifier_value, '')) LIKE 'cza-qa-%'
+        OR lower(COALESCE(ext.identifier_value, '')) LIKE 'qa-%'
+      )
+    ORDER BY s.id
+    LIMIT 1
+  `;
+  if (!syntheticStudents.length) throw new Error('synthetic_linked_student_missing');
+  studentId = String(syntheticStudents[0].student_id);
 
   await sql`
     INSERT INTO public.assessment_sessions (
@@ -177,6 +205,7 @@ try {
 
   const hostHash = crypto.createHash('sha256').update(host).digest('hex');
   console.log('STAGING_DB_READBACK=PASS');
+  console.log('SYNTHETIC_LINKED_STUDENT=FOUND');
   console.log('PROFILE=SP-DYS');
   console.log('TASK=DYS-PH01');
   console.log('SESSION_WRITE=PASS');
