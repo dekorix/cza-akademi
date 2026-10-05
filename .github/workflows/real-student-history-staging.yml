@@ -1,0 +1,69 @@
+name: CZA Real Student History Staging Readback
+
+on:
+  push:
+    branches:
+      - feature/real-student-history-v1
+    paths:
+      - 'app/api/student-history/route.ts'
+      - 'app/api/educator-report/route.ts'
+      - 'app/studio/page.tsx'
+      - 'lib/core-records.ts'
+      - 'scripts/qa/real-student-history-staging.mjs'
+      - '.github/workflows/real-student-history-staging.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'app/api/student-history/route.ts'
+      - 'app/api/educator-report/route.ts'
+      - 'app/studio/page.tsx'
+      - 'lib/core-records.ts'
+      - 'scripts/qa/real-student-history-staging.mjs'
+      - '.github/workflows/real-student-history-staging.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  canonical-history-readback:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    environment: CZA-STAGING-SECURITY
+    steps:
+      - name: Checkout exact branch head
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.13.0'
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Verify staging secret is explicitly present
+        env:
+          CZA_STAGING_DATABASE_URL: ${{ secrets.CZA_STAGING_DATABASE_URL }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "${CZA_STAGING_DATABASE_URL:-}" ]; then
+            echo "REAL_HISTORY_STAGING=BLOCKED"
+            echo "REASON=CZA_STAGING_DATABASE_URL_MISSING"
+            exit 2
+          fi
+
+      - name: Canonical history write, dual readback and transactional cleanup
+        env:
+          CZA_STAGING_DATABASE_URL: ${{ secrets.CZA_STAGING_DATABASE_URL }}
+        run: node scripts/qa/real-student-history-staging.mjs
