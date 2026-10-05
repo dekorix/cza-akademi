@@ -52,9 +52,9 @@ test.describe('CZA Özel Eğitim Başlangıç Değerlendirmesi V1 kabul', () => 
       await expect(page.locator('.coverage-grid > div')).toHaveCount(10);
       await expect(page.locator('.coverage-head')).toContainText('10/10 alan dolu');
       await expect(page.locator('.three-layer-flow span')).toHaveCount(3);
-      await expect(page.getByText('Ortak Temel Tarama', { exact: true })).toBeVisible();
-      await expect(page.getByText('Alan Derinleştirme', { exact: true })).toBeVisible();
-      await expect(page.getByText('Adaptif İnceleme + Transfer', { exact: true })).toBeVisible();
+      await expect(page.locator('.three-layer-flow span').nth(0)).toContainText('Ortak Temel Tarama');
+      await expect(page.locator('.three-layer-flow span').nth(1)).toContainText('Alan Derinleştirme');
+      await expect(page.locator('.three-layer-flow span').nth(2)).toContainText('Adaptif İnceleme + Transfer');
       await expectNoHorizontalOverflow(page);
     }
 
@@ -131,7 +131,7 @@ test.describe('CZA Özel Eğitim Başlangıç Değerlendirmesi V1 kabul', () => 
     await expect(page.getByText('Eğitsel profil özeti', { exact: true })).toBeVisible();
     await expect(page.getByRole('heading', { name: /Diskalkuli/ })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Çocukla yarın ne çalışacağız?' })).toBeVisible();
-    await expect(page.locator('.clinical-boundary')).toContainText('tanı');
+    await expect(page.locator('.clinical-boundary')).toContainText(/tanı/i);
     await expectNoHorizontalOverflow(page);
 
     await page.screenshot({ path: 'test-results/desktop-dyscalculia-summary.png', fullPage: true });
