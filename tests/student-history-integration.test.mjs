@@ -13,7 +13,7 @@ const educatorUi = fs.readFileSync(new URL('../components/central-student-report
 test('studio closes a session and publishes one canonical module record with a stable client id', () => {
   assert.match(studio, /canonicalRecordId = useRef\(''\)/);
   assert.match(studio, /core\('finish',\s*\{sessionId\}\)/);
-  assert.match(studio, /core\('module_record',\s*\{record\}/);
+  assert.match(studio, /core\('module_record',\s*\{\s*record\s*\}\)/);
   assert.match(studio, /canonicalSessionRecord\(/);
   assert.match(records, /schemaVersion:\s*'CZA_MODULE_RECORD_V1'/);
   assert.match(records, /contractVersion:\s*'1\.0\.0'/);
