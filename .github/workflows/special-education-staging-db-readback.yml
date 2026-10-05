@@ -7,6 +7,12 @@ on:
     paths:
       - 'scripts/qa/special-staging-db-readback.mjs'
       - '.github/workflows/special-education-staging-db-readback.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'scripts/qa/special-staging-db-readback.mjs'
+      - '.github/workflows/special-education-staging-db-readback.yml'
   workflow_dispatch:
 
 permissions:
@@ -14,6 +20,7 @@ permissions:
 
 jobs:
   staging-db-readback:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     environment: CZA-STAGING-SECURITY
