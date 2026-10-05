@@ -166,4 +166,104 @@ test.describe('CZA Özel Eğitim Başlangıç Değerlendirmesi V1 kabul', () => 
 
     expect(errors).toEqual([]);
   });
+
+  test('merkezi bağlantı: öğrenci seçimi, session oluşturma ve görev kanıtı APIye gider', async ({ page }) => {
+    const errors = await collectRuntimeErrors(page);
+    const requests = [];
+    const studentId = '11111111-1111-4111-8111-111111111111';
+    const sessionId = '22222222-2222-4222-8222-222222222222';
+
+    await page.route('**/api/educator-students*', async route => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          ok: true,
+          students: [{ id: studentId, name: 'Sentetik Merkez Öğrenci', code: 'QA-01' }],
+          hasMore: false
+        })
+      });
+    });
+
+    await page.route('**/api/assessment-special-linked', async route => {
+      const request = route.request();
+      const payload = JSON.parse(request.postData() || '{}');
+      requests.push(payload);
+
+      if (payload.action === 'create') {
+        await route.fulfill({
+          status: 201,
+          contentType: 'application/json',
+          body: JSON.stringify({
+            ok: true,
+            resumed: false,
+            session: {
+              id: sessionId,
+              student_id: studentId,
+              template_code: 'CZA_SPECIAL_V1_DYS',
+              status: 'active',
+              metadata: { profileCode: 'SP-DYS', centralStudentId: studentId }
+            },
+            attempts: [],
+            observations: [],
+            student: { id: studentId, name: 'Sentetik Merkez Öğrenci', code: 'QA-01' }
+          })
+        });
+        return;
+      }
+
+      if (payload.action === 'attempt') {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({ ok: true, updated: false })
+        });
+        return;
+      }
+
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ ok: true })
+      });
+    });
+
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    await page.goto(BASE, { waitUntil: 'networkidle' });
+
+    await page.locator('.special-card[data-code="SP-DYS"]').click();
+    await expect(page.locator('#centralStudentDys')).toBeVisible();
+    await page.locator('#centralStudentDys').selectOption(studentId);
+    await expect(page.locator('#name')).toHaveValue('Sentetik Merkez Öğrenci');
+
+    await page.locator('#grade').selectOption('2. sınıf');
+    await page.locator('#readingStage').selectOption('Kelime okuyor');
+    await page.locator('#startDys').click();
+
+    await expect(page.getByRole('heading', { name: '12 alan, tek bir okuma sistemi haritası' })).toBeVisible();
+
+    expect(requests.some(item =>
+      item.action === 'create' &&
+      item.studentId === studentId &&
+      item.profileCode === 'SP-DYS'
+    )).toBeTruthy();
+
+    await page.locator('.domain-grid .domain-card').first().click();
+    await page.locator('#dysResponse').fill('al');
+    await page.locator('[data-verdict="MATCH"]').click();
+    await page.locator('[data-support="INDEPENDENT"]').click();
+    await page.locator('#dysNext').click();
+
+    await expect.poll(() => requests.filter(item => item.action === 'attempt').length).toBeGreaterThan(0);
+
+    const attempt = requests.find(item => item.action === 'attempt');
+    expect(attempt.sessionId).toBe(sessionId);
+    expect(attempt.taskCode).toBe('DYS-PH01');
+    expect(attempt.verdict).toBe('MATCH');
+    expect(attempt.supportLevel).toBe('INDEPENDENT');
+    expect(attempt.answerText).toBe('al');
+
+    expect(errors).toEqual([]);
+  });
+
 });
