@@ -21,13 +21,14 @@ jobs:
         uses: actions/checkout@v4
         with:
           persist-credentials: false
+          clean: false
 
-      - name: Install dependencies
+      - name: Ensure dependencies
         shell: cmd
-        run: npm.cmd install --ignore-scripts --no-audit --no-fund --package-lock=false
+        run: if exist node_modules\@neondatabase\serverless\package.json (echo Dependencies already present) else npm.cmd install --ignore-scripts --no-audit --no-fund --package-lock=false
 
       - name: Apply and verify approved canonical ledger migration
         env:
           CZA_STAGING_DATABASE_URL: ${{ secrets.CZA_STAGING_DATABASE_URL }}
-        shell: powershell
+        shell: cmd
         run: node scripts/qa/apply-staging-ledger-migration.mjs
