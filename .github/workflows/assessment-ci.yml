@@ -39,7 +39,7 @@ jobs:
         run: pnpm build
 
       - name: Targeted CZA Core integration tests
-        run: node --test tests/core-records.test.mjs tests/work-student-id-integration.test.mjs tests/cza-work-recommendations.test.mjs tests/real-assignment-auth-integration.test.mjs tests/educator-auth-route.test.mjs tests/e3-development-assessment.test.mjs tests/e3-assessment-content-v2.test.mjs
+        run: node --test tests/core-records.test.mjs tests/work-student-id-integration.test.mjs tests/cza-work-recommendations.test.mjs tests/real-assignment-auth-integration.test.mjs tests/educator-auth-route.test.mjs tests/e3-development-assessment.test.mjs tests/e3-assessment-content-v2.test.mjs tests/student-history-integration.test.mjs
 
       - name: Start built app
         run: |
@@ -90,11 +90,13 @@ jobs:
           app/api/educator-auth
           app/api/educator-assignments
           app/api/educator-report/route.ts
+          app/api/student-history/route.ts
           app/studio/page.tsx
           app/work/page.tsx
           components/assessment-report.tsx
           components/assigned-work-banner.tsx
           components/central-student-report.tsx
+          components/student-learning-history.tsx
           components/educator-students.tsx
           lib/assessment-engine.ts
           lib/assessment-routing.ts
@@ -110,5 +112,6 @@ jobs:
           lib/assigned-session.ts
           lib/educator-auth.ts
           lib/student-session.ts
+          lib/core-records.ts
           lib/training-recipes.ts
           types/http-json.d.ts
