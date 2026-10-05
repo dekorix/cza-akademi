@@ -39,6 +39,20 @@ type Report = {
     created_at: string;
     metadata?: { sequence?: number[] };
   }[];
+  learningHistory?: {
+    id: string;
+    training_session_id: string;
+    module_code: string;
+    module_version: string;
+    activity_type: string;
+    started_at: string;
+    completed_at: string;
+    support_level: string;
+    performance?: Record<string, unknown> | null;
+    skills?: string[] | null;
+    metadata?: Record<string, unknown> | null;
+  }[];
+  learningHistoryAvailable?: boolean;
   assessmentRouting?: null | {
     sessionId: string;
     templateCode: string;
@@ -78,6 +92,17 @@ function settingValue(key: string, value: string | number | boolean) {
   if (key.endsWith('Ms') && typeof value === 'number') return `${value} ms`;
   if (key === 'speechRate' && typeof value === 'number') return `${value}×`;
   return String(value);
+}
+
+function learningMetric(record: NonNullable<Report['learningHistory']>[number], key: string) {
+  const value = record.performance?.[key];
+  return typeof value === 'number' && Number.isFinite(value) ? value : null;
+}
+
+function learningDuration(startedAt: string, completedAt: string) {
+  const milliseconds = Math.max(0, Date.parse(completedAt) - Date.parse(startedAt));
+  const minutes = Math.round(milliseconds / 60000);
+  return minutes < 1 ? '1 dk altı' : `${minutes} dk`;
 }
 
 export function CentralStudentReport({ children, initialCode = '' }: { children?: ReactNode; initialCode?: string } = {}) {
@@ -297,6 +322,42 @@ export function CentralStudentReport({ children, initialCode = '' }: { children?
                 </span>
               )}
             </div>
+          </section>
+
+          <section className="rounded-xl border border-[#cfdde8] bg-[#f8fbfe] p-6">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <p className="eyebrow text-[#315a83]">Canonical Learning Record</p>
+                <h3 className="mt-2 text-lg font-semibold">Gerçek çalışma geçmişi</h3>
+                <p className="mt-2 text-xs leading-5 text-muted-foreground">Öğrencinin kendi Çalışma Panelinde gördüğü tamamlanmış oturumlarla aynı merkezî kayıt kaynağı.</p>
+              </div>
+              <span className="rounded-full border border-[#cfdde8] bg-white px-3 py-1 text-xs font-semibold text-[#315a83]">{report.learningHistory?.length || 0} kayıt</span>
+            </div>
+            {report.learningHistoryAvailable === false ? (
+              <p className="mt-5 rounded-lg bg-white p-4 text-sm text-muted-foreground">Canonical geçmiş tablosuna bu ortamda ulaşılamadı. Eski soru kayıtları aşağıda gösterilmeye devam ediyor.</p>
+            ) : report.learningHistory?.length ? (
+              <div className="mt-5 space-y-3">
+                {report.learningHistory.slice(0, 10).map(record => {
+                  const total = learningMetric(record, 'total');
+                  const correct = learningMetric(record, 'correct');
+                  const accuracy = learningMetric(record, 'accuracy');
+                  return <article key={record.id} className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-[#dbe6ee] bg-white p-4">
+                    <div>
+                      <p className="font-semibold">{labels[record.module_code] || record.module_code}</p>
+                      <p className="mt-1 text-[11px] text-muted-foreground">{new Date(record.completed_at).toLocaleString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
+                    </div>
+                    <div className="flex flex-wrap gap-2 text-[11px]">
+                      <span className="rounded-full bg-secondary/60 px-3 py-1">{learningDuration(record.started_at, record.completed_at)}</span>
+                      {total != null && <span className="rounded-full bg-secondary/60 px-3 py-1">{Math.round(total)} soru</span>}
+                      {correct != null && <span className="rounded-full bg-emerald-50 px-3 py-1 text-emerald-800">{Math.round(correct)} doğru</span>}
+                      {accuracy != null && <span className="rounded-full bg-[#eef4fb] px-3 py-1 text-[#315a83]">%{Math.round(accuracy)}</span>}
+                    </div>
+                  </article>;
+                })}
+              </div>
+            ) : (
+              <p className="mt-5 rounded-lg bg-white p-4 text-sm text-muted-foreground">Henüz canonical tamamlanmış çalışma kaydı yok.</p>
+            )}
           </section>
 
           {report.assessmentRouting && (
