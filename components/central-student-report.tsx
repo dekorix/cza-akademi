@@ -574,6 +574,20 @@ export function CentralStudentReport({ children, initialCode = '' }: { children?
                   </a>
                 </div>
               )}
+              {report.student.id && (
+                <div className="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-[#d7e0e8] bg-[#fbfcfd] p-4">
+                  <div>
+                    <b className="text-sm">Veliye sunulabilir gelişim özeti</b>
+                    <p className="mt-1 text-[11px] text-muted-foreground">Ham öğrenci verisi ve teknik skorlar olmadan, sade ve yazdırılabilir rapor oluştur.</p>
+                  </div>
+                  <a
+                    href={`/educator/family-report?studentId=${encodeURIComponent(report.student.id)}`}
+                    className="rounded-lg border border-[#385a78] bg-white px-4 py-2 text-xs font-semibold text-[#385a78]"
+                  >
+                    Veli raporunu hazırla
+                  </a>
+                </div>
+              )}
               <p className="mt-4 text-[10px] text-muted-foreground">
                 Son tamamlanan özel eğitim değerlendirmesi · {report.specialEducationProfile.completedAt
                   ? new Date(report.specialEducationProfile.completedAt).toLocaleString('tr-TR')
