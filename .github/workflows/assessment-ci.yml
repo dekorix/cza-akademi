@@ -39,7 +39,7 @@ jobs:
         run: pnpm build
 
       - name: Targeted CZA Core integration tests
-        run: node --test tests/core-records.test.mjs tests/work-student-id-integration.test.mjs tests/cza-work-recommendations.test.mjs tests/real-assignment-auth-integration.test.mjs tests/educator-auth-route.test.mjs tests/e3-development-assessment.test.mjs tests/e3-assessment-content-v2.test.mjs tests/special-assessment-contract.test.mjs tests/special-learning-profile.test.mjs
+        run: node --test tests/core-records.test.mjs tests/work-student-id-integration.test.mjs tests/cza-work-recommendations.test.mjs tests/real-assignment-auth-integration.test.mjs tests/educator-auth-route.test.mjs tests/e3-development-assessment.test.mjs tests/e3-assessment-content-v2.test.mjs tests/special-assessment-contract.test.mjs tests/special-learning-profile.test.mjs tests/special-education-program.test.mjs tests/special-education-program-auth.test.mjs
 
       - name: Start built app
         run: |
@@ -60,6 +60,7 @@ jobs:
           curl -fsS http://127.0.0.1:8787/assessment/e3 > /tmp/assessment-e3.html
           curl -fsS http://127.0.0.1:8787/educator/assessment > /tmp/assessment-educator.html
           curl -fsS http://127.0.0.1:8787/educator/assessment/report > /tmp/assessment-report.html
+          curl -fsS http://127.0.0.1:8787/educator/special-program > /tmp/special-program.html
           curl -fsS http://127.0.0.1:8787/educator/assessment/e3/report > /tmp/assessment-e3-report.html
           curl -fsS http://127.0.0.1:8787/work > /tmp/work.html
           curl -fsS http://127.0.0.1:8787/educator > /tmp/educator.html
@@ -68,6 +69,7 @@ jobs:
           test -s /tmp/assessment-e3.html
           test -s /tmp/assessment-educator.html
           test -s /tmp/assessment-report.html
+          test -s /tmp/special-program.html
           test -s /tmp/assessment-e3-report.html
           test -s /tmp/work.html
           test -s /tmp/educator.html
@@ -83,11 +85,13 @@ jobs:
           pnpm exec oxlint --format unix
           app/assessment
           app/educator/assessment
+          app/educator/special-program
           app/assignment
           app/api/core
           app/api/assessment-e3
           app/api/assessment-e3-linked
           app/api/assessment-special-linked
+          app/api/educator-special-programs
           app/api/educator-auth
           app/api/educator-assignments
           app/api/educator-report/route.ts
@@ -107,6 +111,7 @@ jobs:
           lib/assessment-report.ts
           lib/special-assessment.ts
           lib/special-learning-profile.ts
+          lib/special-education-program.ts
           lib/preschool-e3.ts
           lib/preschool-e3-protocol.ts
           lib/cza-work-recommendations.ts
