@@ -5,6 +5,7 @@ import { assessmentTasks } from '@/lib/assessment-routing';
 import { calculateLearningResponse, type AssessmentAttemptRecord } from '@/lib/assessment-learning-response';
 import { generateAssessmentReport, type ReportAttempt, type ReportObservation } from '@/lib/assessment-report';
 import { buildCzaWorkRecommendations } from '@/lib/cza-work-recommendations';
+import { buildSpecialLearningProfile, type SpecialLearningProfile } from '@/lib/special-learning-profile';
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
@@ -140,6 +141,52 @@ export async function POST(request: Request) {
     assessmentRouting = null;
   }
 
+
+  let specialEducationProfile: SpecialLearningProfile | null = null;
+
+  try {
+    const specialSessions = await sql`
+      SELECT id, template_code, completed_at, metadata
+      FROM public.assessment_sessions
+      WHERE student_id = ${student.id}
+        AND status = 'completed'
+        AND template_code LIKE 'CZA_SPECIAL_V1_%'
+      ORDER BY completed_at DESC NULLS LAST, started_at DESC
+      LIMIT 1
+    `;
+
+    if (specialSessions.length) {
+      const special = specialSessions[0] as {
+        id: string;
+        template_code: string;
+        completed_at: string | null;
+        metadata: unknown;
+      };
+      const [specialAttempts, specialObservations] = await Promise.all([
+        sql`
+          SELECT task_code, answer_payload, support_level
+          FROM public.assessment_attempts
+          WHERE session_id = ${special.id}::uuid
+          ORDER BY created_at ASC
+        `,
+        sql`
+          SELECT task_code, observation_codes
+          FROM public.assessment_observations
+          WHERE session_id = ${special.id}::uuid
+          ORDER BY created_at ASC
+        `,
+      ]);
+      specialEducationProfile = buildSpecialLearningProfile({
+        session: special,
+        attempts: specialAttempts,
+        observations: specialObservations,
+      });
+    }
+  } catch {
+    // Existing educator reports must remain usable on schemas without special assessment data.
+    specialEducationProfile = null;
+  }
+
   return json({
     ok: true,
     student: {
@@ -151,5 +198,6 @@ export async function POST(request: Request) {
     modules,
     recent,
     assessmentRouting,
+    specialEducationProfile,
   });
 }
