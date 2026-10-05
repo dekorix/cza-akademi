@@ -80,3 +80,52 @@ export function attemptPayload(attempt: Attempt, config: ExerciseConfig, questio
     },
   };
 }
+
+
+export function canonicalSessionRecord(input: {
+  clientRecordId: string;
+  trainingSessionId: string;
+  config: ExerciseConfig;
+  attempts: Attempt[];
+  startedAt: string;
+  completedAt: string;
+  metadata?: Record<string, unknown>;
+}) {
+  const definition = exerciseForMode(input.config.mode);
+  const primaryAttempts = input.attempts.filter(attempt => attempt.attemptType !== 'RETRY_AFTER_FEEDBACK');
+  const total = primaryAttempts.length;
+  const correct = primaryAttempts.filter(attempt => attempt.correct).length;
+  const startedAt = new Date(input.startedAt).toISOString();
+  const completedAt = new Date(input.completedAt).toISOString();
+
+  return {
+    recordType: 'module_record' as const,
+    schemaVersion: 'CZA_MODULE_RECORD_V1',
+    contractVersion: '1.0.0',
+    clientRecordId: input.clientRecordId,
+    trainingSessionId: input.trainingSessionId,
+    moduleId: moduleCodeByMode[input.config.mode],
+    moduleVersion: '1.0.0',
+    activityType: 'practice_session',
+    startedAt,
+    completedAt,
+    supportLevel: 'unknown' as const,
+    performance: {
+      total,
+      correct,
+      wrong: Math.max(0, total - correct),
+      accuracy: total ? Math.round((correct / total) * 100) : 0,
+      durationMs: Math.max(0, Date.parse(completedAt) - Date.parse(startedAt)),
+      timeoutCount: primaryAttempts.filter(attempt => attempt.timeout).length,
+      retryCount: input.attempts.length - primaryAttempts.length,
+    },
+    skills: definition?.skills ?? [],
+    metadata: {
+      engine: 'cza-exercise-engine-v14',
+      exerciseMode: input.config.mode,
+      exerciseType: definition?.id ?? null,
+      practiceMode: input.config.practiceMode ?? 'free_practice',
+      ...(input.metadata || {}),
+    },
+  };
+}
