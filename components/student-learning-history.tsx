@@ -61,8 +61,6 @@ export function StudentLearningHistory() {
 
   useEffect(() => {
     const controller = new AbortController();
-    setLoading(true);
-    setError('');
     void fetch('/api/student-history', { cache: 'no-store', signal: controller.signal })
       .then(async response => {
         const body = await response.json() as Record<string, unknown>;
@@ -92,13 +90,13 @@ export function StudentLearningHistory() {
       <div>
         <p className="eyebrow text-primary">Tek öğrenci · gerçek geçmiş</p>
         <h2 className="mt-1 font-semibold">Çaban gelişime dönüşüyor</h2>
-        <p className="mt-2 text-xs leading-5 text-muted-foreground">Tamamlanan çalışmaların CZA'nın merkezî öğrenme kaydından okunur. Sayfayı yenilesen de geçmişin burada kalır.</p>
+        <p className="mt-2 text-xs leading-5 text-muted-foreground">Tamamlanan çalışmaların CZA&apos;nın merkezî öğrenme kaydından okunur. Sayfayı yenilesen de geçmişin burada kalır.</p>
       </div>
       <span className="rounded-full border border-[#b9daca] bg-[#edf8f2] px-3 py-1 text-[11px] font-semibold text-[#276151]">Canonical Learning Record</span>
     </div>
 
     {loading ? <div className="mt-6 flex items-center gap-2 rounded-xl bg-secondary/40 p-5 text-sm text-muted-foreground"><Loader2 size={17} className="animate-spin"/> Gelişim geçmişin getiriliyor…</div> :
-      error ? <div className="mt-6 rounded-xl bg-red-50 p-5"><p role="alert" className="text-sm text-red-800">{error}</p><Button variant="outline" size="sm" className="mt-3" onClick={() => setRetry(value => value + 1)}><RotateCcw size={15}/> Yeniden dene</Button></div> :
+      error ? <div className="mt-6 rounded-xl bg-red-50 p-5"><p role="alert" className="text-sm text-red-800">{error}</p><Button variant="outline" size="sm" className="mt-3" onClick={() => { setLoading(true); setError(''); setRetry(value => value + 1); }}><RotateCcw size={15}/> Yeniden dene</Button></div> :
       data ? <>
         <div className="mt-6 grid gap-3 sm:grid-cols-3">
           <div className="rounded-xl bg-[#edf8f2] p-4"><b className="text-2xl text-[#276151]">{data.summary.totalRecords}</b><p className="mt-1 text-[11px] text-[#4c7468]">Tamamlanan çalışma</p></div>
