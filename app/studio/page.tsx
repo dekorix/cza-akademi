@@ -18,7 +18,7 @@ import { readDemoProgram, saveDemoResult } from '@/lib/demo-session';
 import { readAssignedProgram } from '@/lib/assigned-session';
 import { registerAcademyTools } from '@/lib/webmcp';
 import { core, coreStudent, friendlyCoreError, studentName, type CoreStudent } from '@/lib/core-client';
-import { attemptPayload, moduleCodeByMode, trainingSettings } from '@/lib/core-records';
+import { attemptPayload, canonicalSessionRecord, moduleCodeByMode, trainingSettings } from '@/lib/core-records';
 import { feedbackModeFor, isMeasuredMode, practiceModeLabels, shouldShowCountdown } from '@/lib/practice-mode';
 import { compareSorobanStates, serializeSorobanState } from '@/lib/soroban-comparison';
 import { AudioStimulusScheduler, preloadVoiceClips, releaseVoiceClips, voiceClipKey } from '@/lib/cza-voice-client';
@@ -61,6 +61,9 @@ export default function Studio() {
   const [answerRemainingMs, setAnswerRemainingMs] = useState(0);
   const responseStart = useRef(0);
   const sessionStart = useRef(0);
+  const canonicalRecordId = useRef('');
+  const sessionStartedAt = useRef('');
+  const sessionCompletedAt = useRef('');
   const presentationStartedAt = useRef('');
   const presentationEndedAt = useRef('');
   const answerStartedAt = useRef('');
@@ -216,8 +219,32 @@ export default function Studio() {
     catch (e) { setLoginError(friendlyCoreError(e)); }
     finally { setAuthLoading(false); }
   }
+  async function finishAndRecord(completedAttempts: Attempt[] = attempts) {
+    if (!sessionId) return;
+    await core('finish', { sessionId });
+    if (!completedAttempts.length) return;
+
+    canonicalRecordId.current ||= crypto.randomUUID();
+    sessionStartedAt.current ||= new Date(sessionStart.current || Date.now()).toISOString();
+    sessionCompletedAt.current ||= new Date().toISOString();
+
+    const record = canonicalSessionRecord({
+      clientRecordId: canonicalRecordId.current,
+      trainingSessionId: sessionId,
+      config: runConfig,
+      attempts: completedAttempts,
+      startedAt: sessionStartedAt.current,
+      completedAt: sessionCompletedAt.current,
+      metadata: {
+        source: assignmentId ? 'teacher_assignment' : 'student_work_center',
+        assignmentId: assignmentId || null,
+      },
+    });
+    await core('module_record', { record });
+  }
+
   async function logout() {
-    if (sessionId) { try { await core('finish',{sessionId}); } catch { /* Kaydedilmiş sorular sunucuda kalır. */ } }
+    if (sessionId) { try { await finishAndRecord(attempts); } catch { /* Kaydedilmiş soru kayıtları sunucuda kalır; canonical geçmiş daha sonra yeniden denenebilir. */ } }
     try { await core('logout'); } catch { /* Sunucu rotası çerezi yine temizler. */ }
     setStudent(null); setSessionId(null); setPhase('ready'); setAttempts([]);
   }
@@ -234,8 +261,10 @@ export default function Studio() {
       }
       setSync('saving');
       const selectedPracticeMode = config.practiceMode ?? 'free_practice';
+      const startedAt = new Date().toISOString();
       const central = await core('start', {moduleCode:moduleCodeByMode[config.mode],source:'free_practice',clientSessionId:crypto.randomUUID(),recipeId:null,settings:trainingSettings(config)});
       if (!central.sessionId) throw new Error('session_not_created');
+      canonicalRecordId.current = crypto.randomUUID(); sessionStartedAt.current = startedAt; sessionCompletedAt.current = '';
       setSessionId(String(central.sessionId)); setSync('ready');
       const countdown = shouldShowCountdown({practiceMode:selectedPracticeMode,exerciseType:config.mode,timed:['finger-read','soroban-read','flash','audio'].includes(config.mode),assessmentMode:selectedPracticeMode==='assessment',countdownEnabled:config.countdownEnabled});
       setQuestions(generated); setRunConfig({...defaultConfig,...config, practiceMode:selectedPracticeMode, feedbackMode:config.feedbackMode??feedbackModeFor(selectedPracticeMode), pool:[...config.pool], additionPool:[...(config.additionPool ?? config.pool)], subtractionPool:[...(config.subtractionPool ?? config.pool)]}); setRound(0); setTerm(0); setSequenceVisible(true); setAttempts([]); setFeedbackAttempt(null); setReviewAttempt(null); setRetrying(false); setAnswer(''); setAbacusValue(0); setPaused(false); setError(''); setSaved(false); setAnswerRemainingMs(0); setPhase(countdown ? 'countdown' : (['finger-read','soroban-read'].includes(config.mode) && isMeasuredMode(selectedPracticeMode) ? 'stimulus' : ['flash','audio'].includes(config.mode) ? 'sequence' : 'answer')); if (!countdown && (!['finger-read','soroban-read'].includes(config.mode) || !isMeasuredMode(selectedPracticeMode)) && !['flash','audio'].includes(config.mode)) { responseStart.current = performance.now(); answerStartedAt.current = new Date().toISOString(); } setSettingsOpen(false); sessionStart.current = Date.now();
@@ -256,7 +285,7 @@ export default function Studio() {
       const all = [...attempts, attempt]; setAttempts(all); setFeedbackAttempt(attempt); setRetrying(false); setSaved(saveDemoResult({ id: sessionId, at: new Date().toISOString(), config: runConfig, attempts: all, durationMs: completedAt-sessionStart.current })); setSync('ready');
       if ((runConfig.feedbackMode ?? feedbackModeFor(practiceMode)) === 'immediate') setPhase('feedback');
       else if (round + 1 < runConfig.rounds) nextQuestion();
-      else { await core('finish',{sessionId}); setPhase('finished'); }
+      else { await finishAndRecord(all); setPhase('finished'); }
     } catch (e) { setSync('error'); setError(`${friendlyCoreError(e)} Cevabın ekranda tutuldu; “Yanıtı kaydet” ile yeniden dene.`); }
     finally { setSavingAttempt(false); }
   }
@@ -281,7 +310,7 @@ export default function Studio() {
     const timeout = window.setTimeout(async () => {
       if (round + 1 < runConfig.rounds) nextQuestion();
       else if (sessionId) {
-        try { setSync('saving'); await core('finish',{sessionId}); setSync('ready'); setPhase('finished'); }
+        try { setSync('saving'); await finishAndRecord(attempts); setSync('ready'); setPhase('finished'); }
         catch (e) { setSync('error'); setError(`${friendlyCoreError(e)} “Bitir ve kaydet” ile yeniden dene.`); }
       }
     }, 1700);
@@ -289,10 +318,10 @@ export default function Studio() {
   }, [phase, round, runConfig.mode, runConfig.rounds, sessionId, feedbackAttempt]);
   async function finishSession() {
     if (!sessionId || savingAttempt) return;
-    try { setSync('saving'); await core('finish',{sessionId}); setSync('ready'); setPhase('finished'); setPaused(false); setError(''); }
+    try { setSync('saving'); await finishAndRecord(attempts); setSync('ready'); setPhase('finished'); setPaused(false); setError(''); }
     catch (e) { setSync('error'); setError(`${friendlyCoreError(e)} Çalışma kapatılmadı; tekrar dene.`); }
   }
-  function reset() { setSessionId(null); setPhase('ready'); setPaused(false); setError(''); setAttempts([]); setFeedbackAttempt(null); setReviewAttempt(null); setReviewReplayIndex(-1); setSettingsOpen(true); }
+  function reset() { setSessionId(null); canonicalRecordId.current=''; sessionStartedAt.current=''; sessionCompletedAt.current=''; setPhase('ready'); setPaused(false); setError(''); setAttempts([]); setFeedbackAttempt(null); setReviewAttempt(null); setReviewReplayIndex(-1); setSettingsOpen(true); }
   function retryQuestion() { setAnswer(''); setAbacusValue(0); setFeedbackAttempt(null); setRetrying(true); setAnswerRemainingMs(0); openQuestion(); }
   function addAnswerDigit(digit: number) { setAnswer(value => `${value}${digit}`.slice(0, 8)); }
   const result = score(attempts);
