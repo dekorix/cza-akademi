@@ -84,3 +84,19 @@ export function accessCatalog() {
   }
   return [...map.values()];
 }
+
+
+export function isPackageFullyReady(packageCode: PackageCode) {
+  return packageCatalog[packageCode].access.every(item => item.ready);
+}
+
+export function packageReadiness(packageCode: PackageCode) {
+  const all = packageCatalog[packageCode].access;
+  const ready = all.filter(item => item.ready);
+  return {
+    ready: ready.length,
+    total: all.length,
+    fullyReady: ready.length === all.length,
+    pendingLabels: all.filter(item => !item.ready).map(item => item.label),
+  };
+}
