@@ -1,5 +1,4 @@
 import type { SpecialLearningProfile, SpecialLearningStatus } from './special-learning-profile';
-import { specialStatusForScore } from './special-learning-profile';
 import type { SpecialEducationProgramDraft } from './special-education-program';
 
 export type ReassessmentVerdict='MATCH'|'PARTIAL'|'DIFFERENT'|'NO_RESPONSE';
@@ -52,6 +51,13 @@ function supportPoints(support:ReassessmentSupport){
   if(support==='INDEPENDENT') return 0;
   if(support==='VERBAL_PROMPT'||support==='VISUAL_PROMPT') return .5;
   return 1;
+}
+function statusFor(score:number|null,evidenceCount:number):SpecialLearningStatus{
+  if(evidenceCount<2||score==null) return 'INSUFFICIENT';
+  if(score<.65) return 'RELATIVE_STRENGTH';
+  if(score<1.15) return 'WATCH';
+  if(score<1.7) return 'PRIORITY';
+  return 'EXPERT_REVIEW';
 }
 function afterScore(probes:ReassessmentProbe[]){
   if(!probes.length) return null;
@@ -113,7 +119,7 @@ export function compareSpecialReassessment(
       const input=inputByKey.get(domain.key);
       const probes=input?.probes?.slice(0,3)||[];
       const score=afterScore(probes);
-      const status=specialStatusForScore(score,probes.length);
+      const status=statusFor(score,probes.length);
       const delta=domain.score==null||score==null?null:domain.score-score;
       const outcome=outcomeFor(domain.score,score,status);
       const flags=[...new Set(probes.flatMap(p=>p.flags||[]))].slice(0,5);
