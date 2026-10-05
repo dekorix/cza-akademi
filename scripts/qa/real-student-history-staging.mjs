@@ -32,6 +32,18 @@ if (
 const sql = neon(url);
 
 try {
+  const constraintRows = await sql`
+    SELECT pg_get_constraintdef(c.oid) AS definition
+    FROM pg_constraint c
+    JOIN pg_class t ON t.oid = c.conrelid
+    JOIN pg_namespace n ON n.oid = t.relnamespace
+    WHERE n.nspname = 'public'
+      AND t.relname = 'learning_records'
+      AND c.conname = 'learning_records_session_binding_check'
+    LIMIT 1
+  `;
+  console.log('SESSION_BINDING_CONSTRAINT=' + (constraintRows[0]?.definition || 'NOT_FOUND'));
+
   const schema = await sql`
     SELECT
       to_regclass('public.learning_records')::text AS learning_records,
