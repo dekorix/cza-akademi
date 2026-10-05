@@ -7,6 +7,7 @@ import { Progress } from '@/components/ui/progress';
 import { Soroban } from '@/components/soroban';
 import { lessons, evaluateLessonAnswer, guidanceForMove, lessonSummary, type BeadMove, type Lesson, type LessonAnswer, type LessonRecord, type TeachingTask } from '@/lib/soroban-curriculum';
 import { readLessonRecords, saveLessonRecord } from '@/lib/lesson-session';
+import { PackageAccessGate } from '@/components/package-access-gate';
 
 type Phase = 'intro' | 'guided' | 'practice' | 'summary';
 const phases: {id:Phase;label:string}[] = [{id:'intro',label:'Anla'},{id:'guided',label:'Birlikte yap'},{id:'practice',label:'Kendin dene'},{id:'summary',label:'Gözden geçir'}];
@@ -121,7 +122,7 @@ function LessonWorkspace({ lesson, onRecord, onBusy, onNext, last }: {lesson:Les
   </div>;
 }
 
-export default function Learn() {
+function LearnContent() {
   const [selected,setSelected] = useState(0);
   const [records,setRecords] = useState<LessonRecord[]>([]);
   const [busy,setBusy] = useState(false);
@@ -154,4 +155,11 @@ export default function Learn() {
       <footer className="mt-9 border-t border-border pt-5 text-[11px] leading-6 text-muted-foreground">Öğretim bölümünde adım geri bildirimi açıktır. Egzersiz stüdyosundaki seanslar cevapları seans sonunda gösterir. Bu ayrım öğrenme ile değerlendirmeyi birbirinden ayırır.</footer>
     </main>
   </div>;
+}
+
+
+export default function Learn() {
+  return <PackageAccessGate accessCode="soroban_course" label="Soroban Öğrenme Yolu">
+    <LearnContent />
+  </PackageAccessGate>;
 }
