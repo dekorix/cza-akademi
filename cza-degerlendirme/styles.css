@@ -97,3 +97,11 @@
 .route-chips{display:flex;flex-wrap:wrap;gap:9px;margin:12px 0 24px}.route-chip{display:inline-flex;align-items:center;border:1px solid #bcdccd;border-radius:999px;padding:9px 12px;background:#f1fbf6;color:#276a58;font-size:11px;font-weight:900;cursor:pointer}
 .route-chip:hover{background:#e4f7ed}
 .special-card.active .status{font-weight:900}
+
+
+/* Özel eğitim profil kapsam matrisi */
+.profile-coverage{margin:18px 0 22px;padding:18px;border:1px solid #d9e8e2;border-radius:20px;background:linear-gradient(145deg,#fbfffd,#f5fbf8)}
+.coverage-head{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:13px}.coverage-head b{font-size:14px}.coverage-head span{border-radius:999px;padding:7px 10px;background:#e5f6ee;color:#226f60;font-size:10px;font-weight:900}
+.coverage-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.coverage-grid>div{display:flex;align-items:center;gap:9px;padding:10px 11px;border:1px solid #e2ece7;border-radius:12px;background:#fff}.coverage-grid span{width:27px;height:27px;display:grid;place-items:center;border-radius:8px;background:#eef5f2;color:#658176;font-size:9px;font-weight:900}.coverage-grid b{font-size:11px;line-height:1.25}
+.three-layer-flow{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}.three-layer-flow span{display:flex;align-items:center;gap:7px;padding:9px 10px;border-radius:11px;background:#edf5ff;color:#4d6781;font-size:10px;font-weight:800}.three-layer-flow b{width:22px;height:22px;display:grid;place-items:center;border-radius:50%;background:#fff;color:#345f90}
+@media(max-width:760px){.coverage-grid,.three-layer-flow{grid-template-columns:1fr}.coverage-head{align-items:flex-start;flex-direction:column}}
