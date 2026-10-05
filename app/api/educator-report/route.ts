@@ -204,6 +204,8 @@ export async function POST(request: Request) {
     startsAt: string | null;
     endsAt: string | null;
     completedAt: string | null;
+    lastReflection: string | null;
+    lastSessionAt: string | null;
   } = null;
 
   try {
@@ -211,6 +213,24 @@ export async function POST(request: Request) {
       SELECT p.id, p.profile_code, p.version, p.status, p.duration_weeks,
              p.sessions_per_week, p.session_minutes, p.approved_at, p.starts_at,
              p.ends_at, p.completed_at, p.plan->>'profileLabel' AS profile_label,
+             (
+               SELECT s.student_reflection->>'reflection'
+               FROM public.special_education_program_sessions s
+               WHERE s.program_id = p.id
+                 AND s.student_id = p.student_id
+                 AND s.status = 'completed'
+               ORDER BY s.completed_at DESC NULLS LAST
+               LIMIT 1
+             ) AS last_reflection,
+             (
+               SELECT s.completed_at
+               FROM public.special_education_program_sessions s
+               WHERE s.program_id = p.id
+                 AND s.student_id = p.student_id
+                 AND s.status = 'completed'
+               ORDER BY s.completed_at DESC NULLS LAST
+               LIMIT 1
+             ) AS last_session_at,
              (
                SELECT count(*)::int
                FROM public.special_education_program_sessions s
@@ -250,6 +270,8 @@ export async function POST(request: Request) {
         startsAt: row.starts_at ? String(row.starts_at) : null,
         endsAt: row.ends_at ? String(row.ends_at) : null,
         completedAt: row.completed_at ? String(row.completed_at) : null,
+        lastReflection: row.last_reflection ? String(row.last_reflection) : null,
+        lastSessionAt: row.last_session_at ? String(row.last_session_at) : null,
       };
     }
   } catch {
