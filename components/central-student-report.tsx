@@ -588,6 +588,20 @@ export function CentralStudentReport({ children, initialCode = '' }: { children?
                   </a>
                 </div>
               )}
+              {report.student.id && (
+                <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-[#d7e0e8] bg-white p-4">
+                  <div>
+                    <b className="text-sm">Veli kararı ve paket erişimi</b>
+                    <p className="mt-1 text-[11px] text-muted-foreground">Kararı kaydet, hazır paketi doğrula ve öğrencinin modül yetkilerini kontrollü aç.</p>
+                  </div>
+                  <a
+                    href={`/educator/enrollment?studentId=${encodeURIComponent(report.student.id)}`}
+                    className="rounded-lg bg-[#276151] px-4 py-2 text-xs font-semibold text-white"
+                  >
+                    Kayıt / paket yönetimi
+                  </a>
+                </div>
+              )}
               <p className="mt-4 text-[10px] text-muted-foreground">
                 Son tamamlanan özel eğitim değerlendirmesi · {report.specialEducationProfile.completedAt
                   ? new Date(report.specialEducationProfile.completedAt).toLocaleString('tr-TR')
