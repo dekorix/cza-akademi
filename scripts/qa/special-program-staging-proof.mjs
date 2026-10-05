@@ -3,6 +3,7 @@ import crypto from 'node:crypto';
 import { neon } from '@neondatabase/serverless';
 import { buildSpecialLearningProfile } from '../../lib/special-learning-profile.ts';
 import { buildSpecialEducationProgramDraft } from '../../lib/special-education-program.ts';
+import { buildSpecialDailyWork } from '../../lib/special-daily-work.ts';
 
 const url = process.env.CZA_STAGING_DATABASE_URL || '';
 if (!url) {
@@ -149,6 +150,63 @@ try {
   };
   if (Object.values(checks).some(value=>value!==true)) throw new Error('program_readback_mismatch:'+JSON.stringify(checks));
 
+  const daily=buildSpecialDailyWork(draft,0);
+  if (!daily || daily.sessionIndex!==1 || daily.week!==1) throw new Error('daily_work_build_failed');
+
+  const dailyRows=await sql`
+    INSERT INTO public.special_education_program_sessions(
+      program_id,academy_id,student_id,session_index,week_no,session_in_week,
+      status,plan_snapshot,student_reflection,started_at
+    ) VALUES(
+      ${programId}::uuid,${academyId}::uuid,${studentId}::uuid,
+      ${daily.sessionIndex},${daily.week},${daily.sessionInWeek},
+      'in_progress',${JSON.stringify(daily)}::jsonb,'{}'::jsonb,now()
+    )
+    RETURNING id
+  `;
+  const dailySessionId=String(dailyRows[0].id);
+
+  await sql`
+    UPDATE public.special_education_program_sessions
+    SET status='completed',
+        completed_at=now(),
+        updated_at=now(),
+        student_reflection=${JSON.stringify({
+          reflection:'OKAY',
+          note:'synthetic daily staging proof',
+          completedPriorityKeys:daily.priorityKeys,
+          source:'SYNTHETIC_QA',
+          schemaVersion:1
+        })}::jsonb
+    WHERE id=${dailySessionId}::uuid
+  `;
+
+  const dailyReadback=await sql`
+    SELECT s.id,s.session_index,s.week_no,s.session_in_week,s.status,
+           s.plan_snapshot->>'title' AS title,
+           s.student_reflection->>'reflection' AS reflection,
+           jsonb_array_length(s.student_reflection->'completedPriorityKeys') AS completed_goal_count,
+           (
+             SELECT count(*)::int
+             FROM public.special_education_program_sessions x
+             WHERE x.program_id=s.program_id AND x.status='completed'
+           ) AS completed_sessions
+    FROM public.special_education_program_sessions s
+    WHERE s.id=${dailySessionId}::uuid
+    LIMIT 1
+  `;
+  if (dailyReadback.length!==1) throw new Error('daily_session_readback_missing');
+  const dailyRow=dailyReadback[0];
+  const dailyChecks={
+    index:Number(dailyRow.session_index)===1,
+    week:Number(dailyRow.week_no)===1 && Number(dailyRow.session_in_week)===1,
+    completed:dailyRow.status==='completed',
+    reflection:dailyRow.reflection==='OKAY',
+    goals:Number(dailyRow.completed_goal_count)===daily.priorityKeys.length,
+    progress:Number(dailyRow.completed_sessions)===1,
+  };
+  if (Object.values(dailyChecks).some(value=>value!==true)) throw new Error('daily_session_readback_mismatch:'+JSON.stringify(dailyChecks));
+
   await cleanup();
 
   const residue=await sql`
@@ -164,6 +222,10 @@ try {
   console.log('PROGRAM_DRAFT=PASS');
   console.log('PROGRAM_WRITE=PASS');
   console.log('PROGRAM_READBACK=PASS');
+  console.log('DAILY_WORK_BUILD=PASS');
+  console.log('DAILY_SESSION_WRITE=PASS');
+  console.log('DAILY_SESSION_READBACK=PASS');
+  console.log('DAILY_PROGRESS=PASS');
   console.log('PROGRAM_CLEANUP=PASS');
 } catch (error) {
   await cleanup();
