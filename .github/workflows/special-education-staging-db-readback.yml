@@ -8,6 +8,8 @@ on:
       - 'scripts/qa/special-staging-db-readback.mjs'
       - 'scripts/qa/special-program-staging-proof.mjs'
       - 'db/migrations/20261005_special_education_programs_v1.sql'
+      - 'db/migrations/20261005_special_education_program_sessions_v1.sql'
+      - 'lib/special-daily-work.ts'
       - '.github/workflows/special-education-staging-db-readback.yml'
   pull_request:
     branches:
@@ -100,17 +102,21 @@ jobs:
             sudo apt-get install -y postgresql-client
           fi
 
-      - name: Apply additive special program migration
+      - name: Apply additive special program migrations
         env:
           CZA_STAGING_DATABASE_URL: ${{ secrets.CZA_STAGING_DATABASE_URL }}
-        run: psql "$CZA_STAGING_DATABASE_URL" -v ON_ERROR_STOP=1 -f db/migrations/20261005_special_education_programs_v1.sql
+        run: |
+          psql "$CZA_STAGING_DATABASE_URL" -v ON_ERROR_STOP=1 -f db/migrations/20261005_special_education_programs_v1.sql
+          psql "$CZA_STAGING_DATABASE_URL" -v ON_ERROR_STOP=1 -f db/migrations/20261005_special_education_program_sessions_v1.sql
 
       - name: Verify migration objects
         env:
           CZA_STAGING_DATABASE_URL: ${{ secrets.CZA_STAGING_DATABASE_URL }}
         run: |
           test "$(psql "$CZA_STAGING_DATABASE_URL" -Atc "SELECT to_regclass('public.special_education_programs')::text")" = "special_education_programs"
+          test "$(psql "$CZA_STAGING_DATABASE_URL" -Atc "SELECT to_regclass('public.special_education_program_sessions')::text")" = "special_education_program_sessions"
           echo "SPECIAL_PROGRAM_SCHEMA=PASS"
+          echo "SPECIAL_DAILY_SESSION_SCHEMA=PASS"
 
       - name: Synthetic program write readback cleanup
         env:
