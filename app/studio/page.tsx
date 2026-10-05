@@ -219,7 +219,7 @@ export default function Studio() {
     catch (e) { setLoginError(friendlyCoreError(e)); }
     finally { setAuthLoading(false); }
   }
-  async function finishAndRecord(completedAttempts: Attempt[] = attempts) {
+  const finishAndRecord = useCallback(async (completedAttempts: Attempt[]) => {
     if (!sessionId) return;
     await core('finish',{sessionId});
     if (!completedAttempts.length) return;
@@ -241,7 +241,7 @@ export default function Studio() {
       },
     });
     await core('module_record', { record });
-  }
+  }, [assignmentId, runConfig, sessionId]);
 
   async function logout() {
     if (sessionId) { try { await finishAndRecord(attempts); } catch { /* Kaydedilmiş soru kayıtları sunucuda kalır; canonical geçmiş daha sonra yeniden denenebilir. */ } }
@@ -315,7 +315,7 @@ export default function Studio() {
       }
     }, 1700);
     return () => window.clearTimeout(timeout);
-  }, [phase, round, runConfig.mode, runConfig.rounds, sessionId, feedbackAttempt]);
+  }, [phase, round, runConfig.mode, runConfig.rounds, sessionId, feedbackAttempt, finishAndRecord, attempts]);
   async function finishSession() {
     if (!sessionId || savingAttempt) return;
     try { setSync('saving'); await finishAndRecord(attempts); setSync('ready'); setPhase('finished'); setPaused(false); setError(''); }
