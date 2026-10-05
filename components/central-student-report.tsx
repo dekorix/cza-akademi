@@ -6,6 +6,42 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { educatorAuthRequest, educatorAuthError } from '@/lib/educator-auth-client';
 
+type SpecialLearningStatus =
+  | 'RELATIVE_STRENGTH'
+  | 'WATCH'
+  | 'PRIORITY'
+  | 'EXPERT_REVIEW'
+  | 'INSUFFICIENT';
+
+type SpecialLearningProfile = {
+  sessionId: string;
+  profileCode: string;
+  profileLabel: string;
+  templateCode: string;
+  completedAt: string | null;
+  evidenceCount: number;
+  independentCount: number;
+  supportedCount: number;
+  overallStatus: SpecialLearningStatus;
+  domains: {
+    key: string;
+    label: string;
+    evidenceCount: number;
+    independentCount: number;
+    supportedCount: number;
+    score: number | null;
+    status: SpecialLearningStatus;
+    recurringFlags: string[];
+  }[];
+  priorities: {
+    key: string;
+    label: string;
+    status: SpecialLearningStatus;
+    reason: string;
+  }[];
+  note: string;
+};
+
 type WorkRecommendation = {
   id: string;
   moduleCode: string;
@@ -39,6 +75,7 @@ type Report = {
     created_at: string;
     metadata?: { sequence?: number[] };
   }[];
+  specialEducationProfile?: SpecialLearningProfile | null;
   assessmentRouting?: null | {
     sessionId: string;
     templateCode: string;
@@ -58,6 +95,20 @@ const labels: Record<string, string> = {
   arithmetic: 'Toplama / Çıkarma',
 };
 const priorityLabels = { HIGH: 'Öncelikli destek', MEDIUM: 'Güçlendir', MAINTAIN: 'Gücü koru' } as const;
+const specialStatusLabels: Record<SpecialLearningStatus, string> = {
+  RELATIVE_STRENGTH: 'Göreli güçlü',
+  WATCH: 'İzlem gerekli',
+  PRIORITY: 'Eğitim önceliği',
+  EXPERT_REVIEW: 'Uzman değerlendirmesi düşünülebilir',
+  INSUFFICIENT: 'Kanıt yetersiz',
+};
+const specialStatusClasses: Record<SpecialLearningStatus, string> = {
+  RELATIVE_STRENGTH: 'border-[#b9daca] bg-[#edf8f2] text-[#276151]',
+  WATCH: 'border-[#e6d6a9] bg-[#fff8e8] text-[#7b6124]',
+  PRIORITY: 'border-[#e7c5ae] bg-[#fff5ed] text-[#8b542f]',
+  EXPERT_REVIEW: 'border-[#e0bcc2] bg-[#fff2f4] text-[#8a3f4a]',
+  INSUFFICIENT: 'border-border bg-muted/40 text-muted-foreground',
+};
 function message(code: string) {
   if (
     code === 'educator_session_required' ||
@@ -298,6 +349,84 @@ export function CentralStudentReport({ children, initialCode = '' }: { children?
               )}
             </div>
           </section>
+
+          {report.specialEducationProfile && (
+            <section className="rounded-xl border border-[#cfd9e7] bg-[#f7f9fd] p-6">
+              <div className="flex flex-wrap items-start justify-between gap-4">
+                <div>
+                  <p className="eyebrow text-[#385a78]">Özel Eğitim Öğrenme Profili</p>
+                  <h3 className="mt-2 text-lg font-semibold">{report.specialEducationProfile.profileLabel}</h3>
+                  <p className="mt-2 max-w-3xl text-xs leading-5 text-muted-foreground">
+                    {report.specialEducationProfile.note}
+                  </p>
+                </div>
+                <span className={`rounded-full border px-3 py-1 text-xs font-semibold ${specialStatusClasses[report.specialEducationProfile.overallStatus]}`}>
+                  {specialStatusLabels[report.specialEducationProfile.overallStatus]}
+                </span>
+              </div>
+
+              <div className="mt-5 grid gap-3 sm:grid-cols-3">
+                {[
+                  ['Kanıt', report.specialEducationProfile.evidenceCount],
+                  ['Bağımsız', report.specialEducationProfile.independentCount],
+                  ['Destekli', report.specialEducationProfile.supportedCount],
+                ].map(([label, value]) => (
+                  <div key={String(label)} className="rounded-lg border border-[#dce4ef] bg-white p-4">
+                    <b className="block text-xl">{value}</b>
+                    <span className="text-[10px] text-muted-foreground">{label}</span>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-5 grid gap-3 lg:grid-cols-2">
+                {report.specialEducationProfile.domains.map(domain => (
+                  <article key={domain.key} className="rounded-lg border border-[#dce4ef] bg-white p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <h4 className="text-sm font-semibold">{domain.label}</h4>
+                        <p className="mt-1 text-[10px] text-muted-foreground">
+                          {domain.evidenceCount} kanıt · {domain.independentCount} bağımsız · {domain.supportedCount} destekli
+                        </p>
+                      </div>
+                      <span className={`shrink-0 rounded-full border px-2 py-1 text-[10px] font-semibold ${specialStatusClasses[domain.status]}`}>
+                        {specialStatusLabels[domain.status]}
+                      </span>
+                    </div>
+                    {domain.recurringFlags.length > 0 && (
+                      <p className="mt-3 text-[11px] leading-5 text-muted-foreground">
+                        Tekrarlayan işaretler: {domain.recurringFlags.join(' · ')}
+                      </p>
+                    )}
+                  </article>
+                ))}
+              </div>
+
+              {report.specialEducationProfile.priorities.length > 0 && (
+                <div className="mt-5 rounded-lg border border-[#d8e2ef] bg-white p-5">
+                  <h4 className="font-semibold">İlk eğitim öncelikleri</h4>
+                  <div className="mt-3 space-y-3">
+                    {report.specialEducationProfile.priorities.map((priority, index) => (
+                      <div key={priority.key} className="rounded-md bg-[#f7f9fd] p-3">
+                        <div className="flex items-center gap-2">
+                          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white text-[10px] font-bold text-[#385a78]">
+                            {index + 1}
+                          </span>
+                          <b className="text-sm">{priority.label}</b>
+                        </div>
+                        <p className="mt-2 text-xs leading-5 text-muted-foreground">{priority.reason}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <p className="mt-4 text-[10px] text-muted-foreground">
+                Son tamamlanan özel eğitim değerlendirmesi · {report.specialEducationProfile.completedAt
+                  ? new Date(report.specialEducationProfile.completedAt).toLocaleString('tr-TR')
+                  : 'tarih bilgisi yok'} · otomatik tanı üretmez.
+              </p>
+            </section>
+          )}
 
           {report.assessmentRouting && (
             <section className="rounded-xl border border-[#c9d9d1] bg-[#f5faf7] p-6">
