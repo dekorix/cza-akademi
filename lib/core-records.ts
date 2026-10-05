@@ -133,7 +133,7 @@ export function canonicalSessionRecord(input: {
       exerciseMode: input.config.mode,
       exerciseType: definition?.id ?? null,
       practiceMode: input.config.practiceMode ?? 'free_practice',
-      ...(input.metadata || {}),
+      ...input.metadata,
     },
   };
 }
