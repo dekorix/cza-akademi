@@ -6,6 +6,8 @@ on:
       - feature/special-education-dyslexia-v1
     paths:
       - 'scripts/qa/special-staging-db-readback.mjs'
+      - 'scripts/qa/special-program-staging-proof.mjs'
+      - 'db/migrations/20261005_special_education_programs_v1.sql'
       - '.github/workflows/special-education-staging-db-readback.yml'
   pull_request:
     branches:
@@ -59,3 +61,58 @@ jobs:
         env:
           CZA_STAGING_DATABASE_URL: ${{ secrets.CZA_STAGING_DATABASE_URL }}
         run: node scripts/qa/special-staging-db-readback.mjs
+  
+
+  special-program-staging-proof:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    environment: CZA-STAGING-SECURITY
+    steps:
+      - name: Checkout exact branch head
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.13.0'
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Validate exact staging target
+        env:
+          CZA_STAGING_DATABASE_URL: ${{ secrets.CZA_STAGING_DATABASE_URL }}
+        run: |
+          node -e "const u=new URL(process.env.CZA_STAGING_DATABASE_URL||''); if(!u.hostname.endsWith('.neon.tech')||u.pathname!=='/cza_learning') process.exit(2); console.log('STAGING_TARGET=PASS')"
+
+      - name: Ensure PostgreSQL client
+        run: |
+          if ! command -v psql >/dev/null 2>&1; then
+            sudo apt-get update -qq
+            sudo apt-get install -y postgresql-client
+          fi
+
+      - name: Apply additive special program migration
+        env:
+          CZA_STAGING_DATABASE_URL: ${{ secrets.CZA_STAGING_DATABASE_URL }}
+        run: psql "$CZA_STAGING_DATABASE_URL" -v ON_ERROR_STOP=1 -f db/migrations/20261005_special_education_programs_v1.sql
+
+      - name: Verify migration objects
+        env:
+          CZA_STAGING_DATABASE_URL: ${{ secrets.CZA_STAGING_DATABASE_URL }}
+        run: |
+          test "$(psql "$CZA_STAGING_DATABASE_URL" -Atc "SELECT to_regclass('public.special_education_programs')::text")" = "special_education_programs"
+          echo "SPECIAL_PROGRAM_SCHEMA=PASS"
+
+      - name: Synthetic program write readback cleanup
+        env:
+          CZA_STAGING_DATABASE_URL: ${{ secrets.CZA_STAGING_DATABASE_URL }}
+        run: node scripts/qa/special-program-staging-proof.mjs
