@@ -22,13 +22,9 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Enable Corepack
-        shell: powershell
-        run: corepack enable
-
       - name: Install dependencies
         shell: powershell
-        run: corepack pnpm install --frozen-lockfile
+        run: corepack.cmd pnpm install --frozen-lockfile
 
       - name: Apply and verify approved canonical ledger migration
         env:
