@@ -541,6 +541,22 @@ export function CentralStudentReport({ children, initialCode = '' }: { children?
                               ? 'Karar: ek yeni örneklerle daha fazla kanıt topla.'
                               : 'Karar: hedefli desteği sürdür ve yeni program gereksinimini eğitimci gözden geçirsin.'}
                       </p>
+                      {report.student.id &&
+                        (report.specialEducationReassessment.comparison.nextDecision === 'CONTINUE_TARGETED_SUPPORT' ||
+                         report.specialEducationReassessment.comparison.nextDecision === 'NEW_PROGRAM_REVIEW') && (
+                        <a
+                          href={`/educator/special-program?studentId=${encodeURIComponent(report.student.id)}&assessmentSessionId=${encodeURIComponent(report.specialEducationProfile.sessionId)}&priorities=${encodeURIComponent(
+                            (report.specialEducationReassessment.comparison.areas || [])
+                              .filter(area => area.outcome !== 'IMPROVED')
+                              .map(area => area.key)
+                              .slice(0, 4)
+                              .join(',')
+                          )}`}
+                          className="mt-4 inline-flex min-h-10 items-center justify-center rounded-lg bg-[#276151] px-4 text-xs font-semibold text-white"
+                        >
+                          Yeni programı gözden geçir
+                        </a>
+                      )}
                     </div>
                   )}
                 </div>
