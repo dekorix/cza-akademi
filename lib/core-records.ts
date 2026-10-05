@@ -22,7 +22,7 @@ export function trainingSettings(config: ExerciseConfig) {
     exerciseType: definition?.id,
     practiceMode: config.practiceMode ?? 'free_practice',
     feedbackMode: config.feedbackMode ?? feedbackModeFor(config.practiceMode ?? 'free_practice'),
-    skills: definition?.skills ?? [],
+    skills: Array.from(new Set((definition?.skills ?? []).map(canonicalSkillCode).filter(Boolean))),
     skillProfile: config.mode === 'flash' ? 'anzan.visual' : config.mode === 'audio' ? 'anzan.auditory' : undefined,
     difficultyProfile: ['flash','audio'].includes(config.mode) ? anzanDifficulty(config) : undefined,
     exercise: config,
@@ -81,6 +81,14 @@ export function attemptPayload(attempt: Attempt, config: ExerciseConfig, questio
   };
 }
 
+
+function canonicalSkillCode(skill: string) {
+  return skill
+    .replace(/([a-z0-9])([A-Z])/g, '$1_$2')
+    .replace(/[^A-Za-z0-9_-]+/g, '_')
+    .replace(/^_+|_+$/g, '')
+    .toLowerCase();
+}
 
 export function canonicalSessionRecord(input: {
   clientRecordId: string;
