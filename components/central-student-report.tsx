@@ -93,6 +93,8 @@ type Report = {
     startsAt: string | null;
     endsAt: string | null;
     completedAt: string | null;
+    lastReflection: string | null;
+    lastSessionAt: string | null;
   };
   assessmentRouting?: null | {
     sessionId: string;
@@ -456,10 +458,16 @@ export function CentralStudentReport({ children, initialCode = '' }: { children?
                   <div className="mt-4 h-2 overflow-hidden rounded-full bg-[#e9eef4]">
                     <div className="h-full rounded-full bg-[#557fa5]" style={{ width: `${report.specialEducationProgram.progress}%` }}/>
                   </div>
-                  <div className="mt-2 flex items-center justify-between text-[10px] text-muted-foreground">
+                  <div className="mt-2 flex items-center justify-between gap-3 text-[10px] text-muted-foreground">
                     <span>%{report.specialEducationProgram.progress} tamamlandı</span>
                     <span>{report.specialEducationProgram.status === 'completed' ? 'Yeniden ölçüm sırada' : 'Öğrenci günlük çalışma panelinde görüyor'}</span>
                   </div>
+                  {report.specialEducationProgram.lastReflection && (
+                    <p className="mt-3 rounded-md bg-[#f7f9fd] px-3 py-2 text-[11px] text-[#536f87]">
+                      Son öğrenci geri bildirimi: <b>{report.specialEducationProgram.lastReflection === 'EASY' ? 'Kolaydı' : report.specialEducationProgram.lastReflection === 'HARD' ? 'Zordu' : 'İyiydi'}</b>
+                      {report.specialEducationProgram.lastSessionAt ? ` · ${new Date(report.specialEducationProgram.lastSessionAt).toLocaleString('tr-TR')}` : ''}
+                    </p>
+                  )}
                 </div>
               ) : report.student.id && (
                 <div className="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-[#ceddeb] bg-white p-4">
