@@ -44,6 +44,30 @@ try {
   `;
   console.log('SESSION_BINDING_CONSTRAINT=' + (constraintRows[0]?.definition || 'NOT_FOUND'));
 
+  const compatibilityColumns = await sql`
+    SELECT table_name, column_name, data_type, is_nullable, column_default
+    FROM information_schema.columns
+    WHERE table_schema = 'public'
+      AND column_name IN ('student_session_id', 'record_origin')
+    ORDER BY table_name, column_name
+  `;
+  console.log('HISTORY_COMPAT_COLUMNS=' + JSON.stringify(compatibilityColumns));
+
+  const compatibilityConstraints = await sql`
+    SELECT c.conname, pg_get_constraintdef(c.oid) AS definition
+    FROM pg_constraint c
+    JOIN pg_class t ON t.oid = c.conrelid
+    JOIN pg_namespace n ON n.oid = t.relnamespace
+    WHERE n.nspname = 'public'
+      AND t.relname = 'learning_records'
+      AND (
+        pg_get_constraintdef(c.oid) ILIKE '%student_session_id%'
+        OR pg_get_constraintdef(c.oid) ILIKE '%record_origin%'
+      )
+    ORDER BY c.conname
+  `;
+  console.log('HISTORY_COMPAT_CONSTRAINTS=' + JSON.stringify(compatibilityConstraints));
+
   const schema = await sql`
     SELECT
       to_regclass('public.learning_records')::text AS learning_records,
