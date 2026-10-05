@@ -23,8 +23,8 @@ jobs:
           persist-credentials: false
 
       - name: Install dependencies
-        shell: powershell
-        run: corepack.cmd pnpm install --frozen-lockfile
+        shell: cmd
+        run: npm.cmd install --ignore-scripts --no-audit --no-fund --package-lock=false
 
       - name: Apply and verify approved canonical ledger migration
         env:
