@@ -420,6 +420,20 @@ export function CentralStudentReport({ children, initialCode = '' }: { children?
                 </div>
               )}
 
+              {report.student.id && (
+                <div className="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-[#ceddeb] bg-white p-4">
+                  <div>
+                    <b className="text-sm">Sonraki adım: eğitimci onaylı bireysel program</b>
+                    <p className="mt-1 text-[11px] text-muted-foreground">Sistem taslağı hazırlar; öğrenci dosyasına ancak eğitimci açıkça onaylarsa kaydedilir.</p>
+                  </div>
+                  <a
+                    href={`/educator/special-program?studentId=${encodeURIComponent(report.student.id)}&assessmentSessionId=${encodeURIComponent(report.specialEducationProfile.sessionId)}`}
+                    className="rounded-lg bg-[#385a78] px-4 py-2 text-xs font-semibold text-white"
+                  >
+                    Bireysel programı hazırla
+                  </a>
+                </div>
+              )}
               <p className="mt-4 text-[10px] text-muted-foreground">
                 Son tamamlanan özel eğitim değerlendirmesi · {report.specialEducationProfile.completedAt
                   ? new Date(report.specialEducationProfile.completedAt).toLocaleString('tr-TR')
