@@ -221,7 +221,7 @@ export default function Studio() {
   }
   async function finishAndRecord(completedAttempts: Attempt[] = attempts) {
     if (!sessionId) return;
-    await core('finish', { sessionId });
+    await core('finish',{sessionId});
     if (!completedAttempts.length) return;
 
     canonicalRecordId.current ||= crypto.randomUUID();
