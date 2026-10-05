@@ -96,7 +96,7 @@ function supportPoints(payload: Record<string, unknown>, row: AttemptRow) {
   return 0.75;
 }
 
-function statusFor(score: number | null, evidenceCount: number): SpecialLearningStatus {
+export function specialStatusForScore(score: number | null, evidenceCount: number): SpecialLearningStatus {
   if (evidenceCount < 2 || score == null) return 'INSUFFICIENT';
   if (score < 0.65) return 'RELATIVE_STRENGTH';
   if (score < 1.15) return 'WATCH';
@@ -201,7 +201,7 @@ export function buildSpecialLearningProfile(input: {
       independentCount: bucket.independent,
       supportedCount: bucket.supported,
       score,
-      status: statusFor(score, bucket.evidence),
+      status: specialStatusForScore(score, bucket.evidence),
       recurringFlags: [...bucket.flags.entries()]
         .sort((a, b) => b[1] - a[1])
         .slice(0, 4)
