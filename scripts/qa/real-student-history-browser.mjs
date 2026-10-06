@@ -318,7 +318,7 @@ try {
   if (studentBefore?.status !== 200 || studentBefore?.body?.ok !== true) {
     throw new Error('student_history_browser_read_failed');
   }
-  const studentHasRecord = studentBefore.body.records?.some(record => record.id === ${JSON.stringify(String(fixture.record_id))});
+  const studentHasRecord = studentBefore.body.records?.some(record => String(record.id) === String(fixture.record_id));
   if (!studentHasRecord) throw new Error('student_browser_record_missing');
 
   await reloadHard(studentPage);
@@ -330,7 +330,7 @@ try {
   })()`);
   if (
     studentAfter?.status !== 200 ||
-    !studentAfter?.body?.records?.some(record => record.id === ${JSON.stringify(String(fixture.record_id))})
+    !studentAfter?.body?.records?.some(record => String(record.id) === String(fixture.record_id))
   ) {
     throw new Error('student_hard_reload_record_missing');
   }
@@ -352,7 +352,7 @@ try {
     if (result?.status !== 200 || result?.body?.ok !== true) {
       throw new Error('educator_history_browser_read_failed');
     }
-    if (!result.body.learningHistory?.some(record => record.id === ${JSON.stringify(String(fixture.record_id))})) {
+    if (!result.body.learningHistory?.some(record => String(record.id) === String(fixture.record_id))) {
       throw new Error('educator_browser_record_missing');
     }
     return result;
