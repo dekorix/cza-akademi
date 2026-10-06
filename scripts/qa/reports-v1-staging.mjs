@@ -53,6 +53,9 @@ function learningDuration(row) {
   if (typeof performance.durationMs === 'number' && Number.isFinite(performance.durationMs)) {
     return Math.max(0, performance.durationMs);
   }
+  if (typeof row.fallback_duration_ms === 'number' && Number.isFinite(row.fallback_duration_ms)) {
+    return Math.max(0, row.fallback_duration_ms);
+  }
   return Math.max(0, dateMs(row.completed_at) - dateMs(row.started_at));
 }
 
@@ -84,7 +87,13 @@ function assertEqual(actual, expected, label) {
 async function rawOracle(academyId, studentId) {
   const [learningRows, recipeRows, sessionRows, attemptRows] = await Promise.all([
     sql`
-      SELECT module_code, started_at, completed_at, performance, metadata
+      SELECT
+        module_code,
+        started_at,
+        completed_at,
+        performance,
+        metadata,
+        EXTRACT(EPOCH FROM (completed_at - started_at)) * 1000 AS fallback_duration_ms
       FROM public.learning_records
       WHERE academy_id = ${academyId}::uuid
         AND student_id = ${studentId}::uuid
