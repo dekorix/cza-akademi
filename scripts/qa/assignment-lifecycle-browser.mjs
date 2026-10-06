@@ -300,7 +300,10 @@ try {
   await waitForText(educatorPage, String(fixture.student_id));
 
   const assigned = await evalJson(educatorPage, `(async () => {
-    const rows = Array.from(document.querySelectorAll('div')).filter(el => el.innerText?.includes(${JSON.stringify(String(fixture.student_id))}));
+    const rows = Array.from(document.querySelectorAll('div')).filter(el =>
+      el.innerText?.includes(${JSON.stringify(String(fixture.student_id))}) &&
+      el.querySelector('select[id^="assignment-"]')
+    );
     const row = rows.sort((a,b) => a.innerText.length - b.innerText.length)[0];
     if (!row) return { ok:false, reason:'student_row_missing' };
     const select = row.querySelector('select');
@@ -334,7 +337,10 @@ try {
   if (!assignmentId) throw new Error('assignment_not_persisted');
 
   const opened = await evalJson(educatorPage, `(() => {
-    const rows = Array.from(document.querySelectorAll('div')).filter(el => el.innerText?.includes(${JSON.stringify(String(fixture.student_id))}));
+    const rows = Array.from(document.querySelectorAll('div')).filter(el =>
+      el.innerText?.includes(${JSON.stringify(String(fixture.student_id))}) &&
+      el.querySelector('select[id^="assignment-"]')
+    );
     const row = rows.sort((a,b) => a.innerText.length - b.innerText.length)[0];
     if (!row) return false;
     const button = Array.from(row.querySelectorAll('button')).find(el => el.textContent?.includes('Atamaları göster'));
@@ -349,7 +355,10 @@ try {
   await reloadHard(educatorPage);
   await waitForText(educatorPage, String(fixture.student_id));
   const reopened = await evalJson(educatorPage, `(() => {
-    const rows = Array.from(document.querySelectorAll('div')).filter(el => el.innerText?.includes(${JSON.stringify(String(fixture.student_id))}));
+    const rows = Array.from(document.querySelectorAll('div')).filter(el =>
+      el.innerText?.includes(${JSON.stringify(String(fixture.student_id))}) &&
+      el.querySelector('select[id^="assignment-"]')
+    );
     const row = rows.sort((a,b) => a.innerText.length - b.innerText.length)[0];
     if (!row) return false;
     const button = Array.from(row.querySelectorAll('button')).find(el => el.textContent?.includes('Atamaları göster'));
