@@ -162,9 +162,14 @@ export function CentralAssessmentIntake({onP2Created}:{onP2Created:(payload:P2Cr
     <div className="overflow-hidden rounded-[2rem] border border-[#d7e5df] bg-white shadow-sm">
       <div className="grid gap-6 bg-[radial-gradient(circle_at_top_right,#edf7f2,transparent_38%),linear-gradient(135deg,#f9fcfb,#f2f8f5)] p-7 md:grid-cols-[1fr_auto] md:p-10">
         <div>
-          <span className="text-xs font-black uppercase tracking-[.16em] text-[#4f7b6d]">CZA SİHİRLİ DÜNYA · BÜTÜNCÜL DEĞERLENDİRME</span>
-          <h2 className="mt-3 max-w-3xl text-3xl font-semibold tracking-tight md:text-4xl">Doğru değerlendirme, doğru gelişim düzeyinden başlar.</h2>
-          <p className="mt-3 max-w-3xl text-sm leading-6 text-muted-foreground">Önce merkezi CZA öğrencisini seç. Sonra yaş, sınıf veya Özel Eğitim ve Öğrenme Profili üzerinden doğru değerlendirme motoruna geç.</p>
+          <span className="text-xs font-black uppercase tracking-[.16em] text-[#4f7b6d]">CZA · TEK BAŞLANGIÇ DEĞERLENDİRMESİ MERKEZİ</span>
+          <h2 className="mt-3 max-w-3xl text-3xl font-semibold tracking-tight md:text-4xl">Tüm başlangıç değerlendirmeleri tek yerde.</h2>
+          <p className="mt-3 max-w-3xl text-sm leading-6 text-muted-foreground">Merkezi öğrenciyi seç; Erken Gelişim, Okul Çağı veya Özel Eğitim ve Öğrenme Profili seçeneklerinden doğru değerlendirme hattına geç.</p>
+          <div className="mt-4 flex flex-wrap gap-2 text-[11px] font-black">
+            <span className="rounded-full bg-white px-3 py-1.5 text-[#276151] shadow-sm">6 Erken Gelişim profili</span>
+            <span className="rounded-full bg-white px-3 py-1.5 text-[#4f617b] shadow-sm">10 Okul Çağı profili</span>
+            <span className="rounded-full bg-white px-3 py-1.5 text-[#66599f] shadow-sm">10 Özel Eğitim profili</span>
+          </div>
         </div>
         <div className="grid h-28 w-28 place-items-center rounded-[2rem] bg-[#18372f] text-white"><Brain size={45}/></div>
       </div>
@@ -178,9 +183,12 @@ export function CentralAssessmentIntake({onP2Created}:{onP2Created:(payload:P2Cr
         </select>
         {selectedStudent&&<p className="mt-2 text-[11px] text-muted-foreground">Student ID: {selectedStudent.id}</p>}
 
-        <div className="mt-8 flex items-center gap-3"><GraduationCap className="text-[#4f7b6d]"/><div><b>2 · Yaş / sınıf dünyası</b><p className="text-xs text-muted-foreground">Yalnız merkezi görev bankası hazır profiller başlatılır.</p></div></div>
-        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {INTAKE_PROFILE_CODES.map(code=>{
+        <div className="mt-8 flex items-center gap-3"><GraduationCap className="text-[#4f7b6d]"/><div><b>2 · Değerlendirme alanını seç</b><p className="text-xs text-muted-foreground">Bütün profiller bu tek sayfada görünür. Hazır olmayan profiller yanlış soru açmamak için kilitli kalır.</p></div></div>
+
+        <div className="mt-5 rounded-3xl border border-[#d8e5df] bg-[#f8fcfa] p-5">
+          <div><p className="text-[10px] font-black uppercase tracking-[.16em] text-[#4f7b6d]">ERKEN GELİŞİM</p><h3 className="mt-1 text-lg font-semibold">0–72 ay gelişim profilleri</h3></div>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {INTAKE_PROFILE_CODES.filter(code=>code.startsWith('E')).map(code=>{
             const item=resolveAssessmentBridge(code,purpose);
             const live=item?.status==='CENTRAL_READY';
             return <button key={code} type="button" onClick={()=>chooseProfile(code)} className={'rounded-2xl border p-4 text-left transition '+(profileCode===code?'border-[#4f8f78] bg-[#edf8f2] shadow-sm':live?'border-[#d8e5df] bg-white hover:border-[#94bca9]':'border-[#e5e8e6] bg-[#fafbfa] opacity-65')}>
@@ -190,9 +198,26 @@ export function CentralAssessmentIntake({onP2Created}:{onP2Created:(payload:P2Cr
               <span className={'mt-3 inline-flex rounded-full px-2 py-1 text-[9px] font-black '+(live?'bg-[#e5f5ec] text-[#276151]':item?.status==='SOURCE_REFERENCE_ONLY'?'bg-[#fff4dd] text-[#84651f]':'bg-[#f0f2f1] text-[#7c8581]')}>{live?'MERKEZİ HAZIR':item?.status==='SOURCE_REFERENCE_ONLY'?'KAYNAK HAZIR':'HAZIRLANIYOR'}</span>
             </button>;
           })}
+          </div>
         </div>
 
-        <div className="mt-9 rounded-3xl border border-[#d8d8ec] bg-[#faf9ff] p-5 md:p-6">
+        <div className="mt-5 rounded-3xl border border-[#dce2ec] bg-[#fafcff] p-5">
+          <div><p className="text-[10px] font-black uppercase tracking-[.16em] text-[#4f617b]">OKUL ÇAĞI</p><h3 className="mt-1 text-lg font-semibold">1. sınıftan YKS/TYT düzeyine</h3></div>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {INTAKE_PROFILE_CODES.filter(code=>code.startsWith('P')).map(code=>{
+            const item=resolveAssessmentBridge(code,purpose);
+            const live=item?.status==='CENTRAL_READY';
+            return <button key={code} type="button" onClick={()=>chooseProfile(code)} className={'rounded-2xl border p-4 text-left transition '+(profileCode===code?'border-[#64748b] bg-white shadow-sm':live?'border-[#d8e0ea] bg-white hover:border-[#9badc3]':'border-[#e5e8ec] bg-white/70 opacity-70')}>
+              <div className="text-2xl">{PROFILE_ICONS[code]}</div>
+              <p className="mt-3 text-[10px] font-black uppercase tracking-wide text-[#73847e]">Okul Çağı</p>
+              <b className="mt-1 block text-sm leading-5">{PROFILE_LABELS[code]}</b>
+              <span className={'mt-3 inline-flex rounded-full px-2 py-1 text-[9px] font-black '+(live?'bg-[#e5f5ec] text-[#276151]':item?.status==='SOURCE_REFERENCE_ONLY'?'bg-[#fff4dd] text-[#84651f]':'bg-[#f0f2f1] text-[#7c8581]')}>{live?'MERKEZİ HAZIR':item?.status==='SOURCE_REFERENCE_ONLY'?'TAM KAYNAK HAZIR · BAĞLANTI SÜRÜYOR':'HAZIRLANIYOR'}</span>
+            </button>;
+          })}
+          </div>
+        </div>
+
+        <div className="mt-5 rounded-3xl border border-[#d8d8ec] bg-[#faf9ff] p-5 md:p-6">
           <div className="flex items-start gap-3"><Brain className="mt-1 text-[#6c61a6]"/><div><p className="text-[10px] font-black uppercase tracking-[.16em] text-[#786daf]">ÖZEL EĞİTİM VE ÖĞRENME PROFİLİ</p><h3 className="mt-1 text-xl font-semibold">Belirtiyi etikete değil, öğrenme mekanizmasına ayır</h3><p className="mt-2 text-xs leading-5 text-muted-foreground">Bu alan klinik tanı koymaz. Eğitimsel tarama, hata örüntüsü, destek ihtiyacı ve öğrenme tepkisi üretir.</p></div></div>
           <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
             {SPECIAL.map(([code,title,description,icon])=><button key={code} type="button" onClick={()=>{chooseProfile(code);setPurpose('GENERAL');}} className={'rounded-2xl border p-4 text-left transition '+(profileCode===code?'border-[#7569b0] bg-white shadow-sm':'border-[#e3e0f1] bg-white/80 hover:border-[#aaa1d2]')}>
@@ -205,11 +230,11 @@ export function CentralAssessmentIntake({onP2Created}:{onP2Created:(payload:P2Cr
 
         <div className="mt-7"><label className="text-sm font-semibold">3 · Değerlendirme amacı</label><select value={purpose} onChange={event=>setPurpose(event.target.value as AssessmentPurpose)} className="mt-2 min-h-11 w-full rounded-xl border border-[#d4e1dc] bg-white px-4 text-sm">{PURPOSES.map(([value,label])=><option key={value} value={value}>{label}</option>)}</select></div>
 
-        {target&&<div className={'mt-5 flex gap-3 rounded-xl border p-4 '+(target.status==='CENTRAL_READY'?'border-[#cce2d6] bg-[#f1f8f4]':'border-[#eadfbf] bg-[#fffaf0]')}><ShieldCheck className={target.status==='CENTRAL_READY'?'text-[#276151]':'text-[#856f32]'}/><div><b>{target.status==='CENTRAL_READY'?'Merkezi CZA hattı hazır.':'Bu profil güvenli biçimde kilitli.'}</b><p className="mt-1 text-xs leading-5 text-muted-foreground">{target.reason}</p></div></div>}
+        {target&&<div className={'mt-5 flex gap-3 rounded-xl border p-4 '+(target.status==='CENTRAL_READY'?'border-[#cce2d6] bg-[#f1f8f4]':'border-[#eadfbf] bg-[#fffaf0]')}><ShieldCheck className={target.status==='CENTRAL_READY'?'text-[#276151]':'text-[#856f32]'}/><div><b>{target.status==='CENTRAL_READY'?'Merkezi CZA hattı hazır.':target.status==='SOURCE_REFERENCE_ONLY'?'Tam P2 değerlendirme motoru hazır.':'Bu profil güvenli biçimde kilitli.'}</b><p className="mt-1 text-xs leading-5 text-muted-foreground">{target.reason}</p></div></div>}
         {message&&<p role="status" className="mt-4 rounded-xl bg-[#fff4e7] p-4 text-sm font-semibold text-[#825b2d]">{message}</p>}
         {profileCode==='P2'&&target?.status==='SOURCE_REFERENCE_ONLY'&&
           <Button type="button" onClick={()=>{window.location.href='/assessment/p2';}} className="mt-6 min-h-12 w-full bg-[#856f32] text-base hover:bg-[#6f5c29]">
-            Tam P2 restorasyon haritasını aç →
+            P2 tam değerlendirme durumunu aç →
           </Button>}
         <Button onClick={()=>void start()} disabled={!ready||busy} className="mt-3 min-h-12 w-full bg-[#226f60] text-base hover:bg-[#195749]">{busy?'Merkezi bağlantı kuruluyor…':'Değerlendirme planını aç →'}</Button>
       </div>

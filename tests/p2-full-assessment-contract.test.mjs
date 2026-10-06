@@ -48,10 +48,16 @@ test('P2 restoration hub exposes the frozen full-source contract',()=>{
 });
 
 
-test('central intake exposes the P2 restoration hub without reopening incomplete central launch',()=>{
+test('central intake is the single profile hub and keeps incomplete P2 behind the restoration boundary',()=>{
   const source=fs.readFileSync(new URL('../components/central-assessment-intake.tsx',import.meta.url),'utf8');
+  assert.match(source,/Tüm başlangıç değerlendirmeleri tek yerde/);
+  assert.match(source,/ERKEN GELİŞİM/);
+  assert.match(source,/OKUL ÇAĞI/);
+  assert.match(source,/ÖZEL EĞİTİM VE ÖĞRENME PROFİLİ/);
+  assert.match(source,/SP-DYS/);
+  assert.match(source,/SP-MIX/);
   assert.match(source,/profileCode==='P2'/);
   assert.match(source,/target\?\.status==='SOURCE_REFERENCE_ONLY'/);
   assert.match(source,/window\.location\.href='\/assessment\/p2'/);
-  assert.match(source,/Tam P2 restorasyon haritasını aç/);
+  assert.doesNotMatch(source,/cza-degerlendirme-hl4a5d\.v2\.appdeploy\.ai/);
 });
