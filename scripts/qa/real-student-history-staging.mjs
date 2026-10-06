@@ -118,6 +118,15 @@ try {
       LIMIT 20
     `;
     console.log('LEARNING_EVIDENCE_VERIFICATION_VALUES=' + JSON.stringify(verificationValues));
+
+    const verificationAuthorities = await sql`
+      SELECT verification_authority::text AS value, count(*)::int AS count
+      FROM public.learning_evidence
+      GROUP BY verification_authority
+      ORDER BY count(*) DESC, verification_authority::text
+      LIMIT 20
+    `;
+    console.log('LEARNING_EVIDENCE_VERIFICATION_AUTHORITIES=' + JSON.stringify(verificationAuthorities));
   }
 
   const schema = await sql`
