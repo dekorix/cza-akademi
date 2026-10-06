@@ -1,0 +1,51 @@
+name: CZA P2 Restoration Browser Acceptance
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'app/assessment/p2/**'
+      - 'components/central-assessment-intake.tsx'
+      - 'cza-degerlendirme/**'
+      - 'public/cza-degerlendirme/**'
+      - 'lib/assessment-bridge.ts'
+      - 'lib/p2-full-assessment-contract.ts'
+      - 'tests/p2-restoration-browser-acceptance.spec.cjs'
+      - '.github/workflows/p2-restoration-browser-acceptance.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  chromium-p2:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - run: corepack enable
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.13.0'
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - name: Install Chromium
+        run: |
+          pnpm add -Dw @playwright/test@1.52.0 --lockfile=false
+          pnpm exec playwright install --with-deps chromium
+      - name: Start app
+        run: |
+          pnpm exec wrangler dev --config dist/server/wrangler.json --port 8787 > /tmp/cza-p2.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:8787/assessment/p2 > /tmp/p2.html; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/cza-p2.log
+          exit 1
+      - name: P2 desktop and mobile acceptance
+        env:
+          CZA_BASE_URL: http://127.0.0.1:8787
+        run: pnpm exec playwright test tests/p2-restoration-browser-acceptance.spec.cjs --reporter=line --workers=1
