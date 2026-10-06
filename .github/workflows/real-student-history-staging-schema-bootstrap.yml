@@ -1,11 +1,6 @@
-name: CZA Real Student History Staging Schema Bootstrap
+name: CZA Real Student History Staging Schema Repair
 
 on:
-  push:
-    branches:
-      - feature/real-student-history-v1
-    paths:
-      - '.github/workflows/real-student-history-staging-schema-bootstrap.yml'
   workflow_dispatch:
 
 permissions:
@@ -13,7 +8,7 @@ permissions:
 
 jobs:
   apply-approved-ledger-migration:
-    runs-on: cza-history-bootstrap-c0507fa1
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     environment: CZA-STAGING-SECURITY
     steps:
@@ -21,14 +16,21 @@ jobs:
         uses: actions/checkout@v4
         with:
           persist-credentials: false
-          clean: false
 
-      - name: Ensure dependencies
-        shell: cmd
-        run: if exist node_modules\@neondatabase\serverless\package.json (echo Dependencies already present) else npm.cmd install --ignore-scripts --no-audit --no-fund --package-lock=false
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.13.0'
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
 
       - name: Apply and verify approved canonical ledger migration
         env:
           CZA_STAGING_DATABASE_URL: ${{ secrets.CZA_STAGING_DATABASE_URL }}
-        shell: cmd
         run: node scripts/qa/apply-staging-ledger-migration.mjs
