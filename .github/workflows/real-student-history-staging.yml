@@ -29,7 +29,7 @@ permissions:
 jobs:
   canonical-history-readback:
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
-    runs-on: cza-history-readback-1b08e7db
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     environment: CZA-STAGING-SECURITY
     steps:
@@ -37,14 +37,33 @@ jobs:
         uses: actions/checkout@v4
         with:
           persist-credentials: false
-          clean: false
 
-      - name: Ensure dependencies
-        shell: cmd
-        run: if exist node_modules\@neondatabase\serverless\package.json (echo Dependencies already present) else npm.cmd install --ignore-scripts --no-audit --no-fund --package-lock=false
+      - name: Enable Corepack
+        run: corepack enable
 
-      - name: Canonical history write, dual readback and transactional cleanup
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.13.0'
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Verify staging secret is explicitly present
         env:
           CZA_STAGING_DATABASE_URL: ${{ secrets.CZA_STAGING_DATABASE_URL }}
-        shell: cmd
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "${CZA_STAGING_DATABASE_URL:-}" ]; then
+            echo "REAL_HISTORY_STAGING=BLOCKED"
+            echo "REASON=CZA_STAGING_DATABASE_URL_MISSING"
+            exit 2
+          fi
+
+      - name: Canonical history write, dual readback and transactional rollback
+        env:
+          CZA_STAGING_DATABASE_URL: ${{ secrets.CZA_STAGING_DATABASE_URL }}
         run: node scripts/qa/real-student-history-staging.mjs
