@@ -1,0 +1,32 @@
+name: CZA Mind Maps Staging Catalog
+on:
+  push:
+    branches: [feature/mind-maps-v1]
+    paths:
+      - 'db/migrations/20261006_mind_maps_module_v1.sql'
+      - 'lib/mind-maps.ts'
+      - 'lib/package-catalog.ts'
+      - '.github/workflows/mind-maps-staging-catalog.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  mind-maps-staging-catalog:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    environment: CZA-STAGING-SECURITY
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - run: |
+          if ! command -v psql >/dev/null 2>&1; then sudo apt-get update && sudo apt-get install -y postgresql-client; fi
+      - env:
+          CZA_STAGING_DATABASE_URL: ${{ secrets.CZA_STAGING_DATABASE_URL }}
+        run: |
+          set -euo pipefail
+          test -n "${CZA_STAGING_DATABASE_URL:-}"
+          psql "$CZA_STAGING_DATABASE_URL" -v ON_ERROR_STOP=1 -f db/migrations/20261006_mind_maps_module_v1.sql
+          result="$(psql "$CZA_STAGING_DATABASE_URL" -Atc "SELECT code || '|' || name || '|' || category || '|' || is_active::text FROM public.modules WHERE code='mind_maps' LIMIT 1")"
+          test "$result" = "mind_maps|Zihin Haritaları|zihin|true"
+          echo "MIND_MAPS_MODULE_CATALOG=PASS"
