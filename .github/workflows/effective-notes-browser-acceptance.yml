@@ -1,0 +1,52 @@
+name: CZA Effective Notes Browser Acceptance
+
+on:
+  push:
+    branches:
+      - feature/effective-notes-v1
+    paths:
+      - 'app/effective-notes/**'
+      - 'lib/effective-notes.ts'
+      - 'lib/package-catalog.ts'
+      - 'tests/effective-notes-browser-acceptance.spec.cjs'
+      - '.github/workflows/effective-notes-browser-acceptance.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  chromium-effective-notes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - run: corepack enable
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.13.0'
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - run: |
+          pnpm add -Dw @playwright/test@1.52.0 --lockfile=false
+          pnpm exec playwright install --with-deps chromium
+      - run: pnpm build
+      - run: |
+          pnpm exec wrangler dev --config dist/server/wrangler.json --port 8787 > /tmp/cza-effective-notes.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:8787/effective-notes > /tmp/effective-notes.html; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/cza-effective-notes.log
+          exit 1
+      - env:
+          CZA_BASE_URL: http://127.0.0.1:8787
+        run: pnpm exec playwright test tests/effective-notes-browser-acceptance.spec.cjs --reporter=line --workers=1
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cza-effective-notes-browser-acceptance
+          path: test-results/
+          if-no-files-found: ignore
+          retention-days: 7

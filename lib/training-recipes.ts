@@ -2,12 +2,19 @@ import { defaultConfig, validateConfig, type ExerciseConfig, type ExerciseMode }
 import { feedbackModeFor } from './practice-mode';
 
 export const assignableModules = {
-  finger_read: { label: 'Parmak Okuma', mode: 'finger-read' },
-  soroban_read: { label: 'Soroban Okuma', mode: 'soroban-read' },
-  soroban_write: { label: 'Soroban Yazma', mode: 'soroban-write' },
-  flash_anzan: { label: 'Flash Anzan', mode: 'flash' },
-  audio_anzan: { label: 'Sesli Anzan', mode: 'audio' },
-} as const satisfies Record<string, { label: string; mode: ExerciseMode }>;
+  finger_read: { label: 'Parmak Okuma', mode: 'finger-read', launchPath: '/studio', engine: 'cza-exercise-engine-v14' },
+  soroban_read: { label: 'Soroban Okuma', mode: 'soroban-read', launchPath: '/studio', engine: 'cza-exercise-engine-v14' },
+  soroban_write: { label: 'Soroban Yazma', mode: 'soroban-write', launchPath: '/studio', engine: 'cza-exercise-engine-v14' },
+  flash_anzan: { label: 'Flash Anzan', mode: 'flash', launchPath: '/studio', engine: 'cza-exercise-engine-v14' },
+  audio_anzan: { label: 'Sesli Anzan', mode: 'audio', launchPath: '/studio', engine: 'cza-exercise-engine-v14' },
+  memory: { label: 'Hafıza Teknikleri', mode: null, launchPath: '/memory', engine: 'cza-memory-v1' },
+  attention_focus: { label: 'Dikkat & Derin Odak', mode: null, launchPath: '/attention', engine: 'cza-attention-v1' },
+  speed_reading: { label: 'Hızlı Okuma', mode: null, launchPath: '/speed-reading', engine: 'cza-speed-reading-v1' },
+  mind_maps: { label: 'Zihin Haritaları', mode: null, launchPath: '/mind-maps', engine: 'cza-mind-maps-v1' },
+  intelligence_games: { label: 'Zekâ Oyunları', mode: null, launchPath: '/intelligence-games', engine: 'cza-intelligence-games-v1' },
+  effective_notes: { label: 'Etkili Not Alma', mode: null, launchPath: '/effective-notes', engine: 'cza-effective-notes-v1' },
+  full_learning_37: { label: 'Tam Öğrenme Sistemi 37', mode: null, launchPath: '/full-study', engine: 'cza-full-learning-37-v1' },
+} as const;
 
 export type AssignableModuleCode = keyof typeof assignableModules;
 
@@ -15,8 +22,10 @@ export function isAssignableModule(value: string): value is AssignableModuleCode
   return Object.hasOwn(assignableModules, value);
 }
 
-export function defaultRecipeSettings(moduleCode: AssignableModuleCode): ExerciseConfig {
-  const mode = assignableModules[moduleCode].mode;
+export function defaultRecipeSettings(moduleCode: AssignableModuleCode): ExerciseConfig | Record<string, unknown> {
+  const definition = assignableModules[moduleCode];
+  const mode = definition.mode;
+  if (mode === null) return { engine: definition.engine, practiceMode: 'guided_practice', assigned: true };
   const common: ExerciseConfig = {
     ...defaultConfig,
     mode,
@@ -56,7 +65,9 @@ function invalidRecommendationSettings(): never {
 }
 
 export function recipeSettingsFromRecommendation(moduleCode: AssignableModuleCode, raw: Record<string, unknown>): ExerciseConfig {
-  const next = { ...defaultRecipeSettings(moduleCode) };
+  const definition = assignableModules[moduleCode];
+  if (definition.mode === null) invalidRecommendationSettings();
+  const next = { ...defaultRecipeSettings(moduleCode) } as ExerciseConfig;
   for (const key of Object.keys(raw)) if (!recommendationKeys.has(key)) invalidRecommendationSettings();
 
   if (Object.hasOwn(raw, 'digits')) {
@@ -118,8 +129,20 @@ export function recipeSettingsFromRecommendation(moduleCode: AssignableModuleCod
     next.speechRate = raw.speechRate;
   }
 
-  next.mode = assignableModules[moduleCode].mode;
+  next.mode = definition.mode;
   next.feedbackMode = feedbackModeFor(next.practiceMode ?? 'guided_practice');
   validateConfig(next);
   return next;
+}
+
+
+export function assignmentUsesStudio(moduleCode: AssignableModuleCode) {
+  return assignableModules[moduleCode].mode !== null;
+}
+
+export function assignmentLaunchPath(moduleCode: AssignableModuleCode, recipeId: string) {
+  const base = assignableModules[moduleCode].launchPath;
+  const key = assignmentUsesStudio(moduleCode) ? 'recipe' : 'assignedRecipe';
+  const separator = base.includes('?') ? '&' : '?';
+  return base + separator + key + '=' + encodeURIComponent(recipeId) + (assignmentUsesStudio(moduleCode) ? '&program=assigned' : '');
 }
