@@ -1,0 +1,97 @@
+name: CZA Reports V1 Browser
+
+on:
+  push:
+    branches:
+      - feature/reports-v1
+    paths:
+      - 'app/api/educator-report/route.ts'
+      - 'components/central-student-report.tsx'
+      - 'scripts/qa/reports-v1-browser.mjs'
+      - '.github/workflows/reports-v1-browser.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'app/api/educator-report/route.ts'
+      - 'components/central-student-report.tsx'
+      - 'scripts/qa/reports-v1-browser.mjs'
+      - '.github/workflows/reports-v1-browser.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  reports-v1-browser:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    environment: CZA-STAGING-SECURITY
+    steps:
+      - name: Checkout exact head
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.13.0'
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Browser script syntax
+        run: node --check scripts/qa/reports-v1-browser.mjs
+
+      - name: Build exact head
+        run: pnpm build
+
+      - name: Start staging-bound built app
+        env:
+          CZA_STAGING_DATABASE_URL: ${{ secrets.CZA_STAGING_DATABASE_URL }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          printf 'DATABASE_URL=%s\n' "${CZA_STAGING_DATABASE_URL}" > dist/server/.dev.vars
+          chmod 600 dist/server/.dev.vars
+          pnpm exec wrangler dev --config dist/server/wrangler.json --port 8787 > /tmp/cza-reports-browser-app.log 2>&1 &
+          echo $! > /tmp/cza-reports-browser-app.pid
+          for i in $(seq 1 40); do
+            if curl -fsS http://127.0.0.1:8787/educator > /tmp/educator.html; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/cza-reports-browser-app.log
+          exit 1
+
+      - name: Reports V1 Chrome acceptance
+        env:
+          CZA_STAGING_DATABASE_URL: ${{ secrets.CZA_STAGING_DATABASE_URL }}
+          CZA_BROWSER_BASE_URL: http://127.0.0.1:8787
+        shell: bash
+        run: |
+          set -euo pipefail
+          CHROME_BIN="$(command -v google-chrome || command -v chromium || command -v chromium-browser || true)"
+          if [ -z "${CHROME_BIN}" ]; then
+            echo "REPORTS_V1_BROWSER=BLOCKED"
+            echo "REASON=CHROME_NOT_AVAILABLE"
+            exit 2
+          fi
+          export CHROME_BIN
+          node scripts/qa/reports-v1-browser.mjs
+
+      - name: Stop built app
+        if: always()
+        shell: bash
+        run: |
+          if [ -f /tmp/cza-reports-browser-app.pid ]; then
+            kill "$(cat /tmp/cza-reports-browser-app.pid)" 2>/dev/null || true
+          fi
+          rm -f dist/server/.dev.vars

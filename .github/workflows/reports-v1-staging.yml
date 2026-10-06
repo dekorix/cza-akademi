@@ -1,0 +1,82 @@
+name: CZA Reports V1 Staging
+
+on:
+  push:
+    branches:
+      - feature/reports-v1
+    paths:
+      - 'app/api/educator-report/route.ts'
+      - 'scripts/qa/reports-v1-staging.mjs'
+      - '.github/workflows/reports-v1-staging.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'app/api/educator-report/route.ts'
+      - 'scripts/qa/reports-v1-staging.mjs'
+      - '.github/workflows/reports-v1-staging.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  reports-v1-staging:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    environment: CZA-STAGING-SECURITY
+    steps:
+      - name: Checkout exact head
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.13.0'
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build exact head
+        run: pnpm build
+
+      - name: Start staging-bound built app
+        env:
+          CZA_STAGING_DATABASE_URL: ${{ secrets.CZA_STAGING_DATABASE_URL }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          printf 'DATABASE_URL=%s\n' "${CZA_STAGING_DATABASE_URL}" > dist/server/.dev.vars
+          chmod 600 dist/server/.dev.vars
+          pnpm exec wrangler dev --config dist/server/wrangler.json --port 8787 > /tmp/cza-reports-staging-app.log 2>&1 &
+          echo $! > /tmp/cza-reports-staging-app.pid
+          for i in $(seq 1 40); do
+            if curl -fsS http://127.0.0.1:8787/educator > /tmp/educator.html; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/cza-reports-staging-app.log
+          exit 1
+
+      - name: Reports V1 authenticated staging readback
+        env:
+          CZA_STAGING_DATABASE_URL: ${{ secrets.CZA_STAGING_DATABASE_URL }}
+          CZA_REPORTS_BASE_URL: http://127.0.0.1:8787
+        run: node scripts/qa/reports-v1-staging.mjs
+
+      - name: Stop built app
+        if: always()
+        shell: bash
+        run: |
+          if [ -f /tmp/cza-reports-staging-app.pid ]; then
+            kill "$(cat /tmp/cza-reports-staging-app.pid)" 2>/dev/null || true
+          fi
+          rm -f dist/server/.dev.vars

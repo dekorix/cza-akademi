@@ -54,7 +54,7 @@ export async function POST(request: Request) {
         SELECT s.id, s.academy_id, s.first_name, s.last_name, campus.identifier_value AS campus_code
         FROM public.users t
         JOIN public.teacher_student_links l ON l.teacher_id = t.id AND l.can_view = true
-        JOIN public.students s ON s.id = l.student_id
+        JOIN public.students s ON s.id = l.student_id AND s.academy_id = t.academy_id
         LEFT JOIN public.student_external_identifiers campus
           ON campus.student_id = s.id AND campus.identifier_type = 'campus_student_code'
         WHERE t.auth_user_id = ${educator.id}
@@ -66,7 +66,7 @@ export async function POST(request: Request) {
         SELECT s.id, s.academy_id, s.first_name, s.last_name, i.identifier_value AS campus_code
         FROM public.users t
         JOIN public.teacher_student_links l ON l.teacher_id = t.id AND l.can_view = true
-        JOIN public.students s ON s.id = l.student_id
+        JOIN public.students s ON s.id = l.student_id AND s.academy_id = t.academy_id
         JOIN public.student_external_identifiers i ON i.student_id = s.id
         WHERE t.auth_user_id = ${educator.id}
           AND t.is_active = true
@@ -107,6 +107,189 @@ export async function POST(request: Request) {
     `;
   } catch {
     learningHistoryAvailable = false;
+  }
+
+  let reportInsightsAvailable = true;
+  let reportInsights = {
+    sessions: 0,
+    assignmentSessions: 0,
+    independentSessions: 0,
+    totalQuestions: 0,
+    correct: 0,
+    wrong: 0,
+    accuracy: 0,
+    totalDurationMs: 0,
+    timeoutCount: 0,
+    retryCount: 0,
+  };
+  let moduleProgress: unknown[] = [];
+  let assignmentProgress = { total: 0, assigned: 0, started: 0, completed: 0 };
+  let recentAssignments: unknown[] = [];
+  let errorSummary: unknown[] = [];
+
+  try {
+    const [insightRows, moduleRows, assignmentRows, assignmentRecentRows, errorRows] = await Promise.all([
+      sql`
+        SELECT
+          count(*)::int AS sessions,
+          count(*) FILTER (WHERE metadata->>'source' = 'teacher_assignment')::int AS assignment_sessions,
+          count(*) FILTER (WHERE COALESCE(metadata->>'source', '') <> 'teacher_assignment')::int AS independent_sessions,
+          COALESCE(sum(CASE WHEN jsonb_typeof(performance->'total') = 'number' THEN (performance->>'total')::int ELSE 0 END), 0)::int AS total_questions,
+          COALESCE(sum(CASE WHEN jsonb_typeof(performance->'correct') = 'number' THEN (performance->>'correct')::int ELSE 0 END), 0)::int AS correct,
+          COALESCE(sum(CASE WHEN jsonb_typeof(performance->'wrong') = 'number' THEN (performance->>'wrong')::int ELSE 0 END), 0)::int AS wrong,
+          COALESCE(sum(CASE WHEN jsonb_typeof(performance->'durationMs') = 'number' THEN (performance->>'durationMs')::float8 ELSE EXTRACT(EPOCH FROM (completed_at - started_at)) * 1000 END), 0)::float8 AS total_duration_ms,
+          COALESCE(sum(CASE WHEN jsonb_typeof(performance->'timeoutCount') = 'number' THEN (performance->>'timeoutCount')::int ELSE 0 END), 0)::int AS timeout_count,
+          COALESCE(sum(CASE WHEN jsonb_typeof(performance->'retryCount') = 'number' THEN (performance->>'retryCount')::int ELSE 0 END), 0)::int AS retry_count
+        FROM public.learning_records
+        WHERE academy_id = ${student.academy_id}::uuid
+          AND student_id = ${student.id}::uuid
+      `,
+      sql`
+        SELECT
+          module_code,
+          count(*)::int AS sessions,
+          COALESCE(sum(CASE WHEN jsonb_typeof(performance->'total') = 'number' THEN (performance->>'total')::int ELSE 0 END), 0)::int AS total_questions,
+          COALESCE(sum(CASE WHEN jsonb_typeof(performance->'correct') = 'number' THEN (performance->>'correct')::int ELSE 0 END), 0)::int AS correct,
+          COALESCE(sum(CASE WHEN jsonb_typeof(performance->'wrong') = 'number' THEN (performance->>'wrong')::int ELSE 0 END), 0)::int AS wrong,
+          COALESCE(sum(CASE WHEN jsonb_typeof(performance->'durationMs') = 'number' THEN (performance->>'durationMs')::float8 ELSE EXTRACT(EPOCH FROM (completed_at - started_at)) * 1000 END), 0)::float8 AS total_duration_ms,
+          max(completed_at) AS last_completed_at
+        FROM public.learning_records
+        WHERE academy_id = ${student.academy_id}::uuid
+          AND student_id = ${student.id}::uuid
+        GROUP BY module_code
+        ORDER BY max(completed_at) DESC
+      `,
+      sql`
+        SELECT
+          count(*)::int AS total,
+          count(*) FILTER (
+            WHERE NOT EXISTS (
+              SELECT 1 FROM public.training_sessions ts WHERE ts.recipe_id = tr.id
+            )
+          )::int AS assigned,
+          count(*) FILTER (
+            WHERE EXISTS (
+              SELECT 1 FROM public.training_sessions ts WHERE ts.recipe_id = tr.id
+            )
+            AND NOT EXISTS (
+              SELECT 1 FROM public.training_sessions ts WHERE ts.recipe_id = tr.id AND ts.status = 'completed'
+            )
+          )::int AS started,
+          count(*) FILTER (
+            WHERE EXISTS (
+              SELECT 1 FROM public.training_sessions ts WHERE ts.recipe_id = tr.id AND ts.status = 'completed'
+            )
+          )::int AS completed
+        FROM public.training_recipes tr
+        WHERE tr.academy_id = ${student.academy_id}::uuid
+          AND tr.student_id = ${student.id}::uuid
+          AND tr.source = 'teacher_assignment'
+      `,
+      sql`
+        SELECT
+          tr.id,
+          tr.module_code,
+          tr.name,
+          tr.created_at,
+          tr.expires_at,
+          CASE
+            WHEN EXISTS (
+              SELECT 1 FROM public.training_sessions ts
+              WHERE ts.recipe_id = tr.id AND ts.status = 'completed'
+            ) THEN 'completed'
+            WHEN EXISTS (
+              SELECT 1 FROM public.training_sessions ts
+              WHERE ts.recipe_id = tr.id
+            ) THEN 'started'
+            ELSE 'assigned'
+          END AS status,
+          (SELECT count(*)::int FROM public.training_sessions ts WHERE ts.recipe_id = tr.id) AS session_count,
+          (SELECT max(ts.completed_at) FROM public.training_sessions ts WHERE ts.recipe_id = tr.id AND ts.status = 'completed') AS last_completed_at
+        FROM public.training_recipes tr
+        WHERE tr.academy_id = ${student.academy_id}::uuid
+          AND tr.student_id = ${student.id}::uuid
+          AND tr.source = 'teacher_assignment'
+        ORDER BY tr.created_at DESC
+        LIMIT 12
+      `,
+      sql`
+        SELECT COALESCE(error_type, 'RESPONSE_ERROR') AS error_type, count(*)::int AS count
+        FROM public.question_attempts
+        WHERE student_id = ${student.id}
+          AND NOT is_correct
+        GROUP BY COALESCE(error_type, 'RESPONSE_ERROR')
+        ORDER BY count(*) DESC, COALESCE(error_type, 'RESPONSE_ERROR')
+        LIMIT 8
+      `,
+    ]);
+
+    const insight = insightRows[0] as {
+      sessions?: number;
+      assignment_sessions?: number;
+      independent_sessions?: number;
+      total_questions?: number;
+      correct?: number;
+      wrong?: number;
+      total_duration_ms?: number;
+      timeout_count?: number;
+      retry_count?: number;
+    } | undefined;
+    const totalQuestions = Math.max(0, Number(insight?.total_questions || 0));
+    const correct = Math.max(0, Number(insight?.correct || 0));
+
+    reportInsights = {
+      sessions: Math.max(0, Number(insight?.sessions || 0)),
+      assignmentSessions: Math.max(0, Number(insight?.assignment_sessions || 0)),
+      independentSessions: Math.max(0, Number(insight?.independent_sessions || 0)),
+      totalQuestions,
+      correct,
+      wrong: Math.max(0, Number(insight?.wrong || 0)),
+      accuracy: totalQuestions ? Math.round((correct / totalQuestions) * 100) : 0,
+      totalDurationMs: Math.max(0, Number(insight?.total_duration_ms || 0)),
+      timeoutCount: Math.max(0, Number(insight?.timeout_count || 0)),
+      retryCount: Math.max(0, Number(insight?.retry_count || 0)),
+    };
+
+    moduleProgress = moduleRows.map(row => {
+      const typed = row as {
+        module_code: string;
+        sessions?: number;
+        total_questions?: number;
+        correct?: number;
+        wrong?: number;
+        total_duration_ms?: number;
+        last_completed_at?: string | null;
+      };
+      const moduleTotal = Math.max(0, Number(typed.total_questions || 0));
+      const moduleCorrect = Math.max(0, Number(typed.correct || 0));
+      return {
+        moduleCode: typed.module_code,
+        sessions: Math.max(0, Number(typed.sessions || 0)),
+        totalQuestions: moduleTotal,
+        correct: moduleCorrect,
+        wrong: Math.max(0, Number(typed.wrong || 0)),
+        accuracy: moduleTotal ? Math.round((moduleCorrect / moduleTotal) * 100) : 0,
+        totalDurationMs: Math.max(0, Number(typed.total_duration_ms || 0)),
+        lastCompletedAt: typed.last_completed_at || null,
+      };
+    });
+
+    const assignment = assignmentRows[0] as {
+      total?: number;
+      assigned?: number;
+      started?: number;
+      completed?: number;
+    } | undefined;
+    assignmentProgress = {
+      total: Math.max(0, Number(assignment?.total || 0)),
+      assigned: Math.max(0, Number(assignment?.assigned || 0)),
+      started: Math.max(0, Number(assignment?.started || 0)),
+      completed: Math.max(0, Number(assignment?.completed || 0)),
+    };
+    recentAssignments = assignmentRecentRows;
+    errorSummary = errorRows;
+  } catch {
+    reportInsightsAvailable = false;
   }
 
   let assessmentRouting: null | {
@@ -352,6 +535,12 @@ export async function POST(request: Request) {
     recent,
     learningHistory,
     learningHistoryAvailable,
+    reportInsights,
+    reportInsightsAvailable,
+    moduleProgress,
+    assignmentProgress,
+    recentAssignments,
+    errorSummary,
     assessmentRouting,
     specialEducationProfile,
     specialEducationProgram,
