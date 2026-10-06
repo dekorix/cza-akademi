@@ -44,8 +44,9 @@ for(const device of [
     await page.goto(BASE+'/educator/assessment');
     await page.locator('select').first().selectOption(STUDENT_ID);
     await page.getByRole('button',{name:/1\. sınıf sonu \/ 2\. sınıf başlangıcı/}).click();
-    await expect(page.getByRole('button',{name:'Tam P2 restorasyon haritasını aç →'})).toBeVisible();
-    await page.getByRole('button',{name:'Tam P2 restorasyon haritasını aç →'}).click();
+    const p2StatusButton=page.getByRole('button',{name:/P2 tam değerlendirme durumunu aç/});
+    await expect(p2StatusButton).toBeVisible();
+    await p2StatusButton.click();
     await verifyHub(page);
   });
 }
