@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
 const studio = fs.readFileSync(new URL('../app/studio/page.tsx', import.meta.url), 'utf8');
+const coreRoute = fs.readFileSync(new URL('../app/api/core/route.ts', import.meta.url), 'utf8');
 const records = fs.readFileSync(new URL('../lib/core-records.ts', import.meta.url), 'utf8');
 const studentHistory = fs.readFileSync(new URL('../app/api/student-history/route.ts', import.meta.url), 'utf8');
 const studentSession = fs.readFileSync(new URL('../lib/student-session.ts', import.meta.url), 'utf8');
