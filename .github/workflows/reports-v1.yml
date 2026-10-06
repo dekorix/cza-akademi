@@ -1,0 +1,76 @@
+name: CZA Reports V1
+
+on:
+  push:
+    branches:
+      - feature/reports-v1
+  pull_request:
+    branches:
+      - feature/assignment-lifecycle-v1
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  reports-v1:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout exact head
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.13.0'
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Type check
+        run: pnpm exec tsc --noEmit
+
+      - name: Reports and dependency tests
+        run: node --test tests/reports-v1.test.mjs tests/student-history-integration.test.mjs tests/assignment-lifecycle-v1.test.mjs
+
+      - name: Production build
+        run: pnpm build
+
+      - name: Start built app
+        shell: bash
+        run: |
+          set -euo pipefail
+          pnpm exec wrangler dev --config dist/server/wrangler.json --port 8787 > /tmp/cza-reports-v1.log 2>&1 &
+          echo $! > /tmp/cza-reports-v1.pid
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:8787/educator > /tmp/educator.html; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/cza-reports-v1.log
+          exit 1
+
+      - name: Report route and page smoke
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fsS http://127.0.0.1:8787/educator > /tmp/educator.html
+          test -s /tmp/educator.html
+          grep -F 'Eğitimci' /tmp/educator.html >/dev/null
+
+      - name: Lint report changes
+        continue-on-error: true
+        run: >-
+          pnpm exec oxlint --format unix
+          app/api/educator-report/route.ts
+          components/central-student-report.tsx
+          tests/reports-v1.test.mjs
