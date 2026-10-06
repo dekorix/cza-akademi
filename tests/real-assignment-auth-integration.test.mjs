@@ -13,6 +13,8 @@ const resetPage = fs.readFileSync(new URL('../app/educator/reset-password/page.t
 const educatorReport = fs.readFileSync(new URL('../app/api/educator-report/route.ts', import.meta.url), 'utf8');
 const trainingRecipes = fs.readFileSync(new URL('../lib/training-recipes.ts', import.meta.url), 'utf8');
 const prescriptionPage = fs.readFileSync(new URL('../app/educator/assessment/prescription/page.tsx', import.meta.url), 'utf8');
+const assignmentPage = fs.readFileSync(new URL('../app/assignment/page.tsx', import.meta.url), 'utf8');
+const packageGate = fs.readFileSync(new URL('../components/package-access-gate.tsx', import.meta.url), 'utf8');
 
 test('educator assignment creation reuses central student identity and existing training_recipes', () => {
   assert.match(educatorAssignments, /teacher_student_links/);
@@ -93,4 +95,23 @@ test('password reset is also a secure educator sign-in fallback and exposes a de
   assert.match(resetPage, /Parolayı kaydet ve giriş yap/);
   assert.match(resetPage, /window\.location\.replace\('\/educator\?tab=students&auth=reset'\)/);
   assert.match(resetPage, /CZA Auth · reset-autologin-v1/);
+});
+
+
+test('all seven Zihin modules are educator-assignable and launch through native workshops', () => {
+  for (const moduleCode of ['memory','attention_focus','speed_reading','mind_maps','intelligence_games','effective_notes','full_learning_37']) {
+    assert.match(trainingRecipes, new RegExp(moduleCode));
+    assert.match(students, new RegExp(moduleCode));
+  }
+  assert.match(trainingRecipes, /assignmentLaunchPath/);
+  assert.match(assignmentPage, /assignmentLaunchPath/);
+  assert.match(assignmentPage, /assignmentUsesStudio/);
+  assert.match(trainingRecipes, /assignedRecipe/);
+});
+
+test('package gate only bypasses entitlement after server-verified assignment ownership', () => {
+  assert.match(packageGate, /\/api\/core\/assignments\?recipeId=/);
+  assert.match(packageGate, /body\.assignment\?\.module_code===accessCode/);
+  assert.match(packageGate, /\/api\/core\/access/);
+  assert.doesNotMatch(packageGate, /assignedRecipe.*setState\('allowed'\)/);
 });

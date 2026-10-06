@@ -18,7 +18,7 @@ test('Anzan package opens only implemented exercise access',()=>{
 
 test('planned mind-development capabilities are recorded but not falsely marked ready',()=>{
   assert.ok(allAccessCodes('ZIHIN_GELISIM').includes('memory'));
-  assert.deepEqual(readyAccessCodes('ZIHIN_GELISIM'),['memory','speed_reading','attention_focus']);
+  assert.deepEqual(readyAccessCodes('ZIHIN_GELISIM'),['memory','speed_reading','attention_focus','mind_maps','intelligence_games','effective_notes','full_learning_37']);
 });
 
 test('combined package is a union without claiming unfinished modules are live',()=>{
@@ -27,4 +27,14 @@ test('combined package is a union without claiming unfinished modules are live',
   assert.ok(readyAccessCodes('BUTUNLESIK').includes('memory'));
   assert.ok(readyAccessCodes('BUTUNLESIK').includes('attention_focus'));
   assert.ok(readyAccessCodes('BUTUNLESIK').includes('speed_reading'));
+  assert.ok(readyAccessCodes('BUTUNLESIK').includes('mind_maps'));
+  assert.ok(readyAccessCodes('BUTUNLESIK').includes('intelligence_games'));
+  assert.ok(readyAccessCodes('BUTUNLESIK').includes('effective_notes'));
+  assert.ok(readyAccessCodes('BUTUNLESIK').includes('full_learning_37'));
+});
+
+
+test('mind-development and combined packages become fully activatable only after all seven modules are ready',()=>{
+  assert.equal(packageCatalog.ZIHIN_GELISIM.access.every(item=>item.ready),true);
+  assert.equal(packageCatalog.BUTUNLESIK.access.every(item=>item.ready),true);
 });
