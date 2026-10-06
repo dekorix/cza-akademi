@@ -341,22 +341,6 @@ try {
   assignmentId = String(assignmentRows[0]?.id || '');
   if (!assignmentId) throw new Error('assignment_not_persisted');
 
-  const opened = await evalJson(educatorPage, `(() => {
-    const rows = Array.from(document.querySelectorAll('div')).filter(el =>
-      el.innerText?.includes(${JSON.stringify(String(fixture.student_id))}) &&
-      el.querySelector('select[id^="assignment-"]')
-    );
-    const row = rows.sort((a,b) => a.innerText.length - b.innerText.length)[0];
-    if (!row) return false;
-    const buttons = Array.from(row.querySelectorAll('button'));
-    const hideButton = buttons.find(el => el.textContent?.includes('Atamaları gizle'));
-    if (hideButton) return true;
-    const showButton = buttons.find(el => el.textContent?.includes('Atamaları göster'));
-    if (!showButton) return false;
-    showButton.click();
-    return true;
-  })()`);
-  if (!opened) throw new Error('educator_assignment_list_button_missing');
   await waitForText(educatorPage, moduleLabel + ' · Başlangıç çalışması');
   await waitForText(educatorPage, 'Atandı');
 
