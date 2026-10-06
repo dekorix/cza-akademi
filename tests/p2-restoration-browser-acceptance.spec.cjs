@@ -43,6 +43,12 @@ for(const device of [
     await mockStudents(page);
     await page.goto(BASE+'/educator/assessment');
     await page.locator('select').first().selectOption(STUDENT_ID);
+    await expect(page.getByRole('heading',{name:'Tüm başlangıç değerlendirmeleri tek yerde.'})).toBeVisible();
+    await expect(page.getByText('ERKEN GELİŞİM',{exact:true})).toBeVisible();
+    await expect(page.getByText('OKUL ÇAĞI',{exact:true})).toBeVisible();
+    await expect(page.getByText('ÖZEL EĞİTİM VE ÖĞRENME PROFİLİ',{exact:true})).toBeVisible();
+    await expect(page.getByRole('button',{name:/Disleksi \/ Okuma Güçlüğü/})).toBeVisible();
+    await expect(page.getByRole('button',{name:/Karma Profil/})).toBeVisible();
     await page.getByRole('button',{name:/1\. sınıf sonu \/ 2\. sınıf başlangıcı/}).click();
     const p2StatusButton=page.getByRole('button',{name:/P2 tam değerlendirme durumunu aç/});
     await expect(p2StatusButton).toBeVisible();
