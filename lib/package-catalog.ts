@@ -27,7 +27,7 @@ export const packageCatalog = {
       { code: 'mind_maps', label: 'Zihin Haritaları', ready: true },
       { code: 'intelligence_games', label: 'Zekâ Oyunları', ready: true },
       { code: 'effective_notes', label: 'Etkili Not Alma', ready: true },
-      { code: 'full_learning_37', label: 'Tam Öğrenme Sistemi', ready: false },
+      { code: 'full_learning_37', label: 'Tam Öğrenme Sistemi', ready: true },
     ],
   },
   BUTUNLESIK: {
@@ -50,7 +50,7 @@ export const packageCatalog = {
       { code: 'mind_maps', label: 'Zihin Haritaları', ready: true },
       { code: 'intelligence_games', label: 'Zekâ Oyunları', ready: true },
       { code: 'effective_notes', label: 'Etkili Not Alma', ready: true },
-      { code: 'full_learning_37', label: 'Tam Öğrenme Sistemi', ready: false },
+      { code: 'full_learning_37', label: 'Tam Öğrenme Sistemi', ready: true },
     ],
   },
 } as const;
