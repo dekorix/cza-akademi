@@ -520,7 +520,7 @@ try {
         'Empty Report Fixture',
         'active',
         ${marker},
-        true
+        false
       )
       RETURNING id, academy_id
     `;
@@ -674,7 +674,9 @@ try {
     await sql`
       DELETE FROM public.students
       WHERE id = ${sameAcademyEmptyStudentId}::uuid
-        AND is_demo = true
+        AND is_demo = false
+        AND first_name = 'CZA QA'
+        AND last_name = 'Empty Report Fixture'
         AND notes = ${marker}
     `.catch(() => undefined);
   }
