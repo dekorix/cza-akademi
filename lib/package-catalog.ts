@@ -23,7 +23,7 @@ export const packageCatalog = {
     access: [
       { code: 'memory', label: 'Hafıza Teknikleri', ready: true },
       { code: 'speed_reading', label: 'Hızlı Okuma', ready: false },
-      { code: 'attention_focus', label: 'Dikkat ve Derin Odak', ready: false },
+      { code: 'attention_focus', label: 'Dikkat ve Derin Odak', ready: true },
       { code: 'mind_maps', label: 'Zihin Haritaları', ready: false },
       { code: 'intelligence_games', label: 'Zekâ Oyunları', ready: false },
       { code: 'effective_notes', label: 'Etkili Not Alma', ready: false },
@@ -46,7 +46,7 @@ export const packageCatalog = {
       { code: 'soroban_course', label: 'Soroban Öğrenme Yolu', ready: true },
       { code: 'memory', label: 'Hafıza Teknikleri', ready: true },
       { code: 'speed_reading', label: 'Hızlı Okuma', ready: false },
-      { code: 'attention_focus', label: 'Dikkat ve Derin Odak', ready: false },
+      { code: 'attention_focus', label: 'Dikkat ve Derin Odak', ready: true },
       { code: 'mind_maps', label: 'Zihin Haritaları', ready: false },
       { code: 'intelligence_games', label: 'Zekâ Oyunları', ready: false },
       { code: 'effective_notes', label: 'Etkili Not Alma', ready: false },
