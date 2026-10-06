@@ -1,0 +1,66 @@
+name: CZA Speed Reading Browser Acceptance
+
+on:
+  push:
+    branches:
+      - feature/speed-reading-v1
+    paths:
+      - 'app/speed-reading/**'
+      - 'components/package-access-gate.tsx'
+      - 'lib/speed-reading.ts'
+      - 'lib/package-catalog.ts'
+      - 'app/api/core/route.ts'
+      - 'tests/speed-reading-browser-acceptance.spec.cjs'
+      - '.github/workflows/speed-reading-browser-acceptance.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  chromium-speed-reading:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+      - name: Enable Corepack
+        run: corepack enable
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.13.0'
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Install Playwright Chromium
+        run: |
+          pnpm add -Dw @playwright/test@1.52.0 --lockfile=false
+          pnpm exec playwright install --with-deps chromium
+      - name: Build
+        run: pnpm build
+      - name: Start built app
+        run: |
+          pnpm exec wrangler dev --config dist/server/wrangler.json --port 8787 > /tmp/cza-speed-preview.log 2>&1 &
+          echo $! > /tmp/cza-speed-preview.pid
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:8787/speed-reading > /tmp/speed-reading.html; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/cza-speed-preview.log
+          exit 1
+      - name: Run desktop and mobile reading flow
+        env:
+          CZA_BASE_URL: http://127.0.0.1:8787
+        run: pnpm exec playwright test tests/speed-reading-browser-acceptance.spec.cjs --reporter=line --workers=1
+      - name: Upload reading screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cza-speed-reading-browser-acceptance
+          path: test-results/
+          if-no-files-found: ignore
+          retention-days: 7
