@@ -48,14 +48,16 @@ test('P2 restoration hub exposes the frozen full-source contract',()=>{
 });
 
 
-test('central intake opens the preserved full P2 assessment without exposing the incomplete central engine',()=>{
+test('central intake is the single profile hub and keeps incomplete P2 behind the restoration boundary',()=>{
   const source=fs.readFileSync(new URL('../components/central-assessment-intake.tsx',import.meta.url),'utf8');
+  assert.match(source,/Tüm başlangıç değerlendirmeleri tek yerde/);
+  assert.match(source,/ERKEN GELİŞİM/);
+  assert.match(source,/OKUL ÇAĞI/);
+  assert.match(source,/ÖZEL EĞİTİM VE ÖĞRENME PROFİLİ/);
+  assert.match(source,/SP-DYS/);
+  assert.match(source,/SP-MIX/);
   assert.match(source,/profileCode==='P2'/);
   assert.match(source,/target\?\.status==='SOURCE_REFERENCE_ONLY'/);
-  assert.match(source,/cza-degerlendirme-hl4a5d\.v2\.appdeploy\.ai\/\#\/veli/);
-  assert.match(source,/student:selectedStudent\.name/);
-  assert.match(source,/profile:'P2'/);
-  assert.match(source,/purpose:'GENERAL'/);
-  assert.match(source,/Tam P2 değerlendirmesini aç/);
-  assert.doesNotMatch(source,/onClick=\{\(\)=>\{window\.location\.href='\/assessment\/p2';\}\}/);
+  assert.match(source,/window\.location\.href='\/assessment\/p2'/);
+  assert.doesNotMatch(source,/cza-degerlendirme-hl4a5d\.v2\.appdeploy\.ai/);
 });
