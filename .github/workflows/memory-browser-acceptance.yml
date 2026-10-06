@@ -40,8 +40,8 @@ jobs:
 
       - name: Install Playwright Chromium
         run: |
-          npm install --no-save --package-lock=false @playwright/test@1.52.0
-          npx playwright install --with-deps chromium
+          pnpm add -Dw @playwright/test@1.52.0 --lockfile=false
+          pnpm exec playwright install --with-deps chromium
 
       - name: Build
         run: pnpm build
@@ -62,7 +62,7 @@ jobs:
       - name: Run desktop and mobile memory flow
         env:
           CZA_BASE_URL: http://127.0.0.1:8787
-        run: npx playwright test tests/memory-browser-acceptance.spec.cjs --reporter=line --workers=1
+        run: pnpm exec playwright test tests/memory-browser-acceptance.spec.cjs --reporter=line --workers=1
 
       - name: Upload memory screenshots
         if: always()
