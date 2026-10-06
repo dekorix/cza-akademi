@@ -46,7 +46,7 @@ jobs:
         run: pnpm build
 
       - name: Targeted CZA Core integration tests
-        run: node --experimental-strip-types --test tests/core-records.test.mjs tests/work-student-id-integration.test.mjs tests/cza-work-recommendations.test.mjs tests/real-assignment-auth-integration.test.mjs tests/educator-auth-route.test.mjs tests/e3-development-assessment.test.mjs tests/e3-assessment-content-v2.test.mjs tests/special-assessment-contract.test.mjs tests/special-learning-profile.test.mjs tests/special-education-program.test.mjs tests/special-education-program-auth.test.mjs tests/special-daily-work.test.mjs tests/special-daily-work-auth.test.mjs tests/special-reassessment.test.mjs tests/special-reassessment-auth.test.mjs tests/special-parent-report.test.mjs tests/special-family-report-auth.test.mjs tests/package-catalog.test.mjs tests/package-enrollment-auth.test.mjs tests/memory-techniques.test.mjs tests/attention-focus.test.mjs tests/speed-reading.test.mjs tests/mind-maps.test.mjs tests/intelligence-games.test.mjs tests/effective-notes.test.mjs tests/full-learning-37.test.mjs tests/assessment-bridge.test.mjs tests/central-assessment-intake.test.mjs tests/e2-central-assessment.test.mjs
+        run: node --experimental-strip-types --test tests/core-records.test.mjs tests/work-student-id-integration.test.mjs tests/cza-work-recommendations.test.mjs tests/real-assignment-auth-integration.test.mjs tests/educator-auth-route.test.mjs tests/e3-development-assessment.test.mjs tests/e3-assessment-content-v2.test.mjs tests/special-assessment-contract.test.mjs tests/special-learning-profile.test.mjs tests/special-education-program.test.mjs tests/special-education-program-auth.test.mjs tests/special-daily-work.test.mjs tests/special-daily-work-auth.test.mjs tests/special-reassessment.test.mjs tests/special-reassessment-auth.test.mjs tests/special-parent-report.test.mjs tests/special-family-report-auth.test.mjs tests/package-catalog.test.mjs tests/package-enrollment-auth.test.mjs tests/memory-techniques.test.mjs tests/attention-focus.test.mjs tests/speed-reading.test.mjs tests/mind-maps.test.mjs tests/intelligence-games.test.mjs tests/effective-notes.test.mjs tests/full-learning-37.test.mjs tests/assessment-bridge.test.mjs tests/central-assessment-intake.test.mjs tests/p2-full-assessment-contract.test.mjs tests/e2-central-assessment.test.mjs
 
       - name: Start built app
         run: |
@@ -66,6 +66,7 @@ jobs:
           curl -fsS http://127.0.0.1:8787/assessment > /tmp/assessment-student.html
           curl -fsS http://127.0.0.1:8787/assessment/e3 > /tmp/assessment-e3.html
           curl -fsS http://127.0.0.1:8787/assessment/e2 > /tmp/assessment-e2.html
+          curl -fsS http://127.0.0.1:8787/assessment/p2 > /tmp/assessment-p2.html
           curl -fsS http://127.0.0.1:8787/educator/assessment > /tmp/assessment-educator.html
           curl -fsS http://127.0.0.1:8787/educator/assessment/report > /tmp/assessment-report.html
           curl -fsS http://127.0.0.1:8787/educator/special-program > /tmp/special-program.html
@@ -89,6 +90,8 @@ jobs:
           test -s /tmp/assessment-student.html
           test -s /tmp/assessment-e3.html
           test -s /tmp/assessment-e2.html
+          test -s /tmp/assessment-p2.html
+          grep -F '1. sınıf sonu' /tmp/assessment-p2.html
           test -s /tmp/assessment-educator.html
           test -s /tmp/assessment-report.html
           test -s /tmp/special-program.html
@@ -159,6 +162,7 @@ jobs:
           components/educator-students.tsx
           lib/assessment-engine.ts
           lib/assessment-bridge.ts
+          lib/p2-full-assessment-contract.ts
           lib/e2-question-bank.ts
           lib/e2-adaptive.ts
           lib/e2-assessment.ts
