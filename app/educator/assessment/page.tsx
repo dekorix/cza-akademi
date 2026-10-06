@@ -1,9 +1,9 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, BrainCircuit, Clipboard, FileText, RefreshCw, Sparkles, TrendingUp, UserRoundCheck } from 'lucide-react';
+import { ArrowLeft, BrainCircuit, Clipboard, FileText, RefreshCw, Sparkles, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { CentralAssessmentIntake } from '@/components/central-assessment-intake';
 import type { AssessmentTask, ObservationCode } from '@/lib/assessment-engine';
 import { skillCatalog } from '@/lib/assessment-engine';
 
@@ -74,14 +74,16 @@ export default function EducatorAssessmentPage() {
     return () => window.clearInterval(timer);
   }, [sessionId]);
 
-  async function createSession() {
-    setBusy(true); setMessage('');
-    try {
-      const data = await callAssessment({ action:'create', studentLabel });
-      setSessionId(data.session.id); setSession(data.session); setTasks(data.tasks || []); setAttempts([]); setObservations([]); setLearningResponse(null);
-      setMessage('Oturum hazır. Öğrenci bağlantısını paylaşabilirsin.');
-    } catch (err) { setMessage(err instanceof Error ? err.message : 'Oturum oluşturulamadı.'); }
-    finally { setBusy(false); }
+  function acceptP2Session(data: any) {
+    const nextSession=data.session;
+    setStudentLabel(String(data.student?.name || nextSession?.student_label || 'Öğrenci'));
+    setSessionId(String(nextSession.id));
+    setSession(nextSession);
+    setTasks(data.tasks || []);
+    setAttempts([]);
+    setObservations([]);
+    setLearningResponse(null);
+    setMessage('Merkezi öğrenci kimliğiyle P2 değerlendirme oturumu hazır.');
   }
 
   async function saveObservation() {
@@ -139,7 +141,7 @@ export default function EducatorAssessmentPage() {
     <div className="mx-auto max-w-[1380px] px-5 py-8 md:px-9">
       <div className="mb-7"><p className="text-xs font-bold uppercase tracking-[.16em] text-[#5d8c7d]">CZA Değerlendirme Motoru v1.0</p><h1 className="mt-2 text-3xl font-semibold tracking-tight">Çocuğun cevabını değil, düşünme sürecini izle.</h1><p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">Isınma, matematik, Türkçe ve bilişsel görevlerde başlangıç performansı, destek ihtiyacı, destek sonrası başarı ve transfer aynı oturumda izlenir.</p></div>
 
-      {!sessionId ? <section className="max-w-2xl rounded-2xl border bg-white p-7 shadow-sm"><div className="flex items-center gap-3"><span className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#e7f5ed] text-[#226f60]"><UserRoundCheck/></span><div><h2 className="text-xl font-semibold">Yeni değerlendirme başlat</h2><p className="text-xs text-muted-foreground">Pilot için yalnız görünen öğrenci adı yeterli.</p></div></div><div className="mt-6 flex gap-3"><Input value={studentLabel} onChange={e=>setStudentLabel(e.target.value)} className="h-11"/><Button onClick={createSession} disabled={busy} className="h-11 bg-[#226f60] hover:bg-[#195749]">{busy?'Hazırlanıyor…':'Oturumu oluştur'}</Button></div>{message&&<p className="mt-4 text-sm text-[#55766b]">{message}</p>}</section> : <div className="grid items-start gap-6 xl:grid-cols-[1.15fr_.85fr]">
+      {!sessionId ? <CentralAssessmentIntake onP2Created={acceptP2Session}/> : <div className="grid items-start gap-6 xl:grid-cols-[1.15fr_.85fr]">
 
         <div className="space-y-6">
           <section className="rounded-2xl border border-[#cfe4d9] bg-white p-6 shadow-sm"><div className="flex flex-wrap items-center justify-between gap-4"><div><p className="text-xs font-bold uppercase tracking-[.14em] text-[#5d8c7d]">Aktif oturum</p><h2 className="mt-1 text-2xl font-semibold">{session?.student_label || studentLabel}</h2><p className="mt-1 text-xs text-muted-foreground">Durum: {session?.status} · {attempts.length} görev tamamlandı</p></div><div className="flex flex-wrap gap-2"><a href={reportUrl()} className="inline-flex h-9 items-center justify-center gap-2 rounded-md border border-[#c9d9d1] bg-white px-3 text-sm font-semibold text-[#315f50] transition hover:bg-[#f3f8f5]"><FileText size={15}/> Raporu aç</a><Button variant="outline" onClick={()=>refresh()}><RefreshCw/> Yenile</Button></div></div><div className="mt-5 rounded-xl bg-[#f4f9f6] p-4"><p className="text-xs font-semibold text-[#4c6f64]">Öğrenci bağlantısı</p><div className="mt-2 flex flex-col gap-2 sm:flex-row"><code className="min-w-0 flex-1 overflow-hidden text-ellipsis whitespace-nowrap rounded-lg border bg-white px-3 py-3 text-xs">{childUrl()}</code><Button onClick={copyLink} variant="outline"><Clipboard/> Kopyala</Button></div></div></section>

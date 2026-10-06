@@ -275,4 +275,27 @@ test.describe('CZA Özel Eğitim Başlangıç Değerlendirmesi V1 kabul', () => 
     expect(errors).toEqual([]);
   });
 
+
+  test('merkezi başlangıç ekranı parametreleri öğrenciyi ve özel profili otomatik taşır', async ({ page }) => {
+    const studentId = '11111111-1111-4111-8111-111111111111';
+
+    await page.route('**/api/educator-students*', async route => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          ok: true,
+          students: [{ id: studentId, name: 'Merkezi Başlangıç Öğrencisi', code: 'QA-BRIDGE' }],
+          hasMore: false
+        })
+      });
+    });
+
+    await page.goto(BASE + '/?studentId=' + encodeURIComponent(studentId) + '&profile=SP-DYS', { waitUntil: 'networkidle' });
+
+    await expect(page.getByRole('heading', { name: 'Okuma sisteminin nerede zorlandığını ayıralım' })).toBeVisible();
+    await expect(page.locator('#centralStudentDys')).toHaveValue(studentId);
+    await expect(page.locator('#name')).toHaveValue('Merkezi Başlangıç Öğrencisi');
+  });
+
 });
