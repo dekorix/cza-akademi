@@ -304,7 +304,7 @@ export async function POST(request:Request){
       return json({
         ok:true,
         childCompletedAt,
-        caregiverRequired:nextMetadata.caregiverRequired!==false,
+        caregiverRequired:metadata.caregiverRequired!==false,
         sessionCompleted:false,
         summary:e2Summary(ageMonths,profile,responses,completedSections),
       });
