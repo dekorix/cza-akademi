@@ -4,6 +4,7 @@ import type { CanonicalLearningRecord } from '@/lib/learning-contract-server';
 type AuthenticatedStudent = {
   academy_id: string;
   student_id: string;
+  student_session_id: string;
 };
 
 type PersistenceRow = {
@@ -29,6 +30,9 @@ function databaseErrorCode(error: unknown) {
   }
   if (message.includes('CZA_SESSION_OWNERSHIP_INVALID')) {
     return new CanonicalPersistenceError('session_ownership_invalid', 403);
+  }
+  if (message.includes('CZA_STUDENT_SESSION_OWNERSHIP_INVALID')) {
+    return new CanonicalPersistenceError('student_session_ownership_invalid', 403);
   }
   if (
     message.includes('CZA_CONTRACT_INVALID') ||
@@ -57,6 +61,7 @@ export async function persistCanonicalLearningRecord(
         ${student.academy_id}::uuid,
         ${student.student_id}::uuid,
         ${record.trainingSessionId}::uuid,
+        ${student.student_session_id}::uuid,
         ${record.clientRecordId}::uuid,
         ${record.recordType}::text,
         ${record.contractVersion}::text,

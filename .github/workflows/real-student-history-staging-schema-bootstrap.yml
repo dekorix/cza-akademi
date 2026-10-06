@@ -1,0 +1,36 @@
+name: CZA Real Student History Staging Schema Repair
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  apply-approved-ledger-migration:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    environment: CZA-STAGING-SECURITY
+    steps:
+      - name: Checkout exact branch head
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.13.0'
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Apply and verify approved canonical ledger migration
+        env:
+          CZA_STAGING_DATABASE_URL: ${{ secrets.CZA_STAGING_DATABASE_URL }}
+        run: node scripts/qa/apply-staging-ledger-migration.mjs

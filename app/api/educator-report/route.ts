@@ -83,6 +83,32 @@ export async function POST(request: Request) {
     sql`SELECT module_code,target_number,student_numeric_answer,is_correct,error_type,error_detail,total_response_time_ms,created_at,metadata FROM public.question_attempts WHERE student_id=${student.id} ORDER BY created_at DESC LIMIT 30`,
   ]);
 
+  let learningHistory: unknown[] = [];
+  let learningHistoryAvailable = true;
+  try {
+    learningHistory = await sql`
+      SELECT
+        id,
+        training_session_id,
+        module_code,
+        module_version,
+        activity_type,
+        started_at,
+        completed_at,
+        support_level,
+        performance,
+        skills,
+        metadata
+      FROM public.learning_records
+      WHERE academy_id = ${student.academy_id}::uuid
+        AND student_id = ${student.id}::uuid
+      ORDER BY completed_at DESC, created_at DESC
+      LIMIT 30
+    `;
+  } catch {
+    learningHistoryAvailable = false;
+  }
+
   let assessmentRouting: null | {
     sessionId: string;
     templateCode: string;
@@ -324,6 +350,8 @@ export async function POST(request: Request) {
     summary: summary[0],
     modules,
     recent,
+    learningHistory,
+    learningHistoryAvailable,
     assessmentRouting,
     specialEducationProfile,
     specialEducationProgram,

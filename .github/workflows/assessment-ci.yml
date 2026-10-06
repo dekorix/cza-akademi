@@ -46,7 +46,7 @@ jobs:
         run: pnpm build
 
       - name: Targeted CZA Core integration tests
-        run: node --experimental-strip-types --test tests/core-records.test.mjs tests/work-student-id-integration.test.mjs tests/cza-work-recommendations.test.mjs tests/real-assignment-auth-integration.test.mjs tests/educator-auth-route.test.mjs tests/e3-development-assessment.test.mjs tests/e3-assessment-content-v2.test.mjs tests/special-assessment-contract.test.mjs tests/special-learning-profile.test.mjs tests/special-education-program.test.mjs tests/special-education-program-auth.test.mjs tests/special-daily-work.test.mjs tests/special-daily-work-auth.test.mjs tests/special-reassessment.test.mjs tests/special-reassessment-auth.test.mjs tests/special-parent-report.test.mjs tests/special-family-report-auth.test.mjs tests/package-catalog.test.mjs tests/package-enrollment-auth.test.mjs tests/memory-techniques.test.mjs tests/attention-focus.test.mjs tests/speed-reading.test.mjs tests/mind-maps.test.mjs tests/intelligence-games.test.mjs tests/effective-notes.test.mjs tests/full-learning-37.test.mjs tests/assessment-bridge.test.mjs tests/central-assessment-intake.test.mjs tests/p2-full-assessment-contract.test.mjs tests/e2-central-assessment.test.mjs
+        run: node --experimental-strip-types --test tests/core-records.test.mjs tests/work-student-id-integration.test.mjs tests/cza-work-recommendations.test.mjs tests/real-assignment-auth-integration.test.mjs tests/educator-auth-route.test.mjs tests/e3-development-assessment.test.mjs tests/e3-assessment-content-v2.test.mjs tests/special-assessment-contract.test.mjs tests/special-learning-profile.test.mjs tests/special-education-program.test.mjs tests/special-education-program-auth.test.mjs tests/special-daily-work.test.mjs tests/special-daily-work-auth.test.mjs tests/special-reassessment.test.mjs tests/special-reassessment-auth.test.mjs tests/special-parent-report.test.mjs tests/special-family-report-auth.test.mjs tests/package-catalog.test.mjs tests/package-enrollment-auth.test.mjs tests/memory-techniques.test.mjs tests/attention-focus.test.mjs tests/speed-reading.test.mjs tests/mind-maps.test.mjs tests/intelligence-games.test.mjs tests/effective-notes.test.mjs tests/full-learning-37.test.mjs tests/assessment-bridge.test.mjs tests/central-assessment-intake.test.mjs tests/p2-full-assessment-contract.test.mjs tests/e2-central-assessment.test.mjs tests/student-history-integration.test.mjs
 
       - name: Start built app
         run: |
@@ -153,12 +153,14 @@ jobs:
           app/api/educator-auth
           app/api/educator-assignments
           app/api/educator-report/route.ts
+          app/api/student-history/route.ts
           app/studio/page.tsx
           app/work/page.tsx
           components/assessment-report.tsx
           components/central-assessment-intake.tsx
           components/assigned-work-banner.tsx
           components/central-student-report.tsx
+          components/student-learning-history.tsx
           components/educator-students.tsx
           lib/assessment-engine.ts
           lib/assessment-bridge.ts
@@ -193,6 +195,7 @@ jobs:
           lib/preschool-e3-protocol.ts
           lib/cza-work-recommendations.ts
           lib/assigned-session.ts
+          lib/core-records.ts
           lib/educator-auth.ts
           lib/student-session.ts
           lib/training-recipes.ts

@@ -30,7 +30,7 @@ function readCookie(request: Request, name: string) {
 function sessionCookie(value: string, maxAge: number, secure: boolean) {
   return [
     `${COOKIE_NAME}=${encodeURIComponent(value)}`,
-    'Path=/api/core',
+    'Path=/api',
     'HttpOnly',
     ...(secure ? ['Secure'] : []),
     'SameSite=Lax',
