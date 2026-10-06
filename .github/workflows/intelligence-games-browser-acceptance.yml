@@ -24,9 +24,10 @@ jobs:
           cache: pnpm
           cache-dependency-path: pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile
-      - run: |
-          pnpm add -Dw @playwright/test@1.52.0 --lockfile=false
-          pnpm exec playwright install --with-deps chromium
+      - name: Install isolated Playwright Chromium
+        run: |
+          npm install --prefix /tmp/cza-pw --package-lock=false @playwright/test@1.52.0
+          /tmp/cza-pw/node_modules/.bin/playwright install --with-deps chromium
       - run: pnpm build
       - run: |
           pnpm exec wrangler dev --config dist/server/wrangler.json --port 8787 > /tmp/cza-intelligence-preview.log 2>&1 &
@@ -39,7 +40,7 @@ jobs:
       - name: Run desktop and mobile intelligence flow
         env:
           CZA_BASE_URL: http://127.0.0.1:8787
-        run: pnpm exec playwright test tests/intelligence-games-browser-acceptance.spec.cjs --reporter=line --workers=1
+        run: NODE_PATH=/tmp/cza-pw/node_modules /tmp/cza-pw/node_modules/.bin/playwright test tests/intelligence-games-browser-acceptance.spec.cjs --reporter=line --workers=1
       - uses: actions/upload-artifact@v4
         if: always()
         with:
