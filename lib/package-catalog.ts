@@ -22,7 +22,7 @@ export const packageCatalog = {
     description: 'Hafıza, dikkat, hızlı okuma ve öğrenmeyi öğrenme programları.',
     access: [
       { code: 'memory', label: 'Hafıza Teknikleri', ready: true },
-      { code: 'speed_reading', label: 'Hızlı Okuma', ready: false },
+      { code: 'speed_reading', label: 'Hızlı Okuma', ready: true },
       { code: 'attention_focus', label: 'Dikkat ve Derin Odak', ready: true },
       { code: 'mind_maps', label: 'Zihin Haritaları', ready: false },
       { code: 'intelligence_games', label: 'Zekâ Oyunları', ready: false },
@@ -45,7 +45,7 @@ export const packageCatalog = {
       { code: 'audio_anzan', label: 'Sesli Anzan', ready: true },
       { code: 'soroban_course', label: 'Soroban Öğrenme Yolu', ready: true },
       { code: 'memory', label: 'Hafıza Teknikleri', ready: true },
-      { code: 'speed_reading', label: 'Hızlı Okuma', ready: false },
+      { code: 'speed_reading', label: 'Hızlı Okuma', ready: true },
       { code: 'attention_focus', label: 'Dikkat ve Derin Odak', ready: true },
       { code: 'mind_maps', label: 'Zihin Haritaları', ready: false },
       { code: 'intelligence_games', label: 'Zekâ Oyunları', ready: false },
