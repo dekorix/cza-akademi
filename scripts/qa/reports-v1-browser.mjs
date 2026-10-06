@@ -166,30 +166,28 @@ async function loadApiReport(page, studentId) {
 }
 
 async function openUiReport(page, studentId) {
-  const tabOpened = await evalJson(page, `(() => {
-    const button = Array.from(document.querySelectorAll('button')).find(el => el.textContent?.includes('Seans raporları'));
+  const openedFromStudent = await evalJson(page, `(() => {
+    const rows = Array.from(document.querySelectorAll('div')).filter(el =>
+      el.innerText?.includes(${JSON.stringify(studentId)}) &&
+      Array.from(el.querySelectorAll('button')).some(button => button.textContent?.includes('Çalışma raporu'))
+    );
+    const row = rows.sort((a,b) => a.innerText.length - b.innerText.length)[0];
+    if (!row) return false;
+    const button = Array.from(row.querySelectorAll('button')).find(el => el.textContent?.includes('Çalışma raporu'));
     if (!button) return false;
     button.click();
     return true;
   })()`);
-  if (!tabOpened) throw new Error('reports_tab_missing');
+  if (!openedFromStudent) throw new Error('student_report_button_missing');
   await waitForText(page, 'Gerçek kaydı getir');
 
-  const filled = await evalJson(page, `(() => {
-    const input = document.querySelector('#studentCode');
-    if (!input) return false;
-    const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set;
-    setter?.call(input, ${JSON.stringify(studentId)});
-    input.dispatchEvent(new Event('input', { bubbles: true }));
-    return true;
-  })()`);
-  if (!filled) throw new Error('report_student_input_missing');
-  await sleep(150);
+  const inputValue = await evalJson(page, `document.querySelector('#studentCode')?.value || ''`);
+  if (String(inputValue) !== String(studentId)) throw new Error('report_student_id_not_carried_from_row');
 
   const submitted = await evalJson(page, `(() => {
-    const input = document.querySelector('#studentCode');
-    if (!input) return false;
-    input.closest('form')?.requestSubmit();
+    const button = Array.from(document.querySelectorAll('button')).find(el => el.textContent?.includes('Gerçek kaydı getir'));
+    if (!button) return false;
+    button.click();
     return true;
   })()`);
   if (!submitted) throw new Error('report_form_submit_missing');
