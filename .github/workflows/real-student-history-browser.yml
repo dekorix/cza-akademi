@@ -1,6 +1,18 @@
 name: CZA Real Student History Browser Acceptance
 
 on:
+  push:
+    branches:
+      - feature/real-student-history-v1
+    paths:
+      - 'app/api/core/route.ts'
+      - 'app/api/student-history/route.ts'
+      - 'app/api/educator-report/route.ts'
+      - 'components/student-learning-history.tsx'
+      - 'components/central-student-report.tsx'
+      - 'scripts/qa/real-student-history-browser.mjs'
+      - 'tests/student-history-integration.test.mjs'
+      - '.github/workflows/real-student-history-browser.yml'
   workflow_dispatch:
 
 permissions:
