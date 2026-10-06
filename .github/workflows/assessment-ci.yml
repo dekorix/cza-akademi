@@ -46,7 +46,7 @@ jobs:
         run: pnpm build
 
       - name: Targeted CZA Core integration tests
-        run: node --experimental-strip-types --test tests/core-records.test.mjs tests/work-student-id-integration.test.mjs tests/cza-work-recommendations.test.mjs tests/real-assignment-auth-integration.test.mjs tests/educator-auth-route.test.mjs tests/e3-development-assessment.test.mjs tests/e3-assessment-content-v2.test.mjs tests/special-assessment-contract.test.mjs tests/special-learning-profile.test.mjs tests/special-education-program.test.mjs tests/special-education-program-auth.test.mjs tests/special-daily-work.test.mjs tests/special-daily-work-auth.test.mjs tests/special-reassessment.test.mjs tests/special-reassessment-auth.test.mjs tests/special-parent-report.test.mjs tests/special-family-report-auth.test.mjs tests/package-catalog.test.mjs tests/package-enrollment-auth.test.mjs tests/memory-techniques.test.mjs tests/attention-focus.test.mjs tests/speed-reading.test.mjs tests/mind-maps.test.mjs tests/intelligence-games.test.mjs tests/effective-notes.test.mjs tests/full-learning-37.test.mjs
+        run: node --experimental-strip-types --test tests/core-records.test.mjs tests/work-student-id-integration.test.mjs tests/cza-work-recommendations.test.mjs tests/real-assignment-auth-integration.test.mjs tests/educator-auth-route.test.mjs tests/e3-development-assessment.test.mjs tests/e3-assessment-content-v2.test.mjs tests/special-assessment-contract.test.mjs tests/special-learning-profile.test.mjs tests/special-education-program.test.mjs tests/special-education-program-auth.test.mjs tests/special-daily-work.test.mjs tests/special-daily-work-auth.test.mjs tests/special-reassessment.test.mjs tests/special-reassessment-auth.test.mjs tests/special-parent-report.test.mjs tests/special-family-report-auth.test.mjs tests/package-catalog.test.mjs tests/package-enrollment-auth.test.mjs tests/memory-techniques.test.mjs tests/attention-focus.test.mjs tests/speed-reading.test.mjs tests/mind-maps.test.mjs tests/intelligence-games.test.mjs tests/effective-notes.test.mjs tests/full-learning-37.test.mjs tests/assessment-bridge.test.mjs
 
       - name: Start built app
         run: |
@@ -133,6 +133,7 @@ jobs:
           app/api/assessment-e3
           app/api/assessment-e3-linked
           app/api/assessment-special-linked
+          app/api/educator-assessment-context
           app/api/educator-special-programs
           app/api/educator-special-reassessment
           app/api/educator-special-family-report
@@ -149,6 +150,7 @@ jobs:
           components/central-student-report.tsx
           components/educator-students.tsx
           lib/assessment-engine.ts
+          lib/assessment-bridge.ts
           lib/assessment-routing.ts
           lib/assessment-math.ts
           lib/assessment-math-extended.ts
