@@ -1,6 +1,7 @@
 const { test, expect } = require('@playwright/test');
 
 const SESSION_ID='22222222-2222-4222-8222-222222222222';
+const BASE_URL=process.env.CZA_BASE_URL||'http://127.0.0.1:8787';
 
 async function mockMemoryApi(page, captured){
   await page.route('**/api/core/access', async route=>{
@@ -31,7 +32,7 @@ async function mockMemoryApi(page, captured){
 }
 
 async function completeVisualLink(page,captured){
-  await page.goto('/memory');
+  await page.goto(BASE_URL+'/memory');
   await expect(page.getByRole('heading',{name:'Ezberleme. Bir yöntem kullan.'})).toBeVisible();
   await page.getByRole('button',{name:/Görsel Bağ/}).click();
   await expect(page.getByText('balon',{exact:true})).toBeVisible();
