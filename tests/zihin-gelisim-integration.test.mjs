@@ -13,7 +13,7 @@ const expected = [
 ];
 
 const { packageCatalog, packageReadiness, readyAccessCodes } = await import('../lib/package-catalog.ts');
-const { assignableModules } = await import('../lib/training-recipes.ts');
+const trainingRecipesSource=fs.readFileSync(new URL('../lib/training-recipes.ts',import.meta.url),'utf8');
 
 test('Zihin Gelişim package is exactly 7/7 ready',()=>{
   assert.deepEqual(readyAccessCodes('ZIHIN_GELISIM'), expected.map(([code])=>code));
@@ -25,9 +25,15 @@ test('Zihin Gelişim package is exactly 7/7 ready',()=>{
 
 test('all seven modules are educator-assignable with native routes',()=>{
   for(const [code,path] of expected){
+    const escapedPath=path.replace(/[.*+?^$\{\}()|[\]\\]/g,'\\test('all seven modules are educator-assignable with native routes',()=>{
+  for(const [code,path] of expected){
     assert.ok(assignableModules[code], code+' missing from assignment catalog');
     assert.equal(assignableModules[code].launchPath,path);
     assert.equal(assignableModules[code].mode,null);
+  }
+});');
+    const pattern=new RegExp(code+"\\s*:\\s*\\{[^}]*launchPath:\\s*['\"]"+escapedPath+"['\"][^}]*mode:\\s*null","s");
+    assert.match(trainingRecipesSource,pattern,code+' missing or wrong launchPath in assignment catalog');
   }
 });
 
