@@ -56,3 +56,10 @@ test('educator report reads the same learning_records source after teacher-stude
   assert.match(educatorReport, /student_id = \$\{student\.id\}/);
   assert.match(educatorUi, /Gerçek çalışma geçmişi/);
 });
+
+
+test('student session cookie is available to history APIs', () => {
+  const sessionCookieBlock = coreRoute.match(/function sessionCookie[\\s\\S]*?function assignmentCookie/)?.[0] || '';
+  assert.match(sessionCookieBlock, /'Path=\\/api'/);
+  assert.doesNotMatch(sessionCookieBlock, /'Path=\\/api\\/core'/);
+});
