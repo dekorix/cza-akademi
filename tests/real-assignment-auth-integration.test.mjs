@@ -106,7 +106,7 @@ test('all seven Zihin modules are educator-assignable and launch through native 
   assert.match(trainingRecipes, /assignmentLaunchPath/);
   assert.match(assignmentPage, /assignmentLaunchPath/);
   assert.match(assignmentPage, /assignmentUsesStudio/);
-  assert.match(assignmentPage, /assignedRecipe/);
+  assert.match(trainingRecipes, /assignedRecipe/);
 });
 
 test('package gate only bypasses entitlement after server-verified assignment ownership', () => {
