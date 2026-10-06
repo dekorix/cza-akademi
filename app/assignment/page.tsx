@@ -5,13 +5,14 @@ import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { saveAssignedProgram } from '@/lib/assigned-session';
 import type { ExerciseConfig } from '@/lib/exercise-engine';
+import { assignmentLaunchPath, assignmentUsesStudio, isAssignableModule } from '@/lib/training-recipes';
 
 type Assignment = {
   id: string;
   module_code: string;
   module_name?: string;
   name: string;
-  settings: ExerciseConfig;
+  settings: ExerciseConfig | Record<string, unknown>;
 };
 
 export default function AssignmentLaunchPage() {
@@ -26,7 +27,10 @@ export default function AssignmentLaunchPage() {
       const detailsResponse = await fetch(`/api/core/assignments?recipeId=${encodeURIComponent(recipeId)}`, { cache: 'no-store' });
       const details = await detailsResponse.json() as { ok?: boolean; assignment?: Assignment; error?: string };
       if (!detailsResponse.ok || details.ok !== true || !details.assignment) throw new Error(details.error || 'Atama bulunamadı.');
-      if (!saveAssignedProgram(recipeId, details.assignment.settings)) throw new Error('Çalışma ayarları bu cihazda hazırlanamadı.');
+      if (!isAssignableModule(details.assignment.module_code)) throw new Error('Bu çalışma türü artık desteklenmiyor.');
+      if (assignmentUsesStudio(details.assignment.module_code)) {
+        if (!saveAssignedProgram(recipeId, details.assignment.settings as ExerciseConfig)) throw new Error('Çalışma ayarları bu cihazda hazırlanamadı.');
+      }
       const launchResponse = await fetch('/api/core/assignments', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
@@ -34,7 +38,7 @@ export default function AssignmentLaunchPage() {
       });
       const launched = await launchResponse.json() as { ok?: boolean; error?: string };
       if (!launchResponse.ok || launched.ok !== true) throw new Error(launched.error || 'Çalışma başlatılamadı.');
-      if (!cancelled) window.location.replace(`/studio?program=assigned&recipe=${encodeURIComponent(recipeId)}`);
+      if (!cancelled) window.location.replace(assignmentLaunchPath(details.assignment.module_code, recipeId));
     }
     void launch().catch(error => {
       if (!cancelled) {

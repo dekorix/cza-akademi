@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { ArrowRight, AudioLines, BookOpenCheck, BrainCircuit, ChartNoAxesCombined, Check, ChevronRight, Clock3, Dumbbell, Flame, Hand, LayoutDashboard, Loader2, LogOut, Menu, Play, School, ShieldCheck, Sparkles, Target, X } from 'lucide-react';
+import { ArrowRight, Lightbulb, AudioLines, BookOpenCheck, BrainCircuit, ChartNoAxesCombined, Check, ChevronRight, Clock3, Dumbbell, Flame, Hand, LayoutDashboard, Loader2, LogOut, Menu, Play, School, ShieldCheck, Sparkles, Target, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -19,6 +19,9 @@ const modules = [
   { title: 'Dikkat & Derin Odak', accessCode: 'attention_focus', detail: 'Seçici dikkat, ketleme, odak sürdürme ve kural değiştirme', icon: Target, color: '#e8f3f2', ink: '#26766e', level: 'Zihin Gelişim v1', progress: 0, href: '/attention' },
   { title: 'Hızlı Okuma', accessCode: 'speed_reading', detail: 'Akıcılığı artırırken anlamayı ve yeni metne transferi koru', icon: BookOpenCheck, color: '#e9f0f8', ink: '#3e658c', level: 'Zihin Gelişim v1', progress: 0, href: '/speed-reading' },
   { title: 'Zihin Haritaları', accessCode: 'mind_maps', detail: 'Merkez fikri 7 ana dal ve güçlü anahtar kelimelerle örgütle', icon: BrainCircuit, color: '#f1edf8', ink: '#715c9b', level: '7 dallı CZA standardı', progress: 0, href: '/mind-maps' },
+  { title: 'Zekâ Oyunları', accessCode: 'intelligence_games', detail: 'Örüntü, mantık, sınıflama ve planlama ile problem çöz', icon: Lightbulb, color: '#fff2e8', ink: '#9a6230', level: 'Zihin Gelişim v1', progress: 0, href: '/intelligence-games' },
+  { title: 'Etkili Not Alma', accessCode: 'effective_notes', detail: 'Ana fikri süz, anahtar kelimeleri seç ve bilgiyi kısa, kullanılabilir nota dönüştür', icon: BookOpenCheck, color: '#eef5ea', ink: '#55784b', level: 'Zihin Gelişim v1', progress: 0, href: '/effective-notes' },
+  { title: 'Tam Öğrenme Sistemi', accessCode: 'full_learning_37', detail: '37 aşamalı CZA öğrenme yoluyla konuyu öğren, derinleştir, uygula ve kalıcılaştır', icon: ChartNoAxesCombined, color: '#f3eef8', ink: '#6e5796', level: '/fullstudy · 37 adım', progress: 0, href: '/full-study' },
 ];
 
 const CAMPUS_V14_URL = 'https://script.google.com/macros/s/AKfycbwIS-o_6HB8GiA-pLhR-zK4aRZCqo_kz_dpUJFWA94NqMUT2E22tu6tThHPSAT0Ro92/exec?v=14';
