@@ -42,6 +42,7 @@ let studentSessionId = '';
 let educatorSessionId = '';
 let assignmentId = '';
 let chrome;
+let chromeStderr = '';
 
 const moduleLabels = {
   finger_read: 'Parmak Okuma',
@@ -56,14 +57,14 @@ function sleep(ms) {
 }
 
 async function waitForChrome() {
-  for (let i = 0; i < 40; i += 1) {
+  for (let i = 0; i < 120; i += 1) {
     try {
       const response = await fetch('http://127.0.0.1:9222/json/version');
       if (response.ok) return await response.json();
     } catch {}
     await sleep(250);
   }
-  throw new Error('chrome_debug_endpoint_unavailable');
+  throw new Error('chrome_debug_endpoint_unavailable:' + chromeStderr.slice(-1200));
 }
 
 class Cdp {
@@ -287,10 +288,14 @@ try {
     '--no-sandbox',
     '--disable-gpu',
     '--disable-dev-shm-usage',
+    '--remote-debugging-address=127.0.0.1',
     '--remote-debugging-port=9222',
     '--user-data-dir=/tmp/cza-assignment-browser-chrome',
     'about:blank',
   ], { stdio: ['ignore', 'pipe', 'pipe'] });
+  chrome.stderr?.on('data', chunk => { chromeStderr += String(chunk); });
+  chrome.on('error', error => { chromeStderr += '\nSPAWN_ERROR=' + error.message; });
+  chrome.on('exit', (code, signal) => { chromeStderr += '\nCHROME_EXIT=' + code + ':' + signal; });
   await waitForChrome();
 
   const educatorPage = await newPage('about:blank');
