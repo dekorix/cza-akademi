@@ -12,6 +12,8 @@ on:
       - feature/speed-reading-v1
       - feature/mind-maps-v1
       - feature/intelligence-games-v1
+      - feature/effective-notes-v1
+      - feature/full-learning-37-v1
   pull_request:
     branches:
       - main
@@ -44,7 +46,7 @@ jobs:
         run: pnpm build
 
       - name: Targeted CZA Core integration tests
-        run: node --experimental-strip-types --test tests/core-records.test.mjs tests/work-student-id-integration.test.mjs tests/cza-work-recommendations.test.mjs tests/real-assignment-auth-integration.test.mjs tests/educator-auth-route.test.mjs tests/e3-development-assessment.test.mjs tests/e3-assessment-content-v2.test.mjs tests/special-assessment-contract.test.mjs tests/special-learning-profile.test.mjs tests/special-education-program.test.mjs tests/special-education-program-auth.test.mjs tests/special-daily-work.test.mjs tests/special-daily-work-auth.test.mjs tests/special-reassessment.test.mjs tests/special-reassessment-auth.test.mjs tests/special-parent-report.test.mjs tests/special-family-report-auth.test.mjs tests/package-catalog.test.mjs tests/package-enrollment-auth.test.mjs tests/memory-techniques.test.mjs tests/attention-focus.test.mjs tests/speed-reading.test.mjs tests/mind-maps.test.mjs tests/intelligence-games.test.mjs
+        run: node --experimental-strip-types --test tests/core-records.test.mjs tests/work-student-id-integration.test.mjs tests/cza-work-recommendations.test.mjs tests/real-assignment-auth-integration.test.mjs tests/educator-auth-route.test.mjs tests/e3-development-assessment.test.mjs tests/e3-assessment-content-v2.test.mjs tests/special-assessment-contract.test.mjs tests/special-learning-profile.test.mjs tests/special-education-program.test.mjs tests/special-education-program-auth.test.mjs tests/special-daily-work.test.mjs tests/special-daily-work-auth.test.mjs tests/special-reassessment.test.mjs tests/special-reassessment-auth.test.mjs tests/special-parent-report.test.mjs tests/special-family-report-auth.test.mjs tests/package-catalog.test.mjs tests/package-enrollment-auth.test.mjs tests/memory-techniques.test.mjs tests/attention-focus.test.mjs tests/speed-reading.test.mjs tests/mind-maps.test.mjs tests/intelligence-games.test.mjs tests/effective-notes.test.mjs tests/full-learning-37.test.mjs
 
       - name: Start built app
         run: |
@@ -75,6 +77,8 @@ jobs:
           curl -fsS http://127.0.0.1:8787/speed-reading > /tmp/speed-reading.html
           curl -fsS http://127.0.0.1:8787/mind-maps > /tmp/mind-maps.html
           curl -fsS http://127.0.0.1:8787/intelligence-games > /tmp/intelligence-games.html
+          curl -fsS http://127.0.0.1:8787/effective-notes > /tmp/effective-notes.html
+          curl -fsS http://127.0.0.1:8787/full-study > /tmp/full-study.html
           curl -fsS http://127.0.0.1:8787/special-work > /tmp/special-work.html
           curl -fsS http://127.0.0.1:8787/educator/assessment/e3/report > /tmp/assessment-e3-report.html
           curl -fsS http://127.0.0.1:8787/work > /tmp/work.html
@@ -94,6 +98,8 @@ jobs:
           test -s /tmp/speed-reading.html
           test -s /tmp/mind-maps.html
           test -s /tmp/intelligence-games.html
+          test -s /tmp/effective-notes.html
+          test -s /tmp/full-study.html
           test -s /tmp/special-work.html
           test -s /tmp/assessment-e3-report.html
           test -s /tmp/work.html
@@ -119,6 +125,8 @@ jobs:
           app/speed-reading
           app/mind-maps
           app/intelligence-games
+          app/effective-notes
+          app/full-study
           app/special-work
           app/assignment
           app/api/core
@@ -160,6 +168,8 @@ jobs:
           lib/speed-reading.ts
           lib/mind-maps.ts
           lib/intelligence-games.ts
+          lib/effective-notes.ts
+          lib/full-learning-37.ts
           components/package-access-gate.tsx
           lib/preschool-e3.ts
           lib/preschool-e3-protocol.ts

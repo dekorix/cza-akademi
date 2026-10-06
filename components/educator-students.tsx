@@ -10,6 +10,13 @@ const assignmentModules = [
   ['soroban_write', 'Soroban Yazma'],
   ['flash_anzan', 'Flash Anzan'],
   ['audio_anzan', 'Sesli Anzan'],
+  ['memory', 'Hafıza Teknikleri'],
+  ['attention_focus', 'Dikkat & Derin Odak'],
+  ['speed_reading', 'Hızlı Okuma'],
+  ['mind_maps', 'Zihin Haritaları'],
+  ['intelligence_games', 'Zekâ Oyunları'],
+  ['effective_notes', 'Etkili Not Alma'],
+  ['full_learning_37', 'Tam Öğrenme Sistemi 37'],
 ] as const;
 
 function assessmentError(code: string) {

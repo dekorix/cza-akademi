@@ -16,16 +16,32 @@ export function PackageAccessGate({
 
   useEffect(()=>{
     let active=true;
-    void fetch('/api/core/access',{cache:'no-store'})
-      .then(async response=>{
-        if(response.status===401) return {session:true,accessCodes:[]};
-        const body=await response.json() as {ok?:boolean;accessCodes?:string[]};
-        return {session:false,accessCodes:body.ok===true&&Array.isArray(body.accessCodes)?body.accessCodes:[]};
-      })
+    async function check(){
+      const params=new URLSearchParams(window.location.search);
+      const assignedRecipe=params.get('assignedRecipe')?.trim()||'';
+      if(assignedRecipe){
+        const assigned=await fetch('/api/core/assignments?recipeId='+encodeURIComponent(assignedRecipe),{cache:'no-store'});
+        if(assigned.status===401) return {session:true,allowed:false};
+        if(assigned.ok){
+          const body=await assigned.json() as {ok?:boolean;assignment?:{module_code?:string}};
+          if(body.ok===true&&body.assignment?.module_code===accessCode) return {session:false,allowed:true};
+        }
+      }
+
+      const response=await fetch('/api/core/access',{cache:'no-store'});
+      if(response.status===401) return {session:true,allowed:false};
+      const body=await response.json() as {ok?:boolean;accessCodes?:string[]};
+      return {
+        session:false,
+        allowed:body.ok===true&&Array.isArray(body.accessCodes)&&body.accessCodes.includes(accessCode),
+      };
+    }
+
+    void check()
       .then(result=>{
         if(!active) return;
         if(result.session) setState('session');
-        else setState(result.accessCodes.includes(accessCode)?'allowed':'denied');
+        else setState(result.allowed?'allowed':'denied');
       })
       .catch(()=>{if(active)setState('denied');});
     return()=>{active=false;};
