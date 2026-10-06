@@ -51,7 +51,7 @@ test('linked E2 creation requires educator auth and linked central student',()=>
   assert.match(source,/CZA_E2_V7|E2_TEMPLATE_CODE/);
 });
 
-test('E2 evidence API persists adaptive child evidence without falsely completing the whole session',()=>{
+test('E2 child completion only completes the whole session when caregiver evidence is already complete',()=>{
   const source=fs.readFileSync(new URL('../app/api/assessment-e2/route.ts',import.meta.url),'utf8');
   assert.match(source,/action==='configure'/);
   assert.match(source,/action==='attempt'/);
@@ -59,8 +59,9 @@ test('E2 evidence API persists adaptive child evidence without falsely completin
   assert.match(source,/assessment_attempts/);
   assert.match(source,/adaptiveSectionsCompleted/);
   assert.match(source,/caregiverRequired/);
-  assert.match(source,/sessionCompleted:false/);
-  assert.doesNotMatch(source,/SET status='completed'.*finish_child/s);
+  assert.match(source,/caregiverComplete=Boolean\(metadata\.caregiverCompletedAt\)/);
+  assert.match(source,/status=\$\{caregiverComplete\?'completed':'active'\}/);
+  assert.match(source,/sessionCompleted:caregiverComplete/);
 });
 
 test('E2 caregiver bank stays byte-identical to accepted AppDeploy source',()=>{
