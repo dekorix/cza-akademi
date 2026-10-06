@@ -8,6 +8,7 @@ import { buildCzaWorkRecommendations } from '@/lib/cza-work-recommendations';
 import { assignableModules, defaultRecipeSettings, isAssignableModule, recipeSettingsFromRecommendation } from '@/lib/training-recipes';
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+// Lifecycle state is derived from canonical training_sessions and learning_records; no parallel assignment state table.
 
 function json(body: unknown, status = 200) {
   return Response.json(body, { status, headers: { 'cache-control': 'no-store' } });
@@ -51,10 +52,35 @@ export async function POST(request: Request) {
     const rows = await sql`
       SELECT tr.id, tr.module_code, tr.name, tr.settings, tr.starts_at, tr.expires_at,
              tr.is_active, tr.created_at,
+             CASE
+               WHEN EXISTS (
+                 SELECT 1 FROM public.training_sessions ts
+                 WHERE ts.recipe_id = tr.id AND ts.status = 'completed'
+               ) THEN 'completed'
+               WHEN EXISTS (
+                 SELECT 1 FROM public.training_sessions ts
+                 WHERE ts.recipe_id = tr.id
+               ) THEN 'started'
+               ELSE 'assigned'
+             END AS status,
              (SELECT count(*)::int FROM public.training_sessions ts WHERE ts.recipe_id = tr.id) AS session_count,
-             (SELECT count(*)::int FROM public.training_sessions ts WHERE ts.recipe_id = tr.id AND ts.status = 'completed') AS completed_count
+             (SELECT count(*)::int FROM public.training_sessions ts WHERE ts.recipe_id = tr.id AND ts.status = 'completed') AS completed_count,
+             (SELECT max(ts.started_at) FROM public.training_sessions ts WHERE ts.recipe_id = tr.id) AS last_started_at,
+             (SELECT max(ts.completed_at) FROM public.training_sessions ts WHERE ts.recipe_id = tr.id AND ts.status = 'completed') AS last_completed_at,
+             (
+               SELECT lr.id
+               FROM public.learning_records lr
+               JOIN public.training_sessions ts ON ts.id = lr.training_session_id
+               WHERE ts.recipe_id = tr.id
+                 AND lr.academy_id = ${link.academy_id}::uuid
+                 AND lr.student_id = ${studentId}::uuid
+               ORDER BY lr.completed_at DESC, lr.created_at DESC
+               LIMIT 1
+             ) AS latest_learning_record_id
       FROM public.training_recipes tr
       WHERE tr.student_id = ${studentId}::uuid
+        AND tr.academy_id = ${link.academy_id}::uuid
+        AND tr.source = 'teacher_assignment'
       ORDER BY tr.created_at DESC
       LIMIT 50
     `;
@@ -97,10 +123,15 @@ export async function POST(request: Request) {
       SELECT id
       FROM public.training_recipes
       WHERE student_id = ${studentId}::uuid
+        AND academy_id = ${link.academy_id}::uuid
         AND module_code = ${recommendation.moduleCode}
         AND source = 'teacher_assignment'
         AND is_active = true
         AND (expires_at IS NULL OR expires_at > now())
+        AND NOT EXISTS (
+          SELECT 1 FROM public.training_sessions ts
+          WHERE ts.recipe_id = training_recipes.id AND ts.status = 'completed'
+        )
       ORDER BY created_at DESC
       LIMIT 1
     `;
@@ -153,10 +184,15 @@ export async function POST(request: Request) {
       SELECT id
       FROM public.training_recipes
       WHERE student_id = ${studentId}::uuid
+        AND academy_id = ${link.academy_id}::uuid
         AND module_code = ${moduleCode}
         AND source = 'teacher_assignment'
         AND is_active = true
         AND (expires_at IS NULL OR expires_at > now())
+        AND NOT EXISTS (
+          SELECT 1 FROM public.training_sessions ts
+          WHERE ts.recipe_id = training_recipes.id AND ts.status = 'completed'
+        )
       ORDER BY created_at DESC
       LIMIT 1
     `;
@@ -193,6 +229,8 @@ export async function POST(request: Request) {
       SET is_active = false, updated_at = now()
       WHERE id = ${assignmentId}::uuid
         AND student_id = ${studentId}::uuid
+        AND academy_id = ${link.academy_id}::uuid
+        AND source = 'teacher_assignment'
         AND assigned_by = ${link.educator_user_id}::uuid
       RETURNING id
     `;
