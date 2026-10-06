@@ -134,6 +134,7 @@ const labels: Record<string, string> = {
   memory: 'Hafıza Teknikleri',
   attention_focus: 'Dikkat & Derin Odak',
   speed_reading: 'Hızlı Okuma',
+  mind_maps: 'Zihin Haritaları',
   arithmetic: 'Toplama / Çıkarma',
 };
 const priorityLabels = { HIGH: 'Öncelikli destek', MEDIUM: 'Güçlendir', MAINTAIN: 'Gücü koru' } as const;
