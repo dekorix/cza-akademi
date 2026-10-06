@@ -358,30 +358,44 @@ try {
     return result;
   }
 
-  const educatorBefore = await loadEducatorReport();
-  const uiLoaded = await evalJson(educatorPage, `(() => {
-    const button = Array.from(document.querySelectorAll('button')).find(el => el.textContent?.includes('Seans raporları'));
-    if (!button) return false;
-    button.click();
-    return true;
-  })()`);
-  if (!uiLoaded) throw new Error('educator_reports_tab_missing');
+  async function openEducatorUiReport() {
+    const uiLoaded = await evalJson(educatorPage, `(() => {
+      const button = Array.from(document.querySelectorAll('button')).find(el => el.textContent?.includes('Seans raporları'));
+      if (!button) return false;
+      button.click();
+      return true;
+    })()`);
+    if (!uiLoaded) throw new Error('educator_reports_tab_missing');
+    await waitForText(educatorPage, 'Gerçek kaydı getir');
 
-  const submitted = await evalJson(educatorPage, `(() => {
-    const input = document.querySelector('#studentCode');
-    if (!input) return false;
-    const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set;
-    setter?.call(input, ${JSON.stringify(String(fixture.student_id))});
-    input.dispatchEvent(new Event('input', { bubbles: true }));
-    input.closest('form')?.requestSubmit();
-    return true;
-  })()`);
-  if (!submitted) throw new Error('educator_report_form_missing');
-  await waitForText(educatorPage, 'Gerçek çalışma geçmişi');
+    const filled = await evalJson(educatorPage, `(() => {
+      const input = document.querySelector('#studentCode');
+      if (!input) return false;
+      const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set;
+      setter?.call(input, ${JSON.stringify(String(fixture.student_id))});
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      return true;
+    })()`);
+    if (!filled) throw new Error('educator_report_form_missing');
+    await sleep(150);
+
+    const submitted = await evalJson(educatorPage, `(() => {
+      const input = document.querySelector('#studentCode');
+      if (!input) return false;
+      input.closest('form')?.requestSubmit();
+      return true;
+    })()`);
+    if (!submitted) throw new Error('educator_report_submit_missing');
+    await waitForText(educatorPage, 'Gerçek çalışma geçmişi');
+  }
+
+  const educatorBefore = await loadEducatorReport();
+  await openEducatorUiReport();
 
   await reloadHard(educatorPage);
   await waitForText(educatorPage, 'Eğitimci kontrol merkezi');
   const educatorAfter = await loadEducatorReport();
+  await openEducatorUiReport();
 
   const sameRecord =
     studentBefore.body.records.some(record => record.id === fixture.record_id) &&
