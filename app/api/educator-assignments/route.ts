@@ -8,6 +8,7 @@ import { buildCzaWorkRecommendations } from '@/lib/cza-work-recommendations';
 import { assignableModules, defaultRecipeSettings, isAssignableModule, recipeSettingsFromRecommendation } from '@/lib/training-recipes';
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+// Lifecycle state is derived from canonical training_sessions and learning_records; no parallel assignment state table.
 
 function json(body: unknown, status = 200) {
   return Response.json(body, { status, headers: { 'cache-control': 'no-store' } });
