@@ -26,6 +26,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: cza-special-staging-db
+  cancel-in-progress: false
+
 jobs:
   staging-db-readback:
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
