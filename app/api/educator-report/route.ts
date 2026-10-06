@@ -54,7 +54,7 @@ export async function POST(request: Request) {
         SELECT s.id, s.academy_id, s.first_name, s.last_name, campus.identifier_value AS campus_code
         FROM public.users t
         JOIN public.teacher_student_links l ON l.teacher_id = t.id AND l.can_view = true
-        JOIN public.students s ON s.id = l.student_id
+        JOIN public.students s ON s.id = l.student_id AND s.academy_id = t.academy_id
         LEFT JOIN public.student_external_identifiers campus
           ON campus.student_id = s.id AND campus.identifier_type = 'campus_student_code'
         WHERE t.auth_user_id = ${educator.id}
@@ -66,7 +66,7 @@ export async function POST(request: Request) {
         SELECT s.id, s.academy_id, s.first_name, s.last_name, i.identifier_value AS campus_code
         FROM public.users t
         JOIN public.teacher_student_links l ON l.teacher_id = t.id AND l.can_view = true
-        JOIN public.students s ON s.id = l.student_id
+        JOIN public.students s ON s.id = l.student_id AND s.academy_id = t.academy_id
         JOIN public.student_external_identifiers i ON i.student_id = s.id
         WHERE t.auth_user_id = ${educator.id}
           AND t.is_active = true
