@@ -36,56 +36,121 @@ if (!host || !host.endsWith('.neon.tech') || parsed.pathname !== '/cza_learning'
 }
 
 const sql = neon(url);
+const academyId = crypto.randomUUID();
+const teacherUserId = crypto.randomUUID();
+const studentUserId = crypto.randomUUID();
+const studentId = crypto.randomUUID();
+const linkId = crypto.randomUUID();
 const sessionId = crypto.randomUUID();
-let studentId = '';
-const marker = 'CZA-QA-SPECIAL-' + Date.now();
+const suffix = Date.now().toString(36);
+const marker = 'CZA-QA-SPECIAL-' + suffix;
+const academySlug = 'cza-qa-special-' + suffix;
+const studentUsername = 'qa-special-' + suffix;
 const taskCode = 'DYS-PH01';
 
 async function cleanup() {
   try {
     await sql`DELETE FROM public.assessment_sessions WHERE id = ${sessionId}::uuid`;
   } catch {}
+  try {
+    await sql`DELETE FROM public.academies WHERE id = ${academyId}::uuid`;
+  } catch {}
 }
 
 try {
   const schema = await sql`
     SELECT
+      to_regclass('public.academies')::text AS academies,
+      to_regclass('public.users')::text AS users,
+      to_regclass('public.students')::text AS students,
+      to_regclass('public.teacher_student_links')::text AS links,
       to_regclass('public.assessment_sessions')::text AS sessions,
       to_regclass('public.assessment_attempts')::text AS attempts,
       to_regclass('public.assessment_observations')::text AS observations
   `;
   const row = schema[0] || {};
-  if (!row.sessions || !row.attempts || !row.observations) {
-    throw new Error('canonical_assessment_tables_missing');
+  if (Object.values(row).some(value => !value)) {
+    throw new Error('canonical_qa_tables_missing');
   }
 
-  const syntheticStudents = await sql`
-    SELECT DISTINCT s.id AS student_id
+  await cleanup();
+
+  await sql`
+    INSERT INTO public.academies (id, name, slug, environment)
+    VALUES (${academyId}::uuid, 'CZA Synthetic QA Academy', ${academySlug}, 'staging_qa')
+  `;
+
+  await sql`
+    INSERT INTO public.users (
+      id, academy_id, role, username, display_name, is_active
+    ) VALUES
+      (
+        ${teacherUserId}::uuid,
+        ${academyId}::uuid,
+        'educator'::public.app_role,
+        ${'qa-educator-' + suffix},
+        'CZA QA Educator',
+        true
+      ),
+      (
+        ${studentUserId}::uuid,
+        ${academyId}::uuid,
+        'student'::public.app_role,
+        ${studentUsername},
+        'CZA QA Student',
+        true
+      )
+  `;
+
+  await sql`
+    INSERT INTO public.students (
+      id, academy_id, user_id, first_name, last_name, status, is_demo
+    ) VALUES (
+      ${studentId}::uuid,
+      ${academyId}::uuid,
+      ${studentUserId}::uuid,
+      'CZA_SYNTH_SPECIAL',
+      'READBACK_QA',
+      'active',
+      true
+    )
+  `;
+
+  await sql`
+    INSERT INTO public.teacher_student_links (
+      id, academy_id, teacher_id, student_id, can_view, can_coach
+    ) VALUES (
+      ${linkId}::uuid,
+      ${academyId}::uuid,
+      ${teacherUserId}::uuid,
+      ${studentId}::uuid,
+      true,
+      true
+    )
+  `;
+
+  const linkedFixture = await sql`
+    SELECT s.id AS student_id
     FROM public.students s
-    JOIN public.users student_user ON student_user.id = s.user_id
+    JOIN public.users student_user
+      ON student_user.id = s.user_id
+      AND student_user.role = 'student'::public.app_role
     JOIN public.teacher_student_links link
       ON link.student_id = s.id
+      AND link.academy_id = s.academy_id
       AND link.can_view = true
     JOIN public.users educator_user
       ON educator_user.id = link.teacher_id
+      AND educator_user.academy_id = s.academy_id
+      AND educator_user.role = 'educator'::public.app_role
       AND educator_user.is_active = true
-    LEFT JOIN public.student_external_identifiers ext
-      ON ext.student_id = s.id
-      AND ext.identifier_type = 'campus_student_code'
-    WHERE s.status = 'active'
-      AND (
-        lower(student_user.username) LIKE '%synthetic%'
-        OR lower(student_user.username) LIKE '%sentetik%'
-        OR lower(student_user.username) LIKE 'qa-%'
-        OR lower(student_user.username) LIKE 'test-%'
-        OR lower(COALESCE(ext.identifier_value, '')) LIKE 'cza-qa-%'
-        OR lower(COALESCE(ext.identifier_value, '')) LIKE 'qa-%'
-      )
-    ORDER BY s.id
+    WHERE s.id = ${studentId}::uuid
+      AND s.academy_id = ${academyId}::uuid
+      AND s.status = 'active'
+      AND s.is_demo = true
     LIMIT 1
   `;
-  if (!syntheticStudents.length) throw new Error('synthetic_linked_student_missing');
-  studentId = String(syntheticStudents[0].student_id);
+  if (linkedFixture.length !== 1) throw new Error('synthetic_linked_student_create_failed');
 
   await sql`
     INSERT INTO public.assessment_sessions (
@@ -160,8 +225,7 @@ try {
       a.response_latency_ms,
       a.answer_payload->>'verdict' AS verdict,
       a.answer_payload->>'supportLevel' AS support_label,
-      o.educator_note,
-      o.observation_codes
+      o.educator_note
     FROM public.assessment_sessions s
     JOIN public.assessment_attempts a ON a.session_id = s.id
     JOIN public.assessment_observations o ON o.session_id = s.id AND o.task_code = a.task_code
@@ -194,18 +258,23 @@ try {
 
   const residue = await sql`
     SELECT
+      (SELECT count(*)::int FROM public.academies WHERE id = ${academyId}::uuid) AS academies,
+      (SELECT count(*)::int FROM public.users WHERE id IN (${teacherUserId}::uuid, ${studentUserId}::uuid)) AS users,
+      (SELECT count(*)::int FROM public.students WHERE id = ${studentId}::uuid) AS students,
+      (SELECT count(*)::int FROM public.teacher_student_links WHERE id = ${linkId}::uuid) AS links,
       (SELECT count(*)::int FROM public.assessment_sessions WHERE id = ${sessionId}::uuid) AS sessions,
       (SELECT count(*)::int FROM public.assessment_attempts WHERE session_id = ${sessionId}::uuid) AS attempts,
       (SELECT count(*)::int FROM public.assessment_observations WHERE session_id = ${sessionId}::uuid) AS observations
   `;
   const clean = residue[0] || {};
-  if (Number(clean.sessions) !== 0 || Number(clean.attempts) !== 0 || Number(clean.observations) !== 0) {
-    throw new Error('qa_cleanup_failed');
+  if (Object.values(clean).some(value => Number(value) !== 0)) {
+    throw new Error('qa_cleanup_failed:' + JSON.stringify(clean));
   }
 
   const hostHash = crypto.createHash('sha256').update(host).digest('hex');
   console.log('STAGING_DB_READBACK=PASS');
-  console.log('SYNTHETIC_LINKED_STUDENT=FOUND');
+  console.log('SYNTHETIC_LINKED_STUDENT=CREATED');
+  console.log('REAL_STUDENT_TOUCHED=NO');
   console.log('PROFILE=SP-DYS');
   console.log('TASK=DYS-PH01');
   console.log('SESSION_WRITE=PASS');
