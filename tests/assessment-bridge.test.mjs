@@ -8,11 +8,11 @@ import {
 } from '../lib/assessment-bridge.ts';
 import { SPECIAL_PROFILE_CODES } from '../lib/special-assessment.ts';
 
-test('P2 resolves to existing central linked assessment route',()=>{
+test('P2 remains source-reference-only until the full 23-section assessment is centrally restored',()=>{
   const target=resolveAssessmentBridge('P2','GENERAL');
-  assert.equal(target?.status,'CENTRAL_READY');
-  assert.equal(target?.centralRoute,'/api/assessment-linked');
-  assert.equal(target?.templateFamily,'CZA_1_TO_2_V1');
+  assert.equal(target?.status,'SOURCE_REFERENCE_ONLY');
+  assert.equal(target?.centralRoute,null);
+  assert.equal(target?.templateFamily,'CZA_P2_FULL_V1');
 });
 
 test('E3 resolves to central age-linked route',()=>{
@@ -37,10 +37,10 @@ test('special education profile resolves to central special route',()=>{
   assert.equal(target?.templateFamily,'CZA_SPECIAL_V1');
 });
 
-test('unsupported purpose cannot reuse a central route accidentally',()=>{
+test('unsupported P2 purpose cannot reopen an incomplete central route',()=>{
   const target=resolveAssessmentBridge('P2','ACADEMIC');
   assert.equal(target?.centralRoute,null);
-  assert.equal(target?.status,'PLANNED');
+  assert.equal(target?.status,'SOURCE_REFERENCE_ONLY');
 });
 
 test('bridge special profile codes stay aligned with canonical special assessment codes',()=>{
