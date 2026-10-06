@@ -1,0 +1,326 @@
+# Tests
+
+## Test 0 - Sesli Dikkat Avı süreli kayıt üretir [sanity]
+Viewport: mobile
+Covers: SV1 Stroop-tipi dikkat görevi, süre seçimi, mikrofon kaydı, voice-sample storage API, SV1 to MC1 transition
+Description: Çocuğun kısa ve açık yönergeyle renkleri sesli söyleyip gerçek ses kaydı oluşturabildiğini ve görevin puan sızıntısı olmadan kaydedildiğini doğrular.
+
+Steps:
+1. Değerlendirmeyi '&voicefocus=1' ile aç, 30 saniyeyi seç ve 'Görevi Aç' düğmesine dokun
+2. Mikrofon izni verip 'Kaydı Başlat' ile renkleri sesli oku; 'Bitirdim' ile kaydı durdur
+3. Yerel ses oynatıcısından kaydı kontrol et ve 'Bu Turu Kaydet' ile ilerle
+
+Expected: Tek satırlık ana kural görünür, sayaç kayıtla birlikte çalışır, kayıt sonrası ses oynatılabilir, ses saklandıktan sonra tur kaydedilir ve Düşünceni İzle bölümü açılır.
+
+## Test 1 - Karar Laboratuvarı çocuk dostu 12 görsel mikro-görevi tamamlayıp kanıtı kaydeder
+Viewport: mobile
+Covers: DK1 child-friendly low-reading workflow, restart-decision-lab endpoint, visual choice cards, one-line prompts, listen control, optional hint support, ordering, multi-select, open verbal justification, belief update, DK aggregate persistence, DK1 to AV1 transition
+Description: Karar Laboratuvarı'nın uzun paragraf yükü olmadan büyük görseller ve kısa yönergelerle farklı düşünme işlemlerini örneklediğini doğrular.
+
+Steps:
+1. Bir değerlendirme oturumunu "&decision=1" ile aç; ilk görevde kısa "Islak yer neden burada?" yönergesini, büyük görsel sahneyi, "Dinle" ve "İpucu" kontrollerini doğrula; ilk altı görevi tamamla
+2. İkinci turda kanıt seçme, gerekli iki bilgi kartını seçme ve projektör bozulduğunda alternatif yolu bulma görevlerini tamamla; açık gerekçede A veya B kartını seçip "Sözlü anlatacağım" seçeneğini kullan
+3. Yeni bilgi görevinde önce A'yı seç, yeni bilgiyi aç ve B'ye geç; 9 dosya için büyük kutuyu seçerek turu bitir
+
+Expected: İlerleme 1/12 ile başlar; ana yönergeler tek kısa cümle olarak büyük görünür; görsel seçim alanları mobilde rahat dokunulur; yardım kullanımı, süre, ilk/son seçim ve değişiklikler DK ham paketinde saklanır; açık gerekçe otomatik doğru/yanlış puanlanmaz ve tur bitince Son Doğrulama & Transfer Turu açılır.
+
+## Test 2 - Plan Ustası ve premium görevler çocuk dostu yönerge standardını korur
+Viewport: mobile
+Covers: EX1 child-friendly Plan Ustası workflow, 16 real micro-tasks, clear one-action prompts, colorful visual scenes, listen control, balanced single-choice positions, sequence and multi-select evidence, confidence evidence, EX aggregate persistence, system-wide premium readability
+Description: Plan Ustası'nın erken ilkokul çocuğuna uzun senaryo yüklemek yerine ne yapacağını açıkça söyleyen kısa yönergeler, renkli görsel sahneler ve farklı etkileşimlerle planlama kanıtı topladığını doğrular.
+
+Steps:
+1. "&plan=1" ile Plan Ustası'nı aç; ilk görevde BUGÜNKÜ MİNİ GÖREV, kısa durum, ŞİMDİ SENDEN İSTENEN ve Dinle düğmesini doğrula; ilk 8 görevi tamamla
+2. Robot sıralama, gezi çantasında 3 seçim, servis planı, köprü malzemeleri, eksik dosya ve göndermeden önce sıralama görevlerinde çocuğun yapacağı eylemin 2–3 saniyede anlaşılır olduğunu ve görsel sahnelerin cevabı doğrudan söylemediğini kontrol et
+3. Ara ekrandan ikinci kuleye geç; yeni bilgi, iki şarj yeri, örüntü hatası, yardım kararı, eminlik, kırmızı çerçeve, Plan B ve maket taşıma görevlerini tamamla
+
+Expected: EX1 tam 16 mikro-görev içerir; mobilde ana istek büyük ve yüksek kontrastlıdır; uzun paragraf yerine kısa durum + tek eylem isteği kullanılır; tek cevaplı görevlerde amaçlanan seçenekler 1., 2. ve 3. konumlara dengeli dağılır ve soru açıkken yer değiştirmez; süre, sıra, değişiklik, eminlik, Dinle kullanımı ve gösterilen seçenek sırası EX ham paketinde saklanır; tur normal akışta sonraki bölüme geçer.
+
+## Test 3 - Düzen Ustası gereksiz tekrar yerine farklı bilişsel operasyon kullanır
+Viewport: desktop
+Covers: organizer D5 reverse-rule redesign, D8 multi-label redesign, repeated-question reduction, DU1 regression
+Description: Aynı kartlardan yalnız renk/şekil değiştirerek tekrar soru sormak yerine kuralı tersten bulma ve bir kartı iki doğru başlık altında düşünme görevlerinin çalıştığını doğrular.
+
+Steps:
+1. "&organize=1" ile Düzen Ustası'nı aç ve ilk dört görevi tamamla
+2. 5. görevde iki rafın düzeninden ayırma kuralını tersten bul; bunun önceki kesişim sorusunun tekrarı olmadığını kontrol et
+3. 8. görevde tek altın üçgen için iki doğru başlığı seç ve turu tamamla
+
+Expected: D5 "Kuralı tersten bul" olarak, D8 "Bir kart, iki doğru başlık" olarak görünür; otomatik puanlanan her iki görevde amaçlanan çözüm tektir ve DU paketi normal kaydolur.
+
+## Test 4 - Matematik Tutumu ve Özgüven alanı çocuk dostu kanıt toplar
+Viewport: mobile
+Covers: MA1 Mathematics Attitude and Confidence block, restart-math-attitude endpoint, low-reading visual workflow, confidence-performance calibration, optional visual support, challenge choice, persistence preference, M1T to MA1 to EA1 transition
+Description: Ana Alan 5'in matematik başarısını tekrar puanlamak yerine çocuğun yaklaşım, güven, yardım ve sebat örüntüsünü kısa görsel görevlerle ayrı kanıt olarak sakladığını doğrular.
+
+Steps:
+1. Bir değerlendirmeyi '&mathattitude=1' ile aç; '5 + 2 sana nasıl geliyor?' ekranında kısa yönergeyi, büyük renkli kartları ve Dinle düğmesini kontrol et
+2. 14 − 6 görevinde Görsel ipucu seçeneğini kullan; 9 + 6 cevabından sonra güven düzeyini seç; üç zorluk yolundan birini seçip seçilen işlemi çöz
+3. Takılınca ne yaptığına ilişkin kartı ve son matematik hissini seçerek turu tamamla
+
+Expected: MA1 10 kısa mikro-adımla ilerler; doğru/yanlış geri bildirimi göstermez; MT paketi ön/son his, yaklaşım, yardım, matematik denemeleri, güven kalibrasyonu, seçilen zorluk ve sebat tercihini ayrı saklar; tur sonunda Duygusal Farkındalık açılır.
+
+## Test 5 - Duygu Dedektifi cevap sızıntısı olmadan çıkarım kanıtı toplar
+Viewport: mobile
+Covers: EA1 emotional-awareness workflow, restart-emotional-awareness endpoint, anti-answer-leakage scenes, low-reading prompts, listen control, clue-reason capture, ambiguity and perspective tasks, EA aggregate persistence, MA1 to EA1 to SL1 transition
+Description: Duygusal Farkındalık bölümünün duyguyu resimde doğrudan göstermeden olay, beden ve bağlamdan çıkarım yaptırdığını doğrular.
+
+Steps:
+1. Değerlendirmeyi '&emotion=1' ile aç; ilk görevin yalnız temel yüz-ipucu ankrajı olduğunu, seçimden sonra 'Neye bakarak düşündün?' adımının açıldığını ve Dinle düğmesini doğrula
+2. Kule, sahne, yağmur, okul ve belirsizlik görevlerinde hedef duyguyu doğrudan gösteren yüz ifadesinin sahnede bulunmadığını; iki olası duygu ve 'Daha çok bilgi lazım' seçeneklerinin çalıştığını kontrol et
+3. Nefes sonrası beden değişimi ve oyuna katılmayan çocuk için önce hangi bilginin gerekli olduğu görevlerini tamamla; son öz-farkındalık kartıyla 10 adımı bitir
+
+Expected: İlerleme 1/10 ile başlar; yalnız ilk görev doğrudan yüz ipucu örnekler, sonraki sahneler cevabı yüz ifadesiyle söylemez; gerekli görevlerde çocuk seçimden sonra kullandığı ipucunu belirtmeden ilerleyemez; belirsiz durumda daha fazla bilgi isteme geçerli kanıttır; doğru-yanlış/kişilik etiketi gösterilmez; EA paketi cevap, süre, değişiklik, dinleme ve ipucu kaynağını saklar ve tur sonunda Kendi Rotam açılır.
+
+## Test 6 - Kendi Rotam 1–2. sınıf için somut hedef ve net istekle ilerler
+Viewport: mobile
+Covers: SL1 self-leadership workflow, restart-self-leadership endpoint, grade 1-2 concrete goal journey, explicit success criterion, balanced option positions, position-cue prevention, first step, help regulation, progress monitoring, goal adaptation, self-check preference, displayed-order evidence, SL aggregate persistence, EA1 to SL1 to CG1 transition
+Description: CZA Ana Alan 12'nin erken ilkokul çocuğuna soyut koçluk dili yüklemek yerine her ekranda somut bugünkü görevi ve çocuktan beklenen tek eylemi açıkça gösterdiğini doğrular.
+
+Steps:
+1. Değerlendirmeyi '&leadership=1' ile aç; üstte 1–2. sınıf koçluk modunu gör, 5 dakikada 2 sayfa okuma / 4 kenar parçası yerleştirme / kalemleri kutuya koyma hedeflerinden birini seç ve seçilen görevin sonraki ekranlarda 'BUGÜNKÜ GÖREVİN' kartında aynen görünmesini doğrula
+2. Görevin bittiğini gösteren somut başarı ölçütünü ve hedefe uygun ilk adımı seç; takılma, iç konuşma ve yardım düzeyi görevlerini tamamla; 5 adımın 3'ü bittiğinde 3 kartını seç
+3. Son 1 dakika ekranında seçilen göreve sığan küçük yeni hedefi seç; görevi nasıl kontrol edeceğini ve hemen yapılabilir son küçük adımı belirleyerek 10 adımı tamamla
+
+Expected: İlerleme 1/10 ile başlar; her ekranda mevcut somut hedef ve 'Şimdi senden istenen' cümlesi görünür; hedefler 1–2. sınıf günlük yaşamına uygun, kısa ve ölçülebilirdir; başarı ölçütü başlangıç eylemiyle karışmaz; amaçlanan seçenek S2/S3/S7/S8 boyunca aynı sırada tekrarlanmaz ve 2./3./1./2. konumlara dağılır; seçenek alt yazıları doğru cevabı ele vermez; gösterilen seçenek sırası SL ham paketinde saklanır; yardım/mola/alternatif yol iyi-kötü etiketi üretmez; tur sonunda Karakter Pusulası açılır.
+
+## Test 7 - Karakter Pusulası 1–2. sınıf değer muhakemesini etiketlemeden örnekler
+Viewport: mobile
+Covers: CG1 character and moral development workflow, restart-character-compass endpoint, grade 1-2 explicit scenarios, neutral non-answer-leaking scenes, balanced option positions, stable per-question ordering, displayed-order capture, fairness, honesty, repair, permission, responsibility, rule-purpose and intent-outcome reasoning, optional short reason steps, CP aggregate persistence, SL1 to CG1 to MV1 transition
+Description: CZA Ana Alan 13'ün çocuğa soyut ahlak soruları veya iyi-kötü etiketi vermeden, kısa ve somut günlük yaşam sahnelerinde karar ve gerekçe kanıtı topladığını doğrular.
+
+Steps:
+1. Değerlendirmeyi '&character=1' ile aç; 'Bulduğun silgi' sahnesinde NE OLDU ve ŞİMDİ SEN NE YAPACAKSIN alanlarının açık olduğunu, büyük renkli sahneyi ve Dinle düğmesini doğrula
+2. Tek tablet paylaşımı, kuleyi yanlışlıkla yıkma, fazla puanı fark etme, yeni çocuğa yaklaşma, iki boya kutusunu paylaşma, verilen sözü onarma, başkasının kalemi ve koridordaki su görevlerini tamamla; gerekçe isteyen görevlerde seçimden sonra ayrı NEDEN ekranını tamamla
+3. Son görevde aynı sonuç fakat farklı niyet içeren iki kule sahnesini değerlendir ve kısa nedenini seçerek 10 adımı bitir
+
+Expected: İlerleme 1/10 ile başlar; her sahne 1–2. sınıf çocuğunun anlayacağı tek kısa olay ve tek açık eylem isteğiyle sunulur; sahne çözümü görsel olarak söylemez; sosyal olarak daha beklenen/odak seçenekler 10 görev boyunca 1., 2. ve 3. konumlara dengeli dağılır, aynı soru açıkken sıra değişmez, diğer seçenekler oturum bazında karışır; gerekçe seçeneklerinde de aynı pozisyon kestirmesi oluşmaz; bazı görevlerde karar ve gerekçe ayrı ekranlarda alınır; doğru/yanlış veya iyi çocuk/kötü çocuk etiketi gösterilmez; CP paketi 10 kararın yanıt, gerekçe, süre, değişiklik, dinleme ve gösterilen seçenek sırası kanıtını saklar; tur sonunda Manevi Farkındalık ve Değerler alanı açılır.
+
+## Test 8 - Değer Işığı 1–2. sınıf manevi farkındalığı etiketlemeden örnekler
+Viewport: mobile
+Covers: MV1 spiritual awareness and values workflow, restart-spiritual-values endpoint, grade 1-2 clear one-action prompts, gratitude, prayer-time awareness, dua, sacred-context respect, stewardship, patience, intention, personal gratitude, balanced option positions, displayed-order capture, MV aggregate persistence, CG1 to MV1 to L1A transition
+Description: CZA Ana Alan 14'ün manevi kavramlara aşinalık ile değer tercihini birbirine karıştırmadan, kısa ve görsel erken ilkokul görevleriyle kanıt topladığını doğrular.
+
+Steps:
+1. Değerlendirmeyi '&spiritual=1' ile aç; Alan 14, 1–2. sınıf Değer Işığı başlığını, tek kısa eylem isteğini, renkli görsel sahneyi ve Dinle düğmesini doğrula
+2. Güzel sabah, ezan, yemek sonrası şükür, hasta arkadaş için dua/merhamet, Kur’an-ı Kerim, cami, fidan, sabır ve görünmeyen iyilik görevlerinde ilerle; gerekçe isteyen ekranlarda ayrı kısa neden seç
+3. Bugünün şükrü görevini tamamla ve 10 adımı bitir
+
+Expected: Her görevde çocuk ne yapacağını 2–3 saniyede anlayabilecek kadar açık tek yönerge görür; seçeneklerin konumu aynı kalıba dönüşmez ve soru açıkken yer değiştirmez; görsel sahne doğru cevabı doğrudan söylemez; dinî kavram aşinalığı tek başına manevi güç puanına çevrilmez; MV paketi alan, yanıt, gerekçe, süre, değişiklik, dinleme ve gösterilen seçenek sırasını saklar; tur sonunda Dil ve Anlama Güç Taraması açılır.
+
+## Test 9 - Benimle Tanış sekiz kısa görsel keşifle çocuğu daha yakından tanır
+Viewport: mobile
+Covers: W1 redesigned getting-to-know-you workflow, restart-warmup endpoint, eight-step low-reading intake, imaginative preference prompts, listen control, mood/curiosity/fantasy/support/start preferences, WU raw evidence, no-skill-scoring guardrail, W1 to W2 transition
+Description: Kullanıcı referansındaki açık uçlu tanışma mantığından birebir kopyalamadan; erken ilkokul çocuğunun hayal, merak, eğlence ve tercihlerini kısa görsel seçimlerle topladığını doğrular.
+
+Steps:
+1. Değerlendirmeyi '&warmup=1' ile aç; CZA Keşif Başlangıcı ekranında 1/8 kısa keşif göstergesini, büyük renkli kartları ve Dinle düğmesini doğrula
+2. Bugünkü hal adımından sonra sihirli kapıda 'Nereye gitmek istersin?', sürpriz kutuda 'Sürpriz kutudan ne çıkmasını istersin?' ve hayvan arkadaşta 'Hangi hayvanı seçmek istersin?' ifadelerini doğrula; bu ve kalan adımlarda birer kart seç
+3. Tanışmayı Tamamla ile ilerle ve İlgi Alanlarım ekranının açıldığını doğrula
+
+Expected: Her adım tek kısa yönerge ve tek seçim içerir; çocukla doğrudan ikinci tekil şahıs diliyle konuşulur, 'nereye gitsin / hangisi çıksın / hangisi olsun' gibi belirsiz üçüncü şahıs kalıpları görünmez; sorular kaynak görseldeki cümleleri birebir tekrar etmez; ana görseller canlı ve mobilde rahat dokunulur; doğru/yanlış veya beceri puanı gösterilmez; WU paketi sekiz yanıtın süre, seçim değişikliği ve Dinle kullanımını saklar; W1 teknik S01–S14 puanlarına kanıt eklemez ve tur W2'ye geçer.
+
+## Test 10 - CZA genel çocuk dostu premium standart bütün modüllerde korunur
+Viewport: mobile
+Covers: global child-friendly typography, technical-skill-banner removal, clear one-action prompts, balanced correct-option positions in math/language/attitude/emotion, non-leading support hints, legacy repetition bypass, premium touch targets
+Description: Başlangıçtan son doğrulamaya kadar çocuk ekranlarının aynı CZA standardını kullandığını ve soru çözme kestirmelerinin azaltıldığını doğrular.
+
+Steps:
+1. Warmup, Matematik Güç Taraması, Duygu Dedektifi, Kendi Rotam ve Karar Laboratuvarı ekranlarını aç; ana yönergenin mobilde büyük ve okunaklı, seçeneklerin rahat dokunulur ve teknik S01–S14 bantlarının çocuk ekranında görünmez olduğunu doğrula
+2. Matematik ve Dil taramalarında art arda görevleri ilerlet; doğru seçeneğin sürekli aynı sırada olmadığını kontrol et. Karar Laboratuvarında İpucu aç; desteğin cevabı söylemek yerine genel çözüm stratejisi verdiğini doğrula
+3. Tam akışta Matematik Güç Taraması sonrası eski toplama/çıkarma tekrar ekranlarının, Dil taraması sonrası eski metin-ağırlıklı tekrarların normal akışta açılmadığını doğrula
+
+Expected: Ana istek 2–3 saniyede anlaşılır; kritik çocuk metni mobilde en az yaklaşık 17–18 px hissindedir; seçenekler yaklaşık 70 px veya daha yüksek dokunma alanı sunar; teknik ölçüm kodları çocuk ekranından kaldırılmıştır; doğru seçenek konumu tekrar eden kestirme oluşturmaz; destek cevabı ele vermez; normal akış yalnız güncel premium modüller üzerinden devam eder.
+
+## Test 11 - Rapor 14 resmi CZA ana alanını kanıt temelli gösterir
+Viewport: desktop
+Covers: GET /api/session/:id/report, 14-main-area aggregation, premium parent-readable report, performance-vs-profile distinction, evidence sources, recommendations, print/PDF layout
+Description: Teknik S01-S14 beceri kartları yerine kullanıcının resmi 14 ana gelişim alanının tek CZA raporunda doğru sırada, kanıt kaynakları ve yorum sınırlarıyla gösterildiğini doğrular.
+
+Steps:
+1. Bir değerlendirme oturumunun raporunu '#/report?session=<id>' ile aç ve üst bölümde '14 ANA ALAN BÜTÜNCÜL DEĞERLENDİRME' başlığını, kapsanan alan sayısını ve görev kaydı sayısını doğrula
+2. Alan listesinin 1 Zihinsel İşlem Hızı ile başlayıp 14 Manevi Farkındalık ve Değerler ile bittiğini; Matematik Tutumu, Karakter ve Manevi Değerlerde yüzde/üstünlük puanı yerine nitel profil gösterildiğini kontrol et
+3. Bir performans alanında kanıt kaynağı, mikro-görev sayısı ve Bir sonraki adım alanını; rapor sonunda öncelikli çalışma önerilerini ve klinik tanı/zekâ/ahlak/iman puanı olmadığını belirten güvenlik notunu doğrula
+
+Expected: Rapor tam 14 resmi ana alanı aynı sırada gösterir; teknik S01-S14 kod kartları ana veli görünümünde yoktur; performans ve nitel profil alanları birbirinden ayrılır; kanıt olmayan alanlar düşük beceri etiketi almaz; Yazdır / PDF düğmesi görünür ve rapor premium okunabilir düzendedir.
+
+## Test 12 - Çocuk çözemediği soruyu ceza almadan boş bırakabilir
+Viewport: mobile
+Covers: child-friendly skip control, micro-question omission evidence, no forced guessing, non-penalizing denominators in math/memory/visual/executive/profile labs
+Description: Çocuk bir soruyu çözemediğinde rastgele şık işaretlemek zorunda kalmadan ilerleyebilmeli; boş bırakma yanlış cevap değil eksik kanıt olarak saklanmalıdır.
+
+Steps:
+1. Matematik Güç Taraması, Duygu Dedektifi ve en az bir bilişsel laboratuvarda bir mikro-görevi aç
+2. Hiç şık seçmeden 'Bu soruyu geç' düğmesine dokun ve sonraki mikro-göreve geçildiğini doğrula
+3. Sonraki bir soruyu normal yanıtla; akışın devam ettiğini ve raporun boş bırakılan soruyu otomatik yanlış performans olarak kullanmadığını doğrula
+
+Expected: 'Bu soruyu geç' seçeneği görünürdür; seçim yapmadan çalışır; SKIP ham kanıtı saklanır; performans paydalarında boş bırakılan mikro-görev puan düşüren yanlış cevap olarak sayılmaz; profil alanlarında boş bırakma ayrıca yorumlanır.
+
+## Test 14 - Eğitmen doğru profilden değerlendirme başlatır ve kayıtları kategorili yönetir
+Viewport: desktop
+Covers: educator assessment launcher, reciprocal educator ↔ #/veli profile-screen navigation, direct #/veli age/class profile-screen access, profile-aware POST /api/sessions, E2/P2 routing, GET /api/sessions/recent categorized archive, profile/purpose/status filters, profile-specific report links, student follow-up profile preservation, student link copy/open
+Description: Eğitimci ana panelinin eski P2 varsayılanına düşmeden E2 veya P2 değerlendirmesini doğru metadata ile başlatabildiğini ve kayıt/rapor merkezinin oturumları anlaşılır kategorilerde tuttuğunu doğrular.
+
+Steps:
+1. #/educator ekranında üst bölümde "Yaş / Sınıf Profil Ekranı" düğmesini gör ve bunun yeni sekmede #/veli ekranındaki tam yaş/sınıf kartlı arayüzü açtığını doğrula. #/veli üst çubuğunda "Eğitimci Merkezine Geç" düğmesini gör ve #/educator ekranına geri döndüğünü doğrula. Yeni değerlendirme başlat alanında 24–36 Ay E2 ve 1. Sınıf Sonu → 2. Sınıf P2 seçeneklerini gör. E2 seç, 24–35 aya karşılık gelen doğum tarihi ve Genel Bütüncül amacı gir, "Değerlendirmeyi Oluştur ve Aç" ile başlat
+2. Yeni sekmede açılan oturumun E2-v7 olduğunu doğrula; eğitimci panelinde aktif oturum kartında "24–36 ay · Erken Gelişim", amaç ve ay etiketlerini gör. "+ Yeni Değerlendirme" ile başlangıç formuna dön, P2 seçip ayrı bir oturum oluştur ve P2 yol haritasının açıldığını doğrula
+3. Kayıt ve Rapor Merkezi'nde E2/P2, amaç ve durum filtrelerini kullan; E2 kaydında çocuk+veli kanıt sayılarını ve "Erken Gelişim Raporu / PDF", P2 kaydında görev sayısını, "14 Alan Raporu / PDF" ve "Veli Raporu" bağlantılarını doğrula. Kalıcı öğrenci dosyasında "Aynı profilde yeni ölçüm" E2 öğrencisini P2'ye dönüştürmemeli
+
+Expected: Eğitimci panelinden tam yaş/sınıf profil ekranına tek tıkla ulaşılır; #/veli ekranından da "Eğitimci Merkezine Geç" ile tek tıkla #/educator ekranına dönülür. Eğitimci panelinden oluşturulan oturum seçilen canlı profile gider; E2 doğum tarihi doğrulanır ve E2_CORE/E2-v7 açılır, P2 kendi akademik rotasını korur. Kayıtlar profil, amaç ve durum bazında filtrelenir; rapor adı profile göre doğru görünür; değerlendirme ve rapor bağlantıları aynı oturum kimliğini kullanır; takip ölçümü önceki canlı profili korur.
+
+## Test 13 - Geçersiz öğrenci bağlantısı güvenli hata gösterir
+Viewport: mobile
+Covers: invalid session guardrail, backend 404 handling, mobile error state
+Description: Geçersiz oturum kimliğinde boş ekran yerine anlaşılır hata gösterilmesini doğrular.
+
+Steps:
+1. Hash rotasını "#/assessment?session=gecersiz-oturum" olarak aç
+2. Sayfanın yüklenmesini bekle
+3. Görünen mesajı kontrol et
+
+Expected: "Bu değerlendirme oturumu bulunamadı veya artık kullanılamıyor." mesajı görünür ve görev formu gösterilmez.
+
+## Test 12 - Veli tek paylaşım bağlantısından yeni değerlendirme başlatır
+Viewport: mobile
+Covers: #/veli public parent start route, POST /api/sessions session creation, fresh FULL assessment redirect, parent-facing mobile start UX
+Description: Velinin sabit paylaşım bağlantısını açıp çocuğun kısa adını yazarak başka bir oturumun geçmişini kullanmadan yeni tam değerlendirme oluşturabildiğini doğrular.
+
+Steps:
+1. Hash rotasını "#/veli" olarak aç
+2. Çocuğun adı alanına "Mete" yaz ve "Değerlendirmeyi Başlat" düğmesine dokun
+3. Açılan ilk değerlendirme ekranını ve adres çubuğunu kontrol et
+
+Expected: Yeni bir oturum oluşturulur, adres "#/assessment?session=" ile devam eden benzersiz bir oturum kimliğine yönlenir ve Benimle Tanış başlangıç görevi açılır.
+
+## Test 15 - Veli raporu akademik dili günlük dille ve CZA gelişim rotasıyla birleştirir
+Viewport: desktop
+Covers: #/veli-rapor route, GET /api/session/:id/report reuse, ara/final rapor ayrımı, evidence-coverage explanation, system-evidence plus academic plus daily-life 14-area explanation, educator-observation separation, holistic assessment synthesis, personalized CZA method selection, three-stage development route, measurable targets, qualitative profile separation, home guidance, direct PDF download, safe filename, report date, print workflow
+Description: 14 alan kanıtının veliye teknik terim yığını olarak verilmek yerine akademik açıklama, halk dili karşılığı, kanıt kapsamı ve kanıta bağlı CZA eğitim rotasına dönüştürüldüğünü doğrular.
+
+Steps:
+1. Tamamlanmamış bir oturumu "#/veli-rapor?session=<id>" ile aç; "ARA RAPOR · DEĞERLENDİRME DEVAM EDİYOR" uyarısını, alan kapsamını, görev kaydını ve kanıt kapsamı çubuğunun başarı yüzdesi olmadığını açıklayan notu doğrula
+2. En az bir 14 alan kartında "Sistemden Gelen Kanıt", "Akademik Değerlendirme", "Günlük Yaşamdaki Karşılığı", "Bu bulguyu nasıl yorumlayabiliriz?", "Eğitmen gözlemi", "Bütüncül değerlendirme" ve "CZA sonraki adım" bölümlerini; kanıt olmayan alanda güçlü-zayıf etiketi verilmediğini ve gözlem yoksa "Henüz eğitmen gözlemi eklenmedi." yazdığını kontrol et
+3. "Bugün İçin CZA Eğitim Kararı" ve "CZA Bu Çocuk İçin Ne Yapacak?" bölümlerinde en fazla üç performans önceliğini; her biri için neden seçildiğini, ilgili CZA yöntemlerini, "Neden bu teknikler?", üç aşamalı çalışma sırasını, "Geliştiğini nasıl anlayacağız?" ölçütünü ve ev desteğini doğrula; "PDF Oluştur / İndir" ile yazdırma iletişim kutusuna bağlı kalmadan gerçek PDF Blob'u üretip öğrenci adına göre "Mete-Sahinoglu-CZA-Veli-Raporu.pdf" biçiminde somut .pdf dosyasının indiğini, rapor tarihinin bulunduğunu ve "Yazdır" kontrolünün ayrı çalıştığını doğrula
+
+Expected: Veli raporu teknik S01-S14 kodlarını ana içerikte göstermez; 14 resmi alanı hem akademik hem aile için anlaşılır dille açıklar; tamamlanmamış değerlendirmeyi final sonuç gibi sunmaz; Anzan, Soroban, Derin Odak, hafıza teknikleri, zihin haritası, bilişsel yoğunluklu CZA soruları ve diğer yöntemleri yalnız ilgili kanıta göre seçer; rota en fazla üç ana performans önceliğine odaklanır, profil/değer alanlarını nitel izlem olarak ayırır, kanıt eksikliği düşük beceri sayılmaz ve öğrenci adıyla gerçek bir PDF dosyası indirilebilir.
+
+## Test 16 - Her ana alana öğretmen gözlemi eklenir ve veli raporuyla bütünleşir
+Viewport: desktop
+Covers: PUT /api/session/:id/area-observation, 14-area structured educator observation editor, strategy, independence, support use, self-correction, perseverance, attention, transfer, free note, durable observation persistence, GET /api/session/:id/report observation merge, immediate report re-synthesis, visible report-updated confirmation, cross-tab parent-report update signal, background parent-report refresh, holistic assessment synthesis, parent report observation layer, PDF observation inclusion
+Description: Öğretmenin dijital görev puanını değiştirmeden her ana gelişim alanına serbest notla birlikte yapılandırılmış süreç gözlemi ekleyebilmesini; sistem kanıtı, eğitmen gözlemi ve bütüncül değerlendirmenin ayrı kaynaklar olarak rapor ve PDF'de görünmesini doğrular.
+
+Steps:
+1. Kanıt içeren bir oturumu "#/report?session=<id>" ile aç ve aynı oturumun "#/veli-rapor?session=<id>" görünümünü ikinci sekmede açık bırak; Dikkat ve Odaklanma alanında Strateji=Bağımsız, Bağımsızlık=Çoğunlukla bağımsız, Yardım kullanımı=Desteği etkili kullandı, Öz düzeltme=Kendiliğinden düzeltti, Sebat=Sürdürdü, Dikkat=Odağı sürdürebildi, Transfer=Henüz transfer denenmedi seçimlerini yap; ayrıca "Kural değişince kısa süre durdu; görsel ipucundan sonra bağımsız devam etti." notunu kaydet
+2. Kaydetme sonrası eğitmen ekranında "Rapor güncellendi" bildiriminin çıktığını ve "Bütüncül değerlendirme" metninin sayfayı elle yenilemeden yeni gözlemi içerdiğini doğrula; ikinci sekmedeki veli raporunun da gözlemi otomatik aldığını kontrol et, ardından eğitmen sayfasını yenileyerek yapılandırılmış seçimlerin ve serbest notun kalıcı olduğunu doğrula
+3. Veli raporunda "Öğretmen Gözlemiyle Bütüncül Okuma" bölümünde ve Dikkat ve Odaklanma kartında güncel notu gör; "PDF Oluştur / İndir" ile yeni sentezlenmiş rapordan PDF oluştur
+
+Expected: Yapılandırılmış gözlem alanları ve serbest not doğru ana alana kalıcı kaydedilir; kaydetme tamamlandıktan sonra eğitmen raporu aynı oturumda yeniden sentezlenir ve görünür "Rapor güncellendi" geri bildirimi verir; açık veli raporu aynı tarayıcıda güncelleme sinyalini anında alır, diğer açık istemciler kısa aralıkla veya sekmeye dönüldüğünde güncel raporu çeker; sistem kanıtı ile öğretmen gözlemi ayrı kaynaklar olarak korunur, bütüncül değerlendirme ikisini aynı puana çevirmeden sentezler ve yeni oluşturulan PDF en güncel raporu içerir.
+
+## Test 17 - Eğitmen alanı e-posta doğrulaması olmadan PIN ve kalıcı cihaz oturumuyla açılır
+Viewport: desktop
+Covers: GET /api/educator/setup-status, POST /api/educator/setup, POST /api/educator/login, POST /api/educator/reset-pin, GET /api/educator/me, 30-day HttpOnly device session, recovery-code PIN rotation, protected educator/report routes, anonymous access denial
+Description: Eğitimci girişinin platform e-posta doğrulamasına bağlı olmadığını; ilk kurulumdan sonra CZA PIN ile giriş yapıldığını ve aynı cihazda 30 günlük oturumun sayfa yenilemelerinde korunduğunu doğrular.
+
+Steps:
+1. Kurulum yapılmamış durumda "#/educator" rotasını aç; tek kullanımlık kurulum kodu ile 6–8 haneli yeni PIN belirle ve eğitimci merkezinin açıldığını doğrula
+2. Sayfayı yenile ve e-posta doğrulaması, açılır giriş penceresi veya yeniden PIN istemeden eğitimci merkezinin açık kaldığını doğrula; sağ üstte "Çıkış yap / PIN değiştir" kontrolünün göründüğünü doğrula
+3. "Çıkış yap / PIN değiştir" ile 30 günlük cihaz oturumunu kapat; giriş ekranında "PIN’i unuttum / sıfırla" ile kurtarma formunu aç, geçerli kurulum kurtarma kodu ve yeni 6–8 haneli PIN ile sıfırlamayı tamamla; eski PIN’in reddedildiğini ve yeni PIN ile giriş yapılabildiğini doğrula
+4. Yeni PIN ile giriş sonrası bir "#/report?session=<id>" sayfasının açıldığını doğrula
+
+Expected: Anonim ziyaretçi korumalı öğrenci ve rapor verilerini göremez; ilk kurulum yalnız tek kullanımlık kodla yapılır; kurtarma kodu olmadan PIN değiştirilemez; başarılı sıfırlamada eski oturumlar geçersizleşir ve yeni PIN güvenli 30 günlük cihaz oturumu oluşturur.
+
+## Test 18 - Eğitmen raporu final onayı olmadan doğrudan PDF indirir
+Viewport: desktop
+Covers: educator report immediate page load, native browser print-to-PDF flow, crash-free long-report saving, Turkish-character rendering, removal of blocking final-approval button
+Description: Eğitmenin öğrenci dosyasına bağlanan raporu ayrıca final onayı vermek zorunda kalmadan tek tıkla PDF olarak indirebildiğini doğrular.
+
+Steps:
+1. Bir öğrencinin "#/report?session=<id>" 14 alan raporunu aç ve üst araç çubuğunda "PDF Olarak Kaydet" düğmesini doğrula
+2. "Öğrenci dosyasına bağla" işlemini yap; "Final raporu onayla ve arşivle" düğmesinin artık yeni rapor akışında gösterilmediğini doğrula
+3. "PDF Olarak Kaydet" düğmesine bas; tarayıcının yazdırma ekranında hedef olarak "PDF olarak kaydet" seç ve dosyayı kaydet
+
+Expected: Rapor ekranı ağır PDF kütüphaneleri olmadan açılır; PDF için ayrıca final onayı gerekmez; tarayıcının yerleşik yazdırma motoru açılır ve kullanıcı "PDF olarak kaydet" hedefiyle raporu çökme olmadan kaydedebilir.
+
+## Test 19 - Onaylı veli raporu değişmez ve süreli salt-okunur bağlantıyla paylaşılır
+Viewport: mobile
+Covers: immutable cza_report_versions snapshot, GET /api/parent-report/:token, expiring read-only parent share link, final PDF download from frozen snapshot
+Description: Velinin site içindeki eğitmen paneline girmeden yalnız onaylanmış raporu görebilmesini ve PDF indirebilmesini doğrular.
+
+Steps:
+1. Onaylanmış raporda "Veli linkini kopyala" ile üretilen "#/veli-paylas?token=" bağlantısını kimlik doğrulamasız aç
+2. Final sürüm numarasını, onay tarihini, 14 alanı, eğitmen gözlemini ve bütüncül değerlendirmeyi kontrol et
+3. "PDF indir" düğmesiyle PDF dosyasını oluştur; ardından eğitmen tarafında yeni revizyon açıp bir gözlemi değiştir ve eski paylaşım bağlantısını yeniden aç
+
+Expected: Veli bağlantısı yalnız arşivlenmiş final sürümü gösterir, eğitmen panelini açmaz; eski paylaşım linkindeki içerik yeni revizyondan etkilenmez ve PDF aynı donmuş sürümden üretilir; bağlantının geçerlilik tarihi görünür.
+
+## Test 20 - Aynı öğrenci için tekrar ölçüm kalıcı geçmişte karşılaştırılır
+Viewport: desktop
+Covers: cza_students persistent student identity, POST /api/session/:id/claim-student, GET /api/students, GET /api/student/:id/history, POST /api/student/:id/followup, longitudinal area score deltas
+Description: Tekrarlanan değerlendirmelerin isim benzerliğine güvenmeden aynı kalıcı öğrenci kimliği altında izlenmesini doğrular.
+
+Steps:
+1. Bir oturumu "Öğrenci dosyasına bağla" ile kalıcı öğrenci dosyasına bağla ve eğitimci merkezindeki "Kalıcı Öğrenci Dosyaları" bölümünü aç
+2. Aynı öğrenci için "Yeni ölçüm" başlat, en az bir performans alanında yeni kanıt oluştur ve öğrenci geçmişini tekrar aç
+3. İlk ve ikinci ölçüm tarihlerini, rapor durumlarını ve karşılaştırılabilir alanlardaki puan değişim özetlerini kontrol et
+
+Expected: İki değerlendirme aynı studentId altında listelenir; geçmiş kronolojik kalır; karşılaştırılabilir alanlarda artış/azalış farkları gösterilir ve yeni ölçüm eski final rapor sürümünü değiştirmez.
+
+## Test 21 - Başlangıç yol haritası genel ilerlemeyi ve yeni final sırasını açık gösterir
+Viewport: desktop
+Covers: pre-assessment journey overview, 14 official CZA areas, per-section question counts, global progress indicator, universal Soruyu Geç action, final pedagogical order
+Description: Öğrencinin başlamadan önce değerlendirme kapsamını ve bölüm başına görev sayısını görmesini, değerlendirme boyunca genel ilerlemeyi izlemesini ve son blokların istenen sırada tamamlanmasını doğrular.
+
+Steps:
+1. '#/veli' ekranında öğrenci adını girip 'Değerlendirme Planını Gör' düğmesine bas; ilk soru açılmadan önce 14 ana gelişim alanını, 23 bölümlük yol haritasını ve her bölümün görev/soru sayısını gör
+2. 'Hazırım · Değerlendirmeyi Başlat' ile başla; üstte 'Bölüm 1/23' genel ilerleme çubuğunu doğrula, birkaç bölüm ilerletip yüzde ve bölüm adının güncellendiğini; modül içindeki 4/16 benzeri yerel ilerlemenin ayrıca görünmeye devam ettiğini kontrol et
+3. Son bölüm sırasını Sesli Okuma ve Akıcılık → Sesli Dikkat → Anlatım ve Sözel Üretim → Matematik Tutumu ve Özgüven → Duygusal Farkındalık → Koçluk ve Öz Liderlik → Karakter ve Ahlaki Gelişim → Manevi Farkındalık ve Değerler olarak doğrula; Manevi Değerler tamamlanınca değerlendirme bitsin
+
+Expected: Çocuk başlangıçta bütün yolculuğu, 14 alanı ve bölüm başına görev sayılarını tek ekranda görür; adaptif sayı aralıkları açıkça belirtilir; değerlendirme boyunca hem genel bölüm ilerlemesi hem bölüm içi ilerleme görünür kalır; soruyu geçme hakkı korunur ve Manevi Farkındalık ve Değerler son bölüm olarak değerlendirmeyi kapatır.
+
+## Test 22 - Yaş sınıf profili doğru değerlendirme rotasını korur
+Viewport: mobile
+Covers: CZA Sihirli Dünya profile intake, animated gradient/white-card visual system, child-friendly mascot/world-card design, active/locked world states, age-band selection, chronological age-in-months validation, assessment purpose, POST /api/parent/sessions profile metadata, wrong-age assessment guardrail
+Description: CZA yaş-sınıf çekirdeğinin öğrenciyi yanlış yaş grubunun sorularına göndermediğini, E2 ve P2 canlı profillerini kendi rotalarında tuttuğunu doğrular.
+
+Steps:
+1. Veli başlangıcında CZA Sihirli Dünya beyaz premium hero, 🦊🐻🐰 maskotları, yumuşak renk geçişli arka plan ve büyük yaş/sınıf dünyaları kartlarını gör; mobilde kartların okunaklı tek sütun düzenine geçtiğini doğrula. 24–36 ay E2 kartı canlı ve ✅ AKTİF; 36–48, 48–60 ve 60–72 ay kartları 🔒 HAZIRLANIYOR olarak ayrılmalı. E2 profilini seç; aktif kartın mint vurguyla belirginleştiğini, doğum tarihi alanının açıldığını, kronolojik yaşın ay olarak gösterildiğini ve Genel ile Dil ve İletişim amaçlarında profilin canlı olduğunu doğrula
+2. Henüz canlı olmayan 36–48 ay E3 profilinde devam etmeyi dene; mevcut E2 veya 1–2. sınıf değerlendirmesinin başlamadığını ve yaşa özel görev paketi tamamlanmadan yanlış soru setinin açılmayacağını belirten mesajı doğrula
+3. 1. sınıf sonu / 2. sınıf başlangıcı profilini ve Genel Bütüncül Değerlendirme amacını seçip oturum oluştur; yol haritasında profil ve amaç etiketlerini gör, sayfayı yenile ve aynı oturumda profil bilgisinin korunduğunu doğrula
+
+Expected: Erken gelişimde ay yaşı doğrulanır; E2 yalnız doğru yaş bandında Genel veya Dil-İletişim amacıyla açılır; hazır olmayan profiller yanlış değerlendirmeye düşmez; P2 pilotu kendi rotasında çalışmaya devam eder ve profileCode ile assessmentPurpose oturum verisinde kalıcıdır.
+
+## Test 23 - E2-v7 130 soruluk adaptif banka göre çocuğa özel rota üretir
+Viewport: desktop
+Covers: E2-v7 adaptive profile persistence, 130-item original CZA digital bank, age-eligible section capacity, frontend/backend age-difficulty parity, pedagogically staged visual matching and categorization, single-valid-answer distractors, varied correct-option position, permanent sticky next-question flow guard across choose/audio/memory/language/record/inhibit/observe task types, error-free question-to-question transition, same-type diversification fallback, saved-response recovery, universal neutral task skip, unavailable-section locking, adaptive difficulty, interest theme preference, language-level calibration, attention-span target, five-second non-punitive hint signal, first-choice latency/touch count/support evidence, POST /api/session/:id/early-adaptive-profile, POST /api/session/:id/early-development-response, POST /api/session/:id/early-adaptive-section-complete, POST /api/session/:id/early-voice-sample, category performance report, previous E2-v7 comparison, original caregiver interview, E2-v1–v6 backward compatibility
+Description: Yeni E2-v7 oturumunda sabit soru listesi yerine yaş, dil düzeyi, ilgi alanı, dikkat süresi ve kategori performansına göre 130 soruluk özgün CZA bankasından adaptif görev seçildiğini doğrular.
+
+Steps:
+1. 26 aylık yeni E2 oturumu aç; 'Merhaba ... Küçük Kaşif' premium girişini ve renkli oyun dünyaları tasarımını gör. Çocuk merkezinde önce Tek sözcük, Hayvanlar ve Kısa dikkat profilini kaydet. Sayfayı yenile ve profilin kalıcı olduğunu; merkezde yaşa uygun kategorileri ve 130 dijital soru havuzu bilgisini gör. 26 ayda Meslek–Araç bölümünün soru havuzu olmadığı için 'Bu yaşta açılmıyor' şeklinde kilitli olduğunu; diğer bölümlerin hedef sayısının o yaşta gerçekten mevcut soru sayısını aşmadığını doğrula
+2. Görsel Eşleme bölümünde Sihirli Dünya soru ekranının büyük nötr seçenek kartlarını, renkli bölüm ilerleme çubuğunu ve çocukta doğru/yanlış rengi ya da puan göstermeyen etkileşimi kontrol et. Pedagojik sırayı ayrıca doğrula: 24–26 ayda yalnız iki seçenekli birebir eşleme çekirdeği açılmalı; 27+ ayda basit üç seçenekli farklıyı bulma, 30+ ayda üç seçenekli kategori genelleme, 33+ ayda nötr tavan dışlama açılabilmeli. Kategori görevinde örnekte gösterilen resim cevap seçeneklerinde tekrar etmemeli ve yalnız tek seçenek aynı kategoriye ait olmalı. Hayvan, taşıt, meyve, sofra aracı ve doğa gruplarının her biri kavramsal olarak temiz olmalı; doğru seçenek ekranın hep aynı konumunda bulunmamalı. Büyük görsel seçenekleri, 80px+ dokunma alanlarını ve '🔊 Yönergeyi dinle' kontrolünü kullan. Doğru veya yanlış fark etmeksizin dokunulan son seçeneğin sonraki göreve geçilene kadar sabit yeşil seçili durumda kaldığını ve dokunma sonrası sönmediğini doğrula; bir görevi 'Görevi geç · değerlendirilemedi' ile nötr geç. Tamamlanan görevler katılım/ilerleme yıldızı olarak görünür olabilir fakat doğru cevap başına yıldız, 'Bravo doğru', kırmızı yanlış veya yanlış sesi bulunmamalı. Üç bağımsız seri sonrası yalnız yaş tavanı içinde zorluk artabilmeli. Ayrı bir bölümde iki görevde destek/not-observed kanıtı oluştur ve rotanın kolaylaşabildiğini gör. Bir görevde 5 saniye bekle: sistem yalnız uygulayıcıya ipucu sinyali göstermeli, çocuğa yanlış/süre aşımı vermemeli. İlk seçim, tepki süresi, dokunma sayısı ve yardım düzeyi kalıcı kaydolmalı; choose, audio, memory, language, record, inhibit ve observe görevlerinin her birinde yanıt/kanıt oluştuğunda ekranın altında 'Kaydet ve Sonraki Göreve Geç' güvenlik çubuğu görünmeli. Yanlış ilk seçimde 'Henüz Gözlenmedi · Sonraki Göreve Geç' ve nötr geçiş yolu kaybolmamalı; çeşitlilik filtresi alternatif tip bulamazsa kullanılmamış uygun görevlerden birine düşmeli ve geçiş kilitlenmemeli
+3. 34 aylık ayrı E2-v7 oturumunda meslek-araç ve seviye-4 görevlerinin nötr keşif olarak açıldığını; yapamamanın kategori performans oranını düşürmediğini kontrol et. İşitsel bölümde ses-görsel eşleme ve isteğe bağlı ses taklidi kaydını kullan. Bir bölüm hedef kanıt sayısına ulaşınca bölüm kalıcı tamamlanmalı. Çocuk + veli bölümlerini tamamlayıp raporda kategori bazlı bağımsız performans oranı, destek oranı, ilk tepki ve bunun norm puanı olmadığı açıklamasını gör; aynı öğrenci dosyasındaki önceki E2-v7 oturumu varsa değişim karşılaştırması görünmeli
+
+Expected: Yeni E2 oturumları v7 ile açılır; soru bankası 130 özgün dijital varyanttan yaşa uygun adaptif alt küme seçer. Frontend görev zorluğu ile backend yaş kapısı aynı metadata düzenini izler; 24–26 aylık çocuk ileri üç/dört seçenekli kategori görevine düşmez. Görsel kategori sorularında tek savunulabilir doğru yanıt vardır, örnek resim şıklarda kopyalanmaz ve doğru konum sistematik ipucu oluşturmaz. Dokunulan son seçenek doğruluğundan bağımsız olarak görev değişene kadar sabit yeşil aktif görünür; bu yeşil durum yalnız 'seçildi' anlamına gelir ve doğru/yanlış geri bildirimi değildir. Hiçbir bölüm hedefi yaşa uygun gerçek havuz kapasitesini aşmaz, çeşitlilik filtresi rotayı yanlışlıkla boşaltmaz, kaydı sunucuda oluşmuş bir görev istemci yanıtı kaybolsa bile oturum yeniden okunarak toparlanabilir, her dijital görev nötr olarak geçilebilir, bütün E2-v7 görev tiplerinde kalıcı ilerleme çubuğu hiçbir yanıt durumunu çıkışsız bırakmaz, soru kalmadığında bölüm 409/geçiş hatası vermeden tamamlanır, o yaşta hiç görevi olmayan bölüm kilitli kalır, 5 saniye gecikme yanlış sayılmaz, tavan görevleri nötrdür ve eski E2-v1–v6 oturumları değişmeden çalışır.
+
+## Test 24 - Akademik değerlendirme toplam aktif süreyi kalıcı izler ve molayı saymaz
+Viewport: desktop
+Covers: academic total active-time timer, POST /api/session/:id/start-assessment, pause/resume assessment timer endpoints, persistent timer after refresh, paused-answer guardrail, stored assessmentActiveDurationMs, early-development timer exclusion, completed-assessment Ana Sayfaya Dön navigation
+Description: P1–P10 akademik profillerinde genel kronometrenin değerlendirme gerçekten başladığında açıldığını, mola süresini aktif zamana eklemediğini ve E2 erken gelişim ekranında çocuk üzerinde görünür süre baskısı oluşturmadığını doğrular.
+
+Steps:
+1. P2 Genel Bütüncül Değerlendirme oturumu oluştur; yol haritasında sayaç görünmediğini, 'Hazırım · Değerlendirmeyi Başlat' düğmesine basınca 'Toplam Aktif Süre', dakika bilgisi ve 'Mola ver' kontrolünün görünür olduğunu doğrula
+2. 'Mola ver' seç; mola katmanının açıldığını ve aktif sürenin durduğunu doğrula, sayfayı yenile ve molanın kalıcı kaldığını kontrol et; 'Değerlendirmeye Devam Et' ile sürdür ve sayaç kaldığı aktif süreden devam etsin
+3. Değerlendirmeyi tamamla; sayaç 'Tamamlandı' durumuna geçsin ve son aktif süre sabit kalsın. Tamamlanma kartında 'Ana Sayfaya Dön' düğmesine basınca #/veli başlangıç ekranına dönüldüğünü doğrula; ayrıca E2 24–36 ay oturumunda aynı görünür akademik kronometrenin hiç açılmadığını doğrula
+
+Expected: Akademik kronometre profil oluşturulurken değil öğrencinin değerlendirmeyi başlatmasıyla başlar; sayfa yenilemelerinde korunur; mola süresi toplam aktif süreye eklenmez ve moladayken akademik yanıt kaydı engellenir; tamamlanınca assessmentActiveDurationMs kalıcı olur ve tamamlanma ekranından Ana Sayfaya Dön ile #/veli başlangıcına geçilebilir; E0–E5 erken gelişim akışlarında çocuk ekranına görünür genel kronometre eklenmez.
+
+## Test 25 - E2-v3 çocuk ve veli değerlendirmesini iki ayrı kanıt kaynağı olarak birleştirir
+Viewport: desktop
+Covers: E2-v3 dual assessment overview, expanded child direct assessment, richer prompt levels, language sample metrics, POST /api/session/:id/early-caregiver-response, caregiver history/behavior/daily-living/family/red-flag questionnaire, separate child/caregiver completion, combined early-development report
+Description: 24–36 ay yeni E2 oturumunun aynı başlık altında çocukla doğrudan değerlendirme ve veli/bakımveren görüşmesi olarak ikiye ayrıldığını; PDF ölçütlerinin uygun kaynağa dağıtıldığını ve iki veri kaynağının raporda ayrı tutulduğunu doğrular.
+
+Steps:
+1. Yeni E2 oturumu oluştur; ana ekranda 'Çocukla Doğrudan Değerlendirme' ve 'Veli / Bakımveren Görüşmesi' kartlarını gör. Çocuk bölümünde kaba-ince motor, dil alt bileşenleri, ortak dikkat/sosyal iletişim, oyun-bilişsel/akademik öncül, doğal oyun ve 10 dakikalık dil örneklemi görevlerini aç; yardım düzeylerinde Bağımsız, Sözel İpucu, Jest/Görsel İpucu, Model Olma, Fiziksel Yardım, Henüz Gözlenmedi ve Soruyu geç seçeneklerini doğrula.
+2. Veli görüşmesini aç; Genel Bilgiler ve Özgeçmiş, Gelişimsel Dönüm Noktaları, Evde Sosyal İletişim ve Akran, Davranış ve Duyusal Özellikler, Günlük Yaşam/Özbakım/Güvenlik, Aile Gözlemi ve Öncelikler ve Kısa Gelişimsel Kırmızı Bayrak Kontrolü başlıklarında yanıtlar kaydet; sayfayı yenile ve yanıtların kaldığını doğrula.
+3. Çocuk bölümünü tamamla ama veli bölümünü yarım bırak; oturumun tamamlanmadığını doğrula. Veli bölümünü de tamamla; raporda çocuk doğrudan kanıtlarının 14 gelişim alanı ve 7 akademik öncül alan olarak, veli yanıtlarının ayrı Veli/Bakımveren Görüşmesi bölümü olarak gösterildiğini; işaretlenen kırmızı bayrakların tanı değil yönlendirme dikkati olarak gösterildiğini kontrol et.
+
+Expected: E2-v3 iki kaynaklı bütüncül değerlendirmedir; çocuk performansı ve veli beyanı birbirine puan olarak karıştırılmaz; PDF'deki gelişim öyküsü, motor, dil, sosyal, davranış-duyusal, oyun-bilişsel, günlük yaşam, aile öncelikleri, doğal oyun, yardım düzeyi ve kırmızı bayrak ölçütleri uygun kola yerleşir; iki kol tamamlanmadan oturum kapanmaz; eski E2-v1/v2 oturumları değişmeden çalışır.
