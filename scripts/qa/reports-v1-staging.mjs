@@ -214,7 +214,10 @@ async function rawOracle(academyId, studentId) {
       started,
       completed,
     },
-    errorSummary: [...errorMap.entries()].map(([error_type, count]) => ({ error_type, count })),
+    errorSummary: [...errorMap.entries()]
+      .map(([error_type, count]) => ({ error_type, count }))
+      .sort((a, b) => Number(b.count) - Number(a.count) || String(a.error_type).localeCompare(String(b.error_type)))
+      .slice(0, 8),
   };
 }
 
