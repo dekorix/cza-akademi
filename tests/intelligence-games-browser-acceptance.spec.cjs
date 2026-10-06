@@ -32,10 +32,10 @@ async function flow(page,captured){
   await expect(page.getByRole('heading',{name:'Kuralı bul. Çözümü dene. Yeni probleme taşı.'})).toBeVisible();
   await page.getByRole('button',{name:/Örüntü Avcısı/}).click();
 
-  for(const answer of ['10','●','16']) await page.getByRole('button',{name:answer,exact:true}).click();
+  { const sets=page.locator('fieldset'); await sets.nth(0).getByRole('button',{name:'10',exact:true}).click(); await sets.nth(1).getByRole('button',{name:'●',exact:true}).click(); await sets.nth(2).getByRole('button',{name:'16',exact:true}).click(); }
   await page.getByRole('button',{name:'İlk seti tamamla'}).click();
 
-  for(const answer of ['25','■','48']) await page.getByRole('button',{name:answer,exact:true}).click();
+  { const sets=page.locator('fieldset'); await sets.nth(0).getByRole('button',{name:'25',exact:true}).click(); await sets.nth(1).getByRole('button',{name:'■',exact:true}).click(); await sets.nth(2).getByRole('button',{name:'48',exact:true}).click(); }
   await page.getByRole('button',{name:'Transfer setini tamamla'}).click();
 
   await expect(page.getByText('Oturum merkezi kayda işlendi')).toBeVisible();
