@@ -4,6 +4,29 @@ import { Button } from '@/components/ui/button';
 
 type Student = { id: string; name: string; code: string | null; username: string | null };
 
+type AssignmentStatus = 'assigned' | 'started' | 'completed';
+
+type EducatorAssignment = {
+  id: string;
+  module_code: string;
+  name: string;
+  status: AssignmentStatus;
+  is_active: boolean;
+  created_at: string;
+  expires_at?: string | null;
+  session_count?: number;
+  completed_count?: number;
+  last_started_at?: string | null;
+  last_completed_at?: string | null;
+  latest_learning_record_id?: string | null;
+};
+
+const assignmentStatusLabel: Record<AssignmentStatus, string> = {
+  assigned: 'Atandı',
+  started: 'Başladı',
+  completed: 'Tamamlandı',
+};
+
 const assignmentModules = [
   ['finger_read', 'Parmak Okuma'],
   ['soroban_read', 'Soroban Okuma'],
@@ -44,6 +67,9 @@ export function EducatorStudents({ onReport }: { onReport: (studentId: string) =
   const [assignmentBusyId, setAssignmentBusyId] = useState('');
   const [assignmentMessage, setAssignmentMessage] = useState('');
   const [assignmentModule, setAssignmentModule] = useState<Record<string,string>>({});
+  const [assignmentLists, setAssignmentLists] = useState<Record<string,EducatorAssignment[]>>({});
+  const [assignmentOpen, setAssignmentOpen] = useState<Record<string,boolean>>({});
+  const [assignmentListBusyId, setAssignmentListBusyId] = useState('');
 
   useEffect(() => {
     const controller = new AbortController();
@@ -118,8 +144,51 @@ export function EducatorStudents({ onReport }: { onReport: (studentId: string) =
       }
       const label = assignmentModules.find(([code]) => code === moduleCode)?.[1] || moduleCode;
       setAssignmentMessage(`${student.name} için ${label} gerçek öğrenci dosyasına atandı. Çalışma, öğrencinin Çalışma Panelinde görünecek.`);
+      await loadAssignments(student.id, false);
+      setAssignmentOpen(current => ({ ...current, [student.id]: true }));
     } catch (error) { setAssignmentMessage(error instanceof Error ? error.message : 'Çalışma atanamadı.'); }
     finally { setAssignmentBusyId(''); }
+  }
+
+  async function loadAssignments(studentId: string, open = true) {
+    if (assignmentListBusyId) return;
+    setAssignmentListBusyId(studentId);
+    try {
+      const response = await fetch('/api/educator-assignments', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ action: 'list', studentId }),
+      });
+      const data = await response.json() as { ok?: boolean; assignments?: EducatorAssignment[]; error?: string };
+      if (!response.ok || data.ok !== true || !Array.isArray(data.assignments)) throw new Error(data.error || 'Atamalar alınamadı.');
+      setAssignmentLists(current => ({ ...current, [studentId]: data.assignments || [] }));
+      if (open) setAssignmentOpen(current => ({ ...current, [studentId]: true }));
+    } catch (error) {
+      setAssignmentMessage(error instanceof Error ? error.message : 'Atamalar alınamadı.');
+    } finally {
+      setAssignmentListBusyId('');
+    }
+  }
+
+  async function deactivateAssignment(student: Student, assignmentId: string) {
+    if (assignmentBusyId) return;
+    setAssignmentBusyId(student.id);
+    setAssignmentMessage('');
+    try {
+      const response = await fetch('/api/educator-assignments', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ action: 'deactivate', studentId: student.id, assignmentId }),
+      });
+      const data = await response.json() as { ok?: boolean; error?: string };
+      if (!response.ok || data.ok !== true) throw new Error(data.error || 'Atama kapatılamadı.');
+      setAssignmentMessage(student.name + ' için seçilen açık görev kapatıldı.');
+      await loadAssignments(student.id, false);
+    } catch (error) {
+      setAssignmentMessage(error instanceof Error ? error.message : 'Atama kapatılamadı.');
+    } finally {
+      setAssignmentBusyId('');
+    }
   }
 
   return <section className="rounded-2xl border border-border bg-white p-6">
@@ -145,12 +214,44 @@ export function EducatorStudents({ onReport }: { onReport: (studentId: string) =
           <div className="mt-4 rounded-xl border border-[#d6dfef] bg-[#f7f9fd] p-3">
             <div className="flex flex-wrap items-center gap-2"><div className="min-w-[180px] flex-1"><label className="text-xs font-semibold text-[#39556d]" htmlFor={`e3-birth-${student.id}`}>E3 · 36–48 ay doğum tarihi</label><input id={`e3-birth-${student.id}`} type="date" value={e3BirthDate[student.id] || ''} onChange={event=>setE3BirthDate(current=>({...current,[student.id]:event.target.value}))} className="mt-1 min-h-10 w-full rounded-lg border border-[#ccd7e7] bg-white px-3 text-sm"/></div><Button variant="outline" disabled={Boolean(e3BusyId)} onClick={()=>void startE3Assessment(student)}>{e3BusyId===student.id?'E3 hazırlanıyor…':'36–48 Ay E3 başlat'}</Button>{e3SessionId&&<a className="rounded-md border border-[#ccd7e7] bg-white px-3 py-2 text-sm font-semibold text-[#39556d]" href={`/educator/assessment/e3/report?session=${encodeURIComponent(e3SessionId)}`} target="_blank" rel="noreferrer">E3 raporu</a>}</div><p className="mt-2 text-[11px] leading-5 text-[#607187]">Backend tamamlanmış ayı doğrular. 36–47 ay dışında E3 oturumu açılmaz; çocuk ve bakımveren kanıtı ayrı tutulur.</p>
           </div>
-          <div className="mt-4 flex flex-wrap items-center gap-2 rounded-xl border border-[#dce9e2] bg-[#f8fbf9] p-3">
-            <label className="text-xs font-semibold text-[#315f50]" htmlFor={`assignment-${student.id}`}>Gerçek çalışma ata</label>
-            <select id={`assignment-${student.id}`} value={assignmentModule[student.id] || 'finger_read'} onChange={event => setAssignmentModule(current => ({ ...current, [student.id]: event.target.value }))} className="min-h-10 flex-1 rounded-lg border border-border bg-white px-3 text-sm">
-              {assignmentModules.map(([code,label]) => <option key={code} value={code}>{label}</option>)}
-            </select>
-            <Button disabled={Boolean(assignmentBusyId)} onClick={() => void assignWork(student)}>{assignmentBusyId === student.id ? 'Atanıyor…' : 'Öğrenciye ata'}</Button>
+          <div className="mt-4 rounded-xl border border-[#dce9e2] bg-[#f8fbf9] p-3">
+            <div className="flex flex-wrap items-center gap-2">
+              <label className="text-xs font-semibold text-[#315f50]" htmlFor={`assignment-${student.id}`}>Gerçek çalışma ata</label>
+              <select id={`assignment-${student.id}`} value={assignmentModule[student.id] || 'finger_read'} onChange={event => setAssignmentModule(current => ({ ...current, [student.id]: event.target.value }))} className="min-h-10 flex-1 rounded-lg border border-border bg-white px-3 text-sm">
+                {assignmentModules.map(([code,label]) => <option key={code} value={code}>{label}</option>)}
+              </select>
+              <Button disabled={Boolean(assignmentBusyId)} onClick={() => void assignWork(student)}>{assignmentBusyId === student.id ? 'Atanıyor…' : 'Öğrenciye ata'}</Button>
+              <Button
+                variant="outline"
+                disabled={assignmentListBusyId === student.id}
+                onClick={() => {
+                  if (assignmentOpen[student.id]) setAssignmentOpen(current => ({ ...current, [student.id]: false }));
+                  else void loadAssignments(student.id, true);
+                }}
+              >
+                {assignmentListBusyId === student.id ? 'Yükleniyor…' : assignmentOpen[student.id] ? 'Atamaları gizle' : 'Atamaları göster'}
+              </Button>
+            </div>
+            {assignmentOpen[student.id] && <div className="mt-3 space-y-2 border-t border-[#dce9e2] pt-3">
+              {(assignmentLists[student.id] || []).length ? (assignmentLists[student.id] || []).map(assignment => {
+                const status = assignment.status || (Number(assignment.completed_count || 0) > 0 ? 'completed' : Number(assignment.session_count || 0) > 0 ? 'started' : 'assigned');
+                return <div key={assignment.id} className="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-white p-3">
+                  <div className="min-w-[220px] flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <b className="text-sm">{assignment.name}</b>
+                      <span className={'rounded-full px-2 py-1 text-[10px] font-bold ' + (status === 'completed' ? 'bg-emerald-50 text-emerald-800' : status === 'started' ? 'bg-amber-50 text-amber-800' : 'bg-sky-50 text-sky-800')}>{assignmentStatusLabel[status]}</span>
+                    </div>
+                    <p className="mt-1 text-[11px] text-muted-foreground">
+                      {Number(assignment.session_count || 0)} seans · {Number(assignment.completed_count || 0)} tamamlandı
+                      {assignment.latest_learning_record_id ? ' · canonical sonuç var' : ''}
+                    </p>
+                  </div>
+                  {assignment.is_active && status !== 'completed'
+                    ? <Button variant="outline" size="sm" disabled={Boolean(assignmentBusyId)} onClick={() => void deactivateAssignment(student, assignment.id)}>Görevi kapat</Button>
+                    : null}
+                </div>;
+              }) : <p className="text-xs text-muted-foreground">Bu öğrenci için henüz çalışma ataması yok.</p>}
+            </div>}
           </div>
         </div>;
       }) : <p className="py-6">Bu sayfada bağlı öğrenci bulunmuyor.</p>}</div>}
