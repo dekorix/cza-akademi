@@ -88,6 +88,38 @@ try {
   `;
   console.log('SESSION_TABLE_CONSTRAINTS=' + JSON.stringify(sessionConstraints));
 
+  const evidenceColumns = await sql`
+    SELECT ordinal_position, column_name, data_type, is_nullable, column_default
+    FROM information_schema.columns
+    WHERE table_schema = 'public'
+      AND table_name = 'learning_evidence'
+    ORDER BY ordinal_position
+  `;
+  console.log('LEARNING_EVIDENCE_COLUMNS=' + JSON.stringify(evidenceColumns));
+
+  const evidenceConstraints = await sql`
+    SELECT c.conname, pg_get_constraintdef(c.oid) AS definition
+    FROM pg_constraint c
+    JOIN pg_class t ON t.oid = c.conrelid
+    JOIN pg_namespace n ON n.oid = t.relnamespace
+    WHERE n.nspname = 'public'
+      AND t.relname = 'learning_evidence'
+    ORDER BY c.conname
+  `;
+  console.log('LEARNING_EVIDENCE_CONSTRAINTS=' + JSON.stringify(evidenceConstraints));
+
+  const verificationStatusShape = evidenceColumns.find(column => column.column_name === 'verification_status');
+  if (verificationStatusShape) {
+    const verificationValues = await sql`
+      SELECT verification_status::text AS value, count(*)::int AS count
+      FROM public.learning_evidence
+      GROUP BY verification_status
+      ORDER BY count(*) DESC, verification_status::text
+      LIMIT 20
+    `;
+    console.log('LEARNING_EVIDENCE_VERIFICATION_VALUES=' + JSON.stringify(verificationValues));
+  }
+
   const schema = await sql`
     SELECT
       to_regclass('public.learning_records')::text AS learning_records,
