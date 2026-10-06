@@ -398,8 +398,9 @@ try {
 
   crossAcademyStudentId = String(crossAcademy[0].id);
   await sql`
-    INSERT INTO public.teacher_student_links (teacher_id, student_id, can_view)
+    INSERT INTO public.teacher_student_links (academy_id, teacher_id, student_id, can_view)
     VALUES (
+      ${fixture.academy_id}::uuid,
       ${fixture.educator_user_id}::uuid,
       ${crossAcademyStudentId}::uuid,
       true
