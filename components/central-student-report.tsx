@@ -53,6 +53,49 @@ type Report = {
     metadata?: Record<string, unknown> | null;
   }[];
   learningHistoryAvailable?: boolean;
+  reportInsights?: {
+    sessions: number;
+    assignmentSessions: number;
+    independentSessions: number;
+    totalQuestions: number;
+    correct: number;
+    wrong: number;
+    accuracy: number;
+    totalDurationMs: number;
+    timeoutCount: number;
+    retryCount: number;
+  };
+  reportInsightsAvailable?: boolean;
+  moduleProgress?: {
+    moduleCode: string;
+    sessions: number;
+    totalQuestions: number;
+    correct: number;
+    wrong: number;
+    accuracy: number;
+    totalDurationMs: number;
+    lastCompletedAt: string | null;
+  }[];
+  assignmentProgress?: {
+    total: number;
+    assigned: number;
+    started: number;
+    completed: number;
+  };
+  recentAssignments?: {
+    id: string;
+    module_code: string;
+    name: string;
+    created_at: string;
+    expires_at?: string | null;
+    status: 'assigned' | 'started' | 'completed';
+    session_count?: number;
+    last_completed_at?: string | null;
+  }[];
+  errorSummary?: {
+    error_type: string;
+    count: number;
+  }[];
   assessmentRouting?: null | {
     sessionId: string;
     templateCode: string;
@@ -103,6 +146,22 @@ function learningDuration(startedAt: string, completedAt: string) {
   const milliseconds = Math.max(0, Date.parse(completedAt) - Date.parse(startedAt));
   const minutes = Math.round(milliseconds / 60000);
   return minutes < 1 ? '1 dk altı' : `${minutes} dk`;
+}
+
+function reportDuration(milliseconds: number) {
+  const totalMinutes = Math.max(0, Math.round(milliseconds / 60000));
+  if (totalMinutes < 1) return '1 dk altı';
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  if (!hours) return `${minutes} dk`;
+  return minutes ? `${hours} sa ${minutes} dk` : `${hours} sa`;
+}
+
+function errorLabel(code: string) {
+  if (code === 'TIMEOUT') return 'Süre doldu';
+  if (code === 'RESPONSE_ERROR') return 'Yanıt hatası';
+  if (code === 'PATTERN_ERROR') return 'Örüntü hatası';
+  return code.replaceAll('_', ' ');
 }
 
 export function CentralStudentReport({ children, initialCode = '' }: { children?: ReactNode; initialCode?: string } = {}) {
@@ -322,6 +381,125 @@ export function CentralStudentReport({ children, initialCode = '' }: { children?
                 </span>
               )}
             </div>
+          </section>
+
+          <section className="rounded-xl border border-[#d6e4dc] bg-[#f7fbf8] p-6">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <p className="eyebrow text-primary">Raporlar V1</p>
+                <h3 className="mt-2 text-lg font-semibold">Çalışma ve ödev gelişim özeti</h3>
+                <p className="mt-2 max-w-3xl text-xs leading-5 text-muted-foreground">Tamamlanmış canonical oturumlar, eğitimci atamaları ve soru kayıtları aynı Student ID üzerinden özetlenir. Bu alan tanı veya norm üretmez; eğitimcinin gerçek çalışma verisini yorumlamasını kolaylaştırır.</p>
+              </div>
+              <span className="rounded-full border border-[#c9d9d1] bg-white px-3 py-1 text-xs font-semibold text-[#315f50]">Tek Student ID</span>
+            </div>
+            {report.reportInsightsAvailable === false ? (
+              <p className="mt-5 rounded-lg bg-white p-4 text-sm text-muted-foreground">Gelişim özeti bu ortamda hesaplanamadı. Ham çalışma geçmişi gösterilmeye devam ediyor.</p>
+            ) : (
+              <>
+                <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                  {[
+                    ['Tamamlanan oturum', report.reportInsights?.sessions ?? 0],
+                    ['Toplam çalışma', reportDuration(report.reportInsights?.totalDurationMs ?? 0)],
+                    ['Toplam soru', report.reportInsights?.totalQuestions ?? 0],
+                    ['Canonical doğruluk', `%${report.reportInsights?.accuracy ?? 0}`],
+                  ].map(([label, value]) => (
+                    <div key={label} className="rounded-xl border border-[#dce9e2] bg-white p-4">
+                      <b className="block text-xl text-[#254d41]">{value}</b>
+                      <span className="mt-1 block text-[11px] text-muted-foreground">{label}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-4 grid gap-4 lg:grid-cols-[1fr_1fr]">
+                  <div className="rounded-xl border border-[#dce9e2] bg-white p-4">
+                    <h4 className="font-semibold">Ödev ilerlemesi</h4>
+                    <div className="mt-3 grid grid-cols-4 gap-2 text-center">
+                      {[
+                        ['Toplam', report.assignmentProgress?.total ?? 0],
+                        ['Atandı', report.assignmentProgress?.assigned ?? 0],
+                        ['Başladı', report.assignmentProgress?.started ?? 0],
+                        ['Tamamlandı', report.assignmentProgress?.completed ?? 0],
+                      ].map(([label, value]) => (
+                        <div key={label} className="rounded-lg bg-secondary/50 p-3">
+                          <b className="block text-lg">{value}</b>
+                          <span className="text-[10px] text-muted-foreground">{label}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <p className="mt-3 text-[11px] text-muted-foreground">
+                      Atanmış çalışmadan gelen canonical oturum: {report.reportInsights?.assignmentSessions ?? 0} · Serbest/bağımsız oturum: {report.reportInsights?.independentSessions ?? 0}
+                    </p>
+                  </div>
+
+                  <div className="rounded-xl border border-[#dce9e2] bg-white p-4">
+                    <h4 className="font-semibold">Hata ve tekrar sinyalleri</h4>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <span className="rounded-full bg-[#fff5e8] px-3 py-1 text-xs text-[#87551d]">Süre dolumu: {report.reportInsights?.timeoutCount ?? 0}</span>
+                      <span className="rounded-full bg-[#f3efff] px-3 py-1 text-xs text-[#60478f]">Tekrar denemesi: {report.reportInsights?.retryCount ?? 0}</span>
+                      {(report.errorSummary || []).map(item => (
+                        <span key={item.error_type} className="rounded-full bg-[#f7f7f7] px-3 py-1 text-xs text-muted-foreground">
+                          {errorLabel(item.error_type)}: {item.count}
+                        </span>
+                      ))}
+                    </div>
+                    {!report.errorSummary?.length && <p className="mt-3 text-xs text-muted-foreground">Soru bazlı hata özeti oluşmamış.</p>}
+                  </div>
+                </div>
+
+                <div className="mt-4 overflow-hidden rounded-xl border border-[#dce9e2] bg-white">
+                  <div className="border-b border-[#dce9e2] px-4 py-3">
+                    <h4 className="font-semibold">Modül bazlı gelişim</h4>
+                  </div>
+                  {report.moduleProgress?.length ? (
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left text-xs">
+                        <thead>
+                          <tr className="border-b border-[#dce9e2] text-muted-foreground">
+                            <th className="p-3">Modül</th>
+                            <th className="p-3">Oturum</th>
+                            <th className="p-3">Soru</th>
+                            <th className="p-3">Doğru</th>
+                            <th className="p-3">Doğruluk</th>
+                            <th className="p-3">Süre</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {report.moduleProgress.map(item => (
+                            <tr key={item.moduleCode} className="border-b border-[#edf3ef] last:border-0">
+                              <td className="p-3 font-semibold">{labels[item.moduleCode] || item.moduleCode}</td>
+                              <td className="p-3">{item.sessions}</td>
+                              <td className="p-3">{item.totalQuestions}</td>
+                              <td className="p-3">{item.correct}</td>
+                              <td className="p-3 font-semibold text-primary">%{item.accuracy}</td>
+                              <td className="p-3">{reportDuration(item.totalDurationMs)}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  ) : <p className="p-4 text-sm text-muted-foreground">Henüz modül bazlı canonical kayıt yok.</p>}
+                </div>
+
+                {!!report.recentAssignments?.length && (
+                  <div className="mt-4 rounded-xl border border-[#dce9e2] bg-white p-4">
+                    <h4 className="font-semibold">Son ödevler</h4>
+                    <div className="mt-3 space-y-2">
+                      {report.recentAssignments.slice(0, 6).map(item => (
+                        <div key={item.id} className="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-[#f8fbf9] p-3">
+                          <div>
+                            <b className="text-sm">{item.name}</b>
+                            <p className="mt-1 text-[11px] text-muted-foreground">{labels[item.module_code] || item.module_code} · {Number(item.session_count || 0)} seans</p>
+                          </div>
+                          <span className={'rounded-full px-2.5 py-1 text-[10px] font-bold ' + (item.status === 'completed' ? 'bg-emerald-50 text-emerald-800' : item.status === 'started' ? 'bg-amber-50 text-amber-800' : 'bg-sky-50 text-sky-800')}>
+                            {item.status === 'completed' ? 'Tamamlandı' : item.status === 'started' ? 'Başladı' : 'Atandı'}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
           </section>
 
           <section className="rounded-xl border border-[#cfdde8] bg-[#f8fbfe] p-6">
