@@ -13,6 +13,7 @@ type Assignment = {
   module_name?: string;
   name: string;
   settings: ExerciseConfig | Record<string, unknown>;
+  status?: 'assigned' | 'started' | 'completed';
 };
 
 export default function AssignmentLaunchPage() {
@@ -27,6 +28,7 @@ export default function AssignmentLaunchPage() {
       const detailsResponse = await fetch(`/api/core/assignments?recipeId=${encodeURIComponent(recipeId)}`, { cache: 'no-store' });
       const details = await detailsResponse.json() as { ok?: boolean; assignment?: Assignment; error?: string };
       if (!detailsResponse.ok || details.ok !== true || !details.assignment) throw new Error(details.error || 'Atama bulunamadı.');
+      if (details.assignment.status === 'completed') throw new Error('Bu görev tamamlandı. Yeni çalışma için eğitimcinin yeni bir görev ataması gerekir.');
       if (!isAssignableModule(details.assignment.module_code)) throw new Error('Bu çalışma türü artık desteklenmiyor.');
       if (assignmentUsesStudio(details.assignment.module_code)) {
         if (!saveAssignedProgram(recipeId, details.assignment.settings as ExerciseConfig)) throw new Error('Çalışma ayarları bu cihazda hazırlanamadı.');
@@ -37,7 +39,10 @@ export default function AssignmentLaunchPage() {
         body: JSON.stringify({ recipeId }),
       });
       const launched = await launchResponse.json() as { ok?: boolean; error?: string };
-      if (!launchResponse.ok || launched.ok !== true) throw new Error(launched.error || 'Çalışma başlatılamadı.');
+      if (!launchResponse.ok || launched.ok !== true) {
+        if (launched.error === 'assignment_completed') throw new Error('Bu görev tamamlandı. Yeni çalışma için eğitimcinin yeni bir görev ataması gerekir.');
+        throw new Error(launched.error || 'Çalışma başlatılamadı.');
+      }
       if (!cancelled) window.location.replace(assignmentLaunchPath(details.assignment.module_code, recipeId));
     }
     void launch().catch(error => {

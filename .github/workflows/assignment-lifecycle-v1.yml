@@ -1,0 +1,82 @@
+name: CZA Assignment Lifecycle V1
+
+on:
+  push:
+    branches:
+      - feature/assignment-lifecycle-v1
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  assignment-lifecycle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout exact head
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.13.0'
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Type check
+        run: pnpm exec tsc --noEmit
+
+      - name: Assignment lifecycle tests
+        run: node --test tests/assignment-lifecycle-v1.test.mjs tests/real-assignment-auth-integration.test.mjs tests/student-history-integration.test.mjs
+
+      - name: Production build
+        run: pnpm build
+
+      - name: Start built app
+        shell: bash
+        run: |
+          set -euo pipefail
+          pnpm exec wrangler dev --config dist/server/wrangler.json --port 8787 > /tmp/cza-assignment-v1.log 2>&1 &
+          echo $! > /tmp/cza-assignment-v1.pid
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:8787/work > /tmp/work.html; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/cza-assignment-v1.log
+          exit 1
+
+      - name: Route smoke
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fsS http://127.0.0.1:8787/work > /tmp/work.html
+          curl -fsS http://127.0.0.1:8787/educator > /tmp/educator.html
+          curl -fsS http://127.0.0.1:8787/assignment > /tmp/assignment.html
+          test -s /tmp/work.html
+          test -s /tmp/educator.html
+          test -s /tmp/assignment.html
+
+      - name: Lint assignment changes
+        continue-on-error: true
+        run: >-
+          pnpm exec oxlint --format unix
+          app/api/core/assignments/route.ts
+          app/api/educator-assignments/route.ts
+          app/assignment/page.tsx
+          components/assigned-work-banner.tsx
+          components/educator-students.tsx
+          tests/assignment-lifecycle-v1.test.mjs
