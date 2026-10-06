@@ -77,7 +77,7 @@ try {
 
   await sql`
     INSERT INTO public.academies (id, name, slug, environment)
-    VALUES (${academyId}::uuid, 'CZA Synthetic QA Academy', ${academySlug}, 'staging_qa')
+    VALUES (${academyId}::uuid, 'CZA Synthetic QA Academy', ${academySlug}, 'staging')
   `;
 
   await sql`
