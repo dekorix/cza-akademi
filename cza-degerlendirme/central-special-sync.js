@@ -5,9 +5,16 @@
   let studentPromise = null;
   let studentCache = [];
   let centralMode = 'checking';
+  const bootstrapParams = new URLSearchParams(window.location.search);
+  const bootstrapStudentId = String(bootstrapParams.get('studentId') || '').trim();
+  const bootstrapProfile = /^SP-[A-Z]+$/.test(String(bootstrapParams.get('profile') || ''))
+    ? String(bootstrapParams.get('profile'))
+    : '';
+  let bootstrapProfileConsumed = false;
 
   function ensureCentralState() {
     if (!('centralStudentId' in state)) state.centralStudentId = '';
+    if (!state.centralStudentId && bootstrapStudentId) state.centralStudentId = bootstrapStudentId;
     if (!('centralStudentName' in state)) state.centralStudentName = '';
     if (!('centralSessionId' in state)) state.centralSessionId = '';
     if (!('centralProfileCode' in state)) state.centralProfileCode = '';
@@ -461,6 +468,15 @@
     }
   }
 
+  function applyBootstrapProfile() {
+    if (bootstrapProfileConsumed || !bootstrapProfile || state.screen !== 'home') return;
+    const button = document.querySelector('.special-card[data-code="' + bootstrapProfile + '"]');
+    if (!button || button.disabled) return;
+    bootstrapProfileConsumed = true;
+    window.history.replaceState(null, '', window.location.pathname);
+    button.click();
+  }
+
   function enhanceConnectionBadge() {
     if (state.screen !== 'home') return;
     const specialHead = document.querySelector('.special-head');
@@ -475,6 +491,7 @@
   render = function () {
     ensureCentralState();
     const result = baseRender();
+    applyBootstrapProfile();
     loadStudents(false).then(function () {
       enhanceConnectionBadge();
       enhanceIntake();
