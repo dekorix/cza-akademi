@@ -133,6 +133,7 @@ const labels: Record<string, string> = {
   finger_press: 'Parmak Basma',
   memory: 'Hafıza Teknikleri',
   attention_focus: 'Dikkat & Derin Odak',
+  speed_reading: 'Hızlı Okuma',
   arithmetic: 'Toplama / Çıkarma',
 };
 const priorityLabels = { HIGH: 'Öncelikli destek', MEDIUM: 'Güçlendir', MAINTAIN: 'Gücü koru' } as const;
