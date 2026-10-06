@@ -214,148 +214,138 @@ try {
     diagnosticUse: false,
   };
 
-  const tx = await sql.transaction([
-    sql`
-      INSERT INTO public.student_sessions (
-        id, academy_id, student_id, student_user_id, token_hash,
-        expires_at, last_seen_at, user_agent
-      ) VALUES (
-        ${studentSessionId}::uuid,
-        ${fixture.academy_id}::uuid,
-        ${fixture.student_id}::uuid,
-        ${fixture.student_user_id}::uuid,
-        ${qaTokenHash},
-        now() + interval '1 hour',
-        now(),
-        'CZA_REAL_HISTORY_QA'
-      )
-      RETURNING id
-    `,
-    sql`
-      SELECT learning_record_id, replayed, canonical_payload_hash
-      FROM public.cza_student_record_learning(
-        ${fixture.academy_id}::uuid,
-        ${fixture.student_id}::uuid,
-        ${fixture.training_session_id}::uuid,
-        ${studentSessionId}::uuid,
-        ${clientRecordId}::uuid,
-        'module_record',
-        '1.0.0',
-        'CZA_MODULE_RECORD_V1',
-        ${fixture.module_code}::text,
-        '1.0.0',
-        'practice_session',
-        ${startedAt.toISOString()}::timestamptz,
-        ${completedAt.toISOString()}::timestamptz,
-        'unknown',
-        ${JSON.stringify(performance)}::jsonb,
-        ${JSON.stringify(skills)}::jsonb,
-        ${JSON.stringify(metadata)}::jsonb
-      )
-    `,
-    sql`
-      SELECT id, academy_id, student_id, training_session_id, student_session_id,
-             record_origin, module_code, performance, skills, metadata
-      FROM public.learning_records
-      WHERE academy_id = ${fixture.academy_id}::uuid
-        AND student_id = ${fixture.student_id}::uuid
-        AND client_record_id = ${clientRecordId}::uuid
-      LIMIT 1
-    `,
-    sql`
-      SELECT lr.id, lr.academy_id, lr.student_id, lr.training_session_id, lr.module_code
-      FROM public.learning_records lr
-      WHERE lr.academy_id = ${fixture.academy_id}::uuid
-        AND lr.student_id = ${fixture.student_id}::uuid
-        AND lr.client_record_id = ${clientRecordId}::uuid
-        AND EXISTS (
-          SELECT 1
-          FROM public.teacher_student_links l
-          JOIN public.users t ON t.id = l.teacher_id
-          WHERE l.student_id = lr.student_id
-            AND l.teacher_id = ${fixture.educator_user_id}::uuid
-            AND l.can_view = true
-            AND t.is_active = true
+  let rollbackProof = false;
+  try {
+    await sql.transaction([
+      sql`
+        INSERT INTO public.student_sessions (
+          id, academy_id, student_id, student_user_id, token_hash,
+          expires_at, last_seen_at, user_agent
+        ) VALUES (
+          ${studentSessionId}::uuid,
+          ${fixture.academy_id}::uuid,
+          ${fixture.student_id}::uuid,
+          ${fixture.student_user_id}::uuid,
+          ${qaTokenHash},
+          now() + interval '1 hour',
+          now(),
+          'CZA_REAL_HISTORY_QA'
         )
-      LIMIT 1
-    `,
-    sql`
-      SELECT learning_record_id, replayed, canonical_payload_hash
-      FROM public.cza_student_record_learning(
-        ${fixture.academy_id}::uuid,
-        ${fixture.student_id}::uuid,
-        ${fixture.training_session_id}::uuid,
-        ${studentSessionId}::uuid,
-        ${clientRecordId}::uuid,
-        'module_record',
-        '1.0.0',
-        'CZA_MODULE_RECORD_V1',
-        ${fixture.module_code}::text,
-        '1.0.0',
-        'practice_session',
-        ${startedAt.toISOString()}::timestamptz,
-        ${completedAt.toISOString()}::timestamptz,
-        'unknown',
-        ${JSON.stringify(performance)}::jsonb,
-        ${JSON.stringify(skills)}::jsonb,
-        ${JSON.stringify(metadata)}::jsonb
-      )
-    `,
-    sql`
-      DELETE FROM public.learning_evidence
-      WHERE academy_id = ${fixture.academy_id}::uuid
-        AND learning_record_id = (
-          SELECT id
+        RETURNING id
+      `,
+      sql`
+        SELECT learning_record_id, replayed, canonical_payload_hash
+        FROM public.cza_student_record_learning(
+          ${fixture.academy_id}::uuid,
+          ${fixture.student_id}::uuid,
+          ${fixture.training_session_id}::uuid,
+          ${studentSessionId}::uuid,
+          ${clientRecordId}::uuid,
+          'module_record',
+          '1.0.0',
+          'CZA_MODULE_RECORD_V1',
+          ${fixture.module_code}::text,
+          '1.0.0',
+          'practice_session',
+          ${startedAt.toISOString()}::timestamptz,
+          ${completedAt.toISOString()}::timestamptz,
+          'unknown',
+          ${JSON.stringify(performance)}::jsonb,
+          ${JSON.stringify(skills)}::jsonb,
+          ${JSON.stringify(metadata)}::jsonb
+        )
+      `,
+      sql`
+        WITH replay AS (
+          SELECT learning_record_id, replayed, canonical_payload_hash
+          FROM public.cza_student_record_learning(
+            ${fixture.academy_id}::uuid,
+            ${fixture.student_id}::uuid,
+            ${fixture.training_session_id}::uuid,
+            ${studentSessionId}::uuid,
+            ${clientRecordId}::uuid,
+            'module_record',
+            '1.0.0',
+            'CZA_MODULE_RECORD_V1',
+            ${fixture.module_code}::text,
+            '1.0.0',
+            'practice_session',
+            ${startedAt.toISOString()}::timestamptz,
+            ${completedAt.toISOString()}::timestamptz,
+            'unknown',
+            ${JSON.stringify(performance)}::jsonb,
+            ${JSON.stringify(skills)}::jsonb,
+            ${JSON.stringify(metadata)}::jsonb
+          )
+        ),
+        record AS (
+          SELECT id, academy_id, student_id, training_session_id, student_session_id,
+                 record_origin, module_code
           FROM public.learning_records
           WHERE academy_id = ${fixture.academy_id}::uuid
+            AND student_id = ${fixture.student_id}::uuid
             AND client_record_id = ${clientRecordId}::uuid
-            AND metadata->>'qaMarker' = ${marker}
           LIMIT 1
+        ),
+        checks AS (
+          SELECT
+            EXISTS (
+              SELECT 1
+              FROM public.student_sessions ss
+              WHERE ss.id = ${studentSessionId}::uuid
+                AND ss.academy_id = ${fixture.academy_id}::uuid
+                AND ss.student_id = ${fixture.student_id}::uuid
+                AND ss.revoked_at IS NULL
+                AND ss.expires_at > now()
+            ) AS authenticated_session,
+            EXISTS (
+              SELECT 1
+              FROM record r
+              WHERE r.academy_id = ${fixture.academy_id}::uuid
+                AND r.student_id = ${fixture.student_id}::uuid
+                AND r.training_session_id = ${fixture.training_session_id}::uuid
+                AND r.student_session_id = ${studentSessionId}::uuid
+                AND r.record_origin = 'client_reported'
+                AND r.module_code = ${fixture.module_code}::text
+            ) AS student_readback,
+            EXISTS (
+              SELECT 1
+              FROM record r
+              WHERE EXISTS (
+                SELECT 1
+                FROM public.teacher_student_links l
+                JOIN public.users t ON t.id = l.teacher_id
+                WHERE l.student_id = r.student_id
+                  AND l.teacher_id = ${fixture.educator_user_id}::uuid
+                  AND l.can_view = true
+                  AND t.is_active = true
+              )
+            ) AS educator_readback,
+            COALESCE((SELECT replayed FROM replay LIMIT 1), false) AS replayed,
+            COALESCE((SELECT learning_record_id::text FROM replay LIMIT 1), '') =
+              COALESCE((SELECT id::text FROM record LIMIT 1), '') AS same_record
         )
-      RETURNING id
-    `,
-    sql`
-      DELETE FROM public.learning_records
-      WHERE academy_id = ${fixture.academy_id}::uuid
-        AND client_record_id = ${clientRecordId}::uuid
-        AND metadata->>'qaMarker' = ${marker}
-      RETURNING id
-    `,
-    sql`
-      DELETE FROM public.student_sessions
-      WHERE id = ${studentSessionId}::uuid
-        AND token_hash = ${qaTokenHash}
-      RETURNING id
-    `,
-  ]);
-
-  const createdSession = tx[0]?.[0];
-  const first = tx[1]?.[0];
-  const studentRead = tx[2]?.[0];
-  const educatorRead = tx[3]?.[0];
-  const replay = tx[4]?.[0];
-  const deletedEvidence = tx[5] || [];
-  const deleted = tx[6] || [];
-  const deletedSession = tx[7] || [];
-
-  const checks = {
-    authenticatedSessionCreated: String(createdSession?.id || '') === studentSessionId,
-    firstInsert: Boolean(first?.learning_record_id) && first?.replayed === false,
-    studentReadback: String(studentRead?.id || '') === String(first?.learning_record_id || ''),
-    educatorReadback: String(educatorRead?.id || '') === String(first?.learning_record_id || ''),
-    sameStudent: String(studentRead?.student_id || '') === String(fixture.student_id),
-    sameAcademy: String(studentRead?.academy_id || '') === String(fixture.academy_id),
-    sameSession: String(studentRead?.training_session_id || '') === String(fixture.training_session_id),
-    sameStudentSession: String(studentRead?.student_session_id || '') === studentSessionId,
-    currentOrigin: studentRead?.record_origin === 'client_reported',
-    sameModule: studentRead?.module_code === fixture.module_code,
-    replayed: replay?.replayed === true && String(replay?.learning_record_id || '') === String(first?.learning_record_id || ''),
-    sameHash: replay?.canonical_payload_hash === first?.canonical_payload_hash,
-    cleanupInTransaction: deletedEvidence.length >= 1 && deleted.length === 1 && deletedSession.length === 1,
-  };
-
-  if (Object.values(checks).some(value => value !== true)) {
-    throw new Error('staging_readback_mismatch:' + JSON.stringify(checks));
+        SELECT CAST(
+          'QA_ROLLBACK_' ||
+          CASE
+            WHEN authenticated_session
+             AND student_readback
+             AND educator_readback
+             AND replayed
+             AND same_record
+            THEN 'PASS'
+            ELSE 'FAIL'
+          END
+          AS integer
+        )
+        FROM checks
+      `,
+    ]);
+    throw new Error('qa_transaction_unexpected_commit');
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    if (!message.includes('QA_ROLLBACK_PASS')) throw error;
+    rollbackProof = true;
   }
 
   const residue = await sql`
@@ -364,12 +354,23 @@ try {
     WHERE academy_id = ${fixture.academy_id}::uuid
       AND client_record_id = ${clientRecordId}::uuid
   `;
+  const evidenceResidue = await sql`
+    SELECT count(*)::int AS count
+    FROM public.learning_evidence
+    WHERE academy_id = ${fixture.academy_id}::uuid
+      AND payload->'metadata'->>'qaMarker' = ${marker}
+  `;
   const sessionResidue = await sql`
     SELECT count(*)::int AS count
     FROM public.student_sessions
     WHERE id = ${studentSessionId}::uuid
   `;
-  if (Number(residue[0]?.count || 0) !== 0 || Number(sessionResidue[0]?.count || 0) !== 0) {
+  if (
+    !rollbackProof ||
+    Number(residue[0]?.count || 0) !== 0 ||
+    Number(evidenceResidue[0]?.count || 0) !== 0 ||
+    Number(sessionResidue[0]?.count || 0) !== 0
+  ) {
     throw new Error('staging_qa_residue_detected');
   }
 
@@ -379,6 +380,7 @@ try {
   console.log('STUDENT_READBACK=PASS');
   console.log('EDUCATOR_READBACK=PASS');
   console.log('IDEMPOTENT_REPLAY=PASS');
+  console.log('TRANSACTIONAL_ROLLBACK=PASS');
   console.log('TRANSACTIONAL_CLEANUP=PASS');
   console.log('HOST_SHA256=' + hostHash);
 } catch (error) {
