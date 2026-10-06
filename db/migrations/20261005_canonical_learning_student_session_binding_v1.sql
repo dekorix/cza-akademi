@@ -250,6 +250,8 @@ BEGIN
       evidence_type,
       skill_code,
       support_level,
+      verification_status,
+      verification_authority,
       observed_at,
       payload
     )
@@ -260,6 +262,8 @@ BEGIN
       'activity_result',
       NULL,
       p_support_level,
+      'server_verified',
+      'work_center_completion:v1',
       p_completed_at,
       jsonb_build_object('performance', p_performance, 'metadata', p_metadata)
     );
@@ -271,6 +275,8 @@ BEGIN
       evidence_type,
       skill_code,
       support_level,
+      verification_status,
+      verification_authority,
       observed_at,
       payload
     )
@@ -281,6 +287,8 @@ BEGIN
       'skill_observation',
       skill.value,
       p_support_level,
+      'server_verified',
+      'work_center_completion:v1',
       p_completed_at,
       jsonb_build_object('performance', p_performance, 'metadata', p_metadata)
     FROM (
