@@ -193,7 +193,7 @@ async function openUiReport(page, studentId) {
   if (!submitted) throw new Error('report_form_submit_missing');
 
   try {
-    await waitForText(page, 'Raporlar V1');
+    await waitForText(page, 'RAPORLAR V1');
   } catch {
     const snapshot = await evalJson(page, `document.body?.innerText?.slice(-3500) || ''`);
     throw new Error('reports_v1_ui_missing:' + String(snapshot).replaceAll('\\n', ' | '));
