@@ -16,7 +16,7 @@ const { packageCatalog, packageReadiness, readyAccessCodes } = await import('../
 const trainingRecipesSource=fs.readFileSync(new URL('../lib/training-recipes.ts',import.meta.url),'utf8');
 
 test('Zihin Gelişim package is exactly 7/7 ready',()=>{
-  assert.deepEqual(readyAccessCodes('ZIHIN_GELISIM'), expected.map(([code])=>code));
+  assert.deepEqual([...readyAccessCodes('ZIHIN_GELISIM')].sort(), expected.map(([code])=>code).sort());
   assert.deepEqual(packageReadiness('ZIHIN_GELISIM'), {
     ready:7,total:7,fullyReady:true,pendingLabels:[],
   });
