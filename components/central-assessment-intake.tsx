@@ -40,6 +40,8 @@ const PURPOSES:Array<[AssessmentPurpose,string]>=[
   ['REASSESSMENT','Yeniden Ölçüm'],
 ];
 
+const P2_FULL_SOURCE_URL='https://cza-degerlendirme-hl4a5d.v2.appdeploy.ai/#/veli';
+
 const SPECIAL=[
   ['SP-DYS','Disleksi / Okuma Güçlüğü','Okuma sisteminde ses, harf, hece, akıcılık, bellek ve transfer örüntülerini ayırır.','Aa'],
   ['SP-SLD','Özgül Öğrenme Güçlüğü','Okuma, yazma ve matematikte ortak ve ayrışan öğrenme örüntülerini tarar.','◇'],
@@ -93,6 +95,12 @@ export function CentralAssessmentIntake({onP2Created}:{onP2Created:(payload:P2Cr
 
   const target=useMemo(()=>profileCode?resolveAssessmentBridge(profileCode,purpose):null,[profileCode,purpose]);
   const selectedStudent=students.find(student=>student.id===studentId)||null;
+
+  function openFullP2Assessment(){
+    if(!selectedStudent)return;
+    const query=new URLSearchParams({student:selectedStudent.name,profile:'P2',purpose:'GENERAL'});
+    window.location.href=P2_FULL_SOURCE_URL+'?'+query.toString();
+  }
 
   function chooseProfile(code:string){
     setProfileCode(code);
@@ -205,11 +213,11 @@ export function CentralAssessmentIntake({onP2Created}:{onP2Created:(payload:P2Cr
 
         <div className="mt-7"><label className="text-sm font-semibold">3 · Değerlendirme amacı</label><select value={purpose} onChange={event=>setPurpose(event.target.value as AssessmentPurpose)} className="mt-2 min-h-11 w-full rounded-xl border border-[#d4e1dc] bg-white px-4 text-sm">{PURPOSES.map(([value,label])=><option key={value} value={value}>{label}</option>)}</select></div>
 
-        {target&&<div className={'mt-5 flex gap-3 rounded-xl border p-4 '+(target.status==='CENTRAL_READY'?'border-[#cce2d6] bg-[#f1f8f4]':'border-[#eadfbf] bg-[#fffaf0]')}><ShieldCheck className={target.status==='CENTRAL_READY'?'text-[#276151]':'text-[#856f32]'}/><div><b>{target.status==='CENTRAL_READY'?'Merkezi CZA hattı hazır.':'Bu profil güvenli biçimde kilitli.'}</b><p className="mt-1 text-xs leading-5 text-muted-foreground">{target.reason}</p></div></div>}
+        {target&&<div className={'mt-5 flex gap-3 rounded-xl border p-4 '+(target.status==='CENTRAL_READY'?'border-[#cce2d6] bg-[#f1f8f4]':'border-[#eadfbf] bg-[#fffaf0]')}><ShieldCheck className={target.status==='CENTRAL_READY'?'text-[#276151]':'text-[#856f32]'}/><div><b>{target.status==='CENTRAL_READY'?'Merkezi CZA hattı hazır.':target.status==='SOURCE_REFERENCE_ONLY'?'Tam P2 değerlendirme motoru hazır.':'Bu profil güvenli biçimde kilitli.'}</b><p className="mt-1 text-xs leading-5 text-muted-foreground">{target.reason}</p></div></div>}
         {message&&<p role="status" className="mt-4 rounded-xl bg-[#fff4e7] p-4 text-sm font-semibold text-[#825b2d]">{message}</p>}
         {profileCode==='P2'&&target?.status==='SOURCE_REFERENCE_ONLY'&&
-          <Button type="button" onClick={()=>{window.location.href='/assessment/p2';}} className="mt-6 min-h-12 w-full bg-[#856f32] text-base hover:bg-[#6f5c29]">
-            Tam P2 restorasyon haritasını aç →
+          <Button type="button" onClick={openFullP2Assessment} disabled={!selectedStudent} className="mt-6 min-h-12 w-full bg-[#856f32] text-base hover:bg-[#6f5c29]">
+            {selectedStudent?'Tam P2 değerlendirmesini aç →':'Önce merkezi öğrenciyi seç'}
           </Button>}
         <Button onClick={()=>void start()} disabled={!ready||busy} className="mt-3 min-h-12 w-full bg-[#226f60] text-base hover:bg-[#195749]">{busy?'Merkezi bağlantı kuruluyor…':'Değerlendirme planını aç →'}</Button>
       </div>
