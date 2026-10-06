@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
 import {
   P2_FULL_SECTIONS,
   P2_FULL_MIN_TASKS,
@@ -28,4 +29,20 @@ test('incomplete P2 must not be exposed as central ready',()=>{
   assert.equal(p2?.status,'SOURCE_REFERENCE_ONLY');
   assert.equal(p2?.centralRoute,null);
   assert.equal(p2?.templateFamily,'CZA_P2_FULL_V1');
+});
+
+
+test('P2 card opens the dedicated restoration hub instead of the E3-only alert',()=>{
+  const source=fs.readFileSync(new URL('../cza-degerlendirme/app.js',import.meta.url),'utf8');
+  assert.match(source,/x\.dataset\.code==='P2'/);
+  assert.match(source,/window\.location\.href='\/assessment\/p2'/);
+  assert.match(source,/TAM KAYNAK · RESTORASYON/);
+});
+
+test('P2 restoration hub exposes the frozen full-source contract',()=>{
+  const source=fs.readFileSync(new URL('../app/assessment/p2/page.tsx',import.meta.url),'utf8');
+  assert.match(source,/P2_FULL_SECTIONS\.map/);
+  assert.match(source,/P2_FULL_REQUIRED_AREAS\.map/);
+  assert.match(source,/Gerçek öğrenci verisi/);
+  assert.match(source,/cza-degerlendirme-hl4a5d\.v2\.appdeploy\.ai/);
 });
