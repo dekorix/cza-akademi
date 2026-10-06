@@ -17,11 +17,12 @@ test('Anzan package opens only implemented exercise access',()=>{
 });
 
 test('planned mind-development capabilities are recorded but not falsely marked ready',()=>{
-  assert.ok(allAccessCodes('ZIHIN_GELISIM').includes('memory_techniques'));
-  assert.deepEqual(readyAccessCodes('ZIHIN_GELISIM'),[]);
+  assert.ok(allAccessCodes('ZIHIN_GELISIM').includes('memory'));
+  assert.deepEqual(readyAccessCodes('ZIHIN_GELISIM'),['memory']);
 });
 
 test('combined package is a union without claiming unfinished modules are live',()=>{
   assert.ok(readyAccessCodes('BUTUNLESIK').includes('flash_anzan'));
-  assert.ok(allAccessCodes('BUTUNLESIK').includes('memory_techniques'));
+  assert.ok(allAccessCodes('BUTUNLESIK').includes('memory'));
+  assert.ok(readyAccessCodes('BUTUNLESIK').includes('memory'));
 });
