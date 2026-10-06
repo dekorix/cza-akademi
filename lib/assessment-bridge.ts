@@ -54,7 +54,7 @@ const BASE: Record<IntakeProfileCode, AssessmentBridgeTarget> = {
   P10:{profileCode:'P10',sourceLabel:'11–12 / Mezun · YKS-TYT',status:'PLANNED',centralRoute:null,templateFamily:null,requiresBirthDate:false,allowedPurposes:['GENERAL','ACADEMIC','YKS'],reason:'YKS/TYT merkezi görev bankası henüz port edilmedi.'},
 };
 
-function isSpecialBridgeProfileCode(value: unknown) {
+function isSpecialBridgeProfileCode(value: unknown): value is (typeof SPECIAL_BRIDGE_PROFILE_CODES)[number] {
   return typeof value === 'string' && SPECIAL_BRIDGE_PROFILE_CODES.includes(value as (typeof SPECIAL_BRIDGE_PROFILE_CODES)[number]);
 }
 
