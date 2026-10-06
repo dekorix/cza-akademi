@@ -1,4 +1,5 @@
 import { neon } from '@neondatabase/serverless';
+import { authenticatedEducator } from '@/lib/educator-auth';
 import { allowRequest, rateLimited } from '@/lib/request-guard';
 import { V7_BANK_SIZE, V7_SECTIONS, V7_TASK_MAP, type V7SectionId } from '@/lib/e2-question-bank';
 import {
@@ -13,6 +14,7 @@ import {
   type E2Evidence,
 } from '@/lib/e2-assessment';
 import type { V7AdaptiveProfile } from '@/lib/e2-adaptive';
+import { caregiverQuestionsV4, isCaregiverV4Question, buildCaregiverV4Report, type CaregiverState } from '@/lib/e2-caregiver';
 
 function json(body:unknown,status=200){
   return Response.json(body,{status,headers:{'cache-control':'no-store'}});
@@ -107,6 +109,36 @@ function responsesFromRows(rows:Record<string,unknown>[]):E2Evidence[]{
   });
 }
 
+function caregiverRows(rows:Record<string,unknown>[]) {
+  return rows.flatMap(row=>{
+    const taskCode=String(row.task_code||'');
+    if(!taskCode.startsWith('E2CG_')) return [];
+    const payload=row.answer_payload&&typeof row.answer_payload==='object'
+      ? row.answer_payload as Record<string,unknown>
+      : {};
+    const questionId=typeof payload.questionId==='string'?payload.questionId:taskCode.slice(5);
+    if(!isCaregiverV4Question(questionId)) return [];
+    return [{
+      questionId,
+      answer:typeof payload.answer==='string'?payload.answer:'',
+      note:typeof payload.note==='string'?payload.note:'',
+      recordedAt:typeof row.completed_at==='string'?row.completed_at:new Date().toISOString(),
+    }];
+  });
+}
+
+function caregiverStateFromRows(rows:Record<string,unknown>[],completedAt:unknown):CaregiverState {
+  return {
+    responses:caregiverRows(rows),
+    startedAt:new Date().toISOString(),
+    completedAt:typeof completedAt==='string'&&completedAt?completedAt:undefined,
+  };
+}
+
+function caregiverTaskCode(questionId:string){
+  return 'E2CG_'+questionId;
+}
+
 function numericMetrics(value:unknown){
   if(!value||typeof value!=='object')return{} as Record<string,number>;
   const output:Record<string,number>={};
@@ -121,6 +153,12 @@ export async function POST(request:Request){
   const gate=allowRequest(request,'assessment-e2',140,10*60_000);
   if(!gate.allowed)return rateLimited(gate.retryAfterSeconds);
 
+  const origin=request.headers.get('origin');
+  if(origin&&origin!==new URL(request.url).origin) return json({ok:false,error:'request_origin_rejected'},403);
+
+  const educator=await authenticatedEducator(request);
+  if(!educator?.id) return json({ok:false,error:'educator_session_required'},401);
+
   let input:Record<string,unknown>;
   try{input=await request.json() as Record<string,unknown>;}
   catch{return json({ok:false,error:'invalid_request'},400);}
@@ -133,6 +171,22 @@ export async function POST(request:Request){
     const sql=await db();
     const bundle=await sessionBundle(sql,sessionId);
     if(!bundle)return json({ok:false,error:'e2_session_not_found'},404);
+
+    const centralStudentId=typeof bundle.session.student_id==='string'?bundle.session.student_id:'';
+    if(!centralStudentId) return json({ok:false,error:'e2_central_student_required'},409);
+    const linked=await sql`
+      SELECT 1
+      FROM public.teacher_student_links l
+      JOIN public.users t
+        ON t.id=l.teacher_id
+       AND t.academy_id=l.academy_id
+      WHERE l.student_id=${centralStudentId}::uuid
+        AND l.can_view=true
+        AND t.auth_user_id=${educator.id}
+        AND t.is_active=true
+      LIMIT 1
+    `;
+    if(!linked.length) return json({ok:false,error:'student_not_linked_to_educator'},403);
 
     const metadata=metadataOf(bundle.session);
     const ageMonths=Number(metadata.ageMonths);
@@ -165,6 +219,97 @@ export async function POST(request:Request){
         childPhaseComplete:Boolean(metadata.childCompletedAt),
         caregiverRequired:metadata.caregiverRequired!==false,
         caregiverComplete:Boolean(metadata.caregiverCompletedAt),
+        caregiverAnswered:caregiverRows(bundle.attempts).length,
+        caregiverTotal:caregiverQuestionsV4.length,
+      });
+    }
+
+    if(action==='caregiver_questions'){
+      const caregiverState=caregiverStateFromRows(bundle.attempts,metadata.caregiverCompletedAt);
+      return json({
+        ok:true,
+        questions:caregiverQuestionsV4,
+        caregiver:buildCaregiverV4Report(caregiverState),
+      });
+    }
+
+    if(action==='caregiver_response'){
+      if(bundle.session.status==='completed') return json({ok:false,error:'session_completed'},409);
+      const questionId=typeof input.questionId==='string'?input.questionId.trim():'';
+      if(!isCaregiverV4Question(questionId)) return json({ok:false,error:'invalid_caregiver_question'},400);
+      const answer=typeof input.answer==='string'?input.answer.trim().slice(0,1200):'';
+      const note=typeof input.note==='string'?input.note.trim().slice(0,500):'';
+      if(!answer) return json({ok:false,error:'caregiver_answer_required'},400);
+      const taskCode=caregiverTaskCode(questionId);
+      const now=new Date().toISOString();
+      await sql`DELETE FROM public.assessment_attempts WHERE session_id=${sessionId}::uuid AND task_code=${taskCode}`;
+      await sql`
+        INSERT INTO public.assessment_attempts(
+          session_id,task_code,shown_at,first_action_at,completed_at,
+          answer_text,answer_payload,answer_changes,support_level,self_corrected,
+          rubric_scores,response_latency_ms,total_response_time_ms
+        ) VALUES(
+          ${sessionId}::uuid,${taskCode},${now}::timestamptz,${now}::timestamptz,${now}::timestamptz,
+          ${answer},${JSON.stringify({source:'CAREGIVER',questionId,answer,note,diagnosticUse:false})}::jsonb,
+          0,0,false,'{}'::jsonb,0,0
+        )
+      `;
+      const refreshed=await sessionBundle(sql,sessionId);
+      const caregiverState=caregiverStateFromRows(refreshed?.attempts||[],metadata.caregiverCompletedAt);
+      return json({ok:true,caregiver:buildCaregiverV4Report(caregiverState)});
+    }
+
+    if(action==='caregiver_finish'){
+      const caregiverState=caregiverStateFromRows(bundle.attempts,metadata.caregiverCompletedAt);
+      const answered=new Set(caregiverState.responses.map(row=>row.questionId));
+      const missing=caregiverQuestionsV4.filter(question=>!answered.has(question.id)).map(question=>question.id);
+      if(missing.length) return json({ok:false,error:'caregiver_incomplete',missing},409);
+      const caregiverCompletedAt=new Date().toISOString();
+      const childComplete=Boolean(metadata.childCompletedAt);
+      const nextMetadata={...metadata,caregiverCompletedAt};
+      await sql`
+        UPDATE public.assessment_sessions
+        SET metadata=${JSON.stringify(nextMetadata)}::jsonb,
+            status=${childComplete?'completed':'active'},
+            completed_at=${childComplete?caregiverCompletedAt:null}::timestamptz
+        WHERE id=${sessionId}::uuid
+      `;
+      return json({
+        ok:true,
+        caregiverCompletedAt,
+        sessionCompleted:childComplete,
+        caregiver:buildCaregiverV4Report({...caregiverState,completedAt:caregiverCompletedAt}),
+      });
+    }
+
+    if(action==='report'){
+      if(!profile) return json({ok:false,error:'adaptive_profile_required'},409);
+      const caregiverState=caregiverStateFromRows(bundle.attempts,metadata.caregiverCompletedAt);
+      const summary=e2Summary(ageMonths,profile,responses,completedSections);
+      const caregiver=buildCaregiverV4Report(caregiverState);
+      const priorities=[...summary.categoryPerformance]
+        .filter(row=>row.assessed>0)
+        .sort((a,b)=>(a.independentRate??101)-(b.independentRate??101))
+        .slice(0,4)
+        .map(row=>`${row.title}: bağımsız performansı farklı oyun ve günlük yaşam örnekleriyle yeniden örnekle; desteği kademeli azalt.`);
+      if(!priorities.length) priorities.push('Farklı gün ve bağlamlarda ek örnekler toplayarak profilin kararlılığını doğrula.');
+      return json({
+        ok:true,
+        report:{
+          profileCode:'E2',
+          title:'CZA 24–36 Ay Adaptif Bütüncül Değerlendirme',
+          studentLabel:bundle.session.student_label,
+          ageMonths,
+          ageBand:metadata.ageBand||summary.ageBand,
+          assessmentPurpose:metadata.assessmentPurpose||'GENERAL',
+          status:bundle.session.status,
+          childCompleted:Boolean(metadata.childCompletedAt),
+          caregiverCompleted:Boolean(metadata.caregiverCompletedAt),
+          summary,
+          caregiver,
+          recommendations:priorities,
+          interpretationNote:'Bu profil eğitimsel/gelişimsel gözlem aracıdır; standardize norm testi, gelişim yaşı veya klinik tanı değildir.',
+        },
       });
     }
 
@@ -296,16 +441,19 @@ export async function POST(request:Request){
       if(!allSections)return json({ok:false,error:'e2_sections_incomplete'},409);
       const childCompletedAt=new Date().toISOString();
       const nextMetadata={...metadata,childCompletedAt};
+      const caregiverComplete=Boolean(metadata.caregiverCompletedAt);
       await sql`
         UPDATE public.assessment_sessions
-        SET metadata=${JSON.stringify(nextMetadata)}::jsonb
+        SET metadata=${JSON.stringify(nextMetadata)}::jsonb,
+            status=${caregiverComplete?'completed':'active'},
+            completed_at=${caregiverComplete?childCompletedAt:null}::timestamptz
         WHERE id=${sessionId}::uuid
       `;
       return json({
         ok:true,
         childCompletedAt,
         caregiverRequired:metadata.caregiverRequired!==false,
-        sessionCompleted:false,
+        sessionCompleted:caregiverComplete,
         summary:e2Summary(ageMonths,profile,responses,completedSections),
       });
     }

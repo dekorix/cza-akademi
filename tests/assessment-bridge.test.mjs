@@ -22,11 +22,12 @@ test('E3 resolves to central age-linked route',()=>{
   assert.equal(target?.requiresBirthDate,true);
 });
 
-test('AppDeploy E2 is preserved but cannot silently start wrong central assessment',()=>{
+test('E2 resolves to the accepted central 24-36 month assessment route',()=>{
   const target=resolveAssessmentBridge('E2','GENERAL');
-  assert.equal(target?.status,'SOURCE_REFERENCE_ONLY');
-  assert.equal(target?.centralRoute,null);
-  assert.match(target?.reason||'',/AppDeploy/);
+  assert.equal(target?.status,'CENTRAL_READY');
+  assert.equal(target?.centralRoute,'/api/assessment-e2-linked');
+  assert.equal(target?.templateFamily,'CZA_E2_V7');
+  assert.equal(target?.requiresBirthDate,true);
 });
 
 test('special education profile resolves to central special route',()=>{
