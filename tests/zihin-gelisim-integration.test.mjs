@@ -25,26 +25,23 @@ test('Zihin Gelişim package is exactly 7/7 ready',()=>{
 
 test('all seven modules are educator-assignable with native routes',()=>{
   for(const [code,path] of expected){
-    const escapedPath=path.replace(/[.*+?^$\{\}()|[\]\\]/g,'\\test('all seven modules are educator-assignable with native routes',()=>{
-  for(const [code,path] of expected){
-    assert.ok(assignableModules[code], code+' missing from assignment catalog');
-    assert.equal(assignableModules[code].launchPath,path);
-    assert.equal(assignableModules[code].mode,null);
-  }
-});');
-    const pattern=new RegExp(code+"\\s*:\\s*\\{[^}]*launchPath:\\s*['\"]"+escapedPath+"['\"][^}]*mode:\\s*null","s");
-    assert.match(trainingRecipesSource,pattern,code+' missing or wrong launchPath in assignment catalog');
+    assert.ok(trainingRecipesSource.includes(code+': {'),code+' missing from assignment catalog');
+    assert.ok(trainingRecipesSource.includes("launchPath: '"+path+"'"),path+' missing from assignment catalog');
+    const line=trainingRecipesSource.split('\n').find(item=>item.includes(code+': {'))||'';
+    assert.ok(line.includes("mode: null"),code+' must use native workshop route');
+    assert.ok(line.includes("launchPath: '"+path+"'"),code+' launchPath mismatch');
   }
 });
 
 test('all seven student routes are entitlement gated with their canonical code',()=>{
   for(const [code,path] of expected){
     const file='app'+path+'/page.tsx';
-    assert.equal(fs.existsSync(new URL('../'+file,import.meta.url)),true,file+' missing');
-    const source=fs.readFileSync(new URL('../'+file,import.meta.url),'utf8');
-    assert.match(source,new RegExp('PackageAccessGate\\s+accessCode=["\\\']'+code+'["\\\']'));
-    assert.match(source,/x-cza-contract-version['"]?:?['"]?1\.0\.0|x-cza-contract-version/);
-    assert.match(source,/module_record/);
+    const url=new URL('../'+file,import.meta.url);
+    assert.equal(fs.existsSync(url),true,file+' missing');
+    const source=fs.readFileSync(url,'utf8');
+    assert.ok(source.includes('PackageAccessGate accessCode="'+code+'"'),file+' entitlement code mismatch');
+    assert.ok(source.includes('x-cza-contract-version'),file+' missing canonical contract header');
+    assert.ok(source.includes('module_record'),file+' missing canonical record publish');
   }
 });
 
