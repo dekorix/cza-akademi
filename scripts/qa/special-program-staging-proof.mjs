@@ -13,13 +13,19 @@ if (!url) {
   process.exit(2);
 }
 const parsed = new URL(url);
-if (!parsed.hostname.endsWith('.neon.tech') || parsed.pathname !== '/cza_learning') {
+if (!parsed.hostname.endsWith('.neon.tech') || parsed.pathname !== '/cza_learning' || /(^|[.-])(prod|production)([.-]|$)/.test(parsed.hostname.toLowerCase())) {
   console.error('SPECIAL_PROGRAM_STAGING=BLOCKED');
   console.error('REASON=TARGET_NOT_APPROVED_STAGING');
   process.exit(2);
 }
 
 const sql = neon(url);
+const suffix = Date.now().toString(36);
+const academyId = crypto.randomUUID();
+const teacherUserId = crypto.randomUUID();
+const studentUserId = crypto.randomUUID();
+const studentId = crypto.randomUUID();
+const linkId = crypto.randomUUID();
 const sessionId = crypto.randomUUID();
 let programId = '';
 
@@ -30,34 +36,92 @@ async function cleanup() {
   try {
     await sql`DELETE FROM public.assessment_sessions WHERE id=${sessionId}::uuid`;
   } catch {}
+  try {
+    await sql`DELETE FROM public.academies WHERE id=${academyId}::uuid`;
+  } catch {}
 }
 
 try {
-  const synthetic = await sql`
-    SELECT DISTINCT s.id AS student_id, s.academy_id, educator.id AS educator_user_id
-    FROM public.students s
-    JOIN public.users student_user ON student_user.id=s.user_id
-    JOIN public.teacher_student_links link ON link.student_id=s.id AND link.can_view=true
-    JOIN public.users educator ON educator.id=link.teacher_id AND educator.is_active=true
-    LEFT JOIN public.student_external_identifiers ext
-      ON ext.student_id=s.id AND ext.identifier_type='campus_student_code'
-    WHERE s.status='active'
-      AND (
-        lower(student_user.username) LIKE '%synthetic%'
-        OR lower(student_user.username) LIKE '%sentetik%'
-        OR lower(student_user.username) LIKE 'qa-%'
-        OR lower(student_user.username) LIKE 'test-%'
-        OR lower(COALESCE(ext.identifier_value,'')) LIKE 'cza-qa-%'
-        OR lower(COALESCE(ext.identifier_value,'')) LIKE 'qa-%'
+  await cleanup();
+
+  await sql`
+    INSERT INTO public.academies(id,name,slug,environment)
+    VALUES(
+      ${academyId}::uuid,
+      'CZA Synthetic Program QA',
+      ${'cza-qa-special-program-' + suffix},
+      'staging'
+    )
+  `;
+
+  await sql`
+    INSERT INTO public.users(
+      id,academy_id,role,username,display_name,is_active
+    ) VALUES
+      (
+        ${teacherUserId}::uuid,
+        ${academyId}::uuid,
+        'educator'::public.app_role,
+        ${'qa-program-educator-' + suffix},
+        'CZA QA Program Educator',
+        true
+      ),
+      (
+        ${studentUserId}::uuid,
+        ${academyId}::uuid,
+        'student'::public.app_role,
+        ${'qa-program-student-' + suffix},
+        'CZA QA Program Student',
+        true
       )
-    ORDER BY s.id
+  `;
+
+  await sql`
+    INSERT INTO public.students(
+      id,academy_id,user_id,first_name,last_name,status,is_demo
+    ) VALUES(
+      ${studentId}::uuid,
+      ${academyId}::uuid,
+      ${studentUserId}::uuid,
+      'CZA_SYNTH_PROGRAM',
+      'ROLLBACK_QA',
+      'active',
+      true
+    )
+  `;
+
+  await sql`
+    INSERT INTO public.teacher_student_links(
+      id,academy_id,teacher_id,student_id,can_view,can_coach
+    ) VALUES(
+      ${linkId}::uuid,
+      ${academyId}::uuid,
+      ${teacherUserId}::uuid,
+      ${studentId}::uuid,
+      true,
+      true
+    )
+  `;
+
+  const fixture=await sql`
+    SELECT s.id AS student_id,s.academy_id,e.id AS educator_user_id
+    FROM public.students s
+    JOIN public.teacher_student_links l
+      ON l.student_id=s.id
+      AND l.academy_id=s.academy_id
+      AND l.can_view=true
+    JOIN public.users e
+      ON e.id=l.teacher_id
+      AND e.academy_id=s.academy_id
+      AND e.role='educator'::public.app_role
+      AND e.is_active=true
+    WHERE s.id=${studentId}::uuid
+      AND s.academy_id=${academyId}::uuid
+      AND s.status='active'
+      AND s.is_demo=true
     LIMIT 1
   `;
-  if (!synthetic.length) throw new Error('synthetic_linked_student_missing');
-
-  const studentId=String(synthetic[0].student_id);
-  const academyId=String(synthetic[0].academy_id);
-  const educatorUserId=String(synthetic[0].educator_user_id);
+  if (fixture.length!==1) throw new Error('synthetic_linked_student_create_failed');
 
   await sql`
     INSERT INTO public.assessment_sessions(
@@ -124,7 +188,7 @@ try {
     ) VALUES(
       ${academyId}::uuid,${studentId}::uuid,${sessionId}::uuid,'SP-DYS',1,'active',
       4,${draft.sessionsPerWeek},${draft.sessionMinutes},${JSON.stringify(draft)}::jsonb,
-      ${educatorUserId}::uuid,now(),now(),now()+interval '28 days'
+      ${teacherUserId}::uuid,now(),now(),now()+interval '28 days'
     )
     RETURNING id
   `;
@@ -237,7 +301,7 @@ try {
       ${JSON.stringify(reassessmentPlan)}::jsonb,
       ${JSON.stringify(reassessmentInputs)}::jsonb,
       ${JSON.stringify(comparison)}::jsonb,
-      ${educatorUserId}::uuid,now()
+      ${teacherUserId}::uuid,now()
     )
     RETURNING id
   `;
@@ -269,13 +333,20 @@ try {
 
   const residue=await sql`
     SELECT
+      (SELECT count(*)::int FROM public.academies WHERE id=${academyId}::uuid) AS academies,
+      (SELECT count(*)::int FROM public.users WHERE id IN (${teacherUserId}::uuid,${studentUserId}::uuid)) AS users,
+      (SELECT count(*)::int FROM public.students WHERE id=${studentId}::uuid) AS students,
+      (SELECT count(*)::int FROM public.teacher_student_links WHERE id=${linkId}::uuid) AS links,
       (SELECT count(*)::int FROM public.special_education_programs WHERE id=${programId}::uuid) AS programs,
       (SELECT count(*)::int FROM public.assessment_sessions WHERE id=${sessionId}::uuid) AS sessions
   `;
-  if (Number(residue[0]?.programs)!==0 || Number(residue[0]?.sessions)!==0) throw new Error('cleanup_failed');
+  if (Object.values(residue[0]||{}).some(value=>Number(value)!==0)) {
+    throw new Error('cleanup_failed:'+JSON.stringify(residue[0]||{}));
+  }
 
   console.log('SPECIAL_PROGRAM_STAGING=PASS');
-  console.log('SYNTHETIC_LINKED_STUDENT=FOUND');
+  console.log('SYNTHETIC_LINKED_STUDENT=CREATED');
+  console.log('REAL_STUDENT_TOUCHED=NO');
   console.log('PROFILE_BUILD=PASS');
   console.log('PROGRAM_DRAFT=PASS');
   console.log('PROGRAM_WRITE=PASS');
