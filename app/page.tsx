@@ -16,6 +16,7 @@ const modules = [
   { title: 'Flash Anzan', accessCode: 'flash_anzan', detail: 'Zihnindeki abaküsü çalıştır', icon: Sparkles, color: '#eeedf9', ink: '#7765aa', level: 'Seviye 1', progress: 32, href: '/studio?mode=flash' },
   { title: 'Sesli Anzan', accessCode: 'audio_anzan', detail: 'Dinle, canlandır, hesapla', icon: AudioLines, color: '#eef1f4', ink: '#6c7b8d', level: 'Sıradaki adım', progress: 0, href: '/studio?mode=audio' },
   { title: 'Hafıza Teknikleri', accessCode: 'memory', detail: 'Görsel bağ, hikâye, gruplama ve konumlama ile öğren', icon: BrainCircuit, color: '#eeeaf8', ink: '#6f5ca8', level: 'Zihin Gelişim v1', progress: 0, href: '/memory' },
+  { title: 'Dikkat & Derin Odak', accessCode: 'attention_focus', detail: 'Seçici dikkat, ketleme, odak sürdürme ve kural değiştirme', icon: Target, color: '#e8f3f2', ink: '#26766e', level: 'Zihin Gelişim v1', progress: 0, href: '/attention' },
 ];
 
 const CAMPUS_V14_URL = 'https://script.google.com/macros/s/AKfycbwIS-o_6HB8GiA-pLhR-zK4aRZCqo_kz_dpUJFWA94NqMUT2E22tu6tThHPSAT0Ro92/exec?v=14';
