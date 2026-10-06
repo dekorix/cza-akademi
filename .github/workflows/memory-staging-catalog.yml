@@ -1,0 +1,57 @@
+name: CZA Memory Staging Catalog
+
+on:
+  push:
+    branches:
+      - feature/memory-techniques-v1
+    paths:
+      - 'db/migrations/20261006_memory_module_v1.sql'
+      - 'lib/memory-techniques.ts'
+      - 'lib/package-catalog.ts'
+      - '.github/workflows/memory-staging-catalog.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  memory-staging-catalog:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    environment: CZA-STAGING-SECURITY
+    steps:
+      - name: Checkout exact branch head
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Ensure PostgreSQL client
+        run: |
+          if ! command -v psql >/dev/null 2>&1; then
+            sudo apt-get update
+            sudo apt-get install -y postgresql-client
+          fi
+
+      - name: Verify staging secret
+        env:
+          CZA_STAGING_DATABASE_URL: ${{ secrets.CZA_STAGING_DATABASE_URL }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${CZA_STAGING_DATABASE_URL:-}"
+
+      - name: Apply idempotent memory catalog migration
+        env:
+          CZA_STAGING_DATABASE_URL: ${{ secrets.CZA_STAGING_DATABASE_URL }}
+        run: |
+          set -euo pipefail
+          psql "$CZA_STAGING_DATABASE_URL" -v ON_ERROR_STOP=1 -f db/migrations/20261006_memory_module_v1.sql
+
+      - name: Verify canonical memory module
+        env:
+          CZA_STAGING_DATABASE_URL: ${{ secrets.CZA_STAGING_DATABASE_URL }}
+        run: |
+          set -euo pipefail
+          result="$(psql "$CZA_STAGING_DATABASE_URL" -Atc "SELECT code || '|' || name || '|' || category || '|' || is_active::text FROM public.modules WHERE code='memory' LIMIT 1")"
+          test "$result" = "memory|Hafıza Teknikleri|zihin|true"
+          echo "MEMORY_MODULE_CATALOG=PASS"
