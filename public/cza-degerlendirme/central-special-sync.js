@@ -501,6 +501,7 @@
   };
 
   ensureCentralState();
+  applyBootstrapProfile();
   loadStudents(false).then(function () {
     enhanceConnectionBadge();
     enhanceIntake();
