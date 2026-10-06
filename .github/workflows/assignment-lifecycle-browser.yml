@@ -11,6 +11,17 @@ on:
       - 'components/assigned-work-banner.tsx'
       - 'app/api/educator-assignments/route.ts'
       - 'app/api/core/assignments/route.ts'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'scripts/qa/assignment-lifecycle-browser.mjs'
+      - '.github/workflows/assignment-lifecycle-browser.yml'
+      - 'components/educator-students.tsx'
+      - 'components/assigned-work-banner.tsx'
+      - 'app/api/educator-assignments/route.ts'
+      - 'app/api/core/assignments/route.ts'
+      - 'app/assignment/page.tsx'
   workflow_dispatch:
 
 permissions:
