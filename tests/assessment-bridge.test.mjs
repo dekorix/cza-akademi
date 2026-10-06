@@ -4,7 +4,9 @@ import fs from 'node:fs';
 import {
   assessmentBridgeCatalog,
   resolveAssessmentBridge,
+  SPECIAL_BRIDGE_PROFILE_CODES,
 } from '../lib/assessment-bridge.ts';
+import { SPECIAL_PROFILE_CODES } from '../lib/special-assessment.ts';
 
 test('P2 resolves to existing central linked assessment route',()=>{
   const target=resolveAssessmentBridge('P2','GENERAL');
@@ -38,6 +40,10 @@ test('unsupported purpose cannot reuse a central route accidentally',()=>{
   const target=resolveAssessmentBridge('P2','ACADEMIC');
   assert.equal(target?.centralRoute,null);
   assert.equal(target?.status,'PLANNED');
+});
+
+test('bridge special profile codes stay aligned with canonical special assessment codes',()=>{
+  assert.deepEqual([...SPECIAL_BRIDGE_PROFILE_CODES],[...SPECIAL_PROFILE_CODES]);
 });
 
 test('bridge catalog exposes school, early development and ten special profiles',()=>{
