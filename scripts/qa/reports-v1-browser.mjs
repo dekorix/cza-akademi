@@ -192,7 +192,12 @@ async function openUiReport(page, studentId) {
   })()`);
   if (!submitted) throw new Error('report_form_submit_missing');
 
-  await waitForText(page, 'Raporlar V1');
+  try {
+    await waitForText(page, 'Raporlar V1');
+  } catch {
+    const snapshot = await evalJson(page, `document.body?.innerText?.slice(-3500) || ''`);
+    throw new Error('reports_v1_ui_missing:' + String(snapshot).replaceAll('\\n', ' | '));
+  }
   await waitForText(page, 'Çalışma ve ödev gelişim özeti');
   await waitForText(page, 'Canonical doğruluk');
   await waitForText(page, 'Ödev ilerlemesi');
