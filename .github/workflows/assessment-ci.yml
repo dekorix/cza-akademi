@@ -66,6 +66,7 @@ jobs:
           curl -fsS http://127.0.0.1:8787/assessment > /tmp/assessment-student.html
           curl -fsS http://127.0.0.1:8787/assessment/e3 > /tmp/assessment-e3.html
           curl -fsS http://127.0.0.1:8787/assessment/e2 > /tmp/assessment-e2.html
+          curl -fsS http://127.0.0.1:8787/assessment/p2 > /tmp/assessment-p2.html
           curl -fsS http://127.0.0.1:8787/educator/assessment > /tmp/assessment-educator.html
           curl -fsS http://127.0.0.1:8787/educator/assessment/report > /tmp/assessment-report.html
           curl -fsS http://127.0.0.1:8787/educator/special-program > /tmp/special-program.html
@@ -89,6 +90,8 @@ jobs:
           test -s /tmp/assessment-student.html
           test -s /tmp/assessment-e3.html
           test -s /tmp/assessment-e2.html
+          test -s /tmp/assessment-p2.html
+          grep -F '1. sınıf sonu' /tmp/assessment-p2.html
           test -s /tmp/assessment-educator.html
           test -s /tmp/assessment-report.html
           test -s /tmp/special-program.html
