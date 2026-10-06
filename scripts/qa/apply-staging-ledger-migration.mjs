@@ -175,13 +175,31 @@ try {
     '../../db/migrations/20261005_canonical_learning_student_session_binding_v1.sql',
   ];
 
-  const statements = migrationFiles.flatMap(relativePath => {
+  const compatibilityDrops = [
+    ...(!basePresent ? [`
+      DROP FUNCTION IF EXISTS public.cza_student_record_learning(
+        uuid,uuid,uuid,uuid,text,text,text,text,text,text,
+        timestamptz,timestamptz,text,jsonb,jsonb,jsonb
+      )
+    `] : []),
+    `
+      DROP FUNCTION IF EXISTS public.cza_student_record_learning(
+        uuid,uuid,uuid,uuid,uuid,text,text,text,text,text,text,
+        timestamptz,timestamptz,text,jsonb,jsonb,jsonb
+      )
+    `,
+  ];
+
+  const statements = [
+    ...compatibilityDrops,
+    ...migrationFiles.flatMap(relativePath => {
     const migration = fs.readFileSync(new URL(relativePath, import.meta.url), 'utf8');
-    return splitSql(migration).filter(statement => {
-      const normalized = semantic(statement);
-      return normalized !== 'BEGIN' && normalized !== 'COMMIT';
-    });
-  });
+      return splitSql(migration).filter(statement => {
+        const normalized = semantic(statement);
+        return normalized !== 'BEGIN' && normalized !== 'COMMIT';
+      });
+    }),
+  ];
 
   if (!statements.length) {
     throw new Error('MIGRATION_EMPTY');
