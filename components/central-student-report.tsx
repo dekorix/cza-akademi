@@ -136,6 +136,7 @@ const labels: Record<string, string> = {
   speed_reading: 'Hızlı Okuma',
   mind_maps: 'Zihin Haritaları',
   intelligence_games: 'Zekâ Oyunları',
+  effective_notes: 'Etkili Not Alma',
   arithmetic: 'Toplama / Çıkarma',
 };
 const priorityLabels = { HIGH: 'Öncelikli destek', MEDIUM: 'Güçlendir', MAINTAIN: 'Gücü koru' } as const;
