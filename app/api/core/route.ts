@@ -5,7 +5,7 @@ import { allowRequest, rateLimited } from '@/lib/request-guard';
 import { authenticatedStudent, readRequestCookie } from '@/lib/student-session';
 import { LearningContractError, parseCanonicalLearningRecord } from '@/lib/learning-contract-server';
 import { CanonicalPersistenceError, persistCanonicalLearningRecord } from '@/lib/persistence/canonical-repository';
-import { isReadyAccessCode } from '@/lib/package-catalog';
+import { isPackageAccessCode } from '@/lib/package-catalog';
 
 const ALLOWED_ACTIONS = new Set([
   'login',
@@ -162,7 +162,7 @@ export async function POST(request: Request) {
 
   if (action === 'start' && !launchedAssignment) {
     const moduleCode = typeof payload.moduleCode === 'string' ? payload.moduleCode.trim() : '';
-    if (moduleCode && isReadyAccessCode(moduleCode)) {
+    if (moduleCode && isPackageAccessCode(moduleCode)) {
       if (!process.env.DATABASE_URL) return json({ ok: false, error: 'database_unavailable' }, 503);
       const student = await authenticatedStudent(request);
       if (!student) return json({ ok: false, error: 'session_required' }, 401);

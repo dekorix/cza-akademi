@@ -21,13 +21,13 @@ export const packageCatalog = {
     priceTry: 15_000,
     description: 'Hafıza, dikkat, hızlı okuma ve öğrenmeyi öğrenme programları.',
     access: [
-      { code: 'memory_techniques', label: 'Hafıza Teknikleri', ready: false },
-      { code: 'speed_reading', label: 'Hızlı Okuma', ready: false },
-      { code: 'attention_focus', label: 'Dikkat ve Derin Odak', ready: false },
-      { code: 'mind_maps', label: 'Zihin Haritaları', ready: false },
-      { code: 'intelligence_games', label: 'Zekâ Oyunları', ready: false },
-      { code: 'effective_notes', label: 'Etkili Not Alma', ready: false },
-      { code: 'full_learning_37', label: 'Tam Öğrenme Sistemi', ready: false },
+      { code: 'memory', label: 'Hafıza Teknikleri', ready: true },
+      { code: 'speed_reading', label: 'Hızlı Okuma', ready: true },
+      { code: 'attention_focus', label: 'Dikkat ve Derin Odak', ready: true },
+      { code: 'mind_maps', label: 'Zihin Haritaları', ready: true },
+      { code: 'intelligence_games', label: 'Zekâ Oyunları', ready: true },
+      { code: 'effective_notes', label: 'Etkili Not Alma', ready: true },
+      { code: 'full_learning_37', label: 'Tam Öğrenme Sistemi', ready: true },
     ],
   },
   BUTUNLESIK: {
@@ -44,13 +44,13 @@ export const packageCatalog = {
       { code: 'flash_anzan', label: 'Flash Anzan', ready: true },
       { code: 'audio_anzan', label: 'Sesli Anzan', ready: true },
       { code: 'soroban_course', label: 'Soroban Öğrenme Yolu', ready: true },
-      { code: 'memory_techniques', label: 'Hafıza Teknikleri', ready: false },
-      { code: 'speed_reading', label: 'Hızlı Okuma', ready: false },
-      { code: 'attention_focus', label: 'Dikkat ve Derin Odak', ready: false },
-      { code: 'mind_maps', label: 'Zihin Haritaları', ready: false },
-      { code: 'intelligence_games', label: 'Zekâ Oyunları', ready: false },
-      { code: 'effective_notes', label: 'Etkili Not Alma', ready: false },
-      { code: 'full_learning_37', label: 'Tam Öğrenme Sistemi', ready: false },
+      { code: 'memory', label: 'Hafıza Teknikleri', ready: true },
+      { code: 'speed_reading', label: 'Hızlı Okuma', ready: true },
+      { code: 'attention_focus', label: 'Dikkat ve Derin Odak', ready: true },
+      { code: 'mind_maps', label: 'Zihin Haritaları', ready: true },
+      { code: 'intelligence_games', label: 'Zekâ Oyunları', ready: true },
+      { code: 'effective_notes', label: 'Etkili Not Alma', ready: true },
+      { code: 'full_learning_37', label: 'Tam Öğrenme Sistemi', ready: true },
     ],
   },
 } as const;
@@ -108,4 +108,8 @@ const readyAccessCodeSet: Set<string> = new Set(
 
 export function isReadyAccessCode(value: string) {
   return readyAccessCodeSet.has(value);
+}
+
+export function isPackageAccessCode(value: string) {
+  return accessCatalog().some(item => item.code === value);
 }
