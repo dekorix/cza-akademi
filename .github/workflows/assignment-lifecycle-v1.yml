@@ -6,7 +6,7 @@ on:
       - feature/assignment-lifecycle-v1
   pull_request:
     branches:
-      - feature/real-student-history-v1
+      - main
   workflow_dispatch:
 
 permissions:
