@@ -6,6 +6,9 @@ on:
       - feature/full-learning-37-v1
     paths:
       - 'app/full-study/**'
+      - 'app/assignment/**'
+      - 'components/package-access-gate.tsx'
+      - 'lib/training-recipes.ts'
       - 'lib/full-learning-37.ts'
       - 'lib/package-catalog.ts'
       - 'tests/full-learning-37-browser-acceptance.spec.cjs'
