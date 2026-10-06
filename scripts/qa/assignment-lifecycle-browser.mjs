@@ -5,6 +5,7 @@ import { neon } from '@neondatabase/serverless';
 
 const databaseUrl = process.env.CZA_STAGING_DATABASE_URL || '';
 const baseUrl = process.env.CZA_BROWSER_BASE_URL || 'http://127.0.0.1:8787';
+const educatorAuthUserId = '47c90485-e057-4ebe-a25c-9d7f236c5bd6';
 
 if (!databaseUrl) {
   console.error('ASSIGNMENT_BROWSER=BLOCKED');
@@ -207,6 +208,7 @@ try {
       JOIN public.users t
         ON t.id = l.teacher_id
        AND t.is_active = true
+       AND t.auth_user_id = ${educatorAuthUserId}
       JOIN public.student_sessions ss
         ON ss.student_id = s.id
        AND ss.academy_id = s.academy_id
