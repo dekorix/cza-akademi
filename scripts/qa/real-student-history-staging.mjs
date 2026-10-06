@@ -302,6 +302,19 @@ try {
       )
     `,
     sql`
+      DELETE FROM public.learning_evidence
+      WHERE academy_id = ${fixture.academy_id}::uuid
+        AND learning_record_id = (
+          SELECT id
+          FROM public.learning_records
+          WHERE academy_id = ${fixture.academy_id}::uuid
+            AND client_record_id = ${clientRecordId}::uuid
+            AND metadata->>'qaMarker' = ${marker}
+          LIMIT 1
+        )
+      RETURNING id
+    `,
+    sql`
       DELETE FROM public.learning_records
       WHERE academy_id = ${fixture.academy_id}::uuid
         AND client_record_id = ${clientRecordId}::uuid
@@ -321,8 +334,9 @@ try {
   const studentRead = tx[2]?.[0];
   const educatorRead = tx[3]?.[0];
   const replay = tx[4]?.[0];
-  const deleted = tx[5] || [];
-  const deletedSession = tx[6] || [];
+  const deletedEvidence = tx[5] || [];
+  const deleted = tx[6] || [];
+  const deletedSession = tx[7] || [];
 
   const checks = {
     authenticatedSessionCreated: String(createdSession?.id || '') === studentSessionId,
@@ -337,7 +351,7 @@ try {
     sameModule: studentRead?.module_code === fixture.module_code,
     replayed: replay?.replayed === true && String(replay?.learning_record_id || '') === String(first?.learning_record_id || ''),
     sameHash: replay?.canonical_payload_hash === first?.canonical_payload_hash,
-    cleanupInTransaction: deleted.length === 1 && deletedSession.length === 1,
+    cleanupInTransaction: deletedEvidence.length >= 1 && deleted.length === 1 && deletedSession.length === 1,
   };
 
   if (Object.values(checks).some(value => value !== true)) {
