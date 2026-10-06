@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { ArrowRight, AudioLines, BookOpenCheck, BrainCircuit, ChartNoAxesCombined, Check, ChevronRight, Clock3, Dumbbell, Flame, Hand, LayoutDashboard, Loader2, LogOut, Menu, Play, School, ShieldCheck, Sparkles, Target, X } from 'lucide-react';
+import { ArrowRight, Lightbulb, AudioLines, BookOpenCheck, BrainCircuit, ChartNoAxesCombined, Check, ChevronRight, Clock3, Dumbbell, Flame, Hand, LayoutDashboard, Loader2, LogOut, Menu, Play, School, ShieldCheck, Sparkles, Target, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
