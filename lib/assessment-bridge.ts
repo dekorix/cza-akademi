@@ -1,4 +1,6 @@
-import { isSpecialProfileCode, SPECIAL_PROFILE_CODES } from './special-assessment';
+export const SPECIAL_BRIDGE_PROFILE_CODES = [
+  'SP-DYS','SP-SLD','SP-DYSC','SP-DYSG','SP-ASD','SP-LANG','SP-ATTN','SP-DELAY','SP-COG','SP-MIX',
+] as const;
 
 export const INTAKE_PROFILE_CODES = [
   'E0','E1','E2','E3','E4','E5',
@@ -52,6 +54,10 @@ const BASE: Record<IntakeProfileCode, AssessmentBridgeTarget> = {
   P10:{profileCode:'P10',sourceLabel:'11–12 / Mezun · YKS-TYT',status:'PLANNED',centralRoute:null,templateFamily:null,requiresBirthDate:false,allowedPurposes:['GENERAL','ACADEMIC','YKS'],reason:'YKS/TYT merkezi görev bankası henüz port edilmedi.'},
 };
 
+function isSpecialBridgeProfileCode(value: unknown) {
+  return typeof value === 'string' && SPECIAL_BRIDGE_PROFILE_CODES.includes(value as (typeof SPECIAL_BRIDGE_PROFILE_CODES)[number]);
+}
+
 export function isIntakeProfileCode(value: unknown): value is IntakeProfileCode {
   return typeof value === 'string' && INTAKE_PROFILE_CODES.includes(value as IntakeProfileCode);
 }
@@ -63,7 +69,7 @@ export function isAssessmentPurpose(value: unknown): value is AssessmentPurpose 
 }
 
 export function resolveAssessmentBridge(profileCode: unknown, purpose: unknown): AssessmentBridgeTarget | null {
-  if (isSpecialProfileCode(profileCode)) {
+  if (isSpecialBridgeProfileCode(profileCode)) {
     return {
       profileCode,
       sourceLabel: profileCode,
@@ -92,6 +98,6 @@ export function resolveAssessmentBridge(profileCode: unknown, purpose: unknown):
 export function assessmentBridgeCatalog() {
   return [
     ...INTAKE_PROFILE_CODES.map(code=>BASE[code]),
-    ...SPECIAL_PROFILE_CODES.map(code=>resolveAssessmentBridge(code,'GENERAL')!),
+    ...SPECIAL_BRIDGE_PROFILE_CODES.map(code=>resolveAssessmentBridge(code,'GENERAL')!),
   ];
 }
