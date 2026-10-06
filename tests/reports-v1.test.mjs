@@ -8,7 +8,7 @@ const ui = fs.readFileSync(new URL('../components/central-student-report.tsx', i
 test('reports v1 remains educator-authorized and student-linked', () => {
   assert.match(route, /authenticatedEducator\(request\)/);
   assert.match(route, /teacher_student_links l ON l\.teacher_id = t\.id AND l\.can_view = true/);
-  assert.match(route, /JOIN public\.students s ON s\.id = l\.student_id AND s\.academy_id = t\.academy_id/);
+  assert.equal((route.match(/JOIN public\.students s ON s\.id = l\.student_id AND s\.academy_id = t\.academy_id/g) || []).length, 2);
   assert.match(route, /t\.auth_user_id = \$\{educator\.id\}/);
   assert.match(route, /student_not_found/);
 });

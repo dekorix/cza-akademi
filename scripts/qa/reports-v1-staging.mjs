@@ -38,6 +38,8 @@ const marker = 'CZA_REPORTS_V1_STAGING_' + Date.now();
 let educatorSessionId = '';
 let crossAcademyStudentId = '';
 let crossAcademyLinkCreated = false;
+let sameAcademyEmptyStudentId = '';
+let sameAcademyEmptyLinkCreated = false;
 
 function numeric(value) {
   return typeof value === 'number' && Number.isFinite(value) ? value : 0;
@@ -377,9 +379,13 @@ try {
       s.academy_id,
       i.identifier_value AS campus_code
     FROM public.students s
-    LEFT JOIN public.student_external_identifiers i
-      ON i.student_id = s.id
-     AND i.identifier_type = 'campus_student_code'
+    LEFT JOIN LATERAL (
+      SELECT identifier_value
+      FROM public.student_external_identifiers candidate_identifier
+      WHERE candidate_identifier.student_id = s.id
+      ORDER BY candidate_identifier.identifier_type, candidate_identifier.identifier_value
+      LIMIT 1
+    ) i ON true
     WHERE s.status = 'active'
       AND s.academy_id <> ${fixture.academy_id}::uuid
       AND NOT EXISTS (
@@ -424,7 +430,7 @@ try {
   }
   console.log('CROSS_ACADEMY_ID_DENY=PASS');
 
-  const emptyFixture = await sql`
+  let emptyFixture = await sql`
     SELECT s.id, s.academy_id
     FROM public.users t
     JOIN public.teacher_student_links l
@@ -443,17 +449,95 @@ try {
     LIMIT 1
   `;
 
+  if (!emptyFixture.length) {
+    const unlinkedEmpty = await sql`
+      SELECT s.id, s.academy_id
+      FROM public.students s
+      WHERE s.academy_id = ${fixture.academy_id}::uuid
+        AND s.status = 'active'
+        AND NOT EXISTS (
+          SELECT 1 FROM public.learning_records lr
+          WHERE lr.academy_id = s.academy_id
+            AND lr.student_id = s.id
+        )
+        AND NOT EXISTS (
+          SELECT 1 FROM public.teacher_student_links l
+          WHERE l.teacher_id = ${fixture.educator_user_id}::uuid
+            AND l.student_id = s.id
+        )
+      ORDER BY s.id
+      LIMIT 1
+    `;
+
+    if (unlinkedEmpty.length) {
+      sameAcademyEmptyStudentId = String(unlinkedEmpty[0].id);
+      await sql`
+        INSERT INTO public.teacher_student_links (academy_id, teacher_id, student_id, can_view)
+        VALUES (
+          ${fixture.academy_id}::uuid,
+          ${fixture.educator_user_id}::uuid,
+          ${sameAcademyEmptyStudentId}::uuid,
+          true
+        )
+      `;
+      sameAcademyEmptyLinkCreated = true;
+      emptyFixture = unlinkedEmpty;
+    }
+  }
+
   if (emptyFixture.length) {
     const emptyExpected = await rawOracle(emptyFixture[0].academy_id, emptyFixture[0].id);
     const emptyReport = await fetchReport({ studentId: String(emptyFixture[0].id) });
     if (!emptyReport.response.ok) throw new Error('empty_runtime_report_failed');
     assertReportMatchesOracle(emptyReport.body, emptyExpected, 'empty');
-    if (emptyReport.body.reportInsights.sessions !== 0 || emptyReport.body.reportInsights.totalQuestions !== 0 || emptyReport.body.reportInsights.accuracy !== 0) {
+    if (
+      emptyReport.body.reportInsights.sessions !== 0 ||
+      emptyReport.body.reportInsights.totalQuestions !== 0 ||
+      emptyReport.body.reportInsights.accuracy !== 0 ||
+      emptyReport.body.moduleProgress.length !== 0
+    ) {
       throw new Error('empty_runtime_not_zero');
     }
     console.log('EMPTY_ZERO_RUNTIME=PASS');
   } else {
-    console.log('EMPTY_ZERO_RUNTIME=NO_FIXTURE');
+    const zeroQuestionFixture = await sql`
+      SELECT s.id, s.academy_id
+      FROM public.users t
+      JOIN public.teacher_student_links l
+        ON l.teacher_id = t.id
+       AND l.can_view = true
+      JOIN public.students s
+        ON s.id = l.student_id
+       AND s.academy_id = t.academy_id
+       AND s.status = 'active'
+      WHERE t.id = ${fixture.educator_user_id}::uuid
+        AND EXISTS (
+          SELECT 1 FROM public.learning_records lr
+          WHERE lr.academy_id = s.academy_id
+            AND lr.student_id = s.id
+        )
+        AND NOT EXISTS (
+          SELECT 1 FROM public.learning_records lr
+          WHERE lr.academy_id = s.academy_id
+            AND lr.student_id = s.id
+            AND jsonb_typeof(lr.performance->'total') = 'number'
+            AND (lr.performance->>'total')::int > 0
+        )
+      LIMIT 1
+    `;
+
+    if (!zeroQuestionFixture.length) {
+      throw new Error('empty_zero_runtime_fixture_missing');
+    }
+
+    const zeroExpected = await rawOracle(zeroQuestionFixture[0].academy_id, zeroQuestionFixture[0].id);
+    const zeroReport = await fetchReport({ studentId: String(zeroQuestionFixture[0].id) });
+    if (!zeroReport.response.ok) throw new Error('zero_question_runtime_report_failed');
+    assertReportMatchesOracle(zeroReport.body, zeroExpected, 'zero_question');
+    if (zeroReport.body.reportInsights.totalQuestions !== 0 || zeroReport.body.reportInsights.accuracy !== 0) {
+      throw new Error('zero_question_runtime_not_zero');
+    }
+    console.log('ZERO_QUESTION_RUNTIME=PASS');
   }
 
   const legacyFixture = await sql`
@@ -510,6 +594,15 @@ try {
         SELECT id FROM public.users WHERE auth_user_id = ${educatorAuthUserId} LIMIT 1
       )
         AND student_id = ${crossAcademyStudentId}::uuid
+    `.catch(() => undefined);
+  }
+  if (sameAcademyEmptyLinkCreated && sameAcademyEmptyStudentId) {
+    await sql`
+      DELETE FROM public.teacher_student_links
+      WHERE teacher_id = (
+        SELECT id FROM public.users WHERE auth_user_id = ${educatorAuthUserId} LIMIT 1
+      )
+        AND student_id = ${sameAcademyEmptyStudentId}::uuid
     `.catch(() => undefined);
   }
   if (educatorSessionId) {

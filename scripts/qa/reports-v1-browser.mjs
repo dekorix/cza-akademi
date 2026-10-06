@@ -387,7 +387,7 @@ try {
   const uiAfter = await readUiValues(page);
   assertUiMatchesApi(uiAfter, after, 'after_reload');
 
-  const stable =
+  const reloadStable =
     before.reportInsights.sessions === after.reportInsights.sessions &&
     before.reportInsights.totalQuestions === after.reportInsights.totalQuestions &&
     before.reportInsights.accuracy === after.reportInsights.accuracy &&
@@ -395,7 +395,7 @@ try {
     stable(before.assignmentProgress) === stable(after.assignmentProgress) &&
     stable(normalizeForReload(before.moduleProgress || [])) === stable(normalizeForReload(after.moduleProgress || []));
 
-  if (!stable) throw new Error('report_metrics_changed_after_hard_reload');
+  if (!reloadStable) throw new Error('report_metrics_changed_after_hard_reload');
 
   console.log('REPORTS_V1_BROWSER=PASS');
   console.log('EDUCATOR_REPORT_UI=PASS');
