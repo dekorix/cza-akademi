@@ -1,0 +1,53 @@
+name: CZA Package Activation Staging Proof
+
+on:
+  push:
+    branches:
+      - feature/full-learning-37-v1
+    paths:
+      - 'scripts/qa/package-activation-staging-proof.sql'
+      - 'db/migrations/20261005_student_package_entitlements_v1.sql'
+      - 'lib/package-catalog.ts'
+      - '.github/workflows/package-activation-staging-proof.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  rollback-package-proof:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    environment: CZA-STAGING-SECURITY
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Ensure PostgreSQL client
+        run: |
+          if ! command -v psql >/dev/null 2>&1; then
+            sudo apt-get update
+            sudo apt-get install -y postgresql-client
+          fi
+
+      - name: Run transaction-only package lifecycle proof
+        env:
+          CZA_STAGING_DATABASE_URL: ${{ secrets.CZA_STAGING_DATABASE_URL }}
+        run: |
+          set -euo pipefail
+          test -n "${CZA_STAGING_DATABASE_URL:-}"
+          output="$(psql "$CZA_STAGING_DATABASE_URL" -v ON_ERROR_STOP=1 -f scripts/qa/package-activation-staging-proof.sql 2>&1)"
+          printf '%s\n' "$output"
+          grep -F 'PACKAGE_ACTIVATION_TRANSACTION=PASS' <<<"$output"
+          grep -F 'ACTIVE_ENTITLEMENTS_BEFORE_CANCEL=7' <<<"$output"
+          grep -F 'REVOKED_ENTITLEMENTS_AFTER_CANCEL=7' <<<"$output"
+
+      - name: Verify rollback left no synthetic student
+        env:
+          CZA_STAGING_DATABASE_URL: ${{ secrets.CZA_STAGING_DATABASE_URL }}
+        run: |
+          set -euo pipefail
+          count="$(psql "$CZA_STAGING_DATABASE_URL" -Atc "SELECT count(*) FROM public.students WHERE first_name='CZA_SYNTH_PACKAGE' AND last_name='ROLLBACK_QA'")"
+          test "$count" = "0"
+          echo "PACKAGE_ACTIVATION_ROLLBACK_CLEAN=PASS"

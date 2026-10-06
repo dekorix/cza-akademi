@@ -1,0 +1,94 @@
+name: CZA Zihin Gelisim Integration
+
+on:
+  push:
+    branches:
+      - feature/zihin-gelisim-integration-v1
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: CZA-STAGING-SECURITY
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.13.0'
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Type check
+        run: pnpm exec tsc --noEmit
+
+      - name: Seven-module integration contract
+        run: node --experimental-strip-types --test tests/zihin-gelisim-integration.test.mjs
+
+      - name: Production build
+        run: pnpm build
+
+      - name: Install Playwright
+        run: |
+          pnpm add -Dw @playwright/test@1.52.0 --lockfile=false
+          pnpm exec playwright install --with-deps chromium
+
+      - name: Start built app
+        run: |
+          pnpm exec wrangler dev --config dist/server/wrangler.json --port 8787 > /tmp/cza-zihin-preview.log 2>&1 &
+          echo $! > /tmp/cza-zihin-preview.pid
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:8787/memory > /tmp/memory.html; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/cza-zihin-preview.log
+          exit 1
+
+      - name: Desktop and mobile 7/7 route smoke
+        env:
+          CZA_BASE_URL: http://127.0.0.1:8787
+        run: pnpm exec playwright test tests/zihin-gelisim-browser-integration.spec.cjs --reporter=line --workers=1
+
+      - name: Ensure PostgreSQL client
+        run: |
+          if ! command -v psql >/dev/null 2>&1; then
+            sudo apt-get update
+            sudo apt-get install -y postgresql-client
+          fi
+
+      - name: Staging package activation lifecycle
+        env:
+          CZA_STAGING_DATABASE_URL: ${{ secrets.CZA_STAGING_DATABASE_URL }}
+        run: |
+          set -euo pipefail
+          test -n "${CZA_STAGING_DATABASE_URL:-}"
+          output="$(psql "$CZA_STAGING_DATABASE_URL" -v ON_ERROR_STOP=1 -f scripts/qa/package-activation-staging-proof.sql 2>&1)"
+          printf '%s\n' "$output"
+          grep -F 'PACKAGE_ACTIVATION_TRANSACTION=PASS' <<<"$output"
+          grep -F 'ACTIVE_ENTITLEMENTS_BEFORE_CANCEL=7' <<<"$output"
+          grep -F 'REVOKED_ENTITLEMENTS_AFTER_CANCEL=7' <<<"$output"
+
+      - name: Verify staging rollback clean
+        env:
+          CZA_STAGING_DATABASE_URL: ${{ secrets.CZA_STAGING_DATABASE_URL }}
+        run: |
+          set -euo pipefail
+          count="$(psql "$CZA_STAGING_DATABASE_URL" -Atc "SELECT count(*) FROM public.students WHERE first_name='CZA_SYNTH_PACKAGE' AND last_name='ROLLBACK_QA'")"
+          test "$count" = "0"
+          echo "ZIHIN_GELISIM_INTEGRATION=PASS"

@@ -5,6 +5,7 @@ import { assessmentTasks } from '@/lib/assessment-routing';
 import { calculateLearningResponse, type AssessmentAttemptRecord } from '@/lib/assessment-learning-response';
 import { generateAssessmentReport, type ReportAttempt, type ReportObservation } from '@/lib/assessment-report';
 import { buildCzaWorkRecommendations } from '@/lib/cza-work-recommendations';
+import { buildSpecialLearningProfile, type SpecialLearningProfile } from '@/lib/special-learning-profile';
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
@@ -50,7 +51,7 @@ export async function POST(request: Request) {
   const sql = neon(process.env.DATABASE_URL);
   const allowed = studentId
     ? await sql`
-        SELECT s.id, s.first_name, s.last_name, campus.identifier_value AS campus_code
+        SELECT s.id, s.academy_id, s.first_name, s.last_name, campus.identifier_value AS campus_code
         FROM public.users t
         JOIN public.teacher_student_links l ON l.teacher_id = t.id AND l.can_view = true
         JOIN public.students s ON s.id = l.student_id
@@ -62,7 +63,7 @@ export async function POST(request: Request) {
         LIMIT 1
       `
     : await sql`
-        SELECT s.id, s.first_name, s.last_name, i.identifier_value AS campus_code
+        SELECT s.id, s.academy_id, s.first_name, s.last_name, i.identifier_value AS campus_code
         FROM public.users t
         JOIN public.teacher_student_links l ON l.teacher_id = t.id AND l.can_view = true
         JOIN public.students s ON s.id = l.student_id
@@ -74,7 +75,7 @@ export async function POST(request: Request) {
       `;
 
   if (!allowed.length) return json({ ok: false, error: 'student_not_found' }, 404);
-  const student = allowed[0] as { id: string; first_name: string | null; last_name: string | null; campus_code?: string | null };
+  const student = allowed[0] as { id: string; academy_id: string; first_name: string | null; last_name: string | null; campus_code?: string | null };
 
   const [summary, modules, recent] = await Promise.all([
     sql`SELECT count(*)::int total,count(*) FILTER(WHERE is_correct)::int correct,count(*) FILTER(WHERE NOT is_correct)::int wrong,COALESCE(round(100.0*count(*) FILTER(WHERE is_correct)/NULLIF(count(*),0)),0)::int accuracy FROM public.question_attempts WHERE student_id=${student.id}`,
@@ -140,6 +141,179 @@ export async function POST(request: Request) {
     assessmentRouting = null;
   }
 
+
+  let specialEducationProfile: SpecialLearningProfile | null = null;
+
+  try {
+    const specialSessions = await sql`
+      SELECT id, template_code, completed_at, metadata
+      FROM public.assessment_sessions
+      WHERE student_id = ${student.id}
+        AND status = 'completed'
+        AND template_code LIKE 'CZA_SPECIAL_V1_%'
+      ORDER BY completed_at DESC NULLS LAST, started_at DESC
+      LIMIT 1
+    `;
+
+    if (specialSessions.length) {
+      const special = specialSessions[0] as {
+        id: string;
+        template_code: string;
+        completed_at: string | null;
+        metadata: unknown;
+      };
+      const [specialAttempts, specialObservations] = await Promise.all([
+        sql`
+          SELECT task_code, answer_payload, support_level
+          FROM public.assessment_attempts
+          WHERE session_id = ${special.id}::uuid
+          ORDER BY created_at ASC
+        `,
+        sql`
+          SELECT task_code, observation_codes
+          FROM public.assessment_observations
+          WHERE session_id = ${special.id}::uuid
+          ORDER BY created_at ASC
+        `,
+      ]);
+      specialEducationProfile = buildSpecialLearningProfile({
+        session: special,
+        attempts: specialAttempts,
+        observations: specialObservations,
+      });
+    }
+  } catch {
+    // Existing educator reports must remain usable on schemas without special assessment data.
+    specialEducationProfile = null;
+  }
+
+  let specialEducationProgram: null | {
+    id: string;
+    profileCode: string;
+    profileLabel: string;
+    version: number;
+    status: string;
+    durationWeeks: number;
+    sessionsPerWeek: number;
+    sessionMinutes: number;
+    completedSessions: number;
+    totalSessions: number;
+    progress: number;
+    currentWeek: number;
+    approvedAt: string | null;
+    startsAt: string | null;
+    endsAt: string | null;
+    completedAt: string | null;
+    lastReflection: string | null;
+    lastSessionAt: string | null;
+  } = null;
+
+  try {
+    const rows = await sql`
+      SELECT p.id, p.profile_code, p.version, p.status, p.duration_weeks,
+             p.sessions_per_week, p.session_minutes, p.approved_at, p.starts_at,
+             p.ends_at, p.completed_at, p.plan->>'profileLabel' AS profile_label,
+             (
+               SELECT s.student_reflection->>'reflection'
+               FROM public.special_education_program_sessions s
+               WHERE s.program_id = p.id
+                 AND s.student_id = p.student_id
+                 AND s.status = 'completed'
+               ORDER BY s.completed_at DESC NULLS LAST
+               LIMIT 1
+             ) AS last_reflection,
+             (
+               SELECT s.completed_at
+               FROM public.special_education_program_sessions s
+               WHERE s.program_id = p.id
+                 AND s.student_id = p.student_id
+                 AND s.status = 'completed'
+               ORDER BY s.completed_at DESC NULLS LAST
+               LIMIT 1
+             ) AS last_session_at,
+             (
+               SELECT count(*)::int
+               FROM public.special_education_program_sessions s
+               WHERE s.program_id = p.id
+                 AND s.student_id = p.student_id
+                 AND s.status = 'completed'
+             ) AS completed_sessions
+      FROM public.special_education_programs p
+      WHERE p.student_id = ${student.id}::uuid
+        AND p.academy_id = ${student.academy_id}::uuid
+        AND p.status IN ('active','completed')
+      ORDER BY CASE WHEN p.status = 'active' THEN 0 ELSE 1 END, p.created_at DESC
+      LIMIT 1
+    `;
+    if (rows.length) {
+      const row = rows[0] as Record<string, unknown>;
+      const durationWeeks = Number(row.duration_weeks || 4);
+      const sessionsPerWeek = Number(row.sessions_per_week || 1);
+      const completedSessions = Number(row.completed_sessions || 0);
+      const totalSessions = durationWeeks * sessionsPerWeek;
+      specialEducationProgram = {
+        id: String(row.id),
+        profileCode: String(row.profile_code || ''),
+        profileLabel: String(row.profile_label || 'Özel Eğitim Bireysel Programı'),
+        version: Number(row.version || 1),
+        status: String(row.status || 'active'),
+        durationWeeks,
+        sessionsPerWeek,
+        sessionMinutes: Number(row.session_minutes || 0),
+        completedSessions,
+        totalSessions,
+        progress: totalSessions ? Math.min(100, Math.round((completedSessions / totalSessions) * 100)) : 0,
+        currentWeek: row.status === 'completed'
+          ? durationWeeks
+          : Math.min(durationWeeks, Math.max(1, Math.floor(completedSessions / sessionsPerWeek) + 1)),
+        approvedAt: row.approved_at ? String(row.approved_at) : null,
+        startsAt: row.starts_at ? String(row.starts_at) : null,
+        endsAt: row.ends_at ? String(row.ends_at) : null,
+        completedAt: row.completed_at ? String(row.completed_at) : null,
+        lastReflection: row.last_reflection ? String(row.last_reflection) : null,
+        lastSessionAt: row.last_session_at ? String(row.last_session_at) : null,
+      };
+    }
+  } catch {
+    specialEducationProgram = null;
+  }
+
+  let specialEducationReassessment: null | {
+    id: string;
+    programId: string;
+    profileCode: string;
+    completedAt: string | null;
+    comparison: Record<string, unknown>;
+  } = null;
+
+  if (specialEducationProgram) {
+    try {
+      const rows = await sql`
+        SELECT id, program_id, profile_code, comparison, completed_at
+        FROM public.special_education_reassessments
+        WHERE program_id = ${specialEducationProgram.id}::uuid
+          AND student_id = ${student.id}::uuid
+          AND academy_id = ${student.academy_id}::uuid
+          AND status = 'completed'
+        LIMIT 1
+      `;
+      if (rows.length) {
+        const row = rows[0] as Record<string, unknown>;
+        specialEducationReassessment = {
+          id: String(row.id),
+          programId: String(row.program_id),
+          profileCode: String(row.profile_code || ''),
+          completedAt: row.completed_at ? String(row.completed_at) : null,
+          comparison: row.comparison && typeof row.comparison === 'object' && !Array.isArray(row.comparison)
+            ? row.comparison as Record<string, unknown>
+            : {},
+        };
+      }
+    } catch {
+      specialEducationReassessment = null;
+    }
+  }
+
   return json({
     ok: true,
     student: {
@@ -151,5 +325,8 @@ export async function POST(request: Request) {
     modules,
     recent,
     assessmentRouting,
+    specialEducationProfile,
+    specialEducationProgram,
+    specialEducationReassessment,
   });
 }

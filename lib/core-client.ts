@@ -34,5 +34,7 @@ export function friendlyCoreError(error: unknown) {
   if (code === 'request_origin_rejected') return 'Güvenlik doğrulaması tamamlanamadı.';
   if (code === 'rate_limited') return 'Çok fazla deneme yapıldı. Lütfen kısa süre sonra yeniden dene.';
   if (code === 'session_not_created') return 'Bu çalışma oturumu açılamadı.';
+  if (code === 'module_access_required') return 'Bu çalışma alanı paket erişimine bağlı. Eğitimcin paketini aktive ettiğinde açılacak.';
+  if (code === 'package_schema_unavailable') return 'Paket erişim sistemi bu ortamda henüz hazır değil.';
   return 'Merkezi kayıt sistemine şu anda ulaşılamıyor. Bağlantını kontrol edip tekrar dene.';
 }

@@ -1,0 +1,49 @@
+name: CZA Mind Maps Browser Acceptance
+on:
+  push:
+    branches: [feature/mind-maps-v1]
+    paths:
+      - 'app/mind-maps/**'
+      - 'lib/mind-maps.ts'
+      - 'lib/package-catalog.ts'
+      - 'tests/mind-maps-browser-acceptance.spec.cjs'
+      - '.github/workflows/mind-maps-browser-acceptance.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  chromium-mind-maps:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - run: corepack enable
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.13.0'
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - run: |
+          pnpm add -Dw @playwright/test@1.52.0 --lockfile=false
+          pnpm exec playwright install --with-deps chromium
+      - run: pnpm build
+      - run: |
+          pnpm exec wrangler dev --config dist/server/wrangler.json --port 8787 > /tmp/cza-mind-preview.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:8787/mind-maps > /tmp/mind-maps.html; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/cza-mind-preview.log
+          exit 1
+      - name: Run desktop and mobile mind-map flow
+        env:
+          CZA_BASE_URL: http://127.0.0.1:8787
+        run: pnpm exec playwright test tests/mind-maps-browser-acceptance.spec.cjs --reporter=line --workers=1
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cza-mind-maps-browser-acceptance
+          path: test-results/
+          if-no-files-found: ignore
+          retention-days: 7

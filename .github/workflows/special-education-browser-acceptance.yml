@@ -1,0 +1,60 @@
+name: CZA Special Education Browser Acceptance
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'cza-degerlendirme/**'
+      - 'tests/special-education-browser-acceptance.spec.cjs'
+      - '.github/workflows/special-education-browser-acceptance.yml'
+  workflow_dispatch:
+
+jobs:
+  chromium-acceptance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.13.0'
+
+      - name: Install Playwright test runner
+        run: npm install --no-save --package-lock=false @playwright/test@1.52.0
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Start isolated static preview
+        run: |
+          python3 -m http.server 4173 --directory cza-degerlendirme > /tmp/cza-special-preview.log 2>&1 &
+          echo $! > /tmp/cza-special-preview.pid
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:4173/ > /tmp/cza-special-home.html; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/cza-special-preview.log
+          exit 1
+
+      - name: Run desktop and mobile Chromium acceptance
+        env:
+          CZA_BASE_URL: http://127.0.0.1:4173
+        run: npx playwright test tests/special-education-browser-acceptance.spec.cjs --reporter=line --workers=1
+
+      - name: Upload acceptance screenshots and traces
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cza-special-education-browser-acceptance
+          path: |
+            test-results/
+            playwright-report/
+          if-no-files-found: ignore
+          retention-days: 7

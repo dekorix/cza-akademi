@@ -5,6 +5,7 @@ import { allowRequest, rateLimited } from '@/lib/request-guard';
 import { authenticatedStudent, readRequestCookie } from '@/lib/student-session';
 import { LearningContractError, parseCanonicalLearningRecord } from '@/lib/learning-contract-server';
 import { CanonicalPersistenceError, persistCanonicalLearningRecord } from '@/lib/persistence/canonical-repository';
+import { isPackageAccessCode } from '@/lib/package-catalog';
 
 const ALLOWED_ACTIONS = new Set([
   'login',
@@ -156,6 +157,35 @@ export async function POST(request: Request) {
       payload.source = 'teacher_assignment';
       payload.settings = recipe.settings;
       launchedAssignment = true;
+    }
+  }
+
+  if (action === 'start' && !launchedAssignment) {
+    const moduleCode = typeof payload.moduleCode === 'string' ? payload.moduleCode.trim() : '';
+    if (moduleCode && isPackageAccessCode(moduleCode)) {
+      if (!process.env.DATABASE_URL) return json({ ok: false, error: 'database_unavailable' }, 503);
+      const student = await authenticatedStudent(request);
+      if (!student) return json({ ok: false, error: 'session_required' }, 401);
+      const sql = neon(process.env.DATABASE_URL);
+      try {
+        const entitlements = await sql`
+          SELECT e.id
+          FROM public.student_access_entitlements e
+          JOIN public.student_package_enrollments p
+            ON p.id = e.enrollment_id
+           AND p.status = 'active'
+          WHERE e.academy_id = ${student.academy_id}::uuid
+            AND e.student_id = ${student.student_id}::uuid
+            AND e.access_code = ${moduleCode}
+            AND e.status = 'active'
+            AND p.starts_at <= now()
+            AND (p.ends_at IS NULL OR p.ends_at > now())
+          LIMIT 1
+        `;
+        if (!entitlements.length) return json({ ok: false, error: 'module_access_required' }, 403);
+      } catch {
+        return json({ ok: false, error: 'package_schema_unavailable' }, 503);
+      }
     }
   }
 

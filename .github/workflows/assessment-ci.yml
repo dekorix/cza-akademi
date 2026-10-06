@@ -7,6 +7,13 @@ on:
       - cza-core-integration-v1
       - cza-e3-36-48-v1
       - cza-assessment-e3-content-v2
+      - feature/memory-techniques-v1
+      - feature/attention-focus-v1
+      - feature/speed-reading-v1
+      - feature/mind-maps-v1
+      - feature/intelligence-games-v1
+      - feature/effective-notes-v1
+      - feature/full-learning-37-v1
   pull_request:
     branches:
       - main
@@ -39,7 +46,7 @@ jobs:
         run: pnpm build
 
       - name: Targeted CZA Core integration tests
-        run: node --test tests/core-records.test.mjs tests/work-student-id-integration.test.mjs tests/cza-work-recommendations.test.mjs tests/real-assignment-auth-integration.test.mjs tests/educator-auth-route.test.mjs tests/e3-development-assessment.test.mjs tests/e3-assessment-content-v2.test.mjs
+        run: node --experimental-strip-types --test tests/core-records.test.mjs tests/work-student-id-integration.test.mjs tests/cza-work-recommendations.test.mjs tests/real-assignment-auth-integration.test.mjs tests/educator-auth-route.test.mjs tests/e3-development-assessment.test.mjs tests/e3-assessment-content-v2.test.mjs tests/special-assessment-contract.test.mjs tests/special-learning-profile.test.mjs tests/special-education-program.test.mjs tests/special-education-program-auth.test.mjs tests/special-daily-work.test.mjs tests/special-daily-work-auth.test.mjs tests/special-reassessment.test.mjs tests/special-reassessment-auth.test.mjs tests/special-parent-report.test.mjs tests/special-family-report-auth.test.mjs tests/package-catalog.test.mjs tests/package-enrollment-auth.test.mjs tests/memory-techniques.test.mjs tests/attention-focus.test.mjs tests/speed-reading.test.mjs tests/mind-maps.test.mjs tests/intelligence-games.test.mjs tests/effective-notes.test.mjs tests/full-learning-37.test.mjs
 
       - name: Start built app
         run: |
@@ -60,6 +67,19 @@ jobs:
           curl -fsS http://127.0.0.1:8787/assessment/e3 > /tmp/assessment-e3.html
           curl -fsS http://127.0.0.1:8787/educator/assessment > /tmp/assessment-educator.html
           curl -fsS http://127.0.0.1:8787/educator/assessment/report > /tmp/assessment-report.html
+          curl -fsS http://127.0.0.1:8787/educator/special-program > /tmp/special-program.html
+          curl -fsS http://127.0.0.1:8787/educator/special-reassessment > /tmp/special-reassessment.html
+          curl -fsS http://127.0.0.1:8787/educator/family-report > /tmp/family-report.html
+          curl -fsS http://127.0.0.1:8787/educator/enrollment > /tmp/enrollment.html
+          curl -fsS http://127.0.0.1:8787/learn > /tmp/learn.html
+          curl -fsS http://127.0.0.1:8787/memory > /tmp/memory.html
+          curl -fsS http://127.0.0.1:8787/attention > /tmp/attention.html
+          curl -fsS http://127.0.0.1:8787/speed-reading > /tmp/speed-reading.html
+          curl -fsS http://127.0.0.1:8787/mind-maps > /tmp/mind-maps.html
+          curl -fsS http://127.0.0.1:8787/intelligence-games > /tmp/intelligence-games.html
+          curl -fsS http://127.0.0.1:8787/effective-notes > /tmp/effective-notes.html
+          curl -fsS http://127.0.0.1:8787/full-study > /tmp/full-study.html
+          curl -fsS http://127.0.0.1:8787/special-work > /tmp/special-work.html
           curl -fsS http://127.0.0.1:8787/educator/assessment/e3/report > /tmp/assessment-e3-report.html
           curl -fsS http://127.0.0.1:8787/work > /tmp/work.html
           curl -fsS http://127.0.0.1:8787/educator > /tmp/educator.html
@@ -68,6 +88,19 @@ jobs:
           test -s /tmp/assessment-e3.html
           test -s /tmp/assessment-educator.html
           test -s /tmp/assessment-report.html
+          test -s /tmp/special-program.html
+          test -s /tmp/special-reassessment.html
+          test -s /tmp/family-report.html
+          test -s /tmp/enrollment.html
+          test -s /tmp/learn.html
+          test -s /tmp/memory.html
+          test -s /tmp/attention.html
+          test -s /tmp/speed-reading.html
+          test -s /tmp/mind-maps.html
+          test -s /tmp/intelligence-games.html
+          test -s /tmp/effective-notes.html
+          test -s /tmp/full-study.html
+          test -s /tmp/special-work.html
           test -s /tmp/assessment-e3-report.html
           test -s /tmp/work.html
           test -s /tmp/educator.html
@@ -83,10 +116,29 @@ jobs:
           pnpm exec oxlint --format unix
           app/assessment
           app/educator/assessment
+          app/educator/special-program
+          app/educator/special-reassessment
+          app/educator/family-report
+          app/educator/enrollment
+          app/memory
+          app/attention
+          app/speed-reading
+          app/mind-maps
+          app/intelligence-games
+          app/effective-notes
+          app/full-study
+          app/special-work
           app/assignment
           app/api/core
           app/api/assessment-e3
           app/api/assessment-e3-linked
+          app/api/assessment-special-linked
+          app/api/educator-special-programs
+          app/api/educator-special-reassessment
+          app/api/educator-special-family-report
+          app/api/educator-enrollment
+          app/api/core/access
+          app/api/core/special-program
           app/api/educator-auth
           app/api/educator-assignments
           app/api/educator-report/route.ts
@@ -104,6 +156,21 @@ jobs:
           lib/assessment-cognitive.ts
           lib/assessment-learning-response.ts
           lib/assessment-report.ts
+          lib/special-assessment.ts
+          lib/special-learning-profile.ts
+          lib/special-education-program.ts
+          lib/special-daily-work.ts
+          lib/special-reassessment.ts
+          lib/special-parent-report.ts
+          lib/package-catalog.ts
+          lib/memory-techniques.ts
+          lib/attention-focus.ts
+          lib/speed-reading.ts
+          lib/mind-maps.ts
+          lib/intelligence-games.ts
+          lib/effective-notes.ts
+          lib/full-learning-37.ts
+          components/package-access-gate.tsx
           lib/preschool-e3.ts
           lib/preschool-e3-protocol.ts
           lib/cza-work-recommendations.ts
