@@ -60,7 +60,10 @@ test('educator report reads the same learning_records source after teacher-stude
 
 
 test('student session cookie is available to history APIs', () => {
-  const sessionCookieBlock = coreRoute.match(/function sessionCookie[\\s\\S]*?function assignmentCookie/)?.[0] || '';
+  const start = coreRoute.indexOf('function sessionCookie');
+  const end = coreRoute.indexOf('function assignmentCookie');
+  assert.ok(start >= 0 && end > start);
+  const sessionCookieBlock = coreRoute.slice(start, end);
   assert.ok(sessionCookieBlock.includes("'Path=/api'"));
   assert.ok(!sessionCookieBlock.includes("'Path=/api/core'"));
 });
