@@ -403,7 +403,7 @@ export function CentralStudentReport({ children, initialCode = '' }: { children?
                     ['Toplam soru', report.reportInsights?.totalQuestions ?? 0],
                     ['Canonical doğruluk', `%${report.reportInsights?.accuracy ?? 0}`],
                   ].map(([label, value]) => (
-                    <div key={label} className="rounded-xl border border-[#dce9e2] bg-white p-4">
+                    <div key={label} data-report-label={String(label)} data-report-value={String(value)} className="rounded-xl border border-[#dce9e2] bg-white p-4">
                       <b className="block text-xl text-[#254d41]">{value}</b>
                       <span className="mt-1 block text-[11px] text-muted-foreground">{label}</span>
                     </div>
@@ -420,7 +420,7 @@ export function CentralStudentReport({ children, initialCode = '' }: { children?
                         ['Başladı', report.assignmentProgress?.started ?? 0],
                         ['Tamamlandı', report.assignmentProgress?.completed ?? 0],
                       ].map(([label, value]) => (
-                        <div key={label} className="rounded-lg bg-secondary/50 p-3">
+                        <div key={label} data-assignment-label={String(label)} data-assignment-value={String(value)} className="rounded-lg bg-secondary/50 p-3">
                           <b className="block text-lg">{value}</b>
                           <span className="text-[10px] text-muted-foreground">{label}</span>
                         </div>
@@ -434,10 +434,10 @@ export function CentralStudentReport({ children, initialCode = '' }: { children?
                   <div className="rounded-xl border border-[#dce9e2] bg-white p-4">
                     <h4 className="font-semibold">Hata ve tekrar sinyalleri</h4>
                     <div className="mt-3 flex flex-wrap gap-2">
-                      <span className="rounded-full bg-[#fff5e8] px-3 py-1 text-xs text-[#87551d]">Süre dolumu: {report.reportInsights?.timeoutCount ?? 0}</span>
-                      <span className="rounded-full bg-[#f3efff] px-3 py-1 text-xs text-[#60478f]">Tekrar denemesi: {report.reportInsights?.retryCount ?? 0}</span>
+                      <span data-signal-type="timeout" data-signal-value={String(report.reportInsights?.timeoutCount ?? 0)} className="rounded-full bg-[#fff5e8] px-3 py-1 text-xs text-[#87551d]">Süre dolumu: {report.reportInsights?.timeoutCount ?? 0}</span>
+                      <span data-signal-type="retry" data-signal-value={String(report.reportInsights?.retryCount ?? 0)} className="rounded-full bg-[#f3efff] px-3 py-1 text-xs text-[#60478f]">Tekrar denemesi: {report.reportInsights?.retryCount ?? 0}</span>
                       {(report.errorSummary || []).map(item => (
-                        <span key={item.error_type} className="rounded-full bg-[#f7f7f7] px-3 py-1 text-xs text-muted-foreground">
+                        <span key={item.error_type} data-error-type={item.error_type} data-error-count={String(item.count)} className="rounded-full bg-[#f7f7f7] px-3 py-1 text-xs text-muted-foreground">
                           {errorLabel(item.error_type)}: {item.count}
                         </span>
                       ))}
@@ -465,7 +465,17 @@ export function CentralStudentReport({ children, initialCode = '' }: { children?
                         </thead>
                         <tbody>
                           {report.moduleProgress.map(item => (
-                            <tr key={item.moduleCode} className="border-b border-[#edf3ef] last:border-0">
+                            <tr
+                              key={item.moduleCode}
+                              data-module-code={item.moduleCode}
+                              data-module-sessions={String(item.sessions)}
+                              data-module-total-questions={String(item.totalQuestions)}
+                              data-module-correct={String(item.correct)}
+                              data-module-wrong={String(item.wrong)}
+                              data-module-accuracy={String(item.accuracy)}
+                              data-module-duration-ms={String(item.totalDurationMs)}
+                              className="border-b border-[#edf3ef] last:border-0"
+                            >
                               <td className="p-3 font-semibold">{labels[item.moduleCode] || item.moduleCode}</td>
                               <td className="p-3">{item.sessions}</td>
                               <td className="p-3">{item.totalQuestions}</td>

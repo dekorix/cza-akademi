@@ -42,6 +42,31 @@ let chromeStderr = '';
 
 function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
 
+function reportDuration(milliseconds) {
+  const totalMinutes = Math.max(0, Math.round(Number(milliseconds || 0) / 60000));
+  if (totalMinutes < 1) return '1 dk altı';
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  if (!hours) return String(minutes) + ' dk';
+  return minutes ? String(hours) + ' sa ' + String(minutes) + ' dk' : String(hours) + ' sa';
+}
+
+function stable(value) {
+  return JSON.stringify(value);
+}
+
+function normalizeForReload(rows) {
+  return [...rows].map(item => ({
+    moduleCode: String(item.moduleCode),
+    sessions: Number(item.sessions),
+    totalQuestions: Number(item.totalQuestions),
+    correct: Number(item.correct),
+    wrong: Number(item.wrong),
+    accuracy: Number(item.accuracy),
+    totalDurationMs: Number(item.totalDurationMs),
+  })).sort((a,b) => a.moduleCode.localeCompare(b.moduleCode));
+}
+
 async function waitForChrome() {
   for (let i = 0; i < 120; i += 1) {
     try {
@@ -165,6 +190,75 @@ async function loadApiReport(page, studentId) {
   return result.body;
 }
 
+async function readUiValues(page) {
+  return await evalJson(page, `(() => {
+    const metrics = Object.fromEntries(Array.from(document.querySelectorAll('[data-report-label]')).map(el => [
+      el.getAttribute('data-report-label'),
+      el.getAttribute('data-report-value'),
+    ]));
+    const assignments = Object.fromEntries(Array.from(document.querySelectorAll('[data-assignment-label]')).map(el => [
+      el.getAttribute('data-assignment-label'),
+      el.getAttribute('data-assignment-value'),
+    ]));
+    const signals = Object.fromEntries(Array.from(document.querySelectorAll('[data-signal-type]')).map(el => [
+      el.getAttribute('data-signal-type'),
+      el.getAttribute('data-signal-value'),
+    ]));
+    const errors = Array.from(document.querySelectorAll('[data-error-type]')).map(el => ({
+      error_type: el.getAttribute('data-error-type'),
+      count: Number(el.getAttribute('data-error-count') || 0),
+    })).sort((a,b) => String(a.error_type).localeCompare(String(b.error_type)));
+    const modules = Array.from(document.querySelectorAll('[data-module-code]')).map(el => ({
+      moduleCode: el.getAttribute('data-module-code'),
+      sessions: Number(el.getAttribute('data-module-sessions') || 0),
+      totalQuestions: Number(el.getAttribute('data-module-total-questions') || 0),
+      correct: Number(el.getAttribute('data-module-correct') || 0),
+      wrong: Number(el.getAttribute('data-module-wrong') || 0),
+      accuracy: Number(el.getAttribute('data-module-accuracy') || 0),
+      totalDurationMs: Number(el.getAttribute('data-module-duration-ms') || 0),
+    })).sort((a,b) => String(a.moduleCode).localeCompare(String(b.moduleCode)));
+    return { metrics, assignments, signals, errors, modules };
+  })()`);
+}
+
+function assertUiMatchesApi(ui, api, label) {
+  const expectedMetrics = {
+    'Tamamlanan oturum': String(api.reportInsights.sessions),
+    'Toplam çalışma': reportDuration(api.reportInsights.totalDurationMs),
+    'Toplam soru': String(api.reportInsights.totalQuestions),
+    'Canonical doğruluk': '%' + String(api.reportInsights.accuracy),
+  };
+  const expectedAssignments = {
+    'Toplam': String(api.assignmentProgress.total),
+    'Atandı': String(api.assignmentProgress.assigned),
+    'Başladı': String(api.assignmentProgress.started),
+    'Tamamlandı': String(api.assignmentProgress.completed),
+  };
+  const expectedSignals = {
+    timeout: String(api.reportInsights.timeoutCount),
+    retry: String(api.reportInsights.retryCount),
+  };
+  const expectedErrors = [...(api.errorSummary || [])].map(item => ({
+    error_type: String(item.error_type),
+    count: Number(item.count),
+  })).sort((a,b) => a.error_type.localeCompare(b.error_type));
+  const expectedModules = [...(api.moduleProgress || [])].map(item => ({
+    moduleCode: String(item.moduleCode),
+    sessions: Number(item.sessions),
+    totalQuestions: Number(item.totalQuestions),
+    correct: Number(item.correct),
+    wrong: Number(item.wrong),
+    accuracy: Number(item.accuracy),
+    totalDurationMs: Number(item.totalDurationMs),
+  })).sort((a,b) => a.moduleCode.localeCompare(b.moduleCode));
+
+  if (stable(ui.metrics) !== stable(expectedMetrics)) throw new Error(label + '_ui_summary_api_mismatch:' + stable({ ui: ui.metrics, expected: expectedMetrics }));
+  if (stable(ui.assignments) !== stable(expectedAssignments)) throw new Error(label + '_ui_assignment_api_mismatch:' + stable({ ui: ui.assignments, expected: expectedAssignments }));
+  if (stable(ui.signals) !== stable(expectedSignals)) throw new Error(label + '_ui_signal_api_mismatch:' + stable({ ui: ui.signals, expected: expectedSignals }));
+  if (stable(ui.errors) !== stable(expectedErrors)) throw new Error(label + '_ui_error_api_mismatch:' + stable({ ui: ui.errors, expected: expectedErrors }));
+  if (stable(ui.modules) !== stable(expectedModules)) throw new Error(label + '_ui_module_api_mismatch:' + stable({ ui: ui.modules, expected: expectedModules }));
+}
+
 async function openUiReport(page, studentId) {
   const openedFromStudent = await evalJson(page, `(() => {
     const rows = Array.from(document.querySelectorAll('div')).filter(el =>
@@ -283,17 +377,23 @@ try {
 
   const before = await loadApiReport(page, String(fixture.student_id));
   await openUiReport(page, String(fixture.student_id));
+  const uiBefore = await readUiValues(page);
+  assertUiMatchesApi(uiBefore, before, 'before_reload');
 
   await reloadHard(page);
   await waitForText(page, 'Eğitimci kontrol merkezi');
   const after = await loadApiReport(page, String(fixture.student_id));
   await openUiReport(page, String(fixture.student_id));
+  const uiAfter = await readUiValues(page);
+  assertUiMatchesApi(uiAfter, after, 'after_reload');
 
   const stable =
     before.reportInsights.sessions === after.reportInsights.sessions &&
     before.reportInsights.totalQuestions === after.reportInsights.totalQuestions &&
     before.reportInsights.accuracy === after.reportInsights.accuracy &&
-    before.moduleProgress.length === after.moduleProgress.length;
+    before.reportInsights.totalDurationMs === after.reportInsights.totalDurationMs &&
+    stable(before.assignmentProgress) === stable(after.assignmentProgress) &&
+    stable(normalizeForReload(before.moduleProgress || [])) === stable(normalizeForReload(after.moduleProgress || []));
 
   if (!stable) throw new Error('report_metrics_changed_after_hard_reload');
 
