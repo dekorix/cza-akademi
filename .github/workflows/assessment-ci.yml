@@ -65,6 +65,7 @@ jobs:
         run: |
           curl -fsS http://127.0.0.1:8787/assessment > /tmp/assessment-student.html
           curl -fsS http://127.0.0.1:8787/assessment/e3 > /tmp/assessment-e3.html
+          curl -fsS http://127.0.0.1:8787/assessment/e2 > /tmp/assessment-e2.html
           curl -fsS http://127.0.0.1:8787/educator/assessment > /tmp/assessment-educator.html
           curl -fsS http://127.0.0.1:8787/educator/assessment/report > /tmp/assessment-report.html
           curl -fsS http://127.0.0.1:8787/educator/special-program > /tmp/special-program.html
@@ -87,6 +88,7 @@ jobs:
           curl -fsS http://127.0.0.1:8787/api/educator-auth > /tmp/educator-auth.json
           test -s /tmp/assessment-student.html
           test -s /tmp/assessment-e3.html
+          test -s /tmp/assessment-e2.html
           test -s /tmp/assessment-educator.html
           test -s /tmp/assessment-report.html
           test -s /tmp/special-program.html
@@ -160,6 +162,7 @@ jobs:
           lib/e2-question-bank.ts
           lib/e2-adaptive.ts
           lib/e2-assessment.ts
+          lib/e2-caregiver.ts
           lib/assessment-routing.ts
           lib/assessment-math.ts
           lib/assessment-math-extended.ts
