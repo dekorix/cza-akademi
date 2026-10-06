@@ -405,6 +405,7 @@ try {
   console.log('ERROR_SIGNAL_UI=PASS');
   console.log('HARD_RELOAD=PASS');
   console.log('API_UI_SAME_SOURCE=PASS');
+  console.log('UI_API_EXACT_VALUES=PASS');
   console.log('STUDENT_ID_SHA256=' + crypto.createHash('sha256').update(String(fixture.student_id)).digest('hex'));
 
   page.close();

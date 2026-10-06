@@ -40,6 +40,9 @@ let crossAcademyStudentId = '';
 let crossAcademyLinkCreated = false;
 let sameAcademyEmptyStudentId = '';
 let sameAcademyEmptyLinkCreated = false;
+let syntheticEmptyStudentCreated = false;
+let crossAcademyIdentifierValue = '';
+let crossAcademyIdentifierCreated = false;
 
 function numeric(value) {
   return typeof value === 'number' && Number.isFinite(value) ? value : 0;
@@ -419,6 +422,23 @@ try {
     throw new Error('cross_academy_id_access_not_denied');
   }
 
+  if (!crossAcademy[0].campus_code) {
+    crossAcademyIdentifierValue = marker + '-cross-academy';
+    await sql`
+      INSERT INTO public.student_external_identifiers (
+        student_id,
+        identifier_type,
+        identifier_value
+      ) VALUES (
+        ${crossAcademyStudentId}::uuid,
+        'legacy_reference',
+        ${crossAcademyIdentifierValue}
+      )
+    `;
+    crossAcademyIdentifierCreated = true;
+    crossAcademy[0].campus_code = crossAcademyIdentifierValue;
+  }
+
   if (crossAcademy[0].campus_code) {
     const crossCodeDenied = await fetchReport({ studentCode: String(crossAcademy[0].campus_code) });
     if (crossCodeDenied.response.status !== 404 || crossCodeDenied.body?.error !== 'student_not_found') {
@@ -483,6 +503,43 @@ try {
       sameAcademyEmptyLinkCreated = true;
       emptyFixture = unlinkedEmpty;
     }
+  }
+
+  if (!emptyFixture.length) {
+    const syntheticEmpty = await sql`
+      INSERT INTO public.students (
+        academy_id,
+        first_name,
+        last_name,
+        status,
+        notes,
+        is_demo
+      ) VALUES (
+        ${fixture.academy_id}::uuid,
+        'CZA QA',
+        'Empty Report Fixture',
+        'active',
+        ${marker},
+        true
+      )
+      RETURNING id, academy_id
+    `;
+    if (!syntheticEmpty.length) throw new Error('synthetic_empty_student_not_created');
+
+    sameAcademyEmptyStudentId = String(syntheticEmpty[0].id);
+    syntheticEmptyStudentCreated = true;
+
+    await sql`
+      INSERT INTO public.teacher_student_links (academy_id, teacher_id, student_id, can_view)
+      VALUES (
+        ${fixture.academy_id}::uuid,
+        ${fixture.educator_user_id}::uuid,
+        ${sameAcademyEmptyStudentId}::uuid,
+        true
+      )
+    `;
+    sameAcademyEmptyLinkCreated = true;
+    emptyFixture = syntheticEmpty;
   }
 
   if (emptyFixture.length) {
@@ -587,6 +644,14 @@ try {
   console.error('ERROR=' + (error instanceof Error ? error.message : String(error)));
   process.exitCode = 1;
 } finally {
+  if (crossAcademyIdentifierCreated && crossAcademyStudentId && crossAcademyIdentifierValue) {
+    await sql`
+      DELETE FROM public.student_external_identifiers
+      WHERE student_id = ${crossAcademyStudentId}::uuid
+        AND identifier_type = 'legacy_reference'
+        AND identifier_value = ${crossAcademyIdentifierValue}
+    `.catch(() => undefined);
+  }
   if (crossAcademyLinkCreated && crossAcademyStudentId) {
     await sql`
       DELETE FROM public.teacher_student_links
@@ -603,6 +668,14 @@ try {
         SELECT id FROM public.users WHERE auth_user_id = ${educatorAuthUserId} LIMIT 1
       )
         AND student_id = ${sameAcademyEmptyStudentId}::uuid
+    `.catch(() => undefined);
+  }
+  if (syntheticEmptyStudentCreated && sameAcademyEmptyStudentId) {
+    await sql`
+      DELETE FROM public.students
+      WHERE id = ${sameAcademyEmptyStudentId}::uuid
+        AND is_demo = true
+        AND notes = ${marker}
     `.catch(() => undefined);
   }
   if (educatorSessionId) {
