@@ -9,6 +9,14 @@ on:
       - '.github/workflows/assignment-lifecycle-staging.yml'
       - 'app/api/core/assignments/route.ts'
       - 'app/api/educator-assignments/route.ts'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'scripts/qa/assignment-lifecycle-staging.mjs'
+      - '.github/workflows/assignment-lifecycle-staging.yml'
+      - 'app/api/core/assignments/route.ts'
+      - 'app/api/educator-assignments/route.ts'
   workflow_dispatch:
 
 permissions:
