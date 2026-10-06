@@ -128,6 +128,14 @@ export function CentralAssessmentIntake({onP2Created}:{onP2Created:(payload:P2Cr
         return;
       }
 
+      if(profileCode==='E2'){
+        const data=await postJson('/api/assessment-e2-linked',{
+          studentId,birthDate:finalBirth,assessmentPurpose:purpose,
+        });
+        window.location.href='/assessment/e2?session='+encodeURIComponent(String(data.session.id));
+        return;
+      }
+
       if(profileCode==='E3'){
         const data=await postJson('/api/assessment-e3-linked',{
           studentId,birthDate:finalBirth,assessmentPurpose:purpose,
