@@ -93,7 +93,7 @@ async function rawOracle(academyId, studentId) {
         completed_at,
         performance,
         metadata,
-        EXTRACT(EPOCH FROM (completed_at - started_at)) * 1000 AS fallback_duration_ms
+        (EXTRACT(EPOCH FROM (completed_at - started_at)) * 1000)::float8 AS fallback_duration_ms
       FROM public.learning_records
       WHERE academy_id = ${academyId}::uuid
         AND student_id = ${studentId}::uuid
