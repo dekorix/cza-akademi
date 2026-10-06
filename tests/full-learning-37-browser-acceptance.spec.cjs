@@ -61,3 +61,32 @@ for(const device of [
     await page.screenshot({path:'test-results/full-learning-37-'+device.name+'.png',fullPage:true});
   });
 }
+
+
+test('verified educator assignment opens full-study without package entitlement',async({page})=>{
+  const recipe='44444444-4444-4444-8444-444444444444';
+  await page.route('**/api/core/assignments?recipeId=*',route=>route.fulfill({
+    status:200,contentType:'application/json',
+    body:JSON.stringify({ok:true,assignment:{id:recipe,module_code:'full_learning_37'}}),
+  }));
+  await page.route('**/api/core/access',route=>route.fulfill({
+    status:200,contentType:'application/json',
+    body:JSON.stringify({ok:true,accessCodes:[]}),
+  }));
+  await page.goto(BASE_URL+'/full-study?assignedRecipe='+recipe);
+  await expect(page.getByRole('heading',{name:'Tam Öğrenme Sistemi · 37 Adım'})).toBeVisible();
+});
+
+test('unverified assignment cannot bypass package entitlement',async({page})=>{
+  const recipe='55555555-5555-4555-8555-555555555555';
+  await page.route('**/api/core/assignments?recipeId=*',route=>route.fulfill({
+    status:404,contentType:'application/json',
+    body:JSON.stringify({ok:false,error:'assignment_not_found'}),
+  }));
+  await page.route('**/api/core/access',route=>route.fulfill({
+    status:200,contentType:'application/json',
+    body:JSON.stringify({ok:true,accessCodes:[]}),
+  }));
+  await page.goto(BASE_URL+'/full-study?assignedRecipe='+recipe);
+  await expect(page.getByRole('heading',{name:'Tam Öğrenme Sistemi henüz hesabında açık değil'})).toBeVisible();
+});
