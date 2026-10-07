@@ -1,4 +1,4 @@
-import { trustedEducatorHeaders } from './trusted-educator-transport.mjs';
+import { trustedEducatorHeaders, verifyTrustedEducatorBackend } from './trusted-educator-transport.mjs';
 import crypto from 'node:crypto';
 import process from 'node:process';
 import { neon } from '@neondatabase/serverless';
@@ -33,6 +33,7 @@ if (
 }
 
 const sql = neon(databaseUrl);
+await verifyTrustedEducatorBackend(sql);
 const token = crypto.randomBytes(32).toString('hex');
 const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
 const marker = 'CZA_REPORTS_V1_STAGING_' + Date.now();

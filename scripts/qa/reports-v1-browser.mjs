@@ -1,4 +1,4 @@
-import { installTrustedEducatorTransport } from './trusted-educator-transport.mjs';
+import { installTrustedEducatorTransport, verifyTrustedEducatorBackend } from './trusted-educator-transport.mjs';
 import crypto from 'node:crypto';
 import process from 'node:process';
 import { spawn } from 'node:child_process';
@@ -34,6 +34,7 @@ if (
 }
 
 const sql = neon(databaseUrl);
+await verifyTrustedEducatorBackend(sql);
 const educatorToken = crypto.randomBytes(32).toString('hex');
 const educatorTokenHash = crypto.createHash('sha256').update(educatorToken).digest('hex');
 const marker = 'CZA_REPORTS_V1_BROWSER_' + Date.now();

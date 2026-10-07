@@ -39,6 +39,8 @@ try {
   await sql.unsafe(`
     -- The disposable ledger test schema intentionally has a minimal users table.
     -- Proxy acceptance also needs an active canonical educator, not just a signed email.
+    CREATE TABLE IF NOT EXISTS public.academies(id uuid PRIMARY KEY);
+    CREATE TABLE IF NOT EXISTS public.users(id uuid PRIMARY KEY,is_active boolean NOT NULL,role text NOT NULL);
     ALTER TABLE public.users ADD COLUMN IF NOT EXISTS academy_id uuid;
     ALTER TABLE public.users ADD COLUMN IF NOT EXISTS auth_user_id uuid;
     ALTER TABLE public.users ADD COLUMN IF NOT EXISTS email text;

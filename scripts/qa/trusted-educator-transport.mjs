@@ -35,3 +35,11 @@ export async function installTrustedEducatorTransport(cdp) {
     }
   });
 }
+
+// Read-only preflight: expose a missing deployment prerequisite without weakening auth.
+export async function verifyTrustedEducatorBackend(sql) {
+  const rows = await sql`SELECT to_regprocedure('public.cza_consume_trusted_proxy_nonce(text,timestamp with time zone)')::text AS nonce_function`;
+  if (!rows[0]?.nonce_function) throw new Error('qa_proxy_nonce_function_missing_in_staging');
+  const permissions = await sql`SELECT has_function_privilege(current_user,'public.cza_consume_trusted_proxy_nonce(text,timestamp with time zone)','EXECUTE') AS can_execute`;
+  if (permissions[0]?.can_execute !== true) throw new Error('qa_proxy_nonce_execution_not_allowed');
+}

@@ -8,7 +8,7 @@ test('disposable proxy fixture has a canonical educator and durable single-use n
   const sql = source.split('await sql.unsafe(`')[1].split('`);')[0];
   const db = new PGlite();
   try {
-    await db.exec('CREATE TABLE public.academies(id uuid PRIMARY KEY); CREATE TABLE public.users(id uuid PRIMARY KEY,is_active boolean NOT NULL,role text NOT NULL);');
+    // The PostgreSQL CI suite drops its fixture schema before proxy acceptance.
     await db.exec(sql);
     await db.exec(sql);
     const users = (await db.query("SELECT id,academy_id,auth_user_id FROM public.users WHERE is_active AND role='educator'")).rows;
