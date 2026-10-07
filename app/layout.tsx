@@ -2,25 +2,25 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://cza-egzersiz-akademisi.habipcann65.chatgpt.site'),
-  title: 'CZA Egzersiz Akademisi',
+  metadataBase: new URL('https://celik-zihin-akademisi.habipcann65.chatgpt.site'),
+  title: 'Çelik Zihin Akademisi',
   description:
-    'Soroban, Anzan ve bilişsel beceri çalışmalarını kişisel gelişim rotasına dönüştüren CZA öğrenci platformu.',
+    'Başlangıç değerlendirmesi, çalışma merkezi, öğrenci ve eğitimci ekranları ile özel eğitim ve öğrenme profili akışlarını tek çatı altında birleştiren Çelik Zihin Akademisi platformu.',
   icons: { icon: '/favicon.svg' },
   openGraph: {
-    title: 'CZA Egzersiz Akademisi',
-    description: 'Soroban, Anzan ve bilişsel beceri çalışmaları için öğrenci ve eğitimci platformu.',
-    url: 'https://cza-egzersiz-akademisi.habipcann65.chatgpt.site',
-    siteName: 'CZA Egzersiz Akademisi',
+    title: 'Çelik Zihin Akademisi',
+    description: 'Değerlendirme, öğrenme profili, çalışma merkezi, öğrenci ve eğitimci akışlarını tek çatı altında birleştiren CZA eğitim ekosistemi.',
+    url: 'https://celik-zihin-akademisi.habipcann65.chatgpt.site',
+    siteName: 'Çelik Zihin Akademisi',
     locale: 'tr_TR',
     type: 'website',
-    images: [{ url: 'https://cza-egzersiz-akademisi.habipcann65.chatgpt.site/og.png', width: 1731, height: 909, alt: 'CZA Egzersiz Akademisi — Soroban, Anzan ve bilişsel beceri çalışmaları' }],
+    images: [{ url: 'https://celik-zihin-akademisi.habipcann65.chatgpt.site/og.png', width: 1731, height: 909, alt: 'Çelik Zihin Akademisi — bütünleşik eğitim, değerlendirme ve gelişim platformu' }],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'CZA Egzersiz Akademisi',
-    description: 'Soroban, Anzan ve bilişsel beceri çalışmaları.',
-    images: ['https://cza-egzersiz-akademisi.habipcann65.chatgpt.site/og.png'],
+    title: 'Çelik Zihin Akademisi',
+    description: 'Değerlendirme, öğrenme profili, çalışma merkezi, öğrenci ve eğitimci akışları için bütünleşik CZA platformu.',
+    images: ['https://celik-zihin-akademisi.habipcann65.chatgpt.site/og.png'],
   },
 };
 
