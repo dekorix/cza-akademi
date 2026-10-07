@@ -24,6 +24,12 @@ on:
       - 'app/assignment/page.tsx'
   workflow_dispatch:
 
+# Shared staging fixtures must not change while another acceptance reads them.
+concurrency:
+  group: cza-staging-database-acceptance
+  cancel-in-progress: false
+  queue: max
+
 permissions:
   contents: read
 
@@ -34,7 +40,7 @@ jobs:
     environment: CZA-STAGING-SECURITY
     steps:
       - name: Checkout exact head
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           persist-credentials: false
 
@@ -42,7 +48,7 @@ jobs:
         run: corepack enable
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: '22.13.0'
           cache: pnpm
@@ -64,6 +70,11 @@ jobs:
         run: |
           set -euo pipefail
           printf 'DATABASE_URL=%s\n' "${CZA_STAGING_DATABASE_URL}" > dist/server/.dev.vars
+          czaQaSecret="$(node -e "process.stdout.write(require('node:crypto').randomBytes(48).toString('hex'))")"
+          echo "::add-mask::$czaQaSecret"
+          printf 'CZA_TRUSTED_PROXY_HMAC_SECRET=%s\n' "$czaQaSecret" >> "$GITHUB_ENV"
+          printf 'CZA_TRUSTED_PROXY_HMAC_SECRET=%s\n' "$czaQaSecret" >> dist/server/.dev.vars
+          printf 'CZA_QA_PROXY_DIAGNOSTICS=1\n' >> dist/server/.dev.vars
           chmod 600 dist/server/.dev.vars
           pnpm exec wrangler dev --config dist/server/wrangler.json --port 8787 > /tmp/cza-assignment-browser-app.log 2>&1 &
           echo $! > /tmp/cza-assignment-browser-app.pid
@@ -96,6 +107,7 @@ jobs:
         if: always()
         shell: bash
         run: |
+          rg 'CZA_QA_PROXY_DENY=' /tmp/cza-assignment-browser-app.log || true
           if [ -f /tmp/cza-assignment-browser-app.pid ]; then
             kill "$(cat /tmp/cza-assignment-browser-app.pid)" 2>/dev/null || true
           fi

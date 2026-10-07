@@ -76,7 +76,7 @@ CREATE INDEX IF NOT EXISTS idx_learning_records_student_session
   ON public.learning_records(student_session_id, created_at DESC)
   WHERE student_session_id IS NOT NULL;
 
-CREATE OR REPLACE FUNCTION public.cza_student_record_learning(
+CREATE OR REPLACE FUNCTION public.cza_student_record_learning_bound_v1(
   p_academy_id uuid,
   p_student_id uuid,
   p_training_session_id uuid,
@@ -301,7 +301,7 @@ BEGIN
 END;
 $$;
 
-REVOKE ALL ON FUNCTION public.cza_student_record_learning(
+REVOKE ALL ON FUNCTION public.cza_student_record_learning_bound_v1(
   uuid, uuid, uuid, uuid, uuid, text, text, text, text, text, text,
   timestamptz, timestamptz, text, jsonb, jsonb, jsonb
 ) FROM PUBLIC;

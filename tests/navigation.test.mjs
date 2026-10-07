@@ -3,40 +3,69 @@ import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
 
 const root = new URL('../', import.meta.url);
-const source = path => readFileSync(new URL(path, root), 'utf8');
-const files = ['app', 'components'].flatMap(directory =>
+const source = (path) => readFileSync(new URL(path, root), 'utf8');
+const files = ['app', 'components'].flatMap((directory) =>
   readdirSync(new URL(`${directory}/`, root), { recursive: true })
-    .filter(path => /\.[jt]sx?$/.test(path))
-    .map(path => `${directory}/${path.replaceAll('\\', '/')}`));
+    .filter((path) => /\.[jt]sx?$/.test(path))
+    .map((path) => `${directory}/${path.replaceAll('\\', '/')}`),
+);
 
 test('cross-page navigation does not depend on the failing client router shim', () => {
   for (const file of files) {
-    assert.doesNotMatch(source(file), /from\s+['"]next\/(?:link|navigation)['"]/, file);
+    assert.doesNotMatch(
+      source(file),
+      /from\s+['"]next\/(?:link|navigation)['"]/,
+      file,
+    );
     assert.doesNotMatch(source(file), /<\/?Link\b/, file);
   }
 });
 
 test('main routes and query-bearing teaching/program links remain native anchors', () => {
-  for (const [file, hrefs] of [
-    ['app/page.tsx', ['/work', '/studio', '/learn']],
+  const routeAnchors = /** @type {Array<[string, string[]]>} */ ([
+    ['components/student-dashboard.tsx', ['/work']],
     ['app/learn/page.tsx', ['/', '/educator?tab=teaching']],
     ['app/educator/page.tsx', ['/', '/studio?program=demo', '/studio']],
     ['app/studio/page.tsx', ['/', '/educator']],
     ['components/teaching-reports.tsx', ['/learn']],
-  ]) {
+  ]);
+  for (const [file, hrefs] of routeAnchors) {
     const text = source(file);
-    for (const href of hrefs) assert.ok(text.includes(`<a href="${href}"`), `${file}: ${href}`);
+    for (const href of hrefs)
+      assert.ok(text.includes(`<a href="${href}"`), `${file}: ${href}`);
   }
-  assert.match(source('app/page.tsx'), /<a[^>]*href=\{module\.href\}/);
-  assert.ok(source('app/page.tsx').includes('/studio?mode=flash'));
-  assert.ok(source('app/page.tsx').includes('/studio?mode=audio'));
-  assert.match(source('app/page.tsx'), /window\.location\.replace\(CAMPUS_V14_URL\)/);
+  assert.match(
+    source('components/student-dashboard.tsx'),
+    /<a[^>]*href=\{module\.href\}/,
+  );
+  assert.ok(
+    source('components/student-dashboard.tsx').includes(
+      "href: '/studio?mode=flash'",
+    ),
+  );
+  assert.ok(
+    source('components/student-dashboard.tsx').includes(
+      "href: '/studio?mode=audio'",
+    ),
+  );
+  assert.ok(
+    source('components/student-dashboard.tsx').includes("href: '/learn'"),
+  );
+  assert.match(source('app/page.tsx'), /return <StudentPortal area="main" \/>/);
+  assert.doesNotMatch(
+    source('app/page.tsx'),
+    /window\.location\.replace\(CAMPUS_V14_URL\)/,
+  );
 });
 
 test('educator handoff carries the selected username but never a PIN', () => {
   const educator = source('components/educator-students.tsx');
   const paritmetik = source('app/paritmetik/page.tsx');
-  assert.ok(educator.includes('/paritmetik?from=educator&username=${encodeURIComponent(student.username)}'));
+  assert.ok(
+    educator.includes(
+      '/paritmetik?from=educator&username=${encodeURIComponent(student.username)}',
+    ),
+  );
   assert.doesNotMatch(educator, /zeynep7/);
   assert.doesNotMatch(educator, /[?&]pin=/i);
   assert.match(paritmetik, /params\.get\('username'\)/);

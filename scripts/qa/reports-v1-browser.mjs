@@ -1,3 +1,4 @@
+import { installTrustedEducatorTransport, verifyTrustedEducatorBackend, selectEducatorStudent } from './trusted-educator-transport.mjs';
 import crypto from 'node:crypto';
 import process from 'node:process';
 import { spawn } from 'node:child_process';
@@ -33,6 +34,7 @@ if (
 }
 
 const sql = neon(databaseUrl);
+await verifyTrustedEducatorBackend(sql);
 const educatorToken = crypto.randomBytes(32).toString('hex');
 const educatorTokenHash = crypto.createHash('sha256').update(educatorToken).digest('hex');
 const marker = 'CZA_REPORTS_V1_BROWSER_' + Date.now();
@@ -184,7 +186,7 @@ async function loadApiReport(page, studentId) {
     });
     return { status: r.status, body: await r.json() };
   })()`);
-  if (result?.status !== 200 || result?.body?.ok !== true) throw new Error('browser_report_api_failed');
+  if (result?.status !== 200 || result?.body?.ok !== true) throw new Error('browser_report_api_failed:' + result?.status + ':' + (/^[a-z_]{1,64}$/.test(result?.body?.error || '') ? result.body.error : 'unknown'));
   if (result.body.reportInsightsAvailable !== true) throw new Error('browser_report_insights_unavailable');
   if (!Array.isArray(result.body.moduleProgress) || result.body.moduleProgress.length < 1) throw new Error('browser_module_progress_missing');
   return result.body;
@@ -260,6 +262,7 @@ function assertUiMatchesApi(ui, api, label) {
 }
 
 async function openUiReport(page, studentId) {
+  await selectEducatorStudent(page, studentId);
   const openedFromStudent = await evalJson(page, `(() => {
     const rows = Array.from(document.querySelectorAll('div')).filter(el =>
       el.innerText?.includes(${JSON.stringify(studentId)}) &&
@@ -371,6 +374,7 @@ try {
   await waitForChrome();
 
   const page = await newPage('about:blank');
+  await installTrustedEducatorTransport(page);
   await setCookie(page, 'cza_educator_session', 'local.' + educatorToken);
   await navigate(page, baseUrl + '/educator');
   await waitForText(page, 'Eğitimci kontrol merkezi');

@@ -13,7 +13,7 @@ function json(body: unknown, status = 200) {
 }
 
 export async function GET(request: Request) {
-  const gate = allowRequest(request, 'student-history', 60, 10 * 60 * 1000);
+  const gate = await allowRequest(request, 'student-history', 60, 10 * 60 * 1000);
   if (!gate.allowed) return rateLimited(gate.retryAfterSeconds);
 
   const student = await authenticatedStudent(request);

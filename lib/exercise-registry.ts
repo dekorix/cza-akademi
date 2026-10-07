@@ -1,4 +1,5 @@
 import type { ExerciseMode } from './exercise-engine';
+import { ANZAN_ENGINE_REFERENCE, type EngineReference } from './engine-contract';
 
 export type ExerciseCategory = 'paritmetik' | 'soroban' | 'arithmetic' | 'anzan';
 export type ExerciseDefinition = {
@@ -10,6 +11,7 @@ export type ExerciseDefinition = {
   skills: string[];
   mode?: ExerciseMode;
   href?: string;
+  engine?: EngineReference;
 };
 
 export const exerciseCategories: Record<ExerciseCategory, { title: string; description: string }> = {
@@ -25,10 +27,21 @@ export const exerciseRegistry: ExerciseDefinition[] = [
   { id: 'SOROBAN_READING', title: 'Soroban Okuma', category: 'soroban', icon: 'abacus', description: 'Gör → Oku → Cevapla', skills: ['soroban.numberRecognition','soroban.placeValue','visual.processingSpeed'], mode: 'soroban-read' },
   { id: 'SOROBAN_WRITING', title: 'Soroban Yazma', category: 'soroban', icon: 'abacus', description: 'Gör → Sorobanda oluştur', skills: ['soroban.numberConstruction','soroban.placeValue'], mode: 'soroban-write' },
   { id: 'ADDITION_SUBTRACTION', title: 'Toplama / Çıkarma', category: 'arithmetic', icon: 'operation', description: 'İşle → Uygula → Kontrol et', skills: ['arithmetic.addition','arithmetic.subtraction'], href: '/arithmetic' },
-  { id: 'FLASH_ANZAN', title: 'Flash Anzan', category: 'anzan', icon: 'speed', description: 'Görsel akışla zihinden işle', skills: ['mental.visualization','anzan.calculation','visual.processingSpeed'], mode: 'flash' },
-  { id: 'AUDIO_ANZAN', title: 'Sesli Anzan', category: 'anzan', icon: 'speed', description: 'Dinle ve zihinden işle', skills: ['anzan.calculation','response.fluency'], mode: 'audio' },
+  { id: 'FLASH_ANZAN', title: 'Flash Anzan', category: 'anzan', icon: 'speed', description: 'Görsel akışla zihinden işle', skills: ['mental.visualization','anzan.calculation','visual.processingSpeed'], mode: 'flash', engine: ANZAN_ENGINE_REFERENCE },
+  { id: 'AUDIO_ANZAN', title: 'Sesli Anzan', category: 'anzan', icon: 'speed', description: 'Dinle ve zihinden işle', skills: ['anzan.calculation','response.fluency'], mode: 'audio', engine: ANZAN_ENGINE_REFERENCE },
 ];
 
 export function exerciseForMode(mode: ExerciseMode) {
   return exerciseRegistry.find(exercise => exercise.mode === mode);
+}
+
+export function exerciseForModuleCode(moduleCode: string) {
+  const mode = Object.entries({
+    'finger-read': 'finger_read',
+    'soroban-read': 'soroban_read',
+    'soroban-write': 'soroban_write',
+    flash: 'flash_anzan',
+    audio: 'audio_anzan',
+  } as const).find(([, code]) => code === moduleCode)?.[0] as ExerciseMode | undefined;
+  return mode ? exerciseForMode(mode) : undefined;
 }

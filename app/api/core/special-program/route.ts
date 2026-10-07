@@ -113,7 +113,7 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const gate = allowRequest(request, 'student-special-program', 60, 10 * 60_000);
+  const gate = await allowRequest(request, 'student-special-program', 60, 10 * 60_000);
   if (!gate.allowed) return rateLimited(gate.retryAfterSeconds);
 
   const origin = request.headers.get('origin');

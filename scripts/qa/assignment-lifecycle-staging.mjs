@@ -63,6 +63,11 @@ try {
       ON ss.student_id = ts.student_id
      AND ss.academy_id = ts.academy_id
     WHERE ts.status::text IN ('active','started','in_progress')
+      AND NOT EXISTS (
+        SELECT 1 FROM public.training_recipes existing
+        WHERE existing.academy_id=ts.academy_id AND existing.student_id=ts.student_id
+          AND existing.module_code=ts.module_code AND existing.is_active=true
+      )
     ORDER BY ts.started_at DESC NULLS LAST
     LIMIT 1
   `;

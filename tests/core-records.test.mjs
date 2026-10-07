@@ -2,19 +2,72 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import ts from 'typescript';
 
-const source = fs.readFileSync(new URL('../lib/core-records.ts', import.meta.url), 'utf8')
-  .replace("import { exerciseForMode } from './exercise-registry';", "const exerciseForMode = mode => ({id: mode.toUpperCase(), skills: []});")
-  .replace("import { feedbackModeFor, learningModeFor } from './practice-mode';", "const feedbackModeFor = mode => mode === 'performance' ? 'end_of_session' : mode === 'assessment' ? 'none_during_test' : 'immediate'; const learningModeFor = mode => mode;")
-  .replace("import { anzanDifficulty } from './anzan-engine';", "const anzanDifficulty = config => ({operationCount:config.terms});");
-const js = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 } }).outputText;
-const module = await import(`data:text/javascript;base64,${Buffer.from(js).toString('base64')}`);
+const source = fs
+  .readFileSync(new URL('../lib/core-records.ts', import.meta.url), 'utf8')
+  .replace(
+    "import { exerciseForMode } from './exercise-registry';",
+    "const exerciseForMode = mode => ({id: mode.toUpperCase(), skills: [], engine: ['flash','audio'].includes(mode) ? {engineId:'ANZAN',engineVersion:'1'} : undefined});",
+  )
+  .replace(
+    "import { feedbackModeFor, learningModeFor } from './practice-mode';",
+    "const feedbackModeFor = mode => mode === 'performance' ? 'end_of_session' : mode === 'assessment' ? 'none_during_test' : 'immediate'; const learningModeFor = mode => mode;",
+  )
+  .replace(
+    "import { anzanDifficulty } from './anzan-engine';",
+    'const anzanDifficulty = config => ({operationCount:config.terms});',
+  )
+  .replace(
+    "import { engineDefinition } from './engine-registry';",
+    'const engineDefinition = (engineId,engineVersion) => ({engineId,engineVersion,validateConfig:()=>{}});',
+  )
+  .replace(
+    "import { numericResponse } from './response-contract';",
+    "const numericResponse = value => ({type:'numeric',payload:{value}});",
+  );
+const js = ts.transpileModule(source, {
+  compilerOptions: {
+    module: ts.ModuleKind.ESNext,
+    target: ts.ScriptTarget.ES2022,
+  },
+}).outputText;
+const records = await import(
+  `data:text/javascript;base64,${Buffer.from(js).toString('base64')}`
+);
 
-assert.equal(module.moduleCodeByMode.flash, 'flash_anzan');
-assert.equal(module.moduleCodeByMode.audio, 'audio_anzan');
-const config = {mode:'flash',digits:1,minDigits:1,maxDigits:2,terms:3,rounds:5,interval:.5,operation:'mixed',pool:[1,2],additionPool:[1],subtractionPool:[2],freePractice:true};
-assert.deepEqual(module.trainingSettings(config).questionCount, 5);
-const payload = module.attemptPayload({sequence:[8,-2,4],expected:10,given:9,correct:false,elapsedMs:1234,stimulusDurationMs:500},config,2,{attemptId:'a',questionId:'q'});
+assert.equal(records.moduleCodeByMode.flash, 'flash_anzan');
+assert.equal(records.moduleCodeByMode.audio, 'audio_anzan');
+const config = {
+  mode: 'flash',
+  digits: 1,
+  minDigits: 1,
+  maxDigits: 2,
+  terms: 3,
+  rounds: 5,
+  interval: 0.5,
+  operation: 'mixed',
+  pool: [1, 2],
+  additionPool: [1],
+  subtractionPool: [2],
+  freePractice: true,
+};
+assert.deepEqual(records.trainingSettings(config).questionCount, 5);
+const payload = records.attemptPayload(
+  {
+    sequence: [8, -2, 4],
+    expected: 10,
+    given: 9,
+    correct: false,
+    elapsedMs: 1234,
+    stimulusDurationMs: 500,
+  },
+  config,
+  2,
+  { attemptId: 'a', questionId: 'q' },
+);
 assert.equal(payload.errorType, 'RESPONSE_ERROR');
-assert.deepEqual(payload.metadata.sequence, [8,-2,4]);
+assert.deepEqual(payload.metadata.sequence, [8, -2, 4]);
 assert.equal(payload.totalResponseTimeMs, 1234);
-console.log('core records: 7 assertions passed');
+assert.equal(payload.metadata.engineId, 'ANZAN');
+assert.equal(payload.metadata.engineVersion, '1');
+assert.deepEqual(payload.metadata.responsePayload, { value: 9 });
+console.log('core records: 10 assertions passed');

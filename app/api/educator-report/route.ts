@@ -2,6 +2,7 @@ import { neon } from '@neondatabase/serverless';
 import { authenticatedEducator } from '@/lib/educator-auth';
 import { allowRequest, rateLimited } from '@/lib/request-guard';
 import { assessmentTasks } from '@/lib/assessment-routing';
+import { p2DefinitionStatus } from '@/lib/assessment-definition';
 import { calculateLearningResponse, type AssessmentAttemptRecord } from '@/lib/assessment-learning-response';
 import { generateAssessmentReport, type ReportAttempt, type ReportObservation } from '@/lib/assessment-report';
 import { buildCzaWorkRecommendations } from '@/lib/cza-work-recommendations';
@@ -20,8 +21,8 @@ function json(body: unknown, status = 200) {
 }
 
 export async function POST(request: Request) {
-  const gate = allowRequest(request, 'educator-report', 20, 10 * 60 * 1000);
-  if (!gate.allowed) return rateLimited(gate.retryAfterSeconds);
+  const gate = await allowRequest(request, 'educator-report', 20, 10 * 60 * 1000);
+  if (!gate.allowed) return rateLimited(gate);
 
   const origin = request.headers.get('origin');
   if (origin && origin !== new URL(request.url).origin) {
@@ -53,23 +54,35 @@ export async function POST(request: Request) {
     ? await sql`
         SELECT s.id, s.academy_id, s.first_name, s.last_name, campus.identifier_value AS campus_code
         FROM public.users t
-        JOIN public.teacher_student_links l ON l.teacher_id = t.id AND l.can_view = true
-        JOIN public.students s ON s.id = l.student_id AND s.academy_id = t.academy_id
+        JOIN public.teacher_student_links l
+          ON l.teacher_id = t.id
+         AND l.academy_id = t.academy_id
+         AND l.can_view = true
+        JOIN public.students s
+          ON s.id = l.student_id
+         AND s.academy_id = t.academy_id
         LEFT JOIN public.student_external_identifiers campus
           ON campus.student_id = s.id AND campus.identifier_type = 'campus_student_code'
-        WHERE t.auth_user_id = ${educator.id}
+        WHERE t.auth_user_id::text = ${educator.id}::text
           AND t.is_active = true
+          AND t.role::text IN ('admin','teacher','educator')
           AND s.id = ${studentId}::uuid
         LIMIT 1
       `
     : await sql`
         SELECT s.id, s.academy_id, s.first_name, s.last_name, i.identifier_value AS campus_code
         FROM public.users t
-        JOIN public.teacher_student_links l ON l.teacher_id = t.id AND l.can_view = true
-        JOIN public.students s ON s.id = l.student_id AND s.academy_id = t.academy_id
+        JOIN public.teacher_student_links l
+          ON l.teacher_id = t.id
+         AND l.academy_id = t.academy_id
+         AND l.can_view = true
+        JOIN public.students s
+          ON s.id = l.student_id
+         AND s.academy_id = t.academy_id
         JOIN public.student_external_identifiers i ON i.student_id = s.id
-        WHERE t.auth_user_id = ${educator.id}
+        WHERE t.auth_user_id::text = ${educator.id}::text
           AND t.is_active = true
+          AND t.role::text IN ('admin','teacher','educator')
           AND i.identifier_value = ${code}
         LIMIT 1
       `;
@@ -292,6 +305,7 @@ export async function POST(request: Request) {
     reportInsightsAvailable = false;
   }
 
+  let assessmentDefinitionStatus: ReturnType<typeof p2DefinitionStatus> | null = null;
   let assessmentRouting: null | {
     sessionId: string;
     templateCode: string;
@@ -305,7 +319,7 @@ export async function POST(request: Request) {
     // Only the P2 bank is routed here for now. E2/E3 must use their own task banks;
     // this guard prevents a future profile from being interpreted with the wrong rubric.
     const assessmentSessions = await sql`
-      SELECT id, template_code, completed_at
+      SELECT id, template_code, completed_at, definition_contract
       FROM public.assessment_sessions
       WHERE student_id = ${student.id}
         AND status = 'completed'
@@ -315,34 +329,37 @@ export async function POST(request: Request) {
     `;
 
     if (assessmentSessions.length) {
-      const assessment = assessmentSessions[0] as { id: string; template_code: string; completed_at: string | null };
-      const [assessmentAttempts, assessmentObservations] = await Promise.all([
-        sql`SELECT * FROM public.assessment_attempts WHERE session_id = ${assessment.id}::uuid ORDER BY created_at ASC`,
-        sql`SELECT * FROM public.assessment_observations WHERE session_id = ${assessment.id}::uuid ORDER BY created_at ASC`,
-      ]);
-      const learningResponse = calculateLearningResponse(assessmentAttempts as AssessmentAttemptRecord[], assessmentTasks);
-      const assessmentReport = generateAssessmentReport(
-        assessmentAttempts as ReportAttempt[],
-        assessmentObservations as ReportObservation[],
-        assessmentTasks,
-        learningResponse,
-      );
-      const recommendations = buildCzaWorkRecommendations(assessmentReport).map(recommendation => {
-        const query = new URLSearchParams({
-          studentId: student.id,
-          assessmentSessionId: assessment.id,
-          recommendationId: recommendation.id,
+      const assessment = assessmentSessions[0] as { id: string; template_code: string; completed_at: string | null; definition_contract: unknown };
+      assessmentDefinitionStatus = p2DefinitionStatus(assessment.definition_contract);
+      if (assessmentDefinitionStatus !== 'mismatch') {
+        const [assessmentAttempts, assessmentObservations] = await Promise.all([
+          sql`SELECT * FROM public.assessment_attempts WHERE session_id = ${assessment.id}::uuid ORDER BY created_at ASC`,
+          sql`SELECT * FROM public.assessment_observations WHERE session_id = ${assessment.id}::uuid ORDER BY created_at ASC`,
+        ]);
+        const learningResponse = calculateLearningResponse(assessmentAttempts as AssessmentAttemptRecord[], assessmentTasks);
+        const assessmentReport = generateAssessmentReport(
+          assessmentAttempts as ReportAttempt[],
+          assessmentObservations as ReportObservation[],
+          assessmentTasks,
+          learningResponse,
+        );
+        const recommendations = buildCzaWorkRecommendations(assessmentReport).map(recommendation => {
+          const query = new URLSearchParams({
+            studentId: student.id,
+            assessmentSessionId: assessment.id,
+            recommendationId: recommendation.id,
+          });
+          return { ...recommendation, launchPath: `/educator/assessment/prescription?${query.toString()}` };
         });
-        return { ...recommendation, launchPath: `/educator/assessment/prescription?${query.toString()}` };
-      });
-      assessmentRouting = {
-        sessionId: assessment.id,
-        templateCode: assessment.template_code,
-        completedAt: assessment.completed_at,
-        evidenceCoverage: assessmentReport.evidenceCoverage,
-        recommendations,
-        note: 'Bu öneriler norm veya tanı değildir. Değerlendirme kanıtını mevcut CZA atölyelerine yönlendiren eğitimsel rota önerileridir ve eğitimci onayı gerektirir.',
-      };
+        assessmentRouting = {
+          sessionId: assessment.id,
+          templateCode: assessment.template_code,
+          completedAt: assessment.completed_at,
+          evidenceCoverage: assessmentReport.evidenceCoverage,
+          recommendations,
+          note: 'Bu öneriler norm veya tanı değildir. Değerlendirme kanıtını mevcut CZA atölyelerine yönlendiren eğitimsel rota önerileridir ve eğitimci onayı gerektirir.',
+        };
+      }
     }
   } catch {
     // Work reports must remain available even on older databases that have not yet
@@ -542,6 +559,7 @@ export async function POST(request: Request) {
     recentAssignments,
     errorSummary,
     assessmentRouting,
+    assessmentDefinitionStatus,
     specialEducationProfile,
     specialEducationProgram,
     specialEducationReassessment,

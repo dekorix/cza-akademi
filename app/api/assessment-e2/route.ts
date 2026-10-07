@@ -150,7 +150,7 @@ function numericMetrics(value:unknown){
 }
 
 export async function POST(request:Request){
-  const gate=allowRequest(request,'assessment-e2',140,10*60_000);
+  const gate=await allowRequest(request,'assessment-e2',140,10*60_000);
   if(!gate.allowed)return rateLimited(gate.retryAfterSeconds);
 
   const origin=request.headers.get('origin');

@@ -1,0 +1,30 @@
+[
+  {
+    "file": "p2-caller.yml",
+    "commit": "02b6ae60cbe1b8c0dee2c51110b10960104d2cd8",
+    "path": ".github/workflows/faz3-p1-provision.yml",
+    "blob": "283332a469dfafb43b9dc6d9194dcc82b3803ed9",
+    "sha256": "4733a4ecbf8873202f2cef6fd05d8f9f0cb31e4deaaacf6c4808c8765fe76a82"
+  },
+  {
+    "file": "p2-reusable.yml",
+    "commit": "607836a530322c0b7c57980f694c77fa2a2c3a6f",
+    "path": ".github/workflows/faz3-p1-neon-step1-reusable.yml",
+    "blob": "2c007620b8e6bc0113ce2ac9a5eb152644fa6fed",
+    "sha256": "e6bd8f1b24307521f3b9d89bd89c6056f6792d61600eae8e748b39a26ec95c05"
+  },
+  {
+    "file": "p3-prerequisites.sql",
+    "commit": "bf83fec7273cabffe9df5f902086e7082128c2d5",
+    "path": "db/migrations/20260912_staging_core_prerequisites_v1.sql",
+    "blob": "0acd01120e81e55616b9de48fe9f9d9ce03c5f1f",
+    "sha256": "f9fd6ec39f565b31c868813517b90674c8a01352f32de5314364138319cf248f"
+  },
+  {
+    "file": "p3-ledger.sql",
+    "commit": "b12242db1a8db886caee4c6f07ba1b1a98bea638",
+    "path": "db/migrations/20260913_canonical_learning_ledger_v1.sql",
+    "blob": "96bcaab0bc74396b02308b524aca4b524297e5ad",
+    "sha256": "0cba90def4fb7398167443d37adb415f62b94b16681fc3fad3377e2d82273e53"
+  }
+]

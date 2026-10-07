@@ -10,6 +10,7 @@ const studentSession = fs.readFileSync(new URL('../lib/student-session.ts', impo
 const canonicalRepository = fs.readFileSync(new URL('../lib/persistence/canonical-repository.ts', import.meta.url), 'utf8');
 const sessionBindingMigration = fs.readFileSync(new URL('../db/migrations/20261005_canonical_learning_student_session_binding_v1.sql', import.meta.url), 'utf8');
 const studentHistoryUi = fs.readFileSync(new URL('../components/student-learning-history.tsx', import.meta.url), 'utf8');
+const dashboard = fs.readFileSync(new URL('../components/student-dashboard.tsx', import.meta.url), 'utf8');
 const studentPortal = fs.readFileSync(new URL('../app/page.tsx', import.meta.url), 'utf8');
 const educatorReport = fs.readFileSync(new URL('../app/api/educator-report/route.ts', import.meta.url), 'utf8');
 const educatorUi = fs.readFileSync(new URL('../components/central-student-report.tsx', import.meta.url), 'utf8');
@@ -27,10 +28,11 @@ test('studio closes a session and publishes one canonical module record with a s
 });
 
 test('authenticated student session identity is carried into canonical persistence', () => {
-  assert.match(studentSession, /ss\.id AS student_session_id/);
+  assert.match(studentSession, /cza_touch_authenticated_student/);
   assert.match(studentSession, /student_session_id: string/);
-  assert.match(canonicalRepository, /student\.student_session_id/);
-  assert.match(canonicalRepository, /CZA_STUDENT_SESSION_OWNERSHIP_INVALID/);
+  assert.match(canonicalRepository, /student\.session_id/);
+  assert.match(canonicalRepository, /CZA_SESSION_OWNERSHIP_INVALID/);
+  assert.match(studentSession, /student_session_id: rows\[0\]\.session_id/);
   assert.match(sessionBindingMigration, /record_origin = 'client_reported'/);
   assert.match(sessionBindingMigration, /student_session_id IS NOT NULL/);
   assert.match(sessionBindingMigration, /CZA_STUDENT_SESSION_OWNERSHIP_INVALID/);
@@ -46,7 +48,8 @@ test('student history is session-bound and reads only the authenticated academy 
 
 test('student work panel renders history from the canonical history endpoint', () => {
   assert.match(studentHistoryUi, /fetch\('\/api\/student-history'/);
-  assert.match(studentPortal, /<StudentLearningHistory\s*\/>/);
+  assert.match(studentPortal, /StudentDashboard/);
+  assert.match(dashboard, /<LearningTimeline endpoint="\/api\/core\/history"/);
   assert.match(studentHistoryUi, /Canonical Learning Record/);
 });
 
@@ -64,6 +67,7 @@ test('student session cookie is available to history APIs', () => {
   const end = coreRoute.indexOf('function assignmentCookie');
   assert.ok(start >= 0 && end > start);
   const sessionCookieBlock = coreRoute.slice(start, end);
-  assert.ok(sessionCookieBlock.includes("'Path=/api'"));
+  assert.match(sessionCookieBlock, /cookie\(COOKIE_NAME, value, maxAge, secure, '\/api'\)/);
+  assert.match(coreRoute, /'Path=' \+ path/);
   assert.ok(!sessionCookieBlock.includes("'Path=/api/core'"));
 });

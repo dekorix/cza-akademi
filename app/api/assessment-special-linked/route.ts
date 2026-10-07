@@ -171,7 +171,7 @@ function safeSummary(value: unknown) {
 }
 
 export async function POST(request: Request) {
-  const gate = allowRequest(request, 'assessment-special-linked', 180, 10 * 60_000);
+  const gate = await allowRequest(request, 'assessment-special-linked', 180, 10 * 60_000);
   if (!gate.allowed) return rateLimited(gate.retryAfterSeconds);
 
   const origin = request.headers.get('origin');

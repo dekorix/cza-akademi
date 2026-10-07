@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "CZA-PROVIDER-LOCK-V4",
+  "frozen": true,
+  "sourceOfTruth": "OpenTofu",
+  "openTofu": {
+    "version": "1.12.0",
+    "linuxAmd64DebSha256": "c2cd6876f06107c8e29abae34810bd7b557f7c44efd2cd71711e38e52bc534f9",
+    "linuxAmd64BinarySha256": "eb2197869be64083574ca00e6e30feea22bba9c8105592b2bb6101bd907be21b"
+  },
+  "providers": [
+    {
+      "source": "registry.opentofu.org/cloudflare/cloudflare",
+      "version": "5.25.0",
+      "linuxAmd64ArchiveSha256": "6e4a2f6ed105b5353c7b56962d00f923873dd68af6509b9b9f595057edba1915",
+      "linuxAmd64BinarySha256": "70871d2145742cd1b70ed0ac0482f63e2329bd9468fdb73b20c92bd2f13fce76",
+      "registrySignature": "SIGNED_KEY_C76001609EE3B136"
+    },
+    {
+      "source": "registry.opentofu.org/terraform-community-providers/neon",
+      "version": "0.1.15",
+      "linuxAmd64ArchiveSha256": "95ab8b76481b15ed44bbd3226ee3ba946bc1797371bf88c65833c7106da1aa0d",
+      "linuxAmd64BinarySha256": "e7cc45a5250e11a1542082ac248f3cd5ec52af13e88195e92ceb43947f1fcab3",
+      "registrySignature": "SKIPPED_REGISTRY_HAS_NO_GPG_KEY"
+    }
+  ],
+  "lockfilePolicy": {
+    "requiredPath": "infra/staging/p1-provision/.terraform.lock.hcl",
+    "sha256": "0e3525009ecbc9c90af012571292c6cee321409dab888b4f08640287e4723464",
+    "readOnly": true,
+    "allTargetPlatforms": ["linux_amd64"],
+    "failIfMissing": true,
+    "failIfChangedAfterAudit": true
+  },
+  "nativeProof": {
+    "requiredWorkflow": ".github/workflows/faz3-p0-native-provider-schema.yml",
+    "collector": "scripts/faz3/collect-native-provider-proof.mjs",
+    "proofSchemaVersion": "CZA-NATIVE-PROVIDER-PROOF-V4",
+    "requiredResult": "PASS",
+    "adapterForbidden": true,
+    "providerBinaryModificationForbidden": true,
+    "status": "REQUIRED_DURING_STATIC_REAUDIT_GATE"
+  }
+}

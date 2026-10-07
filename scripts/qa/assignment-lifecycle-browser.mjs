@@ -1,3 +1,4 @@
+import { installTrustedEducatorTransport, verifyTrustedEducatorBackend, selectEducatorStudent } from './trusted-educator-transport.mjs';
 import crypto from 'node:crypto';
 import process from 'node:process';
 import { spawn } from 'node:child_process';
@@ -33,6 +34,7 @@ if (
 }
 
 const sql = neon(databaseUrl);
+await verifyTrustedEducatorBackend(sql);
 const studentToken = crypto.randomBytes(32).toString('hex');
 const educatorToken = crypto.randomBytes(32).toString('hex');
 const studentTokenHash = crypto.createHash('sha256').update(studentToken).digest('hex');
@@ -231,11 +233,7 @@ try {
         AND tr.module_code = modules.code
         AND tr.source = 'teacher_assignment'
         AND tr.is_active = true
-        AND (tr.expires_at IS NULL OR tr.expires_at > now())
-        AND NOT EXISTS (
-          SELECT 1 FROM public.training_sessions ts
-          WHERE ts.recipe_id = tr.id AND ts.status::text = 'completed'
-        )
+        -- Match the staging unique-active index, including expired active flags.
     )
     ORDER BY cs.student_id, modules.code
     LIMIT 1
@@ -299,32 +297,26 @@ try {
   await waitForChrome();
 
   const educatorPage = await newPage('about:blank');
+  await installTrustedEducatorTransport(educatorPage);
   await setCookie(educatorPage, 'cza_educator_session', 'local.' + educatorToken);
   await navigate(educatorPage, baseUrl + '/educator');
   await waitForText(educatorPage, 'Eğitimci kontrol merkezi');
-  await waitForText(educatorPage, String(fixture.student_id));
-
+  await selectEducatorStudent(educatorPage, String(fixture.student_id));
+  await waitForText(educatorPage, 'Ödev yönetimi');
   const assigned = await evalJson(educatorPage, `(async () => {
-    const rows = Array.from(document.querySelectorAll('div')).filter(el =>
-      el.innerText?.includes(${JSON.stringify(String(fixture.student_id))}) &&
-      el.querySelector('select[id^="assignment-"]')
-    );
-    const row = rows.sort((a,b) => a.innerText.length - b.innerText.length)[0];
-    if (!row) return { ok:false, reason:'student_row_missing' };
-    const select = row.querySelector('select');
-    if (!select) return { ok:false, reason:'assignment_select_missing' };
-    const setter = Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, 'value')?.set;
-    setter?.call(select, ${JSON.stringify(String(fixture.module_code))});
-    select.dispatchEvent(new Event('change', { bubbles:true }));
-    await new Promise(resolve => setTimeout(resolve, 100));
-    const button = Array.from(row.querySelectorAll('button')).find(el => el.textContent?.includes('Öğrenciye ata'));
-    if (!button) return { ok:false, reason:'assign_button_missing' };
-    button.click();
-    return { ok:true };
+    const select = document.querySelector('#u5-module');
+    const title = document.querySelector('#u5-title');
+    if (!select || !title) return {ok:false,reason:'assignment_form_missing'};
+    Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype,'value').set.call(select,${JSON.stringify(String(fixture.module_code))});
+    select.dispatchEvent(new Event('change',{bubbles:true}));
+    Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(title,${JSON.stringify(moduleLabel + ' · Başlangıç çalışması')});
+    title.dispatchEvent(new Event('input',{bubbles:true}));
+    await new Promise(resolve=>setTimeout(resolve,100));
+    title.closest('form').requestSubmit();
+    return {ok:true};
   })()`);
   if (!assigned?.ok) throw new Error('educator_assignment_ui_failed:' + assigned?.reason);
-
-  await waitForText(educatorPage, 'gerçek öğrenci dosyasına atandı');
+  await waitForText(educatorPage, 'Ödev oluşturuldu.');
 
   const assignmentRows = await sql`
     SELECT id
@@ -342,57 +334,41 @@ try {
   if (!assignmentId) throw new Error('assignment_not_persisted');
 
   await waitForText(educatorPage, moduleLabel + ' · Başlangıç çalışması');
-  await waitForText(educatorPage, 'Atandı');
+  await waitForText(educatorPage, 'Aktif');
+  const currentAssignment = await evalJson(educatorPage, `Array.from(document.querySelectorAll('[data-assignment-id]')).some(el=>el.getAttribute('data-assignment-id')===${JSON.stringify(assignmentId)} && el.innerText.includes('Aktif'))`);
+  if (!currentAssignment) throw new Error('current_assignment_active_state_missing');
 
   await reloadHard(educatorPage);
-  await waitForText(educatorPage, String(fixture.student_id));
-  const reopened = await evalJson(educatorPage, `(() => {
-    const rows = Array.from(document.querySelectorAll('div')).filter(el =>
-      el.innerText?.includes(${JSON.stringify(String(fixture.student_id))}) &&
-      el.querySelector('select[id^="assignment-"]')
-    );
-    const row = rows.sort((a,b) => a.innerText.length - b.innerText.length)[0];
-    if (!row) return false;
-    const buttons = Array.from(row.querySelectorAll('button'));
-    const hideButton = buttons.find(el => el.textContent?.includes('Atamaları gizle'));
-    if (hideButton) return true;
-    const showButton = buttons.find(el => el.textContent?.includes('Atamaları göster'));
-    if (!showButton) return false;
-    showButton.click();
-    return true;
+  await waitForText(educatorPage, 'Eğitimci kontrol merkezi');
+  await selectEducatorStudent(educatorPage, String(fixture.student_id));
+  // Reload restores the default module filter; select this assignment's module again.
+  await evalJson(educatorPage, `(() => {
+    const select = document.querySelector('#u5-module');
+    if (!select) throw new Error('assignment_module_filter_missing');
+    Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype,'value').set.call(select,${JSON.stringify(String(fixture.module_code))});
+    select.dispatchEvent(new Event('change',{bubbles:true}));
   })()`);
-  if (!reopened) throw new Error('educator_assignment_list_reload_button_missing');
+  const assignmentDeadline = Date.now() + 15000;
+  while (Date.now() < assignmentDeadline) {
+    if (await evalJson(educatorPage, `Array.from(document.querySelectorAll('[data-assignment-id]')).some(el=>el.getAttribute('data-assignment-id')===${JSON.stringify(assignmentId)})`)) break;
+    await sleep(250);
+  }
   await waitForText(educatorPage, moduleLabel + ' · Başlangıç çalışması');
-  await waitForText(educatorPage, 'Atandı');
+  await waitForText(educatorPage, 'Aktif');
+  const reloadedAssignment = await evalJson(educatorPage, `Array.from(document.querySelectorAll('[data-assignment-id]')).some(el=>el.getAttribute('data-assignment-id')===${JSON.stringify(assignmentId)} && el.innerText.includes('Aktif'))`);
+  if (!reloadedAssignment) throw new Error('current_assignment_active_state_reload_missing');
 
   const studentPage = await newPage('about:blank');
   await installCoreMeIntercept(studentPage, studentName);
   await setCookie(studentPage, 'cza_student_session', studentToken);
   await navigate(studentPage, baseUrl + '/work');
-  await waitForText(studentPage, 'Eğitimcinin atadığı çalışmalar');
-
-  const studentOpened = await evalJson(studentPage, `(() => {
-    const button = Array.from(document.querySelectorAll('button')).find(el => el.textContent?.includes('Eğitimcinin atadığı çalışmalar'));
-    if (!button) return false;
-    button.click();
-    return true;
-  })()`);
-  if (!studentOpened) throw new Error('student_assignment_banner_missing');
   await waitForText(studentPage, moduleLabel + ' · Başlangıç çalışması');
-  await waitForText(studentPage, 'Atandı');
-  await waitForText(studentPage, 'Çalışmayı başlat');
-
+  const launchVisible = await evalJson(studentPage, `Array.from(document.querySelectorAll('a')).some(el=>el.getAttribute('href')===${JSON.stringify('/assignment?recipe=' + assignmentId)})`);
+  if (!launchVisible) throw new Error('student_assignment_launch_missing');
   await reloadHard(studentPage);
-  await waitForText(studentPage, 'Eğitimcinin atadığı çalışmalar');
-  const studentReopened = await evalJson(studentPage, `(() => {
-    const button = Array.from(document.querySelectorAll('button')).find(el => el.textContent?.includes('Eğitimcinin atadığı çalışmalar'));
-    if (!button) return false;
-    button.click();
-    return true;
-  })()`);
-  if (!studentReopened) throw new Error('student_assignment_banner_reload_missing');
   await waitForText(studentPage, moduleLabel + ' · Başlangıç çalışması');
-  await waitForText(studentPage, 'Atandı');
+  const reloadLaunchVisible = await evalJson(studentPage, `Array.from(document.querySelectorAll('a')).some(el=>el.getAttribute('href')===${JSON.stringify('/assignment?recipe=' + assignmentId)})`);
+  if (!reloadLaunchVisible) throw new Error('student_assignment_launch_reload_missing');
 
   console.log('ASSIGNMENT_BROWSER=PASS');
   console.log('EDUCATOR_ASSIGN_UI=PASS');

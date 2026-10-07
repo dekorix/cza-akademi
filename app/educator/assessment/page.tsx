@@ -33,7 +33,7 @@ function familyStatusLabel(status: string) {
 }
 
 export default function EducatorAssessmentPage() {
-  const [studentLabel,setStudentLabel] = useState('Pilot öğrenci');
+  const [studentLabel, setStudentLabel] = useState('Öğrenci');
   const [sessionId,setSessionId] = useState('');
   const [session,setSession] = useState<any>(null);
   const [tasks,setTasks] = useState<AssessmentTask[]>([]);
@@ -49,6 +49,7 @@ export default function EducatorAssessmentPage() {
 
   const currentTask = useMemo(() => tasks.find(t => t.id === session?.current_task_code), [tasks,session]);
   const lastAttempt = attempts.at(-1);
+  const pendingReview = attempts.find(a => a.server_evaluation?.needsEducatorReview && !a.educator_review);
   const lastTaskCode = lastAttempt?.task_code || currentTask?.id || '';
   const lastTask = tasks.find(t => t.id === lastTaskCode);
 
@@ -67,6 +68,13 @@ export default function EducatorAssessmentPage() {
       setLearningResponse(data.learningResponse || null);
     } catch (err) { setMessage(err instanceof Error ? err.message : 'Oturum okunamadı.'); }
   }
+
+  useEffect(() => {
+    const id = new URLSearchParams(window.location.search).get('session');
+    if (!id) return;
+    const timer = window.setTimeout(() => { setSessionId(id); void refresh(id); }, 0);
+    return () => window.clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     if (!sessionId) return;
@@ -93,6 +101,18 @@ export default function EducatorAssessmentPage() {
       await callAssessment({ action:'observe', sessionId, taskCode:lastTaskCode, observationCodes:selectedCodes, educatorNote:note, confidence });
       setSelectedCodes([]); setNote(''); setMessage('Eğitmen gözlemi kaydedildi.'); await refresh();
     } catch (err) { setMessage(err instanceof Error ? err.message : 'Gözlem kaydedilemedi.'); }
+    finally { setBusy(false); }
+  }
+
+  async function reviewAttempt(decision: 'correct' | 'incorrect') {
+    if (!sessionId || !pendingReview?.id || busy) return;
+    setBusy(true);
+    try {
+      await callAssessment({ action:'review_attempt', sessionId,
+        attemptId:pendingReview.id, taskCode:pendingReview.task_code, decision });
+      setMessage('Eğitmen gözlemi kaydedildi. Öğrenci sonraki göreve geçebilir.');
+      await refresh();
+    } catch (err) { setMessage(err instanceof Error ? err.message : 'İnceleme kaydedilemedi.'); }
     finally { setBusy(false); }
   }
 
@@ -146,13 +166,24 @@ export default function EducatorAssessmentPage() {
         <div className="space-y-6">
           <section className="rounded-2xl border border-[#cfe4d9] bg-white p-6 shadow-sm"><div className="flex flex-wrap items-center justify-between gap-4"><div><p className="text-xs font-bold uppercase tracking-[.14em] text-[#5d8c7d]">Aktif oturum</p><h2 className="mt-1 text-2xl font-semibold">{session?.student_label || studentLabel}</h2><p className="mt-1 text-xs text-muted-foreground">Durum: {session?.status} · {attempts.length} görev tamamlandı</p></div><div className="flex flex-wrap gap-2"><a href={reportUrl()} className="inline-flex h-9 items-center justify-center gap-2 rounded-md border border-[#c9d9d1] bg-white px-3 text-sm font-semibold text-[#315f50] transition hover:bg-[#f3f8f5]"><FileText size={15}/> Raporu aç</a><Button variant="outline" onClick={()=>refresh()}><RefreshCw/> Yenile</Button></div></div><div className="mt-5 rounded-xl bg-[#f4f9f6] p-4"><p className="text-xs font-semibold text-[#4c6f64]">Öğrenci bağlantısı</p><div className="mt-2 flex flex-col gap-2 sm:flex-row"><code className="min-w-0 flex-1 overflow-hidden text-ellipsis whitespace-nowrap rounded-lg border bg-white px-3 py-3 text-xs">{childUrl()}</code><Button onClick={copyLink} variant="outline"><Clipboard/> Kopyala</Button></div></div></section>
 
+          {pendingReview && <section className="rounded-2xl border border-[#e8d7ac] bg-white p-6 shadow-sm">
+            <h2 className="text-lg font-semibold">Eğitmen incelemesi bekleniyor</h2>
+            <p className="mt-2 text-sm text-muted-foreground">{tasks.find(t => t.id === pendingReview.task_code)?.title || pendingReview.task_code}</p>
+            <p className="mt-2 rounded-xl bg-[#fff9e9] p-4 text-sm">{pendingReview.answer_text || 'Sözlü yanıt'}</p>
+            <p className="mt-3 text-xs text-muted-foreground">Bu karar eğitmen gözlemi olarak kaydedilir; sunucu doğrulaması değildir.</p>
+            <div className="mt-4 flex gap-2">
+              <Button type="button" disabled={busy} onClick={() => reviewAttempt('correct')}>Yeterli, sonraki görev</Button>
+              <Button type="button" variant="outline" disabled={busy} onClick={() => reviewAttempt('incorrect')}>Destek görevi</Button>
+            </div>
+          </section>}
+
           <section className="rounded-2xl border bg-white p-6 shadow-sm"><div className="flex items-center gap-3"><Sparkles className="text-[#c69428]"/><div><p className="text-xs font-bold uppercase tracking-[.14em] text-[#9c7c39]">Şu anda çocuk ekranında</p><h2 className="mt-1 text-xl font-semibold">{currentTask?.title || (session?.status==='completed'?'Değerlendirme tamamlandı':'Görev bekleniyor')}</h2></div></div>{currentTask&&<><p className="mt-5 rounded-xl bg-[#fff9e9] p-5 text-lg font-semibold leading-7 text-[#463f2a]">“{currentTask.childInstruction}”</p><div className="mt-4 rounded-xl border border-[#d8e7df] p-4"><p className="text-xs font-bold uppercase tracking-[.12em] text-[#5d8c7d]">Eğitmene özel yönerge</p><p className="mt-2 text-sm leading-6">{currentTask.educatorInstruction}</p></div></>}</section>
 
           <section className="rounded-2xl border bg-white p-6 shadow-sm"><h2 className="text-lg font-semibold">Canlı süreç kayıtları</h2><div className="mt-4 space-y-3">{attempts.length===0?<p className="text-sm text-muted-foreground">Henüz tamamlanmış görev yok.</p>:attempts.map((a,i)=><div key={a.id || `${a.task_code}-${i}`} className="grid gap-2 rounded-xl border p-4 md:grid-cols-[1fr_auto]"><div><p className="font-semibold">{tasks.find(t=>t.id===a.task_code)?.title || a.task_code}</p><p className="mt-1 text-sm text-muted-foreground">{a.answer_text || 'Sözlü / boş cevap'}</p>{a.answer_payload?.supportTriggered&&<p className="mt-1 text-xs font-semibold text-[#866b26]">Destek dalı açıldı</p>}</div><div className="text-right text-xs text-muted-foreground"><p>İlk tepki: {a.response_latency_ms==null?'—':`${(a.response_latency_ms/1000).toFixed(1)} sn`}</p><p>Toplam: {a.total_response_time_ms==null?'—':`${(a.total_response_time_ms/1000).toFixed(1)} sn`}</p><p>Değişiklik: {a.answer_changes}</p><p>Destek: {a.support_level || 0}/5</p></div></div>)}</div></section>
         </div>
 
         <aside className="space-y-6">
-          <section className="rounded-2xl border border-[#cfe4d9] bg-white p-6 shadow-sm"><div className="flex items-start gap-3"><span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#e7f5ed] text-[#226f60]"><TrendingUp size={21}/></span><div><p className="text-xs font-bold uppercase tracking-[.14em] text-[#5d8c7d]">CZA Öğrenme Tepkisi İndeksi</p><div className="mt-1 flex items-end gap-3"><span className="text-4xl font-semibold text-[#18372f]">{learningResponse?.index ?? '—'}</span>{learningResponse?.index!=null&&<span className="pb-1 text-xs text-muted-foreground">/100</span>}</div><p className="mt-1 text-sm font-semibold text-[#45685e]">{learningResponse?.label || 'Kanıt birikmesi bekleniyor'}</p></div></div><div className="mt-5 grid grid-cols-3 gap-2 text-center"><div className="rounded-xl bg-[#f3f8f5] p-3"><p className="text-xl font-semibold">{learningResponse?.directMasteryFamilies ?? 0}</p><p className="mt-1 text-[10px] text-muted-foreground">Doğrudan yeterli</p></div><div className="rounded-xl bg-[#f3f8f5] p-3"><p className="text-xl font-semibold">{learningResponse?.responsiveFamilies ?? 0}</p><p className="mt-1 text-[10px] text-muted-foreground">Desteğe yanıt</p></div><div className="rounded-xl bg-[#fff8e8] p-3"><p className="text-xl font-semibold">{learningResponse?.needsSupportFamilies ?? 0}</p><p className="mt-1 text-[10px] text-muted-foreground">İzlenecek alan</p></div></div>{responseFamilies.length>0&&<div className="mt-5 space-y-2 border-t pt-4">{responseFamilies.map((family:any)=><div key={family.groupId} className="flex items-center justify-between gap-3 text-xs"><div><p className="font-semibold">{family.groupId}</p><p className="text-muted-foreground">{familyStatusLabel(family.status)} · kanıt %{family.evidenceCompleteness}</p></div><span className="rounded-full bg-[#eef6f2] px-2.5 py-1 font-bold text-[#39705f]">{family.index ?? '—'}</span></div>)}</div>}<p className="mt-4 text-[10px] leading-4 text-muted-foreground">İndeks tanı koymaz; başlangıç performansı, destek miktarı, destek sonrası başarı ve bağımsız transfer kanıtlarını birlikte özetler.</p></section>
+          <section className="rounded-2xl border border-[#cfe4d9] bg-white p-6 shadow-sm"><div className="flex items-start gap-3"><span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#e7f5ed] text-[#226f60]"><TrendingUp size={21}/></span><div><p className="text-xs font-bold uppercase tracking-[.14em] text-[#5d8c7d]">{session?.definition_contract?.serverEvaluatorId==='P2_DETERMINISTIC_TEXT' ? 'Öğrenme sonucu raporda' : 'CZA Öğrenme Tepkisi İndeksi · İstemci bildirimi'}</p><div className="mt-1 flex items-end gap-3"><span className="text-4xl font-semibold text-[#18372f]">{learningResponse?.index ?? '—'}</span>{learningResponse?.index!=null&&<span className="pb-1 text-xs text-muted-foreground">/100</span>}</div><p className="mt-1 text-sm font-semibold text-[#45685e]">{learningResponse?.label || 'Kanıt birikmesi bekleniyor'}</p></div></div><div className="mt-5 grid grid-cols-3 gap-2 text-center"><div className="rounded-xl bg-[#f3f8f5] p-3"><p className="text-xl font-semibold">{learningResponse?.directMasteryFamilies ?? 0}</p><p className="mt-1 text-[10px] text-muted-foreground">Doğrudan yeterli</p></div><div className="rounded-xl bg-[#f3f8f5] p-3"><p className="text-xl font-semibold">{learningResponse?.responsiveFamilies ?? 0}</p><p className="mt-1 text-[10px] text-muted-foreground">Desteğe yanıt</p></div><div className="rounded-xl bg-[#fff8e8] p-3"><p className="text-xl font-semibold">{learningResponse?.needsSupportFamilies ?? 0}</p><p className="mt-1 text-[10px] text-muted-foreground">İzlenecek alan</p></div></div>{responseFamilies.length>0&&<div className="mt-5 space-y-2 border-t pt-4">{responseFamilies.map((family:any)=><div key={family.groupId} className="flex items-center justify-between gap-3 text-xs"><div><p className="font-semibold">{family.groupId}</p><p className="text-muted-foreground">{familyStatusLabel(family.status)} · kanıt %{family.evidenceCompleteness}</p></div><span className="rounded-full bg-[#eef6f2] px-2.5 py-1 font-bold text-[#39705f]">{family.index ?? '—'}</span></div>)}</div>}<p className="mt-4 text-[10px] leading-4 text-muted-foreground">{session?.definition_contract?.serverEvaluatorId==='P2_DETERMINISTIC_TEXT' ? 'Kaynağı ayrılmış puan ve kanıt durumunu raporda gör.' : 'Bu eski indeks istemci bildirimine dayanır; doğrulanmış öğrenme düzeyi değildir.'}</p></section>
 
           <section className="rounded-2xl border bg-white p-6 shadow-sm"><p className="text-xs font-bold uppercase tracking-[.14em] text-[#5d8c7d]">Eğitmen gözlemi ve rubrik</p><h2 className="mt-1 text-xl font-semibold">{lastTask?.title || 'Görev tamamlanmasını bekliyor'}</h2><div className="mt-5 flex flex-wrap gap-2">{observationOptions.map(o=><button key={o.id} onClick={()=>setSelectedCodes(v=>v.includes(o.id)?v.filter(x=>x!==o.id):[...v,o.id])} className={`rounded-full border px-3 py-2 text-xs font-semibold ${selectedCodes.includes(o.id)?'border-[#70a890] bg-[#e7f5ed] text-[#226f60]':'bg-white text-[#65746f]'}`}>{o.label}</button>)}</div><textarea value={note} onChange={e=>setNote(e.target.value)} placeholder="Kısa eğitmen notu…" className="mt-4 min-h-24 w-full rounded-xl border p-3 text-sm outline-none focus:border-[#70a890]"/><div className="mt-4"><label className="text-xs font-semibold text-muted-foreground">Gözlem güveni: {confidence}/5</label><input type="range" min="1" max="5" value={confidence} onChange={e=>setConfidence(Number(e.target.value))} className="mt-2 w-full"/></div><Button onClick={saveObservation} disabled={busy||!lastTaskCode} variant="outline" className="mt-4 w-full">Gözlemi kaydet</Button>
 

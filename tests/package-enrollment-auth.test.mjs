@@ -34,10 +34,10 @@ test('activation requires explicit basis, confirmation and fully ready package',
 });
 
 test('free-practice start requires active entitlement while assignment cookie remains controlled bypass',()=>{
-  assert.match(core,/action === 'start' && !launchedAssignment/);
+  assert.match(core,/action === 'start' && !workRecipeId/);
   assert.match(core,/student_access_entitlements/);
   assert.match(core,/module_access_required/);
-  assert.match(core,/launchedAssignment = true/);
+  assert.match(core,/workRecipeId = recipe\.id/);
 });
 
 test('student access endpoint exposes only active package entitlements',()=>{

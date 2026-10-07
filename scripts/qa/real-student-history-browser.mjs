@@ -1,3 +1,4 @@
+import { installTrustedEducatorTransport, verifyTrustedEducatorBackend } from './trusted-educator-transport.mjs';
 import crypto from 'node:crypto';
 import process from 'node:process';
 import { spawn } from 'node:child_process';
@@ -34,6 +35,7 @@ if (
 }
 
 const sql = neon(databaseUrl);
+await verifyTrustedEducatorBackend(sql);
 const marker = 'CZA_REAL_HISTORY_BROWSER_' + Date.now();
 const studentToken = crypto.randomBytes(32).toString('hex');
 const educatorToken = crypto.randomBytes(32).toString('hex');
@@ -336,6 +338,7 @@ try {
   }
 
   const educatorPage = await newPage('about:blank');
+  await installTrustedEducatorTransport(educatorPage);
   await setCookie(educatorPage, 'cza_educator_session', 'local.' + educatorToken);
   await navigate(educatorPage, baseUrl + '/educator');
   await waitForText(educatorPage, 'Eğitimci kontrol merkezi');
