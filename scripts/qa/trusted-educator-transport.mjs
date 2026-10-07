@@ -12,7 +12,10 @@ export function trustedEducatorHeaders(method, input, body = '') {
   const email = 'habipcann65@gmail.com';
   const payload = ['cza-educator-proxy-v2', timestamp, nonce, method.toUpperCase(),
     url.pathname + url.search, createHash('sha256').update(body).digest('hex'), email].join('\n');
-  return { origin: url.origin, 'oai-authenticated-user-email': email,
+  // Separate isolated CI clients' development rate buckets; production ignores x-real-ip.
+  const addressBytes = createHash('sha256').update(secret).digest();
+  const clientAddress = `127.${addressBytes[0]}.${addressBytes[1]}.${addressBytes[2]}`;
+  return { origin: url.origin, 'x-real-ip': clientAddress, 'oai-authenticated-user-email': email,
     'x-cza-proxy-timestamp': timestamp, 'x-cza-proxy-nonce': nonce,
     'x-cza-proxy-signature': createHmac('sha256', secret).update(payload).digest('hex') };
 }

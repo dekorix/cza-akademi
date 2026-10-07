@@ -186,7 +186,7 @@ async function loadApiReport(page, studentId) {
     });
     return { status: r.status, body: await r.json() };
   })()`);
-  if (result?.status !== 200 || result?.body?.ok !== true) throw new Error('browser_report_api_failed');
+  if (result?.status !== 200 || result?.body?.ok !== true) throw new Error('browser_report_api_failed:' + result?.status + ':' + (/^[a-z_]{1,64}$/.test(result?.body?.error || '') ? result.body.error : 'unknown'));
   if (result.body.reportInsightsAvailable !== true) throw new Error('browser_report_insights_unavailable');
   if (!Array.isArray(result.body.moduleProgress) || result.body.moduleProgress.length < 1) throw new Error('browser_module_progress_missing');
   return result.body;

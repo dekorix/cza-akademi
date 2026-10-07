@@ -33,6 +33,8 @@ test('isolated QA transport satisfies real proxy verification; body tamper and r
     const url = 'http://127.0.0.1:8787/api/educator-report';
     const body = JSON.stringify({ studentId: 'isolated-student' });
     const headers = trustedEducatorHeaders('POST', url, body);
+    assert.match(headers['x-real-ip'], /^127\.\d+\.\d+\.\d+$/);
+    assert.equal(trustedEducatorHeaders('POST',url,body)['x-real-ip'],headers['x-real-ip']);
     const request = payload => new Request(url, { method: 'POST', headers, body: payload });
     assert.equal(await exports.trustedEducatorProxy(request(body + ' ')), null);
     assert.equal(consumed.size, 0);

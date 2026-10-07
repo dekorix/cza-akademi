@@ -233,11 +233,7 @@ try {
         AND tr.module_code = modules.code
         AND tr.source = 'teacher_assignment'
         AND tr.is_active = true
-        AND (tr.expires_at IS NULL OR tr.expires_at > now())
-        AND NOT EXISTS (
-          SELECT 1 FROM public.training_sessions ts
-          WHERE ts.recipe_id = tr.id AND ts.status::text = 'completed'
-        )
+        -- Match the staging unique-active index, including expired active flags.
     )
     ORDER BY cs.student_id, modules.code
     LIMIT 1
@@ -345,6 +341,18 @@ try {
   await reloadHard(educatorPage);
   await waitForText(educatorPage, 'Eğitimci kontrol merkezi');
   await selectEducatorStudent(educatorPage, String(fixture.student_id));
+  // Reload restores the default module filter; select this assignment's module again.
+  await evalJson(educatorPage, `(() => {
+    const select = document.querySelector('#u5-module');
+    if (!select) throw new Error('assignment_module_filter_missing');
+    Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype,'value').set.call(select,${JSON.stringify(String(fixture.module_code))});
+    select.dispatchEvent(new Event('change',{bubbles:true}));
+  })()`);
+  const assignmentDeadline = Date.now() + 15000;
+  while (Date.now() < assignmentDeadline) {
+    if (await evalJson(educatorPage, `Array.from(document.querySelectorAll('[data-assignment-id]')).some(el=>el.getAttribute('data-assignment-id')===${JSON.stringify(assignmentId)})`)) break;
+    await sleep(250);
+  }
   await waitForText(educatorPage, moduleLabel + ' · Başlangıç çalışması');
   await waitForText(educatorPage, 'Aktif');
   const reloadedAssignment = await evalJson(educatorPage, `Array.from(document.querySelectorAll('[data-assignment-id]')).some(el=>el.getAttribute('data-assignment-id')===${JSON.stringify(assignmentId)} && el.innerText.includes('Aktif'))`);
