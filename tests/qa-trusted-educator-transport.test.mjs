@@ -1,0 +1,45 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import * as crypto from 'node:crypto';
+import vm from 'node:vm';
+import ts from 'typescript';
+import { trustedEducatorHeaders } from '../scripts/qa/trusted-educator-transport.mjs';
+
+test('isolated QA transport satisfies real proxy verification; body tamper and replay remain denied', async () => {
+  const prior = process.env.CZA_TRUSTED_PROXY_HMAC_SECRET;
+  const secret = crypto.randomBytes(48).toString('hex');
+  process.env.CZA_TRUSTED_PROXY_HMAC_SECRET = secret;
+  try {
+    const consumed = new Set();
+    const source = readFileSync(new URL('../lib/educator-auth.ts', import.meta.url), 'utf8');
+    const exports = {};
+    vm.runInNewContext(ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText, {
+      exports, process: { env: { CZA_TRUSTED_PROXY_HMAC_SECRET: secret, DATABASE_URL: 'isolated' } },
+      Buffer, Request, Headers, URL, AbortController, setTimeout, clearTimeout,
+      require: id => {
+        if (id === 'node:crypto') return crypto;
+        if (id === '@neondatabase/serverless') return { neon: () => async (_parts, nonceHash) => {
+          const allowed = !consumed.has(nonceHash); consumed.add(nonceHash);
+          return [{ consumed: allowed }];
+        } };
+        if (id.endsWith('educator-request-security')) return { requestBodySha256: async request => crypto.createHash('sha256').update(await request.clone().text()).digest('hex') };
+        if (id.endsWith('educator-neon-ingress')) return {};
+        throw new Error('unexpected production dependency');
+      },
+    });
+    const url = 'http://127.0.0.1:8787/api/educator-report';
+    const body = JSON.stringify({ studentId: 'isolated-student' });
+    const headers = trustedEducatorHeaders('POST', url, body);
+    const request = payload => new Request(url, { method: 'POST', headers, body: payload });
+    assert.equal(await exports.trustedEducatorProxy(request(body + ' ')), null);
+    assert.equal(consumed.size, 0);
+    assert.ok(await exports.trustedEducatorProxy(request(body)));
+    assert.equal(await exports.trustedEducatorProxy(request(body)), null);
+    assert.throws(() => trustedEducatorHeaders('GET', 'https://cza-akademi-staging.cza-staging-habip.workers.dev/api/educator-auth'), /isolated_loopback/);
+    assert.throws(() => trustedEducatorHeaders('GET', 'http://localhost:8787/api/educator-auth'), /isolated_loopback/);
+  } finally {
+    if (prior === undefined) delete process.env.CZA_TRUSTED_PROXY_HMAC_SECRET;
+    else process.env.CZA_TRUSTED_PROXY_HMAC_SECRET = prior;
+  }
+});

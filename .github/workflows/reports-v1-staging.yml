@@ -54,6 +54,10 @@ jobs:
         run: |
           set -euo pipefail
           printf 'DATABASE_URL=%s\n' "${CZA_STAGING_DATABASE_URL}" > dist/server/.dev.vars
+          czaQaSecret="$(node -e "process.stdout.write(require('node:crypto').randomBytes(48).toString('hex'))")"
+          echo "::add-mask::$czaQaSecret"
+          printf 'CZA_TRUSTED_PROXY_HMAC_SECRET=%s\n' "$czaQaSecret" >> "$GITHUB_ENV"
+          printf 'CZA_TRUSTED_PROXY_HMAC_SECRET=%s\n' "$czaQaSecret" >> dist/server/.dev.vars
           chmod 600 dist/server/.dev.vars
           pnpm exec wrangler dev --config dist/server/wrangler.json --port 8787 > /tmp/cza-reports-staging-app.log 2>&1 &
           echo $! > /tmp/cza-reports-staging-app.pid

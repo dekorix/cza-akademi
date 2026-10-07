@@ -19,6 +19,7 @@ import {
   Target,
   type LucideIcon,
 } from 'lucide-react';
+import { StudentLearningHistory } from '@/components/student-learning-history';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import type {
@@ -549,6 +550,7 @@ export function WorkCenter({
             </section>
           </div>
         )}
+        {!loading && <StudentLearningHistory />}
       </main>
     </div>
   );

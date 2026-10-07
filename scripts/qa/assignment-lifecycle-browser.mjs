@@ -1,3 +1,4 @@
+import { installTrustedEducatorTransport } from './trusted-educator-transport.mjs';
 import crypto from 'node:crypto';
 import process from 'node:process';
 import { spawn } from 'node:child_process';
@@ -299,6 +300,7 @@ try {
   await waitForChrome();
 
   const educatorPage = await newPage('about:blank');
+  await installTrustedEducatorTransport(educatorPage);
   await setCookie(educatorPage, 'cza_educator_session', 'local.' + educatorToken);
   await navigate(educatorPage, baseUrl + '/educator');
   await waitForText(educatorPage, 'Eğitimci kontrol merkezi');

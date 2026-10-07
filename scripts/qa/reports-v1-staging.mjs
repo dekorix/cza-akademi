@@ -1,3 +1,4 @@
+import { trustedEducatorHeaders } from './trusted-educator-transport.mjs';
 import crypto from 'node:crypto';
 import process from 'node:process';
 import { neon } from '@neondatabase/serverless';
@@ -232,6 +233,7 @@ async function fetchReport(reference) {
     headers: {
       'content-type': 'application/json',
       'cookie': 'cza_educator_session=local.' + token,
+      ...trustedEducatorHeaders('POST', baseUrl + '/api/educator-report', JSON.stringify(reference)),
     },
     body: JSON.stringify(reference),
   });

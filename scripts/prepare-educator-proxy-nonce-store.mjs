@@ -37,6 +37,20 @@ const sql = postgres(connectionString, {
 
 try {
   await sql.unsafe(`
+    -- The disposable ledger test schema intentionally has a minimal users table.
+    -- Proxy acceptance also needs an active canonical educator, not just a signed email.
+    ALTER TABLE public.users ADD COLUMN IF NOT EXISTS academy_id uuid;
+    ALTER TABLE public.users ADD COLUMN IF NOT EXISTS auth_user_id uuid;
+    ALTER TABLE public.users ADD COLUMN IF NOT EXISTS email text;
+    ALTER TABLE public.users ADD COLUMN IF NOT EXISTS display_name text;
+    INSERT INTO public.academies(id) VALUES ('84000000-0000-4000-8000-000000000001')
+      ON CONFLICT (id) DO NOTHING;
+    INSERT INTO public.users(id,is_active,role,academy_id,auth_user_id,email,display_name)
+      VALUES ('84000000-0000-4000-8000-000000000002',true,'educator',
+        '84000000-0000-4000-8000-000000000001','47c90485-e057-4ebe-a25c-9d7f236c5bd6',
+        'celikzihin.akademisi@gmail.com','Isolated proxy fixture')
+      ON CONFLICT (id) DO NOTHING;
+
     CREATE TABLE IF NOT EXISTS public.trusted_proxy_nonces (
       nonce_hash text PRIMARY KEY CHECK (nonce_hash ~ '^[0-9a-f]{64}$'),
       expires_at timestamptz NOT NULL,
