@@ -724,3 +724,17 @@ test('preview configuration cannot allow other workers or cross-origin posts', a
   assert.equal(h.ingress.neonIngressAllowed(new Request(h.env.CZA_EDUCATOR_PREVIEW_ORIGIN+'/api/educator-auth')),false);
   assert.equal(h.calls.length,0);
 });
+
+
+test('explicit fixed same-worker alias works without trusting sibling aliases', async t => {
+  const h = await harness(t);
+  const preview = 'https://cza-preview-cza-akademi-staging.cza-staging-habip.workers.dev';
+  h.env.CZA_EDUCATOR_PREVIEW_ORIGIN = preview;
+  const request = new Request(preview + '/api/educator-auth', {
+    method:'POST', headers:{origin:preview,'content-type':'application/json'},
+    body:JSON.stringify({action:'login',email:'canonical@example.invalid',password:'test-password-only'}),
+  });
+  assert.equal((await h.route.POST(request)).status,200);
+  assert.equal(h.ingress.neonIngressAllowed(new Request('https://other-alias-cza-akademi-staging.cza-staging-habip.workers.dev/api/educator-auth')),false);
+  assert.equal(h.ingress.neonIngressAllowed(new Request('https://cza-preview-other-worker.cza-staging-habip.workers.dev/api/educator-auth')),false);
+});

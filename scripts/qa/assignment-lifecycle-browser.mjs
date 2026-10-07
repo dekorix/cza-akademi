@@ -338,13 +338,17 @@ try {
   if (!assignmentId) throw new Error('assignment_not_persisted');
 
   await waitForText(educatorPage, moduleLabel + ' · Başlangıç çalışması');
-  await waitForText(educatorPage, 'Atandı');
+  await waitForText(educatorPage, 'Aktif');
+  const currentAssignment = await evalJson(educatorPage, `Array.from(document.querySelectorAll('[data-assignment-id]')).some(el=>el.getAttribute('data-assignment-id')===${JSON.stringify(assignmentId)} && el.innerText.includes('Aktif'))`);
+  if (!currentAssignment) throw new Error('current_assignment_active_state_missing');
 
   await reloadHard(educatorPage);
   await waitForText(educatorPage, 'Eğitimci kontrol merkezi');
   await selectEducatorStudent(educatorPage, String(fixture.student_id));
   await waitForText(educatorPage, moduleLabel + ' · Başlangıç çalışması');
-  await waitForText(educatorPage, 'Atandı');
+  await waitForText(educatorPage, 'Aktif');
+  const reloadedAssignment = await evalJson(educatorPage, `Array.from(document.querySelectorAll('[data-assignment-id]')).some(el=>el.getAttribute('data-assignment-id')===${JSON.stringify(assignmentId)} && el.innerText.includes('Aktif'))`);
+  if (!reloadedAssignment) throw new Error('current_assignment_active_state_reload_missing');
 
   const studentPage = await newPage('about:blank');
   await installCoreMeIntercept(studentPage, studentName);

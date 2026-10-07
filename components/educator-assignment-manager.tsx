@@ -114,7 +114,7 @@ export function EducatorAssignmentManager({ studentId, onChanged }: { studentId:
       <label htmlFor="u5-status" className="text-sm font-bold">Durum<select id="u5-status" value={status} onChange={(e) => setStatus(e.target.value)} className="ml-2 min-h-10 rounded-lg border bg-white px-3"><option value="">Tümü</option>{Object.entries(STATUS_LABELS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
       <Button type="button" variant="outline" size="sm" onClick={() => void load()}><RefreshCw size={15} /> Yenile</Button>
     </div>
-    <div className="mt-4 grid gap-3 lg:grid-cols-2">{items.map((item) => <article key={item.id} className="rounded-2xl border p-4">
+    <div className="mt-4 grid gap-3 lg:grid-cols-2">{items.map((item) => <article key={item.id} data-assignment-id={item.id} className="rounded-2xl border p-4">
       <div className="flex items-start justify-between gap-3"><div><h4 className="font-black">{item.name}</h4><p className="mt-1 text-sm text-muted-foreground">{MODULES.find(([code]) => code === item.module_code)?.[1] || item.module_code}</p></div><span className="rounded-full bg-[#edf7f2] px-2.5 py-1 text-xs font-bold">{STATUS_LABELS[item.status] || item.status}</span></div>
       {item.instructions ? <p className="mt-3 text-sm">{item.instructions}</p> : null}
       <p className="mt-3 flex items-center gap-2 text-xs text-muted-foreground"><CalendarClock size={15} /> {localDate(item.starts_at)} → {localDate(item.expires_at)}</p>

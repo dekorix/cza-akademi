@@ -40,7 +40,7 @@ function educatorOriginAllowed(origin: string) {
   if (origin === STAGING_EDUCATOR_ORIGIN) return true;
   const preview = process.env.CZA_EDUCATOR_PREVIEW_ORIGIN?.trim();
   return Boolean(preview &&
-    /^https:\/\/[a-f0-9]{8}-cza-akademi-staging\.cza-staging-habip\.workers\.dev$/.test(preview) &&
+    /^https:\/\/(?:[a-f0-9]{8}|cza-preview)-cza-akademi-staging\.cza-staging-habip\.workers\.dev$/.test(preview) &&
     origin === preview);
 }
 

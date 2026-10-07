@@ -19,6 +19,12 @@ on:
       - '.github/workflows/reports-v1-browser.yml'
   workflow_dispatch:
 
+# Shared staging fixtures must not change while another acceptance reads them.
+concurrency:
+  group: cza-staging-database-acceptance
+  cancel-in-progress: false
+  queue: max
+
 permissions:
   contents: read
 
