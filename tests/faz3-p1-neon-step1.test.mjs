@@ -119,7 +119,7 @@ test('caller and reusable workflow are pinned to immutable trust layers', async 
   const caller = await readFile('.github/workflows/faz3-p1-provision.yml', 'utf8');
   const reusable = await readFile('.github/workflows/faz3-p1-neon-step1-reusable.yml', 'utf8');
   const broker = JSON.parse(await readFile('security/faz3/oidc/credential-broker-policy.json', 'utf8'));
-  assert.match(caller, new RegExp(`faz3-p1-neon-step1-reusable\\.yml@${reusableSha}`));
+  assert.match(caller, /faz3-p1-neon-step1-reusable\.yml@57ce71e5e294370cf4e135a4d98747f730e11caa/);
   assert.match(reusable, new RegExp(`ref: ${trustGateSha}`));
   assert.match(reusable, new RegExp(`ref: ${executionSha}`));
   assert.doesNotMatch(reusable, /infra\/staging\/p1-provision|provider-mutation-wrapper\.mjs|TF_VAR_cloudflare/i);

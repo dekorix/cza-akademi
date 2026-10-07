@@ -94,7 +94,7 @@ test('educator canonical profile works without coaching schema and remains fail-
       CREATE TABLE public.training_recipes(id uuid PRIMARY KEY,academy_id uuid,student_id uuid,module_code text,is_active boolean DEFAULT true,cancelled_at timestamptz,created_at timestamptz,starts_at timestamptz);
       CREATE TABLE public.training_sessions(id uuid PRIMARY KEY,academy_id uuid,student_id uuid,module_code text,recipe_id uuid,status session_status,started_at timestamptz,last_activity_at timestamptz,completed_at timestamptz);
       CREATE TABLE public.question_attempts(id uuid PRIMARY KEY,academy_id uuid,student_id uuid,module_code text,training_session_id uuid,is_correct boolean,error_type text,created_at timestamptz);
-      CREATE TABLE public.learning_records(id uuid PRIMARY KEY,academy_id uuid,student_id uuid,module_code text,record_origin text,verification_status text,support_level text,skills jsonb,completed_at timestamptz,created_at timestamptz);
+      CREATE TABLE public.learning_records(id uuid PRIMARY KEY,academy_id uuid,student_id uuid,module_code text,record_origin text,verification_status text,support_level text,skills jsonb,completed_at timestamptz,created_at timestamptz,training_session_id uuid);
       CREATE TABLE public.learning_evidence(id uuid PRIMARY KEY,learning_record_id uuid,academy_id uuid,student_id uuid,skill_code text,verification_status text,verification_authority text,observed_at timestamptz);
       INSERT INTO public.students VALUES ('${student}','${academy}','Demo','Öğrenci','active');
       INSERT INTO public.modules VALUES ('finger_read','Parmak Okuma');
@@ -107,7 +107,7 @@ test('educator canonical profile works without coaching schema and remains fail-
         ('30000000-0000-4000-8000-000000000002','${academy}','${student}','finger_read','20000000-0000-4000-8000-000000000003','completed','2026-09-15T10:00:00Z','2026-09-15T10:05:00Z','2026-09-15T10:05:00Z');
       INSERT INTO public.question_attempts VALUES
         ('40000000-0000-4000-8000-000000000001','${academy}','${student}','finger_read','30000000-0000-4000-8000-000000000001',true,'NONE','2026-09-16T10:02:00Z');
-      INSERT INTO public.learning_records VALUES
+      INSERT INTO public.learning_records (id,academy_id,student_id,module_code,record_origin,verification_status,support_level,skills,completed_at,created_at) VALUES
         ('50000000-0000-4000-8000-000000000001','${academy}','${student}','finger_read','client_reported','client_reported','guided','["record-only"]','2026-09-16T10:05:00Z','2026-09-16T10:05:00Z'),
         ('50000000-0000-4000-8000-000000000002','${academy}','${student}','finger_read','client_reported','client_reported','independent','["legacy-skill"]','2026-09-15T10:05:00Z','2026-09-15T10:05:00Z'),
         ('50000000-0000-4000-8000-000000000003','${academy}','${student}','finger_read','server_authoritative','server_verified','independent','["trusted-skill"]','2026-09-14T10:05:00Z','2026-09-14T10:05:00Z');

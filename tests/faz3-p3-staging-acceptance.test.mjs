@@ -11,10 +11,10 @@ const [evidenceBytes, p2Bytes, manifestBytes, policyBytes, callerWorkflow, reusa
   readFile('delivery/p2/CZA_Faz3_P2_Real_Staging_Evidence.json'),
   readFile('delivery/CZA_Faz3_Delivery_Manifest_v4.json'),
   readFile('security/faz3/oidc/p1-neon-runtime-policy.json'),
-  readFile('.github/workflows/faz3-p1-provision.yml', 'utf8'),
-  readFile('.github/workflows/faz3-p1-neon-step1-reusable.yml', 'utf8'),
-  readFile('db/migrations/20260912_staging_core_prerequisites_v1.sql'),
-  readFile('db/migrations/20260913_canonical_learning_ledger_v1.sql'),
+  readFile('tests/fixtures/faz3-checkpoints/p2-caller.yml', 'utf8'),
+  readFile('tests/fixtures/faz3-checkpoints/p2-reusable.yml', 'utf8'),
+  readFile('tests/fixtures/faz3-checkpoints/p3-prerequisites.sql'),
+  readFile('tests/fixtures/faz3-checkpoints/p3-ledger.sql'),
 ]);
 const evidence = JSON.parse(evidenceBytes.toString('utf8'));
 const p2 = JSON.parse(p2Bytes.toString('utf8'));

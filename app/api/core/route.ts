@@ -70,7 +70,7 @@ function cookie(
 }
 
 function sessionCookie(value: string, maxAge: number, secure: boolean) {
-  return cookie(COOKIE_NAME, value, maxAge, secure);
+  return cookie(COOKIE_NAME, value, maxAge, secure, '/api');
 }
 
 function assessmentSessionCookie(

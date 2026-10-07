@@ -10,7 +10,7 @@ test('work panel uses the authenticated CZA Core session for start, attempts and
   assert.match(studio, /core\('me'\)/);
   assert.match(studio, /core\('start',\s*\{moduleCode:moduleCodeByMode\[config\.mode\]/);
   assert.match(studio, /core\('attempt',\s*\{sessionId,payload:/);
-  assert.match(studio, /core\('finish',\s*\{sessionId\}\)/);
+  assert.match(studio, /core\('finish',\s*\{\s*sessionId\s*\}\)/);
 });
 
 test('educator work reports resolve by central student id and read attempts by student_id', () => {

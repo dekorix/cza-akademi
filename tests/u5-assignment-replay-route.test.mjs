@@ -88,6 +88,8 @@ test('same omitted startsAt and request key replays one assignment; changed body
         client_request_id uuid, request_hash text, cancelled_at timestamptz,
         created_at timestamptz DEFAULT now(), updated_at timestamptz DEFAULT now()
       );
+      CREATE TABLE public.training_sessions(id uuid PRIMARY KEY,recipe_id uuid,academy_id uuid,student_id uuid,status text,started_at timestamptz,completed_at timestamptz,last_activity_at timestamptz);
+      CREATE TABLE public.learning_records(id uuid PRIMARY KEY,academy_id uuid,student_id uuid,training_session_id uuid,completed_at timestamptz);
       CREATE UNIQUE INDEX training_recipes_request_key ON public.training_recipes
         (academy_id, assigned_by, client_request_id) WHERE client_request_id IS NOT NULL;
     `);

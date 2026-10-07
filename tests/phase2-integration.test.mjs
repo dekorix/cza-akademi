@@ -45,12 +45,12 @@ test('consolidated manifest is deeply frozen and links exactly three sealed modu
       {
         id: 'fast-reading',
         audience: 'student',
-        href: '/speed-reading',
+        href: '/speed-reading/training',
       },
       {
         id: 'attention',
         audience: 'student',
-        href: '/attention',
+        href: '/attention/training',
       },
       {
         id: 'book-preparation',
@@ -93,8 +93,8 @@ test('dashboard preserves honest measurement labels and initial student routing'
   );
   assert.match(html, /server_observed_approximation/);
   assert.match(html, /synthetic_attention/);
-  assert.match(html, /href="\/speed-reading"/);
-  assert.match(html, /href="\/attention"/);
+  assert.match(html, /href="\/speed-reading\/training"/);
+  assert.match(html, /href="\/attention\/training"/);
   assert.doesNotMatch(html, /href="\/book-preparation\/access"/);
   assert.match(html, /Ledger ve persistence kapalı/);
 });

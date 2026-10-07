@@ -111,6 +111,7 @@ function setup(
         WorkCenterPersistenceError: class WorkCenterPersistenceError extends Error {},
       },
       '@/lib/work-center': {},
+      '@/lib/package-catalog': { isPackageAccessCode: () => false },
       '@/lib/exercise-registry': {},
       '@/lib/engine-registry': {},
     },

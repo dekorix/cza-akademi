@@ -1,0 +1,31 @@
+name: Faz3 P1 provision gate
+
+on:
+  workflow_dispatch:
+    inputs:
+      authorize_p1:
+        description: Must remain false until an independent P0-C decision and separate written P1 authorization
+        required: true
+        type: boolean
+        default: false
+      p0c_attestation_sha256:
+        description: Exact 64-hex digest of the independently accepted P0-C attestation
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  actions: read
+  id-token: write
+
+jobs:
+  p1:
+    if: inputs.authorize_p1 == true && github.ref == 'refs/heads/feature/faz3-gate1b-v4'
+    permissions:
+      contents: read
+      actions: write
+      id-token: write
+    uses: dekorix/cza-akademi/.github/workflows/faz3-p1-neon-step1-reusable.yml@607836a530322c0b7c57980f694c77fa2a2c3a6f
+    with:
+      authorize_p1: ${{ inputs.authorize_p1 }}
+      p0c_attestation_sha256: ${{ inputs.p0c_attestation_sha256 }}

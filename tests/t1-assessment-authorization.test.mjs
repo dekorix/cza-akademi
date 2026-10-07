@@ -3,7 +3,8 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import ts from 'typescript';
-import { randomUUID } from 'node:crypto';
+import * as crypto from 'node:crypto';
+const { randomUUID } = crypto;
 import { PGlite } from '@electric-sql/pglite';
 import { pgcrypto } from '@electric-sql/pglite/contrib/pgcrypto';
 
@@ -39,6 +40,9 @@ function routeLoader({ db, studentState, educatorState }) {
   new Function('require', 'module', 'exports', 'process', 'Request', 'Response', 'URL', js)(
     (id) => {
       if (id === '@neondatabase/serverless') return { neon };
+      if (id === 'node:crypto') return crypto;
+      if (id.includes('assessment-server-evaluator')) return { evaluateP2TextAttempt: () => { throw new Error('T4 evaluator must not run in legacy authorization fixtures'); }, educatorReviewNext: () => null };
+      if (id.includes('assessment-learning-outcome')) return { deriveP2LearningOutcome: () => ({ origin: 'client_reported' }) };
       if (id.includes('assessment-routing')) return { assessmentTasks };
       if (id.includes('assessment-definition')) {
         return { p2DefinitionStatus: (value) => value == null ? 'legacy_unversioned' : value.definitionId === 'CZA_1_TO_2' ? 'current' : 'mismatch' };
@@ -79,6 +83,7 @@ async function setup() {
     '20260908_assessment_engine_v1.sql',
     '20260928_t1_assessment_observer_provenance_v1.sql',
     '20260929_t2_p2_assessment_definition_contract_v1.sql',
+    '20260929_t4_p2_server_evaluator_v1.sql',
   ]) {
     await db.exec(read('db/migrations/' + migration));
   }

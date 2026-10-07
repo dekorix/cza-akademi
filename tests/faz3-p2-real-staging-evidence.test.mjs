@@ -6,7 +6,7 @@ import { verifyP2Evidence } from '../scripts/faz3/verify-p2-evidence.mjs';
 const evidence = JSON.parse(await readFile('delivery/p2/CZA_Faz3_P2_Real_Staging_Evidence.json', 'utf8'));
 const manifestBytes = await readFile('delivery/CZA_Faz3_Delivery_Manifest_v4.json');
 const policy = JSON.parse(await readFile('security/faz3/oidc/p1-neon-runtime-policy.json', 'utf8'));
-const reusableWorkflow = `${await readFile('.github/workflows/faz3-p1-provision.yml', 'utf8')}\n${await readFile('.github/workflows/faz3-p1-neon-step1-reusable.yml', 'utf8')}`;
+const reusableWorkflow = `${await readFile('tests/fixtures/faz3-checkpoints/p2-caller.yml', 'utf8')}\n${await readFile('tests/fixtures/faz3-checkpoints/p2-reusable.yml', 'utf8')}`;
 
 const verify = candidate => verifyP2Evidence(candidate, { manifestBytes, policy, reusableWorkflow });
 

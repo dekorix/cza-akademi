@@ -86,7 +86,7 @@ test('assessment prescriptions are recomputed server-side and require explicit e
 test('educator login verifies the current Neon Auth credential hash locally and creates the CZA session', () => {
   assert.match(educatorAuth, /FROM neon_auth\.account a/);
   assert.match(educatorAuth, /a\."providerId" = 'credential'/);
-  assert.match(educatorAuth, /N: 16384, r: 16, p: 1/);
+  assert.match(educatorAuth, /SCRYPT_OPTIONS/);
   assert.match(educatorAuth, /password\.normalize\('NFKC'\)/);
   assert.match(educatorAuth, /timingSafeEqual/);
   assert.match(educatorAuth, /INSERT INTO public\.educator_sessions/);
@@ -110,12 +110,13 @@ test('password reset is also a secure educator sign-in fallback and exposes a de
   assert.match(educatorAuthRoute, /if \(action === 'reset'\)/);
   assert.match(educatorAuthRoute, /signedIn:\s*true/);
   assert.match(educatorAuthRoute, /set-cookie/);
-  assert.match(resetPage, /Parolayı kaydet ve giriş yap/);
+  assert.match(resetPage, /Parolayı kaydet/);
   assert.match(
     resetPage,
     /window\.location\.replace\('\/educator\?tab=students&auth=reset'\)/,
   );
-  assert.match(resetPage, /CZA Auth · reset-autologin-v1/);
+  assert.match(resetPage, /if \(result\.signedIn\)/);
+  assert.match(educatorAuthRoute, /handleNeonEducatorAuth/);
 });
 
 

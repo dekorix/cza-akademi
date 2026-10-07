@@ -411,6 +411,9 @@ test('real Studio start handler enters one-question sequence after successful as
     completePlayer: () => phases.push('finished'),
     setSettingsOpen: no,
     sessionStart: { current: 0 },
+    canonicalRecordId: { current: '' },
+    sessionStartedAt: { current: '' },
+    sessionCompletedAt: { current: '' },
     friendlyCoreError: (e) => e.message,
   };
   const js = ts.transpileModule(handler + '\nstart();', {
