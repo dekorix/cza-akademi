@@ -30,10 +30,10 @@ test('listing uses authenticated educator identity and caps each page', async ()
   const response = await api.get(new Request('https://cza.test/api/educator-students?page=2&teacherId=other'));
   const data = await response.json();
   assert.equal(data.students.length, 50); assert.equal(data.hasMore, true);
-  assert.deepEqual(api.queries[0].values, ['teacher-a', '', '', '', '', 100]);
+  assert.deepEqual(api.queries[0].values, ['teacher-a', '', '', '', '', '', 100]);
   assert.match(api.queries[0].sql, /l.can_view = true/);
   assert.match(api.queries[0].sql, /t.is_active = true/);
-  assert.match(api.queries[0].sql, /t.role::text = 'educator'/);
+  assert.match(api.queries[0].sql, /t.role::text IN \('admin','teacher','educator'\)/);
   assert.match(api.queries[0].sql, /t.academy_id = s.academy_id/);
   assert.equal(response.headers.get('cache-control'), 'no-store');
 });

@@ -129,7 +129,7 @@ test('educator history route denies invalid role/unlinked student before timelin
   const response = await unlinked.get(new Request('https://cza.test/api/educator-student-history?studentId=10000000-0000-4000-8000-000000000001'));
   assert.equal(response.status, 403);
   assert.equal(unlinked.timelineCalls.length, 0);
-  assert.match(unlinked.queries[0].sql, /educator\.role::text='educator'/);
+  assert.match(unlinked.queries[0].sql, /educator\.role::text IN \('admin','teacher','educator'\)/);
   assert.match(unlinked.queries[0].sql, /link\.can_view=true/);
   assert.match(unlinked.queries[0].sql, /student\.academy_id=educator\.academy_id/);
 });

@@ -53,7 +53,7 @@ test('duplicate JOIN fixture cannot double-count canonical assignments, sessions
 
 test('U6 educator authorization is canonical and fail closed before aggregation',()=>{
   for(const token of [
-    /authenticatedEducator\(request\)/,/educator\.role::text='educator'/,/educator\.is_active=true/,
+    /authenticatedEducator\(request\)/,/educator\.role::text IN \('admin','teacher','educator'\)/,/educator\.is_active=true/,
     /link\.can_view=true/,/student\.academy_id=educator\.academy_id/,/student_not_authorized/,
   ])assert.match(route,token);
   assert.doesNotMatch(route,/searchParams\.get\('academyId'\)|searchParams\.get\('educatorId'\)/);
@@ -67,7 +67,7 @@ test('invalid role, inactive, unlinked, other-academy, and forged scope cannot r
   const denied=loadRoute({identity:{id:'external-educator'},authorized:[]});
   const response=await denied.get(new Request(`https://cza.test/api/educator-analytics?studentId=${student}&academyId=forged&educatorId=forged`));
   assert.equal(response.status,403);assert.equal(denied.aggregateCalls.length,0);
-  assert.match(denied.queries[0].sql,/educator\.role::text='educator'/);
+  assert.match(denied.queries[0].sql,/educator\.role::text IN \('admin','teacher','educator'\)/);
   assert.match(denied.queries[0].sql,/educator\.is_active=true/);
   assert.match(denied.queries[0].sql,/link\.can_view=true/);
   assert.match(denied.queries[0].sql,/student\.academy_id=educator\.academy_id/);

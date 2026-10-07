@@ -20,7 +20,7 @@ test('U5 migration is additive, repeatable, and preserves history', () => {
 
 test('U5 educator writes require canonical educator, academy, link, and ownership', () => {
   assert.match(route, /t\.is_active = true/);
-  assert.match(route, /t\.role::text = 'educator'/);
+  assert.match(route, /t\.role::text IN \('admin','teacher','educator'\)/);
   assert.match(route, /l\.academy_id = t\.academy_id AND l\.can_view = true/);
   assert.match(route, /s\.academy_id = t\.academy_id/);
   assert.match(route, /assigned_by=\$\{link\.educator_user_id\}/);

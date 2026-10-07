@@ -109,7 +109,7 @@ function WorkList({ title, items, empty }: { title: string; items: Work[]; empty
   );
 }
 
-export function EducatorStudentCore() {
+export function EducatorStudentCore({ onReport }: { onReport?: (studentId: string) => void }) {
   const [students, setStudents] = useState<Student[]>([]);
   const [query, setQuery] = useState('');
   const [loadingList, setLoadingList] = useState(true);
@@ -133,7 +133,7 @@ export function EducatorStudentCore() {
       }
       setStudents(data.students);
       if (data.students[0]?.id) {
-        setSelectedId((current) => current || String(data.students[0].id));
+        setSelectedId((current) => data.students.some((student: Student) => student.id === current) ? current : String(data.students[0].id));
       } else setLoadingDetail(false);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'Öğrenci listesi alınamadı.');
@@ -217,7 +217,7 @@ export function EducatorStudentCore() {
         <div className="mt-4 space-y-2">
           {loadingList ? <output className="block py-5 text-sm">Öğrenciler yükleniyor…</output> :
             students.length ? students.map((student) => (
-              <button key={student.id} type="button" onClick={() => { if (student.id === selectedId) return; setLoadingDetail(true); setMessage(''); setSelectedId(student.id); }}
+              <button key={student.id} data-student-select={student.id} type="button" onClick={() => { if (student.id === selectedId) return; setLoadingDetail(true); setMessage(''); setSelectedId(student.id); }}
                 className={`w-full rounded-xl border p-3 text-left transition ${
                   selectedId === student.id ? 'border-[#5f927e] bg-[#edf7f2]' : 'border-[#e2e8e5] hover:bg-[#f7faf8]'
                 }`}>
@@ -232,13 +232,14 @@ export function EducatorStudentCore() {
         {message && <p role="alert" className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">{message}</p>}
         {loadingDetail ? <div className="grid min-h-72 place-items-center rounded-2xl border bg-white"><output className="flex items-center gap-2"><RefreshCw className="animate-spin" size={18} /> Öğrenci dosyası hazırlanıyor…</output></div> :
         detail ? <>
-          <header className="rounded-3xl bg-[#18372f] p-6 text-white sm:p-8">
+          <header data-student-file={detail.student.id} className="rounded-3xl bg-[#18372f] p-6 text-white sm:p-8">
             <p className="text-xs font-bold uppercase tracking-[.16em] text-[#b9d7ca]">Merkezî öğrenci dosyası</p>
             <h2 className="mt-2 text-2xl font-bold sm:text-3xl">{detail.student.name}</h2>
             <p className="mt-2 text-sm text-[#d5e8e0]">{detail.student.campusCode || detail.student.username || 'Tek Student ID'} · {detail.student.id}</p>
             <Button type="button" className="mt-4" disabled={assessmentBusy} onClick={() => void startAssessment()}>
               {assessmentBusy ? 'Değerlendirme açılıyor…' : 'Başlangıç değerlendirmesini aç'}
             </Button>
+            {onReport && <Button type="button" className="ml-2 mt-4" onClick={() => onReport(detail.student.id)}>Çalışma raporu</Button>}
             <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
               {[
                 ['Aktif çalışma', detail.work.active.length],

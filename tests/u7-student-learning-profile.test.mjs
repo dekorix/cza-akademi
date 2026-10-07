@@ -52,7 +52,7 @@ test('educator learning profile requires canonical educator role, academy and ca
   const studentId='10000000-0000-4000-8000-000000000001';
   const studentRole=loadRoute(educatorRoute);assert.equal((await studentRole.get(new Request(`https://cza.test/api/educator-learning-profile?studentId=${studentId}`))).status,401);
   const denied=loadRoute(educatorRoute,{educator:{id:'external'},authorized:[]});assert.equal((await denied.get(new Request(`https://cza.test/api/educator-learning-profile?studentId=${studentId}`))).status,403);assert.equal(denied.calls.length,0);
-  for(const rule of [/educator\.role::text='educator'/,/educator\.is_active=true/,/link\.can_view=true/,/student\.academy_id=educator\.academy_id/])assert.match(denied.queries[0].sql,rule);
+  for(const rule of [/educator\.role::text IN \('admin','teacher','educator'\)/,/educator\.is_active=true/,/link\.can_view=true/,/student\.academy_id=educator\.academy_id/])assert.match(denied.queries[0].sql,rule);
   const allowed=loadRoute(educatorRoute,{educator:{id:'external'},authorized:[{academy_id:'10000000-0000-4000-8000-000000000002'}]});assert.equal((await allowed.get(new Request(`https://cza.test/api/educator-learning-profile?studentId=${studentId}`))).status,200);assert.equal(allowed.calls.length,1);
 });
 

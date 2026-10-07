@@ -1,4 +1,4 @@
-import { installTrustedEducatorTransport, verifyTrustedEducatorBackend } from './trusted-educator-transport.mjs';
+import { installTrustedEducatorTransport, verifyTrustedEducatorBackend, selectEducatorStudent } from './trusted-educator-transport.mjs';
 import crypto from 'node:crypto';
 import process from 'node:process';
 import { spawn } from 'node:child_process';
@@ -262,6 +262,7 @@ function assertUiMatchesApi(ui, api, label) {
 }
 
 async function openUiReport(page, studentId) {
+  await selectEducatorStudent(page, studentId);
   const openedFromStudent = await evalJson(page, `(() => {
     const rows = Array.from(document.querySelectorAll('div')).filter(el =>
       el.innerText?.includes(${JSON.stringify(studentId)}) &&

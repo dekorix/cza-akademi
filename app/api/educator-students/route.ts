@@ -36,6 +36,7 @@ export async function GET(request: Request) {
         AND s.status = 'active'
         AND (
           ${search} = ''
+          OR s.id::text = ${search}
           OR concat_ws(' ', s.first_name, s.last_name) ILIKE '%' || ${search} || '%'
           OR COALESCE(i.identifier_value, '') ILIKE '%' || ${search} || '%'
           OR COALESCE(u.username, '') ILIKE '%' || ${search} || '%'
