@@ -1,0 +1,48 @@
+{
+  "main": "eb246dac796355154982a29378cf2b937f62f6d2",
+  "runtime_source": "e19387dcb0412f69c108ed2d46c14dedb720dd39",
+  "reconciliation_commit": "6af200b8010572493ea8e76dc718ab2a59f751be",
+  "conflicts_remaining": 0,
+  "typecheck": "PASS",
+  "build": "PASS",
+  "targeted_checks": [
+    {
+      "files": [
+        "educator-auth-route.test.mjs",
+        "f4-neon-educator-ingress.test.mjs"
+      ],
+      "passed": 33,
+      "failed": 0
+    },
+    {
+      "files": [
+        "t1-assessment-linked-report.test.mjs"
+      ],
+      "passed": 4,
+      "failed": 0
+    },
+    {
+      "files": [
+        "educator-assignment-report.test.mjs",
+        "f4-login-form-browser.test.mjs",
+        "f4-login-workers-runtime.test.mjs",
+        "u3-educator-core.test.mjs"
+      ],
+      "passed": 11,
+      "failed": 0
+    }
+  ],
+  "broad_initial_run": {
+    "passed": 718,
+    "failed": 43,
+    "tests": 761,
+    "acceptance": "FAIL",
+    "note": "Executed during initial reconciliation before subsequent fixture/dependency repairs. Not a final immutable-head full-suite result."
+  },
+  "full_suite_acceptance": "PENDING",
+  "cloudflare_preview_acceptance": "PENDING",
+  "production_changed": false,
+  "preview_auth": "opt-in single exact same-worker preview origin; canonical provider origin and reset destination remain unchanged",
+  "hosting_binding": "main unchanged; promotion Sites project is not the platform deployment target",
+  "database_gate": "No SQL applied. Newer bound procedure retained under distinct name to avoid replacing recovered hardened API with an incompatible same-typed argument order/return shape. Combined migration/runtime acceptance remains required."
+}

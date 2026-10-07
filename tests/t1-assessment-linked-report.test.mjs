@@ -47,7 +47,7 @@ function loadRoute(relativePath, { db, educatorState, extra = {} }) {
         return { assessmentTasks: [{ id: 'MAT-01A', rubric: [] }] };
       }
       if (id.includes('assessment-definition')) {
-        return { t4P2Definition: () => ({definitionId:"CZA_1_TO_2",assessmentVersion:2,itemBankSha256:"a".repeat(64)}), currentP2Definition: () => ({ definitionId: 'CZA_1_TO_2', assessmentVersion: 1, blueprintId: 'P2_1_TO_2', blueprintVersion: 1, itemBankSha256: 'a'.repeat(64), routingSha256: 'b'.repeat(64), taskMappingVersion: 'LEGACY_ROUTING_V1', serverEvaluatorId: 'NONE_CLIENT_REPORTED', serverEvaluatorVersion: '0', rubricVersion: 'LEGACY_P2_RUBRIC_V1', answerKeyVersion: 'LEGACY_P2_ANSWER_KEY_V1' }), p2DefinitionStatus: (value) => value == null ? 'legacy_unversioned' : value.definitionId === 'CZA_1_TO_2' && value.itemBankSha256 === 'a'.repeat(64) ? 'current' : 'mismatch' };
+        return { t4P2Definition: () => ({ definitionId: 'CZA_1_TO_2', assessmentVersion: 2, blueprintId: 'P2_1_TO_2', blueprintVersion: 1, itemBankSha256: 'a'.repeat(64), routingSha256: 'b'.repeat(64), taskMappingVersion: 'LEGACY_ROUTING_V1', serverEvaluatorId: 'P2_DETERMINISTIC_TEXT', serverEvaluatorVersion: '1', rubricVersion: 'LEGACY_P2_RUBRIC_V1', answerKeyVersion: 'LEGACY_P2_ANSWER_KEY_V1' }), currentP2Definition: () => ({ definitionId: 'CZA_1_TO_2', assessmentVersion: 1, blueprintId: 'P2_1_TO_2', blueprintVersion: 1, itemBankSha256: 'a'.repeat(64), routingSha256: 'b'.repeat(64), taskMappingVersion: 'LEGACY_ROUTING_V1', serverEvaluatorId: 'NONE_CLIENT_REPORTED', serverEvaluatorVersion: '0', rubricVersion: 'LEGACY_P2_RUBRIC_V1', answerKeyVersion: 'LEGACY_P2_ANSWER_KEY_V1' }), p2DefinitionStatus: (value) => value == null ? 'legacy_unversioned' : value.definitionId === 'CZA_1_TO_2' && value.itemBankSha256 === 'a'.repeat(64) ? 'current' : 'mismatch' };
       }
       if (id.includes('assessment-learning-response')) {
         return { calculateLearningResponse: () => ({ score: 0 }) };
@@ -172,8 +172,8 @@ test('T1 linked assessment creation uses canonical educator + same-academy can_v
     assert.equal(session.student_id, ids.studentA);
     assert.equal(session.status, 'active');
     assert.equal(session.definition_contract.definitionId, 'CZA_1_TO_2');
-    assert.equal(session.definition_contract.assessmentVersion, 1);
-    assert.equal(session.definition_contract.serverEvaluatorId, 'NONE_CLIENT_REPORTED');
+    assert.equal(session.definition_contract.assessmentVersion, 2);
+    assert.equal(session.definition_contract.serverEvaluatorId, 'P2_DETERMINISTIC_TEXT');
     await assert.rejects(
       db.query('UPDATE assessment_sessions SET definition_contract=NULL WHERE id=$1', [validBody.session.id]),
       /ASSESSMENT_DEFINITION_IMMUTABLE/,
