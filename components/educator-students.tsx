@@ -91,16 +91,25 @@ export function EducatorStudents({ onReport }: { onReport: (studentId: string) =
     setAssessmentBusyId(student.id);
     setAssessmentMessage('');
     try {
+      // Keep the cycle identity across a lost response or page reload.
+      // Clear it only after the server returns the canonical session.
+      const storageKey = `cza:p2:cycle:${student.id}`;
+      let assessmentCycleKey = sessionStorage.getItem(storageKey);
+      if (!assessmentCycleKey) {
+        assessmentCycleKey = crypto.randomUUID();
+        sessionStorage.setItem(storageKey, assessmentCycleKey);
+      }
       const response = await fetch('/api/assessment-linked', {
-        method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ studentId: student.id }),
+        method: 'POST', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ studentId: student.id, assessmentCycleKey }),
       });
       const data = await response.json();
       if (!response.ok || data.ok !== true || !data.session?.id) throw new Error(data.error || 'Değerlendirme oturumu oluşturulamadı.');
       const sessionId = String(data.session.id);
+      sessionStorage.removeItem(storageKey);
       setAssessmentSessions(current => ({ ...current, [student.id]: sessionId }));
       setAssessmentMessage(`${student.name} için P2 değerlendirmesi merkezi öğrenci dosyasına bağlandı.`);
-      const opened = window.open(`/assessment?session=${encodeURIComponent(sessionId)}`, '_blank', 'noopener,noreferrer');
-      if (!opened) window.location.href = `/assessment?session=${encodeURIComponent(sessionId)}`;
+      window.location.assign(`/educator/assessment?session=${encodeURIComponent(sessionId)}`);
     } catch (error) {
       setAssessmentMessage(error instanceof Error ? error.message : 'Değerlendirme başlatılamadı.');
     } finally { setAssessmentBusyId(''); }

@@ -7,13 +7,15 @@ function json(body: unknown, status = 200) {
 }
 
 export async function GET(request: Request) {
-  const gate = allowRequest(request, 'educator-students', 30, 60000);
-  if (!gate.allowed) return rateLimited(gate.retryAfterSeconds);
+  const gate = await allowRequest(request, 'educator-students', 30, 60000);
+  if (!gate.allowed) return rateLimited(gate);
   try {
     const educator = await authenticatedEducator(request);
     if (!educator) return json({ ok: false, error: 'educator_session_required' }, 401);
-    const page = Number(new URL(request.url).searchParams.get('page') || 0);
+    const url = new URL(request.url);
+    const page = Number(url.searchParams.get('page') || 0);
     if (!Number.isSafeInteger(page) || page < 0 || page > 10000) return json({ ok: false, error: 'invalid_page' }, 400);
+    const search = (url.searchParams.get('search') || '').trim().slice(0, 80);
     if (!process.env.DATABASE_URL) return json({ ok: false, error: 'database_unavailable' }, 503);
     const sql = neon(process.env.DATABASE_URL);
     const rows = await sql`
@@ -28,7 +30,16 @@ export async function GET(request: Request) {
         JOIN public.users t ON t.id = l.teacher_id
         WHERE l.student_id = s.id AND l.can_view = true
           AND t.auth_user_id = ${educator.id} AND t.is_active = true
+          AND t.role::text = 'educator'
+          AND t.academy_id = s.academy_id
       )
+        AND s.status = 'active'
+        AND (
+          ${search} = ''
+          OR concat_ws(' ', s.first_name, s.last_name) ILIKE '%' || ${search} || '%'
+          OR COALESCE(i.identifier_value, '') ILIKE '%' || ${search} || '%'
+          OR COALESCE(u.username, '') ILIKE '%' || ${search} || '%'
+        )
       ORDER BY s.id LIMIT 51 OFFSET ${page * 50}
     `;
     return json({ ok: true, students: rows.slice(0, 50), hasMore: rows.length > 50 });

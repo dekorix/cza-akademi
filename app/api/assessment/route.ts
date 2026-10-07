@@ -1,205 +1,563 @@
 import { neon } from '@neondatabase/serverless';
+import { createHash } from 'node:crypto';
+import { educatorReviewNext, evaluateP2TextAttempt } from '@/lib/assessment-server-evaluator';
 import { assessmentTasks } from '@/lib/assessment-routing';
+import { p2DefinitionStatus } from '@/lib/assessment-definition';
 import { calculateLearningResponse, type AssessmentAttemptRecord } from '@/lib/assessment-learning-response';
+import { deriveP2LearningOutcome, type P2OutcomeAttempt } from '@/lib/assessment-learning-outcome';
 import { generateAssessmentReport, type ReportAttempt, type ReportObservation } from '@/lib/assessment-report';
+import { authenticatedStudent } from '@/lib/student-session';
+import { authenticatedEducator } from '@/lib/educator-auth';
+
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { 'content-type': 'application/json; charset=utf-8' },
+    headers: {
+      'content-type': 'application/json; charset=utf-8',
+      'cache-control': 'no-store',
+    },
   });
 }
 
-async function db() {
+function database() {
   const url = process.env.DATABASE_URL;
   if (!url) throw new Error('database_unavailable');
-  const sql = neon(url);
-  await sql`
-    CREATE TABLE IF NOT EXISTS public.assessment_sessions (
-      id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-      template_code text NOT NULL,
-      student_label text NULL,
-      status text NOT NULL DEFAULT 'active',
-      current_task_code text NULL,
-      started_at timestamptz NOT NULL DEFAULT now(),
-      completed_at timestamptz NULL,
-      metadata jsonb NOT NULL DEFAULT '{}'::jsonb
-    )
+  return neon(url);
+}
+
+type Sql = ReturnType<typeof database>;
+
+function uuid(value: unknown) {
+  return typeof value === 'string' && UUID_PATTERN.test(value) ? value : '';
+}
+
+function hasActorOverride(input: Record<string, unknown>) {
+  return [
+    'student_id',
+    'studentId',
+    'teacher_id',
+    'teacherId',
+    'observer_user_id',
+    'observerUserId',
+    'observer_academy_id',
+    'observerAcademyId',
+    'observation_origin',
+    'observationOrigin',
+  ].some((key) => Object.hasOwn(input, key));
+}
+
+async function studentSessionAccess(
+  sql: Sql,
+  sessionId: string,
+  student: { student_id: string; academy_id: string },
+) {
+  const rows = await sql`
+    SELECT session.id, session.student_id, session.status, session.definition_contract
+    FROM public.assessment_sessions session
+    JOIN public.students student ON student.id = session.student_id
+    WHERE session.id = ${sessionId}::uuid
+      AND session.student_id = ${student.student_id}::uuid
+      AND student.academy_id = ${student.academy_id}::uuid
+    LIMIT 1
   `;
-  await sql`
-    CREATE TABLE IF NOT EXISTS public.assessment_attempts (
-      id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-      session_id uuid NOT NULL REFERENCES public.assessment_sessions(id) ON DELETE CASCADE,
-      task_code text NOT NULL,
-      shown_at timestamptz NOT NULL DEFAULT now(),
-      first_action_at timestamptz NULL,
-      completed_at timestamptz NULL,
-      answer_text text NULL,
-      answer_payload jsonb NOT NULL DEFAULT '{}'::jsonb,
-      answer_changes integer NOT NULL DEFAULT 0,
-      support_level integer NOT NULL DEFAULT 0,
-      self_corrected boolean NOT NULL DEFAULT false,
-      rubric_scores jsonb NOT NULL DEFAULT '{}'::jsonb,
-      response_latency_ms integer NULL,
-      total_response_time_ms integer NULL,
-      created_at timestamptz NOT NULL DEFAULT now()
-    )
+  return rows[0] as { id: string; student_id: string; status: string; definition_contract: unknown } | undefined;
+}
+
+async function educatorSessionAccess(
+  sql: Sql,
+  sessionId: string,
+  educator: { id: string },
+) {
+  const rows = await sql`
+    SELECT
+      session.id,
+      session.student_id,
+      session.status,
+      session.definition_contract,
+      educator.id AS observer_user_id,
+      educator.academy_id AS observer_academy_id
+    FROM public.assessment_sessions session
+    JOIN public.students student ON student.id = session.student_id
+    JOIN public.users educator
+      ON educator.auth_user_id::text = ${educator.id}::text
+     AND educator.is_active = true
+     AND educator.role::text = 'educator'
+     AND educator.academy_id = student.academy_id
+    JOIN public.teacher_student_links link
+      ON link.teacher_id = educator.id
+     AND link.student_id = student.id
+     AND link.academy_id = educator.academy_id
+     AND link.can_view = true
+    WHERE session.id = ${sessionId}::uuid
+    LIMIT 1
   `;
-  await sql`
-    CREATE TABLE IF NOT EXISTS public.assessment_observations (
-      id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-      session_id uuid NOT NULL REFERENCES public.assessment_sessions(id) ON DELETE CASCADE,
-      task_code text NOT NULL,
-      observation_codes jsonb NOT NULL DEFAULT '[]'::jsonb,
-      educator_note text NULL,
-      confidence integer NULL,
-      created_at timestamptz NOT NULL DEFAULT now()
-    )
-  `;
-  return sql;
+  return rows[0] as {
+    id: string;
+    student_id: string;
+    status: string;
+    definition_contract: unknown;
+    observer_user_id: string;
+    observer_academy_id: string;
+  } | undefined;
+}
+
+async function readAccess(request: Request, sql: Sql, sessionId: string) {
+  const student = await authenticatedStudent(request);
+  if (student) {
+    const session = await studentSessionAccess(sql, sessionId, student);
+    if (session) return { kind: 'student' as const, session };
+  }
+
+  const educator = await authenticatedEducator(request);
+  if (educator) {
+    const session = await educatorSessionAccess(sql, sessionId, educator);
+    if (session) return { kind: 'educator' as const, session };
+  }
+
+  return null;
+}
+
+async function educatorAccess(request: Request, sql: Sql, sessionId: string) {
+  const educator = await authenticatedEducator(request);
+  if (!educator) return null;
+  const session = await educatorSessionAccess(sql, sessionId, educator);
+  return session ? { educator, session } : null;
+}
+
+function mutable(status: string) {
+  return status === 'active';
 }
 
 export async function POST(request: Request) {
   let input: Record<string, unknown>;
   try {
-    input = (await request.json()) as Record<string, unknown>;
+    input = (await request.clone().json()) as Record<string, unknown>;
   } catch {
     return json({ ok: false, error: 'invalid_request' }, 400);
   }
 
   const action = typeof input.action === 'string' ? input.action : '';
-  try {
-    const sql = await db();
 
-    if (action === 'create') {
-      const studentLabel = typeof input.studentLabel === 'string' ? input.studentLabel.slice(0, 80) : 'Pilot öğrenci';
-      const firstTask = assessmentTasks[0]?.id ?? null;
-      const rows = await sql`
-        INSERT INTO public.assessment_sessions (template_code, student_label, current_task_code, metadata)
-        VALUES (
-          'CZA_1_TO_2_V1',
-          ${studentLabel},
-          ${firstTask},
-          ${JSON.stringify({ version: 4, stations: ['WARMUP','MATHEMATICS','LANGUAGE','COGNITIVE'], learningResponseVersion: 1, reportVersion: 1 })}::jsonb
-        )
-        RETURNING id, template_code, student_label, status, current_task_code, started_at, metadata
-      `;
-      return json({ ok: true, session: rows[0], tasks: assessmentTasks });
-    }
+  if (action === 'create') {
+    return json({ ok: false, error: 'assessment_creation_requires_authorized_link' }, 403);
+  }
+
+  if (hasActorOverride(input)) {
+    return json({ ok: false, error: 'actor_identity_server_derived' }, 400);
+  }
+
+  try {
+    const sql = database();
 
     if (action === 'get' || action === 'report') {
-      const sessionId = typeof input.sessionId === 'string' ? input.sessionId : '';
+      const sessionId = uuid(input.sessionId);
       if (!sessionId) return json({ ok: false, error: 'session_required' }, 400);
+
+      const access = await readAccess(request, sql, sessionId);
+      if (!access) return json({ ok: false, error: 'session_not_authorized' }, 403);
+      const definitionStatus = p2DefinitionStatus(access.session.definition_contract);
+      if (definitionStatus === 'mismatch') {
+        return json({ ok: false, error: 'assessment_definition_mismatch' }, 409);
+      }
+
       const sessions = await sql`
-        SELECT id, template_code, student_label, status, current_task_code, started_at, completed_at, metadata
-        FROM public.assessment_sessions WHERE id = ${sessionId}::uuid LIMIT 1
+        SELECT id, student_id, template_code, student_label, status,
+               current_task_code, started_at, completed_at, metadata, definition_contract
+        FROM public.assessment_sessions
+        WHERE id = ${sessionId}::uuid
+        LIMIT 1
       `;
       if (!sessions.length) return json({ ok: false, error: 'session_not_found' }, 404);
+
       const attempts = await sql`
-        SELECT * FROM public.assessment_attempts
-        WHERE session_id = ${sessionId}::uuid ORDER BY created_at ASC
+        SELECT *
+        FROM public.assessment_attempts
+        WHERE session_id = ${sessionId}::uuid
+        ORDER BY created_at ASC
       `;
       const observations = await sql`
-        SELECT * FROM public.assessment_observations
-        WHERE session_id = ${sessionId}::uuid ORDER BY created_at ASC
+        SELECT id, session_id, task_code, observation_codes,
+               educator_note, confidence, observation_origin, created_at
+        FROM public.assessment_observations
+        WHERE session_id = ${sessionId}::uuid
+        ORDER BY created_at ASC
       `;
-      const learningResponse = calculateLearningResponse(attempts as AssessmentAttemptRecord[], assessmentTasks);
+
+      const learningOutcome = deriveP2LearningOutcome(
+        attempts as P2OutcomeAttempt[], assessmentTasks, definitionStatus,
+      );
+      // The earlier report accepts client telemetry as scores. Keep T4 evidence
+      // out of that legacy calculation; the T5 outcome carries verified scoring.
+      const legacyAttempts = definitionStatus === 'current_t4' ? [] : attempts;
+      const learningResponse = calculateLearningResponse(
+        legacyAttempts as AssessmentAttemptRecord[],
+        assessmentTasks,
+      );
       const report = generateAssessmentReport(
-        attempts as ReportAttempt[],
+        legacyAttempts as ReportAttempt[],
         observations as ReportObservation[],
         assessmentTasks,
         learningResponse,
       );
-      if (action === 'report') return json({ ok: true, session: sessions[0], report });
-      return json({ ok: true, session: sessions[0], attempts, observations, tasks: assessmentTasks, learningResponse, report });
+
+      if (action === 'report') {
+        return json({ ok: true, session: sessions[0], definitionStatus,
+          learningOutcome, legacyReportOrigin: definitionStatus === 'current_t4' ? null : 'client_reported', report });
+      }
+      return json({
+        ok: true,
+        session: sessions[0],
+        definitionStatus,
+        attempts,
+        observations,
+        tasks: assessmentTasks,
+        learningResponse,
+        learningOutcome,
+        legacyReportOrigin: definitionStatus === 'current_t4' ? null : 'client_reported',
+        report,
+      });
     }
 
     if (action === 'attempt') {
-      const sessionId = typeof input.sessionId === 'string' ? input.sessionId : '';
+      const sessionId = uuid(input.sessionId);
       const taskCode = typeof input.taskCode === 'string' ? input.taskCode : '';
-      if (!sessionId || !taskCode) return json({ ok: false, error: 'missing_fields' }, 400);
-      const shownAt = typeof input.shownAt === 'number' ? new Date(input.shownAt) : new Date();
-      const firstActionAt = typeof input.firstActionAt === 'number' ? new Date(input.firstActionAt) : null;
-      const completedAt = typeof input.completedAt === 'number' ? new Date(input.completedAt) : new Date();
-      const answerText = typeof input.answerText === 'string' ? input.answerText.slice(0, 4000) : null;
-      const answerChanges = Math.max(0, Math.min(1000, Number(input.answerChanges ?? 0)));
-      const supportLevel = Math.max(0, Math.min(5, Number(input.supportLevel ?? 0)));
-      const selfCorrected = Boolean(input.selfCorrected);
-      const rubricScores = typeof input.rubricScores === 'object' && input.rubricScores ? input.rubricScores : {};
-      const answerPayload = typeof input.answerPayload === 'object' && input.answerPayload ? input.answerPayload : {};
-      const responseLatencyMs = firstActionAt ? Math.max(0, firstActionAt.getTime() - shownAt.getTime()) : null;
-      const totalResponseTimeMs = Math.max(0, completedAt.getTime() - shownAt.getTime());
-      await sql`
-        INSERT INTO public.assessment_attempts (
-          session_id, task_code, shown_at, first_action_at, completed_at, answer_text, answer_payload,
-          answer_changes, support_level, self_corrected, rubric_scores,
-          response_latency_ms, total_response_time_ms
-        ) VALUES (
-          ${sessionId}::uuid, ${taskCode}, ${shownAt.toISOString()}::timestamptz,
-          ${firstActionAt ? firstActionAt.toISOString() : null}::timestamptz,
-          ${completedAt.toISOString()}::timestamptz, ${answerText}, ${JSON.stringify(answerPayload)}::jsonb,
-          ${answerChanges}, ${supportLevel}, ${selfCorrected}, ${JSON.stringify(rubricScores)}::jsonb,
-          ${responseLatencyMs}, ${totalResponseTimeMs}
-        )
-      `;
-      if (typeof input.nextTaskCode === 'string' && input.nextTaskCode) {
-        await sql`UPDATE public.assessment_sessions SET current_task_code = ${input.nextTaskCode} WHERE id = ${sessionId}::uuid`;
+      if (!sessionId || !taskCode) {
+        return json({ ok: false, error: 'missing_fields' }, 400);
       }
-      return json({ ok: true });
+      if (!assessmentTasks.some((task) => task.id === taskCode)) {
+        return json({ ok: false, error: 'task_not_found' }, 404);
+      }
+
+      const student = await authenticatedStudent(request);
+      if (!student) return json({ ok: false, error: 'student_session_required' }, 401);
+      const ownedSession = await studentSessionAccess(sql, sessionId, student);
+      if (ownedSession && p2DefinitionStatus(ownedSession.definition_contract) === 'mismatch') {
+        return json({ ok: false, error: 'assessment_definition_mismatch' }, 409);
+      }
+
+      const shownAt =
+        typeof input.shownAt === 'number' ? new Date(input.shownAt) : new Date();
+      const firstActionAt =
+        typeof input.firstActionAt === 'number' ? new Date(input.firstActionAt) : null;
+      const completedAt =
+        typeof input.completedAt === 'number' ? new Date(input.completedAt) : new Date();
+
+      if (
+        Number.isNaN(shownAt.getTime()) ||
+        Number.isNaN(completedAt.getTime()) ||
+        (firstActionAt && Number.isNaN(firstActionAt.getTime()))
+      ) {
+        return json({ ok: false, error: 'invalid_timing' }, 400);
+      }
+
+      const answerText =
+        typeof input.answerText === 'string' ? input.answerText.slice(0, 4000) : null;
+      const answerPayload =
+        typeof input.answerPayload === 'object' && input.answerPayload
+          ? input.answerPayload
+          : {};
+      if (ownedSession && p2DefinitionStatus(ownedSession.definition_contract) === 'current_t4') {
+        const clientAttemptId = uuid(input.clientAttemptId);
+        if (!clientAttemptId) return json({ ok: false, error: 'client_attempt_id_required' }, 400);
+        const mode = (answerPayload as Record<string, unknown>).responseMode;
+        const evaluation = evaluateP2TextAttempt(taskCode, answerText, mode);
+        const trustedPayload = { responseMode: mode === 'TEXT' ? 'TEXT' : 'OTHER',
+          clientTelemetry: 'client_reported' };
+        const hash = createHash('sha256').update(JSON.stringify({ taskCode,
+          answerText, responseMode: trustedPayload.responseMode })).digest('hex');
+        try {
+          const rows = await sql`
+            SELECT * FROM public.cza_t4_record_assessment_attempt(
+              ${sessionId}::uuid, ${student.student_id}::uuid, ${student.academy_id}::uuid,
+              ${taskCode}, ${clientAttemptId}::uuid, ${hash}, ${answerText},
+              ${JSON.stringify(trustedPayload)}::jsonb, ${JSON.stringify(evaluation)}::jsonb,
+              ${evaluation.nextTaskCode})
+          `;
+          if (!rows.length) return json({ ok: false, error: 'assessment_session_not_mutable' }, 409);
+          return json({ ok: true, attemptId: rows[0].attempt_id,
+            nextTaskCode: rows[0].next_task_code, replayed: rows[0].replayed,
+            verdict: evaluation.verdict,
+            needsEducatorReview: evaluation.needsEducatorReview && !rows[0].next_task_code });
+        } catch (error) {
+          if ((error as { code?: string }).code === '23505') {
+            return json({ ok: false, error: 'assessment_attempt_conflict' }, 409);
+          }
+          throw error;
+        }
+      }
+
+      const answerChanges = Math.max(
+        0,
+        Math.min(1000, Number(input.answerChanges ?? 0)),
+      );
+      const supportLevel = Math.max(
+        0,
+        Math.min(5, Number(input.supportLevel ?? 0)),
+      );
+      const selfCorrected = Boolean(input.selfCorrected);
+      const responseLatencyMs = firstActionAt
+        ? Math.max(0, firstActionAt.getTime() - shownAt.getTime())
+        : null;
+      const totalResponseTimeMs = Math.max(
+        0,
+        completedAt.getTime() - shownAt.getTime(),
+      );
+
+      const inserted = await sql`
+        INSERT INTO public.assessment_attempts (
+          session_id, task_code, shown_at, first_action_at, completed_at,
+          answer_text, answer_payload, answer_changes, support_level,
+          self_corrected, rubric_scores, response_latency_ms, total_response_time_ms
+        )
+        SELECT
+          session.id,
+          ${taskCode},
+          ${shownAt.toISOString()}::timestamptz,
+          ${firstActionAt ? firstActionAt.toISOString() : null}::timestamptz,
+          ${completedAt.toISOString()}::timestamptz,
+          ${answerText},
+          ${JSON.stringify(answerPayload)}::jsonb,
+          ${answerChanges},
+          ${supportLevel},
+          ${selfCorrected},
+          '{}'::jsonb,
+          ${responseLatencyMs},
+          ${totalResponseTimeMs}
+        FROM public.assessment_sessions session
+        JOIN public.students student ON student.id = session.student_id
+        WHERE session.id = ${sessionId}::uuid
+          AND session.status = 'active'
+          AND session.student_id = ${student.student_id}::uuid
+          AND student.academy_id = ${student.academy_id}::uuid
+        RETURNING id
+      `;
+
+      if (!inserted.length) {
+        return json({ ok: false, error: 'assessment_session_not_mutable' }, 409);
+      }
+
+      if (typeof input.nextTaskCode === 'string' && input.nextTaskCode) {
+        const nextTaskCode = input.nextTaskCode;
+        if (!assessmentTasks.some((task) => task.id === nextTaskCode)) {
+          return json({ ok: false, error: 'next_task_not_found' }, 400);
+        }
+        await sql`
+          UPDATE public.assessment_sessions session
+          SET current_task_code = ${nextTaskCode}
+          FROM public.students student
+          WHERE session.id = ${sessionId}::uuid
+            AND session.student_id = student.id
+            AND session.status = 'active'
+            AND session.student_id = ${student.student_id}::uuid
+            AND student.academy_id = ${student.academy_id}::uuid
+        `;
+      }
+
+      return json({ ok: true, attemptId: inserted[0].id });
+    }
+
+    if (action === 'review_attempt') {
+      const sessionId = uuid(input.sessionId);
+      const attemptId = uuid(input.attemptId);
+      const taskCode = typeof input.taskCode === 'string' ? input.taskCode : '';
+      const decision = input.decision;
+      if (!sessionId || !attemptId || !taskCode) {
+        return json({ ok: false, error: 'missing_fields' }, 400);
+      }
+      const access = await educatorAccess(request, sql, sessionId);
+      if (!access) return json({ ok: false, error: 'educator_not_authorized' }, 403);
+      if (p2DefinitionStatus(access.session.definition_contract) !== 'current_t4') {
+        return json({ ok: false, error: 'assessment_definition_mismatch' }, 409);
+      }
+      const stored = await sql`
+        SELECT task_code FROM public.assessment_attempts
+        WHERE id = ${attemptId}::uuid AND session_id = ${sessionId}::uuid
+          AND client_attempt_id IS NOT NULL
+        LIMIT 1
+      `;
+      if (!stored.length) return json({ ok: false, error: 'assessment_review_not_mutable' }, 409);
+      const nextTaskCode = educatorReviewNext(stored[0].task_code, decision);
+      if (!nextTaskCode) return json({ ok: false, error: 'invalid_review' }, 400);
+      try {
+        const rows = await sql`
+          SELECT * FROM public.cza_t4_review_assessment_attempt(
+            ${sessionId}::uuid, ${attemptId}::uuid, ${access.educator.id},
+            ${taskCode}, ${decision}, ${nextTaskCode})
+        `;
+        if (!rows.length) return json({ ok: false, error: 'assessment_review_not_mutable' }, 409);
+        return json({ ok: true, attemptId: rows[0].attempt_id,
+          nextTaskCode: rows[0].next_task_code, replayed: rows[0].replayed,
+          observationOrigin: 'educator_observed' });
+      } catch (error) {
+        if ((error as { code?: string }).code === '23505') {
+          return json({ ok: false, error: 'assessment_review_conflict' }, 409);
+        }
+        throw error;
+      }
     }
 
     if (action === 'score') {
-      const sessionId = typeof input.sessionId === 'string' ? input.sessionId : '';
-      const attemptId = typeof input.attemptId === 'string' ? input.attemptId : '';
+      const sessionId = uuid(input.sessionId);
+      const attemptId = uuid(input.attemptId);
       const taskCode = typeof input.taskCode === 'string' ? input.taskCode : '';
-      const rawScores = typeof input.rubricScores === 'object' && input.rubricScores ? input.rubricScores as Record<string, unknown> : {};
-      if (!sessionId || !attemptId || !taskCode) return json({ ok: false, error: 'missing_fields' }, 400);
+      if (!sessionId || !attemptId || !taskCode) {
+        return json({ ok: false, error: 'missing_fields' }, 400);
+      }
+
+      const access = await educatorAccess(request, sql, sessionId);
+      if (!access) return json({ ok: false, error: 'educator_not_authorized' }, 403);
+      if (p2DefinitionStatus(access.session.definition_contract) === 'mismatch') {
+        return json({ ok: false, error: 'assessment_definition_mismatch' }, 409);
+      }
+      if (!mutable(access.session.status)) {
+        return json({ ok: false, error: 'assessment_session_not_mutable' }, 409);
+      }
+
       const task = assessmentTasks.find((item) => item.id === taskCode);
       if (!task) return json({ ok: false, error: 'task_not_found' }, 404);
+
+      const rawScores =
+        typeof input.rubricScores === 'object' && input.rubricScores
+          ? (input.rubricScores as Record<string, unknown>)
+          : {};
       const rubricScores: Record<string, number> = {};
       for (const dimension of task.rubric) {
         const raw = rawScores[dimension.id];
         if (typeof raw !== 'number' || !Number.isFinite(raw)) continue;
-        rubricScores[dimension.id] = Math.max(0, Math.min(dimension.max, Math.round(raw)));
+        rubricScores[dimension.id] = Math.max(
+          0,
+          Math.min(dimension.max, Math.round(raw)),
+        );
       }
+
       const updated = await sql`
-        UPDATE public.assessment_attempts
+        UPDATE public.assessment_attempts attempt
         SET rubric_scores = ${JSON.stringify(rubricScores)}::jsonb
-        WHERE id = ${attemptId}::uuid AND session_id = ${sessionId}::uuid AND task_code = ${taskCode}
-        RETURNING id
+        FROM public.assessment_sessions session
+        WHERE attempt.id = ${attemptId}::uuid
+          AND attempt.session_id = session.id
+          AND session.id = ${sessionId}::uuid
+          AND attempt.task_code = ${taskCode}
+          AND session.status = 'active'
+        RETURNING attempt.id
       `;
-      if (!updated.length) return json({ ok: false, error: 'attempt_not_found' }, 404);
+
+      if (!updated.length) {
+        return json({ ok: false, error: 'assessment_session_not_mutable' }, 409);
+      }
       return json({ ok: true, rubricScores });
     }
 
     if (action === 'observe') {
-      const sessionId = typeof input.sessionId === 'string' ? input.sessionId : '';
+      const sessionId = uuid(input.sessionId);
       const taskCode = typeof input.taskCode === 'string' ? input.taskCode : '';
-      const codes = Array.isArray(input.observationCodes) ? input.observationCodes.map(String).slice(0, 20) : [];
-      const note = typeof input.educatorNote === 'string' ? input.educatorNote.slice(0, 4000) : null;
-      const confidence = input.confidence == null ? null : Math.max(1, Math.min(5, Number(input.confidence)));
-      if (!sessionId || !taskCode) return json({ ok: false, error: 'missing_fields' }, 400);
-      await sql`
-        INSERT INTO public.assessment_observations (session_id, task_code, observation_codes, educator_note, confidence)
-        VALUES (${sessionId}::uuid, ${taskCode}, ${JSON.stringify(codes)}::jsonb, ${note}, ${confidence})
+      if (!sessionId || !taskCode) {
+        return json({ ok: false, error: 'missing_fields' }, 400);
+      }
+      if (!assessmentTasks.some((task) => task.id === taskCode)) {
+        return json({ ok: false, error: 'task_not_found' }, 404);
+      }
+
+      const access = await educatorAccess(request, sql, sessionId);
+      if (!access) return json({ ok: false, error: 'educator_not_authorized' }, 403);
+      if (p2DefinitionStatus(access.session.definition_contract) === 'mismatch') {
+        return json({ ok: false, error: 'assessment_definition_mismatch' }, 409);
+      }
+      if (!mutable(access.session.status)) {
+        return json({ ok: false, error: 'assessment_session_not_mutable' }, 409);
+      }
+
+      const codes = Array.isArray(input.observationCodes)
+        ? input.observationCodes.map(String).slice(0, 20)
+        : [];
+      const note =
+        typeof input.educatorNote === 'string'
+          ? input.educatorNote.slice(0, 4000)
+          : null;
+      const confidence =
+        input.confidence == null
+          ? null
+          : Math.max(1, Math.min(5, Number(input.confidence)));
+
+      const inserted = await sql`
+        INSERT INTO public.assessment_observations (
+          session_id,
+          task_code,
+          observation_codes,
+          educator_note,
+          confidence,
+          observer_user_id,
+          observer_academy_id,
+          observation_origin
+        )
+        SELECT
+          session.id,
+          ${taskCode},
+          ${JSON.stringify(codes)}::jsonb,
+          ${note},
+          ${confidence},
+          ${access.session.observer_user_id}::uuid,
+          ${access.session.observer_academy_id}::uuid,
+          'educator_observed'
+        FROM public.assessment_sessions session
+        WHERE session.id = ${sessionId}::uuid
+          AND session.status = 'active'
+        RETURNING id
       `;
-      return json({ ok: true });
+
+      if (!inserted.length) {
+        return json({ ok: false, error: 'assessment_session_not_mutable' }, 409);
+      }
+      return json({
+        ok: true,
+        observationId: inserted[0].id,
+        observationOrigin: 'educator_observed',
+      });
     }
 
     if (action === 'finish') {
-      const sessionId = typeof input.sessionId === 'string' ? input.sessionId : '';
+      const sessionId = uuid(input.sessionId);
       if (!sessionId) return json({ ok: false, error: 'session_required' }, 400);
-      await sql`
+
+      const access = await readAccess(request, sql, sessionId);
+      if (!access) return json({ ok: false, error: 'session_not_authorized' }, 403);
+      if (p2DefinitionStatus(access.session.definition_contract) === 'mismatch') {
+        return json({ ok: false, error: 'assessment_definition_mismatch' }, 409);
+      }
+
+      if (access.session.status === 'completed') {
+        return json({ ok: true, status: 'completed', replayed: true });
+      }
+      if (!mutable(access.session.status)) {
+        return json({ ok: false, error: 'assessment_session_not_mutable' }, 409);
+      }
+
+      const updated = await sql`
         UPDATE public.assessment_sessions
-        SET status = 'completed', completed_at = now(), current_task_code = NULL
+        SET status = 'completed',
+            completed_at = now(),
+            current_task_code = NULL
         WHERE id = ${sessionId}::uuid
+          AND status = 'active'
+          AND NOT EXISTS (
+            SELECT 1 FROM public.assessment_attempts pending
+            WHERE pending.session_id = ${sessionId}::uuid
+              AND pending.server_evaluation->>'needsEducatorReview' = 'true'
+              AND pending.educator_review IS NULL
+          )
+        RETURNING id, status, completed_at
       `;
-      return json({ ok: true });
+
+      if (!updated.length) {
+        return json({ ok: false, error: 'assessment_session_not_mutable' }, 409);
+      }
+      return json({ ok: true, status: 'completed', replayed: false });
     }
 
     return json({ ok: false, error: 'invalid_action' }, 400);
-  } catch (error) {
-    const message = error instanceof Error ? error.message : 'assessment_unavailable';
-    return json({ ok: false, error: message }, 500);
+  } catch {
+    return json({ ok: false, error: 'assessment_unavailable' }, 503);
   }
 }

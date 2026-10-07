@@ -1,0 +1,17 @@
+{
+  "schemaVersion": "CZA-EDGE-HEADER-AUTHORITY-V4",
+  "wafBeforeWorker": {
+    "rawTargetSource": "raw.http.request.uri",
+    "rawPathSource": "raw.http.request.uri.path",
+    "rawQuerySource": "raw.http.request.uri.query",
+    "rejectHeadersTruncated": true,
+    "rejectDuplicateContentType": true,
+    "malformedTargetEnforcement": "Worker canonical parser, fail-closed before origin fetch",
+    "rejectCrossHost": true
+  },
+  "nativeIaC": "infra/staging/modules/cloudflare/main.tf#cloudflare_ruleset",
+  "transformOverwriteHeaders": ["x-cza-edge-raw-target", "x-cza-edge-policy-version", "x-cza-edge-header-state"],
+  "workerRechecks": ["policy-marker", "complete-header-marker", "raw-target-visible-ascii", "C0-and-DEL", "percent-encoding", "encoded-separators", "authority", "method", "route", "content-type", "body-limit"],
+  "originReconstructsOnlyFromSigned": ["public-authority", "raw-target", "target", "method", "content-type", "body-sha256", "access-jwt-sha256", "nonce", "timestamp", "route-id", "audience"],
+  "untrustedAtOrigin": ["host-for-public-authority", "forwarded", "x-forwarded-for", "x-forwarded-host", "x-real-ip", "true-client-ip", "cf-connecting-ip"]
+}

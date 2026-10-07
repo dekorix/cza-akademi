@@ -105,6 +105,10 @@ const adaptiveNext: Record<string, { correct: string; incorrect: string }> = {
   'COG-04A': { correct: 'COG-04B', incorrect: 'COG-04S' },
 };
 
+export function assessmentRoutingRuleSet() {
+  return { anchorAnswers, fixedNext, adaptiveNext };
+}
+
 export function routeAssessmentTask(taskCode: string, answer: string) {
   const matched = answerMatches(taskCode, answer);
   const adaptive = adaptiveNext[taskCode];

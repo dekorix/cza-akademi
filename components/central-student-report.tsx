@@ -5,6 +5,7 @@ import { CheckCircle2, KeyRound, Loader2, Search, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { educatorAuthRequest, educatorAuthError } from '@/lib/educator-auth-client';
+import { EducatorAssignmentReport } from '@/components/educator-assignment-report';
 
 type SpecialLearningStatus =
   | 'RELATIVE_STRENGTH'
@@ -264,7 +265,7 @@ function errorLabel(code: string) {
 export function CentralStudentReport({ children, initialCode = '' }: { children?: ReactNode; initialCode?: string } = {}) {
   const [authenticated, setAuthenticated] = useState(false);
   const [checking, setChecking] = useState(true);
-  const [email] = useState('celikzihin.akademisi@gmail.com');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [code, setCode] = useState(initialCode);
   const [loading, setLoading] = useState(false);
@@ -353,9 +354,9 @@ export function CentralStudentReport({ children, initialCode = '' }: { children?
           id="educatorEmail"
           type="email"
           required
-          readOnly
           autoComplete="username"
           value={email}
+          onChange={(event) => setEmail(event.target.value)}
           className="mt-2 bg-muted/40"
         />
         <label
@@ -373,7 +374,7 @@ export function CentralStudentReport({ children, initialCode = '' }: { children?
           onChange={(e) => setPassword(e.target.value)}
           className="mt-2"
         />
-        <Button className="mt-5 w-full" disabled={loading}>
+        <Button type="submit" className="mt-5 w-full" disabled={loading}>
           {loading ? <Loader2 className="animate-spin" /> : <KeyRound />} Giriş
           yap
         </Button>
@@ -444,6 +445,7 @@ export function CentralStudentReport({ children, initialCode = '' }: { children?
                 </p>
               </div>
               <div className="grid grid-cols-4 gap-3 text-center">
+                <p className="col-span-4 text-xs font-semibold text-muted-foreground">Öğrenci geneli toplamları</p>
                 {[
                   ['Soru', report.summary.total],
                   ['Doğru', report.summary.correct],
@@ -865,6 +867,7 @@ export function CentralStudentReport({ children, initialCode = '' }: { children?
               <p className="mt-5 rounded-lg bg-white p-4 text-sm text-muted-foreground">Henüz canonical tamamlanmış çalışma kaydı yok.</p>
             )}
           </section>
+          {report.student.id && <EducatorAssignmentReport studentId={report.student.id} />}
 
           {report.assessmentRouting && (
             <section className="rounded-xl border border-[#c9d9d1] bg-[#f5faf7] p-6">

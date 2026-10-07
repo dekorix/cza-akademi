@@ -1,48 +1,277 @@
-import { createHash, randomBytes, scrypt as nodeScrypt, timingSafeEqual } from 'node:crypto';
+import {
+  createHash,
+  createHmac,
+  randomBytes,
+  scrypt as nodeScrypt,
+  timingSafeEqual,
+} from 'node:crypto';
 import { neon } from '@neondatabase/serverless';
+import { requestBodySha256 } from '@/lib/educator-request-security';
 
-const AUTH_BASE = process.env.CZA_NEON_AUTH_BASE_URL || 'https://ep-delicate-sky-b2fyqu4m.neonauth.c-6.eu-central-1.aws.neon.tech/cza_learning/auth';
+import { verifiedNeonIdentity } from '@/lib/educator-neon-ingress';
+
 export const EDUCATOR_COOKIE = 'cza_educator_session';
 const SITE_OWNER_EMAIL = 'habipcann65@gmail.com';
 export const EDUCATOR_EMAIL = 'celikzihin.akademisi@gmail.com';
 export const EDUCATOR_AUTH_USER_ID = '47c90485-e057-4ebe-a25c-9d7f236c5bd6';
 const LOCAL_PREFIX = 'local.';
-const SCRYPT_OPTIONS = { N: 16384, r: 16, p: 1, maxmem: 128 * 16384 * 16 * 2 } as const;
+const SCRYPT_OPTIONS = {
+  N: 16384,
+  r: 16,
+  p: 1,
+  maxmem: 128 * 16384 * 16 * 2,
+} as const;
+const PROXY_EMAIL_HEADER = 'oai-authenticated-user-email';
+const PROXY_TIMESTAMP_HEADER = 'x-cza-proxy-timestamp';
+const PROXY_NONCE_HEADER = 'x-cza-proxy-nonce';
+const PROXY_SIGNATURE_HEADER = 'x-cza-proxy-signature';
+const PROXY_SIGNATURE_VERSION = 'cza-educator-proxy-v2';
+const PROXY_MAX_CLOCK_SKEW_SECONDS = 60;
+const verifiedProxyRequests = new WeakMap<Request, TrustedEducatorProxy>();
+
+type TrustedEducatorProxy = {
+  educatorEmail: string;
+};
+
+function proxySignaturePayload(
+  request: Request,
+  timestamp: string,
+  nonce: string,
+  bodySha256: string,
+  educatorEmail: string,
+) {
+  const url = new URL(request.url);
+  return [
+    PROXY_SIGNATURE_VERSION,
+    timestamp,
+    nonce,
+    request.method.toUpperCase(),
+    `${url.pathname}${url.search}`,
+    bodySha256,
+    educatorEmail,
+  ].join('\n');
+}
+
+async function consumeProxyNonce(nonce: string, timestampSeconds: number) {
+  if (!process.env.DATABASE_URL) return false;
+  const nonceHash = createHash('sha256').update(nonce).digest('hex');
+  const expiresAt = new Date(
+    (timestampSeconds + PROXY_MAX_CLOCK_SKEW_SECONDS + 1) * 1000,
+  ).toISOString();
+  try {
+    const sql = neon(process.env.DATABASE_URL);
+    const rows = await sql`
+      SELECT public.cza_consume_trusted_proxy_nonce(
+        ${nonceHash}::text,
+        ${expiresAt}::timestamptz
+      ) AS consumed
+    `;
+    return rows[0]?.consumed === true;
+  } catch {
+    return false;
+  }
+}
+
+export async function trustedEducatorProxy(
+  request: Request,
+  knownBodySha256?: string,
+  nowMilliseconds = Date.now(),
+): Promise<TrustedEducatorProxy | null> {
+  const cached = verifiedProxyRequests.get(request);
+  if (cached) return cached;
+
+  const secret = process.env.CZA_TRUSTED_PROXY_HMAC_SECRET || '';
+  if (Buffer.byteLength(secret, 'utf8') < 32) return null;
+
+  const timestamp = (request.headers.get(PROXY_TIMESTAMP_HEADER) || '').trim();
+  const nonce = (request.headers.get(PROXY_NONCE_HEADER) || '')
+    .trim()
+    .toLowerCase();
+  const signature = (request.headers.get(PROXY_SIGNATURE_HEADER) || '')
+    .trim()
+    .toLowerCase();
+  const educatorEmail = (request.headers.get(PROXY_EMAIL_HEADER) || '')
+    .trim()
+    .toLowerCase();
+  if (!/^\d{10}$/.test(timestamp) || !/^[0-9a-f]{64}$/.test(signature))
+    return null;
+  if (!/^[0-9a-f]{32,128}$/.test(nonce)) return null;
+  if (educatorEmail.length > 254 || /[\r\n]/.test(educatorEmail)) return null;
+
+  const timestampSeconds = Number(timestamp);
+  const nowSeconds = Math.floor(nowMilliseconds / 1000);
+  if (
+    !Number.isSafeInteger(timestampSeconds) ||
+    Math.abs(nowSeconds - timestampSeconds) > PROXY_MAX_CLOCK_SKEW_SECONDS
+  ) {
+    return null;
+  }
+
+  let bodySha256 = knownBodySha256;
+  if (bodySha256 === undefined) {
+    try {
+      bodySha256 = await requestBodySha256(request);
+    } catch {
+      return null;
+    }
+  }
+  if (!/^[0-9a-f]{64}$/.test(bodySha256)) return null;
+
+  const expected = createHmac('sha256', secret)
+    .update(
+      proxySignaturePayload(
+        request,
+        timestamp,
+        nonce,
+        bodySha256,
+        educatorEmail,
+      ),
+    )
+    .digest();
+  const supplied = Buffer.from(signature, 'hex');
+  if (
+    supplied.length !== expected.length ||
+    !timingSafeEqual(supplied, expected)
+  )
+    return null;
+
+  if (!(await consumeProxyNonce(nonce, timestampSeconds))) {
+    return null;
+  }
+
+  const trusted = { educatorEmail };
+  verifiedProxyRequests.set(request, trusted);
+  return trusted;
+}
+
+export async function educatorProxyRequestAllowed(
+  request: Request,
+  knownBodySha256?: string,
+) {
+  return (await trustedEducatorProxy(request, knownBodySha256)) !== null;
+}
+
+function neonAuthBase() {
+  const configured = (process.env.CZA_NEON_AUTH_BASE_URL || '').trim();
+  if (!configured) throw new Error('auth_configuration_unavailable');
+
+  let parsed: URL;
+  try {
+    parsed = new URL(configured);
+  } catch {
+    throw new Error('auth_configuration_unavailable');
+  }
+  if (
+    parsed.protocol !== 'https:' ||
+    parsed.username ||
+    parsed.password ||
+    parsed.search ||
+    parsed.hash
+  ) {
+    throw new Error('auth_configuration_unavailable');
+  }
+  return parsed.toString().replace(/\/$/, '');
+}
 
 function derivePasswordKey(password: string, salt: string) {
   return new Promise<Buffer>((resolve, reject) => {
-    nodeScrypt(password.normalize('NFKC'), salt, 64, SCRYPT_OPTIONS, (error, key) => {
-      if (error) reject(error);
-      else resolve(key as Buffer);
-    });
+    nodeScrypt(
+      password.normalize('NFKC'),
+      salt,
+      64,
+      SCRYPT_OPTIONS,
+      (error, key) => {
+        if (error) reject(error);
+        else resolve(key as Buffer);
+      },
+    );
   });
 }
 
 export function readCookie(request: Request, name: string) {
-  const value = (request.headers.get('cookie') || '').split(';').map(v=>v.trim()).find(v=>v.startsWith(`${name}=`));
-  return value ? decodeURIComponent(value.slice(name.length + 1)) : '';
+  const value = (request.headers.get('cookie') || '')
+    .split(';')
+    .map((v) => v.trim())
+    .find((v) => v.startsWith(`${name}=`));
+  if (!value) return '';
+  const encoded = value.slice(name.length + 1);
+  if (encoded.length > 4096) return '';
+  try {
+    return decodeURIComponent(encoded);
+  } catch {
+    return '';
+  }
 }
 
 export function educatorCookie(value: string, maxAge: number, secure: boolean) {
-  return [`${EDUCATOR_COOKIE}=${encodeURIComponent(value)}`,'Path=/api','HttpOnly',...(secure?['Secure']:[]),'SameSite=Lax',`Max-Age=${maxAge}`].join('; ');
+  return [
+    `${EDUCATOR_COOKIE}=${encodeURIComponent(value)}`,
+    'Path=/api',
+    'HttpOnly',
+    ...(secure ? ['Secure'] : []),
+    'SameSite=Lax',
+    `Max-Age=${maxAge}`,
+  ].join('; ');
 }
 
 function tokenHash(token: string) {
   return createHash('sha256').update(token).digest('hex');
 }
 
-async function educatorDbUser() {
+type CanonicalEducator = {
+  id: string;
+  academy_id: string;
+  auth_user_id: string;
+  email: string | null;
+  display_name: string;
+};
+
+async function canonicalEducatorByAuthId(authUserId: string) {
   if (!process.env.DATABASE_URL) return null;
   const sql = neon(process.env.DATABASE_URL);
   const rows = await sql`
     SELECT id, academy_id, auth_user_id, email, display_name
     FROM public.users
-    WHERE auth_user_id = ${EDUCATOR_AUTH_USER_ID}
+    WHERE auth_user_id = ${authUserId}
       AND is_active = true
-      AND role::text IN ('admin','teacher')
+      AND role::text = 'educator'
     LIMIT 1
   `;
-  return rows[0] as { id: string; academy_id: string; auth_user_id: string; email: string | null; display_name: string } | undefined;
+  return (rows[0] as CanonicalEducator | undefined) || null;
+}
+
+async function educatorDbUser() {
+  return canonicalEducatorByAuthId(EDUCATOR_AUTH_USER_ID);
+}
+
+async function canonicalEducatorBySignedEmail(email: string) {
+  if (!process.env.DATABASE_URL) return null;
+  const sql = neon(process.env.DATABASE_URL);
+  const rows = await sql`
+    SELECT id, academy_id, auth_user_id, email, display_name
+    FROM public.users
+    WHERE lower(email) = lower(${email})
+      AND is_active = true
+      AND role::text = 'educator'
+    LIMIT 2
+  `;
+  // Never choose an academy arbitrarily, including when one match lacks an auth mapping.
+  if (rows.length !== 1 || !rows[0].auth_user_id || !rows[0].academy_id)
+    return null;
+  return rows[0] as CanonicalEducator;
+}
+
+export async function canonicalNeonEducatorEmail(email: string) {
+  const row = await canonicalEducatorBySignedEmail(email);
+  return row?.email?.toLowerCase() === email.toLowerCase();
+}
+
+function educatorIdentity(row: CanonicalEducator) {
+  return {
+    id: row.auth_user_id,
+    email: row.email || EDUCATOR_EMAIL,
+    name: row.display_name || 'CZA Eğitimci',
+  };
 }
 
 export async function verifyEducatorPassword(password: string) {
@@ -60,10 +289,17 @@ export async function verifyEducatorPassword(password: string) {
   `;
   const stored = typeof rows[0]?.password === 'string' ? rows[0].password : '';
   const [salt, keyHex, extra] = stored.split(':');
-  if (extra !== undefined || !/^[0-9a-f]{32}$/i.test(salt || '') || !/^[0-9a-f]{128}$/i.test(keyHex || '')) return false;
+  if (
+    extra !== undefined ||
+    !/^[0-9a-f]{32}$/i.test(salt || '') ||
+    !/^[0-9a-f]{128}$/i.test(keyHex || '')
+  )
+    return false;
   const derived = await derivePasswordKey(password, salt);
   const expected = Buffer.from(keyHex, 'hex');
-  return derived.length === expected.length && timingSafeEqual(derived, expected);
+  return (
+    derived.length === expected.length && timingSafeEqual(derived, expected)
+  );
 }
 
 export async function createLocalEducatorSession(request: Request) {
@@ -80,12 +316,17 @@ export async function createLocalEducatorSession(request: Request) {
   `;
   return {
     cookieValue: `${LOCAL_PREFIX}${token}`,
-    user: { id: EDUCATOR_AUTH_USER_ID, email: EDUCATOR_EMAIL, name: educator.display_name || 'CZA Eğitimci' },
+    user: {
+      id: EDUCATOR_AUTH_USER_ID,
+      email: EDUCATOR_EMAIL,
+      name: educator.display_name || 'CZA Eğitimci',
+    },
   };
 }
 
 async function localEducator(cookieValue: string) {
-  if (!cookieValue.startsWith(LOCAL_PREFIX) || !process.env.DATABASE_URL) return null;
+  if (!cookieValue.startsWith(LOCAL_PREFIX) || !process.env.DATABASE_URL)
+    return null;
   const token = cookieValue.slice(LOCAL_PREFIX.length);
   if (!/^[a-f0-9]{64}$/i.test(token)) return null;
   const sql = neon(process.env.DATABASE_URL);
@@ -97,29 +338,113 @@ async function localEducator(cookieValue: string) {
       AND es.revoked_at IS NULL
       AND es.expires_at > now()
       AND u.is_active = true
-      AND u.role::text IN ('admin','teacher')
+      AND u.role::text = 'educator'
       AND u.auth_user_id = ${EDUCATOR_AUTH_USER_ID}
     LIMIT 1
   `;
   if (!rows.length) return null;
   await sql`UPDATE public.educator_sessions SET last_seen_at = now() WHERE id = ${rows[0].session_id}::uuid`;
-  const row = rows[0] as { auth_user_id: string; email: string | null; display_name: string };
-  return { id: row.auth_user_id, email: row.email || EDUCATOR_EMAIL, name: row.display_name || 'CZA Eğitimci' };
+  const row = rows[0] as {
+    auth_user_id: string;
+    email: string | null;
+    display_name: string;
+  };
+  return {
+    id: row.auth_user_id,
+    email: row.email || EDUCATOR_EMAIL,
+    name: row.display_name || 'CZA Eğitimci',
+  };
 }
 
 export async function revokeLocalEducatorSession(request: Request) {
   const cookieValue = readCookie(request, EDUCATOR_COOKIE);
-  if (!cookieValue.startsWith(LOCAL_PREFIX) || !process.env.DATABASE_URL) return;
+  if (!cookieValue) return 'no-session' as const;
+  if (!cookieValue.startsWith(LOCAL_PREFIX)) return 'external-session' as const;
+  if (!process.env.DATABASE_URL) throw new Error('logout_revocation_failed');
   const token = cookieValue.slice(LOCAL_PREFIX.length);
-  if (!/^[a-f0-9]{64}$/i.test(token)) return;
+  if (!/^[a-f0-9]{64}$/i.test(token))
+    throw new Error('logout_revocation_failed');
   const sql = neon(process.env.DATABASE_URL);
-  await sql`UPDATE public.educator_sessions SET revoked_at = now() WHERE token_hash = ${tokenHash(token)} AND revoked_at IS NULL`;
+  await sql`
+    UPDATE public.educator_sessions
+    SET revoked_at = now()
+    WHERE token_hash = ${tokenHash(token)}
+      AND revoked_at IS NULL
+    RETURNING id
+  `;
+  return 'local-session' as const;
+}
+
+async function authenticatedNeonEducator(request: Request) {
+  const session = await verifiedNeonIdentity(request);
+  if (!session || !process.env.DATABASE_URL) return null;
+  const sql = neon(process.env.DATABASE_URL);
+  const rows = await sql`
+    SELECT id, academy_id, auth_user_id, email, display_name
+    FROM public.users
+    WHERE auth_user_id = ${session.id}
+      AND is_active = true AND role::text = 'educator'
+    LIMIT 2
+  `;
+  if (rows.length !== 1 || !rows[0].academy_id) return null;
+  const canonical = rows[0] as CanonicalEducator;
+  const secret = process.env.CZA_TRUSTED_PROXY_HMAC_SECRET || '';
+  if (Buffer.byteLength(secret) < 32) return null;
+  const timestamp = String(Math.floor(Date.now() / 1000));
+  const nonce = randomBytes(24).toString('hex');
+  const bodyHash = await requestBodySha256(request);
+  const headers = new Headers(request.headers);
+  // Private in-process handoff. The verified provider ID selected this row;
+  // the signed canonical email is context, never an email-to-role lookup.
+  const canonicalEmail = (canonical.email || '').trim().toLowerCase();
+  headers.set(PROXY_EMAIL_HEADER, canonicalEmail);
+  headers.set(PROXY_TIMESTAMP_HEADER, timestamp);
+  headers.set(PROXY_NONCE_HEADER, nonce);
+  headers.set(
+    PROXY_SIGNATURE_HEADER,
+    createHmac('sha256', secret)
+      .update(
+        proxySignaturePayload(
+          request,
+          timestamp,
+          nonce,
+          bodyHash,
+          canonicalEmail,
+        ),
+      )
+      .digest('hex'),
+  );
+  // The original body must remain readable by the downstream route. HMAC
+  // verification receives its exact bounded digest, so this private envelope
+  // needs only the original URL/method and signed headers, not body ownership.
+  const signed = new Request(request.url, { method: request.method, headers });
+  if (!(await trustedEducatorProxy(signed, bodyHash))) return null;
+  return {
+    id: canonical.auth_user_id,
+    email: canonical.email || '',
+    name: canonical.display_name || 'CZA Eğitimci',
+  };
 }
 
 export async function authenticatedEducator(request: Request) {
-  const siteEmail = (request.headers.get('oai-authenticated-user-email') || '').trim().toLowerCase();
+  if (process.env.CZA_EDUCATOR_AUTH_MODE === 'neon') {
+    try {
+      return await authenticatedNeonEducator(request);
+    } catch {
+      return null;
+    }
+  }
+  const proxy = await trustedEducatorProxy(request);
+  if (!proxy) return null;
+
+  const siteEmail = proxy?.educatorEmail || '';
   if (siteEmail === SITE_OWNER_EMAIL) {
-    return { id: EDUCATOR_AUTH_USER_ID, email: EDUCATOR_EMAIL, name: 'Habip Çelik' };
+    const canonical = await canonicalEducatorByAuthId(EDUCATOR_AUTH_USER_ID);
+    return canonical ? educatorIdentity(canonical) : null;
+  }
+  if (siteEmail) {
+    const canonical = await canonicalEducatorBySignedEmail(siteEmail);
+    return canonical ? educatorIdentity(canonical) : null;
   }
   const sessionCookie = readCookie(request, EDUCATOR_COOKIE);
   if (!sessionCookie) return null;
@@ -130,11 +455,20 @@ export async function authenticatedEducator(request: Request) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 5000);
   try {
-    const response = await fetch(`${AUTH_BASE}/get-session`,{headers:{cookie:sessionCookie},cache:'no-store',signal:controller.signal});
+    const response = await fetch(authUrl('/get-session'), {
+      headers: { cookie: sessionCookie },
+      cache: 'no-store',
+      signal: controller.signal,
+    });
     if (!response.ok) return null;
-    const data = await response.json() as {user?:{id?:string;email?:string;name?:string}};
+    const data = (await response.json()) as {
+      user?: { id?: string; email?: string; name?: string };
+    };
     const userEmail = (data.user?.email || '').trim().toLowerCase();
-    return data.user?.id === EDUCATOR_AUTH_USER_ID && userEmail === EDUCATOR_EMAIL ? data.user : null;
+    if (data.user?.id !== EDUCATOR_AUTH_USER_ID || userEmail !== EDUCATOR_EMAIL)
+      return null;
+    const canonical = await canonicalEducatorByAuthId(data.user.id);
+    return canonical ? educatorIdentity(canonical) : null;
   } catch {
     return null;
   } finally {
@@ -142,4 +476,7 @@ export async function authenticatedEducator(request: Request) {
   }
 }
 
-export function authUrl(path: string) { return `${AUTH_BASE}${path}`; }
+export function authUrl(path: string) {
+  if (!/^\/[a-z0-9/_-]*$/i.test(path)) throw new Error('auth_path_invalid');
+  return `${neonAuthBase()}${path}`;
+}

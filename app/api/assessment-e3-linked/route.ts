@@ -44,8 +44,8 @@ async function db() {
 }
 
 export async function POST(request: Request) {
-  const gate = allowRequest(request, 'assessment-e3-linked-create', 20, 60_000);
-  if (!gate.allowed) return rateLimited(gate.retryAfterSeconds);
+  const gate = await allowRequest(request, 'assessment-e3-linked-create', 20, 60_000);
+  if (!gate.allowed) return rateLimited(gate);
   const origin = request.headers.get('origin');
   if (origin && origin !== new URL(request.url).origin) return json({ ok: false, error: 'request_origin_rejected' }, 403);
 

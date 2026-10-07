@@ -40,7 +40,7 @@ function normalizeAreas(value:unknown):ReassessmentAreaInput[]{
 }
 
 export async function POST(request:Request){
-  const gate=allowRequest(request,'educator-special-reassessment',30,10*60_000);
+  const gate=await allowRequest(request,'educator-special-reassessment',30,10*60_000);
   if(!gate.allowed) return rateLimited(gate.retryAfterSeconds);
   const origin=request.headers.get('origin');
   if(origin&&origin!==new URL(request.url).origin) return json({ok:false,error:'request_origin_rejected'},403);

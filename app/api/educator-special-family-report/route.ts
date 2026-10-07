@@ -11,7 +11,7 @@ function json(body:unknown,status=200){
 }
 
 export async function POST(request:Request){
-  const gate=allowRequest(request,'educator-special-family-report',30,10*60_000);
+  const gate=await allowRequest(request,'educator-special-family-report',30,10*60_000);
   if(!gate.allowed) return rateLimited(gate.retryAfterSeconds);
 
   const origin=request.headers.get('origin');

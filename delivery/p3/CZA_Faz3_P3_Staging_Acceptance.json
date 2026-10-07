@@ -1,0 +1,152 @@
+{
+  "schemaVersion": "CZA-FAZ3-P3-STAGING-ACCEPTANCE-V1",
+  "generatedAt": "2026-09-16T19:30:09Z",
+  "sourceCheckpoint": {
+    "branch": "feature/faz3-gate1b-v4",
+    "commit": "5971b294a6ec521b37f559e8b79adbf85edf4585",
+    "tree": "48758d0c2396441dc94637a5790efad45c09efc1",
+    "remoteCommit": "5971b294a6ec521b37f559e8b79adbf85edf4585"
+  },
+  "p2Baseline": {
+    "status": "APPROVED",
+    "evidenceSha256": "cb464ba0517eff37361c26de081748ee0530e75afae0131b57a70f2786f18d06",
+    "p1RunId": 35134327735,
+    "p1WalRunId": "01K2ANG8T31E2F3713704CD2B4",
+    "regression": "PASS"
+  },
+  "target": {
+    "environment": "staging",
+    "organizationId": "org-silent-boat-09386886",
+    "brokerControlProjectId": "young-bar-92679633",
+    "projectId": "orange-resonance-01270480",
+    "projectName": "cza-f3-staging-01k2ang8t31e2f3713704cd2b4",
+    "region": "aws-eu-central-1",
+    "branchId": "br-lucky-rain-b2po93vx",
+    "branchName": "main",
+    "database": "neondb",
+    "directHost": "ep-winter-mode-b2djq0wx.c-6.eu-central-1.aws.neon.tech",
+    "pooledHost": "ep-winter-mode-b2djq0wx-pooler.c-6.eu-central-1.aws.neon.tech"
+  },
+  "databaseHealth": {
+    "connected": true,
+    "ready": true,
+    "primary": true,
+    "serverVersion": "17.11 (c4ba6b8)",
+    "observedAt": "2026-09-16T19:25:06.647Z"
+  },
+  "migration": {
+    "files": [
+      {
+        "path": "db/migrations/20260912_staging_core_prerequisites_v1.sql",
+        "sha256": "f9fd6ec39f565b31c868813517b90674c8a01352f32de5314364138319cf248f"
+      },
+      {
+        "path": "db/migrations/20260913_canonical_learning_ledger_v1.sql",
+        "sha256": "0cba90def4fb7398167443d37adb415f62b94b16681fc3fad3377e2d82273e53"
+      }
+    ],
+    "status": "APPLIED",
+    "firstSchemaSha256": "b86ae3c7a80762c83b6b3aeb2fe514ea3c8cbcdb3acc0a184b7f28ccc40fde9d",
+    "secondSchemaSha256": "b86ae3c7a80762c83b6b3aeb2fe514ea3c8cbcdb3acc0a184b7f28ccc40fde9d",
+    "tableCount": 10,
+    "idempotent": true,
+    "preAcceptanceLearningRecordCount": 0,
+    "preAcceptanceEvidenceCount": 0
+  },
+  "applicationReadiness": {
+    "status": "READY",
+    "scope": "DATA_LAYER_AND_API_HANDLER_CONTRACT",
+    "databaseFunctionsPresent": true,
+    "apiHandlerTargetedTests": "PASS",
+    "deployedHttpEndpointTested": false,
+    "deployedHttpEndpointClaimed": false,
+    "note": "No staging application deploy was in scope; readiness is proven by live data-layer execution and local API handler acceptance tests."
+  },
+  "acceptance": {
+    "readWriteSmoke": "PASS",
+    "transactionRollback": {
+      "result": "PASS",
+      "residualRows": 0
+    },
+    "idempotency": {
+      "result": "PASS",
+      "recordId": "5b6930d8-8558-4a46-b2c0-dd8b93197582",
+      "payloadSha256": "204bb0d8bdaedeaebedb900ca87530af42052acc74a43a82da8e873388e51c09",
+      "firstReplayed": false,
+      "secondReplayed": true,
+      "changedPayloadRejected": true,
+      "changedPayloadError": "IDEMPOTENCY_KEY_REUSED"
+    },
+    "authz": {
+      "result": "PASS",
+      "unauthenticatedApiStatus": 401,
+      "unauthenticatedApiError": "session_required",
+      "runtimeDirectLedgerSelect": false,
+      "runtimeAppendFunction": true,
+      "runtimeVerifiedEvidenceAppend": false,
+      "verifierEvidenceAppend": true
+    },
+    "immutableLedger": {
+      "result": "PASS",
+      "triggerCount": 4,
+      "tamperRejectedWith": "CZA_IMMUTABLE_LEDGER"
+    }
+  },
+  "demoFlow": {
+    "dataClass": "synthetic_demo",
+    "academyId": "a3000000-0000-4000-8000-000000000001",
+    "studentId": "23000000-0000-4000-8000-000000000001",
+    "studentSessionId": "33000000-0000-4000-8000-000000000001",
+    "activityId": "43000000-0000-4000-8000-000000000001",
+    "moduleCode": "finger_read",
+    "activityType": "number_recognition",
+    "records": [
+      {
+        "recordId": "5b6930d8-8558-4a46-b2c0-dd8b93197582",
+        "evidenceId": "10628fe3-0efd-4d09-a22d-c0cb6544e0f4",
+        "result": "incorrect",
+        "errorType": "RESPONSE_ERROR",
+        "completedAt": "2026-09-16T19:21:00Z"
+      },
+      {
+        "recordId": "9b089e8c-2a76-4fb4-a016-5243410de8a6",
+        "evidenceId": "0475fa94-8d8d-4399-9a13-15ba33bc8e48",
+        "result": "correct",
+        "errorType": "OK",
+        "completedAt": "2026-09-16T19:23:00Z"
+      }
+    ],
+    "profileHistory": {
+      "representation": "immutable_student_ordered_ledger",
+      "entryCount": 2,
+      "allEntriesSynthetic": true,
+      "materializedProfileTableClaimed": false
+    },
+    "writtenOutsideStaging": false
+  },
+  "security": {
+    "productionAccessed": false,
+    "productionMutation": false,
+    "cloudflareMutation": false,
+    "realStudentDataUsed": false,
+    "stagingOnly": true,
+    "endpointDenylistViolation": false,
+    "credentialHygiene": {
+      "credentialValuesPersisted": false,
+      "stagingOwnerPasswordRotatedAfterTransportCheck": true,
+      "finalRotationCompleted": true
+    },
+    "secretScan": {
+      "result": "PASS",
+      "findings": 0,
+      "forbiddenClasses": [
+        "API_KEY",
+        "DATABASE_PASSWORD",
+        "DATABASE_URL",
+        "LEASE_TOKEN",
+        "GITHUB_TOKEN",
+        "PRIVATE_KEY"
+      ]
+    }
+  }
+}

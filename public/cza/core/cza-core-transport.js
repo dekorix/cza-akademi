@@ -1,5 +1,5 @@
 /*
- * CZA Core Transport v1.0.0
+ * CZA Core Transport v1.1.0
  * Canonical öğrenme kayıtlarını aynı origin'deki /api/core geçidine taşır.
  */
 
