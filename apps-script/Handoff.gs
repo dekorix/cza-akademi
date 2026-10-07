@@ -1,4 +1,4 @@
-const CZA_WORK_PANEL_URL = 'https://cza-egzersiz-akademisi.habipcann65.chatgpt.site/work';
+const CZA_WORK_PANEL_URL = 'https://celik-zihin-akademisi.habipcann65.chatgpt.site/work';
 const CZA_WORK_HANDOFF_PREFIX = 'cza_work_handoff_';
 const CZA_WORK_HANDOFF_SECONDS = 120;
 
