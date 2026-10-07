@@ -52,3 +52,22 @@ test('isolated QA transport satisfies real proxy verification; body tamper and r
     else process.env.CZA_TRUSTED_PROXY_HMAC_SECRET = prior;
   }
 });
+
+test('staging preflight rejects unmapped, wrong-role and inactive identities before writes', async () => {
+  const { verifyTrustedEducatorBackend } = await import('../scripts/qa/trusted-educator-transport.mjs');
+  for (const [rows, reason] of [
+    [[], 'mapping_missing_or_ambiguous'],
+    [[{ role: 'student', is_active: true, has_academy: true }], 'role_mismatch'],
+    [[{ role: 'educator', is_active: false, has_academy: true }], 'inactive_or_unscoped'],
+  ]) {
+    let calls = 0;
+    await assert.rejects(verifyTrustedEducatorBackend(async () => { calls++; return rows; }), new RegExp(reason));
+    assert.equal(calls, 1);
+  }
+  let calls = 0;
+  await verifyTrustedEducatorBackend(async () => [
+    [{ role: 'educator', is_active: true, has_academy: true }],
+    [{ nonce_function: 'installed' }], [{ can_execute: true }],
+  ][calls++]);
+  assert.equal(calls, 3);
+});

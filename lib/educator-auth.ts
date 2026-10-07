@@ -452,6 +452,7 @@ export async function authenticatedEducator(request: Request) {
   const siteEmail = proxy?.educatorEmail || '';
   if (siteEmail === SITE_OWNER_EMAIL) {
     const canonical = await canonicalEducatorByAuthId(EDUCATOR_AUTH_USER_ID);
+    if (!canonical) qaProxyDenied(request, 'canonical_owner_mapping_missing');
     return canonical ? educatorIdentity(canonical) : null;
   }
   if (siteEmail) {
