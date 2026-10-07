@@ -14,8 +14,10 @@ test('isolated QA transport satisfies real proxy verification; body tamper and r
     const consumed = new Set();
     const source = readFileSync(new URL('../lib/educator-auth.ts', import.meta.url), 'utf8');
     const exports = {};
+    const logs = [];
+    const environment = { CZA_TRUSTED_PROXY_HMAC_SECRET: secret, DATABASE_URL: 'isolated' };
     vm.runInNewContext(ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText, {
-      exports, process: { env: { CZA_TRUSTED_PROXY_HMAC_SECRET: secret, DATABASE_URL: 'isolated' } },
+      exports, process: { env: environment }, console: { error: (...args) => logs.push(args) },
       Buffer, Request, Headers, URL, AbortController, setTimeout, clearTimeout,
       require: id => {
         if (id === 'node:crypto') return crypto;
@@ -36,6 +38,13 @@ test('isolated QA transport satisfies real proxy verification; body tamper and r
     assert.equal(consumed.size, 0);
     assert.ok(await exports.trustedEducatorProxy(request(body)));
     assert.equal(await exports.trustedEducatorProxy(request(body)), null);
+    assert.equal(logs.length, 0);
+    environment.CZA_QA_PROXY_DIAGNOSTICS = '1';
+    assert.equal(await exports.trustedEducatorProxy(request(body)), null);
+    assert.deepEqual(logs, [['CZA_QA_PROXY_DENY=nonce_rejected']]);
+    assert.equal(JSON.stringify(logs).includes(secret), false);
+    await exports.trustedEducatorProxy(new Request('https://cza.example.invalid/api/educator-report', { method: 'POST', headers, body: body + ' ' }));
+    assert.equal(logs.length, 1);
     assert.throws(() => trustedEducatorHeaders('GET', 'https://cza-akademi-staging.cza-staging-habip.workers.dev/api/educator-auth'), /isolated_loopback/);
     assert.throws(() => trustedEducatorHeaders('GET', 'http://localhost:8787/api/educator-auth'), /isolated_loopback/);
   } finally {

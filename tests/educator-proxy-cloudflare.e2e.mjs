@@ -102,7 +102,8 @@ test('external POST identity is rewritten and body-bound HMAC is accepted', asyn
   assert.equal(response.status, 200);
   const result = await response.json();
   assert.equal(result.ok, true);
-  assert.equal(result.user?.name, 'Habip Çelik');
+  assert.equal(result.user?.name, 'Isolated proxy fixture');
+  assert.equal(result.user?.id, '47c90485-e057-4ebe-a25c-9d7f236c5bd6');
 });
 
 test('proxy streaming limit rejects oversized external body', async () => {

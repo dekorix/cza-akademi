@@ -72,6 +72,12 @@ async function consumeProxyNonce(nonce: string, timestampSeconds: number) {
   }
 }
 
+function qaProxyDenied(request: Request, stage: string) {
+  if (process.env.CZA_QA_PROXY_DIAGNOSTICS === '1' && new URL(request.url).hostname === '127.0.0.1') {
+    console.error('CZA_QA_PROXY_DENY=' + stage);
+  }
+}
+
 export async function trustedEducatorProxy(
   request: Request,
   knownBodySha256?: string,
@@ -81,7 +87,7 @@ export async function trustedEducatorProxy(
   if (cached) return cached;
 
   const secret = process.env.CZA_TRUSTED_PROXY_HMAC_SECRET || '';
-  if (Buffer.byteLength(secret, 'utf8') < 32) return null;
+  if (Buffer.byteLength(secret, 'utf8') < 32) { qaProxyDenied(request, 'secret_not_configured'); return null; }
 
   const timestamp = (request.headers.get(PROXY_TIMESTAMP_HEADER) || '').trim();
   const nonce = (request.headers.get(PROXY_NONCE_HEADER) || '')
@@ -93,8 +99,10 @@ export async function trustedEducatorProxy(
   const educatorEmail = (request.headers.get(PROXY_EMAIL_HEADER) || '')
     .trim()
     .toLowerCase();
-  if (!/^\d{10}$/.test(timestamp) || !/^[0-9a-f]{64}$/.test(signature))
+  if (!/^\d{10}$/.test(timestamp) || !/^[0-9a-f]{64}$/.test(signature)) {
+    qaProxyDenied(request, 'signature_headers_missing');
     return null;
+  }
   if (!/^[0-9a-f]{32,128}$/.test(nonce)) return null;
   if (educatorEmail.length > 254 || /[\r\n]/.test(educatorEmail)) return null;
 
@@ -112,6 +120,7 @@ export async function trustedEducatorProxy(
     try {
       bodySha256 = await requestBodySha256(request);
     } catch {
+      qaProxyDenied(request, 'body_read_failed');
       return null;
     }
   }
@@ -132,10 +141,13 @@ export async function trustedEducatorProxy(
   if (
     supplied.length !== expected.length ||
     !timingSafeEqual(supplied, expected)
-  )
+  ) {
+    qaProxyDenied(request, 'signature_mismatch');
     return null;
+  }
 
   if (!(await consumeProxyNonce(nonce, timestampSeconds))) {
+    qaProxyDenied(request, 'nonce_rejected');
     return null;
   }
 
