@@ -28,7 +28,7 @@ export async function GET(request: Request) {
       JOIN public.students student
         ON student.id=link.student_id AND student.academy_id=educator.academy_id
       WHERE educator.auth_user_id=${identity.id}
-        AND educator.role::text='educator' AND educator.is_active=true
+        AND educator.role::text IN ('admin','teacher','educator') AND educator.is_active=true
         AND student.status='active' AND student.id=${studentId}::uuid
       LIMIT 1
     `;

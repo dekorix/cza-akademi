@@ -65,7 +65,7 @@ export async function POST(request: Request) {
           ON campus.student_id = s.id AND campus.identifier_type = 'campus_student_code'
         WHERE t.auth_user_id::text = ${educator.id}::text
           AND t.is_active = true
-          AND t.role::text = 'educator'
+          AND t.role::text IN ('admin','teacher','educator')
           AND s.id = ${studentId}::uuid
         LIMIT 1
       `
@@ -82,7 +82,7 @@ export async function POST(request: Request) {
         JOIN public.student_external_identifiers i ON i.student_id = s.id
         WHERE t.auth_user_id::text = ${educator.id}::text
           AND t.is_active = true
-          AND t.role::text = 'educator'
+          AND t.role::text IN ('admin','teacher','educator')
           AND i.identifier_value = ${code}
         LIMIT 1
       `;

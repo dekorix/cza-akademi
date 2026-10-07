@@ -43,7 +43,7 @@ export async function GET(request: Request) {
         ON campus.student_id = s.id AND campus.identifier_type = 'campus_student_code'
       WHERE educator_user.auth_user_id = ${educator.id}
         AND educator_user.is_active = true
-        AND educator_user.role::text = 'educator'
+        AND educator_user.role::text IN ('admin','teacher','educator')
         AND s.status = 'active'
         AND s.id = ${studentId}::uuid
       LIMIT 1

@@ -83,7 +83,7 @@ async function educatorSessionAccess(
     JOIN public.users educator
       ON educator.auth_user_id::text = ${educator.id}::text
      AND educator.is_active = true
-     AND educator.role::text = 'educator'
+     AND educator.role::text IN ('admin','teacher','educator')
      AND educator.academy_id = student.academy_id
     JOIN public.teacher_student_links link
       ON link.teacher_id = educator.id

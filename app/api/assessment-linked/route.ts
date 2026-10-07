@@ -57,7 +57,7 @@ export async function POST(request: Request) {
        AND i.identifier_type = 'campus_student_code'
       WHERE educator_user.auth_user_id::text = ${educator.id}::text
         AND educator_user.is_active = true
-        AND educator_user.role::text = 'educator'
+        AND educator_user.role::text IN ('admin','teacher','educator')
         AND s.id = ${studentId}::uuid
       LIMIT 1
     `;

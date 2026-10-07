@@ -246,7 +246,7 @@ async function canonicalEducatorByAuthId(authUserId: string) {
     FROM public.users
     WHERE auth_user_id = ${authUserId}
       AND is_active = true
-      AND role::text = 'educator'
+      AND role::text IN ('admin','teacher','educator')
     LIMIT 1
   `;
   return (rows[0] as CanonicalEducator | undefined) || null;
@@ -264,7 +264,7 @@ async function canonicalEducatorBySignedEmail(email: string) {
     FROM public.users
     WHERE lower(email) = lower(${email})
       AND is_active = true
-      AND role::text = 'educator'
+      AND role::text IN ('admin','teacher','educator')
     LIMIT 2
   `;
   // Never choose an academy arbitrarily, including when one match lacks an auth mapping.
@@ -350,7 +350,7 @@ async function localEducator(cookieValue: string) {
       AND es.revoked_at IS NULL
       AND es.expires_at > now()
       AND u.is_active = true
-      AND u.role::text = 'educator'
+      AND u.role::text IN ('admin','teacher','educator')
       AND u.auth_user_id = ${EDUCATOR_AUTH_USER_ID}
     LIMIT 1
   `;
@@ -395,7 +395,7 @@ async function authenticatedNeonEducator(request: Request) {
     SELECT id, academy_id, auth_user_id, email, display_name
     FROM public.users
     WHERE auth_user_id = ${session.id}
-      AND is_active = true AND role::text = 'educator'
+      AND is_active = true AND role::text IN ('admin','teacher','educator')
     LIMIT 2
   `;
   if (rows.length !== 1 || !rows[0].academy_id) return null;

@@ -39,7 +39,7 @@ export async function resolveEducatorCoachingActor(sql:CoachingSql,authUserId:st
     FROM public.users educator JOIN public.teacher_student_links link
       ON link.teacher_id=educator.id AND link.academy_id=educator.academy_id AND link.can_view=true
     JOIN public.students student ON student.id=link.student_id AND student.academy_id=educator.academy_id
-    WHERE educator.auth_user_id=$1 AND educator.role::text='educator' AND educator.is_active=true
+    WHERE educator.auth_user_id=$1 AND educator.role::text IN ('admin','teacher','educator') AND educator.is_active=true
       AND student.id=$2::uuid AND student.status='active' AND ($3::boolean=false OR link.can_coach=true) LIMIT 1`,[authUserId,studentId,write]);
   if(!rows.length)throw new CoachingError(write?'coaching_write_not_authorized':'student_not_authorized',403);
   return{userId:String(rows[0].user_id),academyId:String(rows[0].academy_id),studentId:String(rows[0].student_id),canCoach:rows[0].can_coach===true};

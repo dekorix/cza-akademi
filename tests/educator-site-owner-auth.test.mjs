@@ -57,7 +57,7 @@ function loadAuth({
               }
               const query = strings.join('?');
               if (query.includes('FROM public.users')) {
-                return canonicalRole === 'educator' && active
+                return ['admin', 'teacher', 'educator'].includes(canonicalRole) && active
                   ? [
                       {
                         id: 'd3000000-0000-4000-8000-000000000001',
@@ -218,7 +218,7 @@ test('a valid privileged GET nonce is rejected when replayed', async () => {
   });
 });
 
-test('valid external identity is denied unless canonical DB role is educator', async () => {
+test('valid external identity is denied unless canonical DB role has educator access', async () => {
   await withEnvironment(proxyEnvironment, async () => {
     const studentRole = loadAuth({ canonicalRole: 'student' });
     assert.equal(
@@ -439,3 +439,12 @@ test('signed educator identity uses real SQL and denies ambiguous or ineligible 
     await database.close();
   }
 });
+
+for (const role of ['admin', 'teacher', 'educator']) {
+  test(`existing main ${role} role retains signed educator access`, async () => {
+    await withEnvironment(proxyEnvironment, async () => {
+      const { auth } = loadAuth({ canonicalRole: role });
+      assert.ok(await auth.authenticatedEducator(signedRequest()));
+    });
+  });
+}

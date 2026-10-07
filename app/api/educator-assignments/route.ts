@@ -74,7 +74,7 @@ export async function POST(request: Request) {
       ON s.id = l.student_id AND s.academy_id = t.academy_id
     WHERE t.auth_user_id = ${educator.id}
       AND t.is_active = true
-      AND t.role::text = 'educator'
+      AND t.role::text IN ('admin','teacher','educator')
       AND s.status = 'active'
       AND s.id = ${studentId}::uuid
     LIMIT 1

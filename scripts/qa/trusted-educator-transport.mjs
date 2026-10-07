@@ -40,7 +40,7 @@ export async function installTrustedEducatorTransport(cdp) {
 export async function verifyTrustedEducatorBackend(sql) {
   const educators = await sql`SELECT role::text AS role, is_active, academy_id IS NOT NULL AS has_academy FROM public.users WHERE auth_user_id = '47c90485-e057-4ebe-a25c-9d7f236c5bd6' LIMIT 2`;
   if (educators.length !== 1) throw new Error('qa_canonical_educator_mapping_missing_or_ambiguous');
-  if (educators[0].role !== 'educator') throw new Error('qa_canonical_educator_role_mismatch');
+  if (!['admin', 'teacher', 'educator'].includes(educators[0].role)) throw new Error('qa_canonical_educator_role_mismatch');
   if (educators[0].is_active !== true || educators[0].has_academy !== true) throw new Error('qa_canonical_educator_inactive_or_unscoped');
   const rows = await sql`SELECT to_regprocedure('public.cza_consume_trusted_proxy_nonce(text,timestamp with time zone)')::text AS nonce_function`;
   if (!rows[0]?.nonce_function) throw new Error('qa_proxy_nonce_function_missing_in_staging');
