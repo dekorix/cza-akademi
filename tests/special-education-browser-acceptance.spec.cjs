@@ -223,6 +223,7 @@ test.describe('CZA Özel Eğitim Başlangıç Değerlendirmesi V1 kabul', () => 
     const errors = await collectRuntimeErrors(page);
     const requests = [];
     const sessionId = '22222222-2222-4222-8222-222222222222';
+    let failFirstAttempt = true;
 
     await page.route('**/api/educator-auth', route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ ok: true, user: { id: 'educator' } }) }));
 
@@ -254,6 +255,11 @@ test.describe('CZA Özel Eğitim Başlangıç Değerlendirmesi V1 kabul', () => 
       }
 
       if (payload.action === 'attempt') {
+        if (failFirstAttempt) {
+          failFirstAttempt = false;
+          await route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ ok: false, error: 'sync_unavailable' }) });
+          return;
+        }
         await route.fulfill({
           status: 200,
           contentType: 'application/json',
@@ -293,6 +299,10 @@ test.describe('CZA Özel Eğitim Başlangıç Değerlendirmesi V1 kabul', () => 
     await page.locator('[data-verdict="MATCH"]').click();
     await page.locator('[data-support="INDEPENDENT"]').click();
     await page.locator('#dysNext').click();
+    await expect(page.locator('.central-save-error')).toContainText('sync_unavailable');
+    await expect(page.getByText('Görev 1/8')).toBeVisible();
+    await page.locator('#dysNext').click();
+    await expect(page.getByText('Görev 2/8')).toBeVisible();
 
     await expect.poll(() => requests.filter(item => item.action === 'attempt').length).toBeGreaterThan(0);
 
@@ -303,7 +313,7 @@ test.describe('CZA Özel Eğitim Başlangıç Değerlendirmesi V1 kabul', () => 
     expect(attempt.supportLevel).toBe('INDEPENDENT');
     expect(attempt.answerText).toBe('al');
 
-    expect(errors).toEqual([]);
+    expect(errors.filter(value => !value.includes('503') || !value.includes('/api/assessment-special-linked'))).toEqual([]);
   });
 
 
