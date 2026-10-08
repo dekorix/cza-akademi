@@ -121,13 +121,18 @@ async function authorizedSession(sql: any, educatorId: string, sessionId: string
     WHERE a.id = ${sessionId}::uuid
       AND a.template_code LIKE 'CZA_SPECIAL_V1_%'
       AND EXISTS (
-        SELECT 1
-        FROM public.teacher_student_links l
-        JOIN public.users t ON t.id = l.teacher_id
-        WHERE l.student_id = a.student_id
-          AND l.can_view = true
-          AND t.auth_user_id = ${educatorId}
-          AND t.is_active = true
+        SELECT 1 FROM public.users t
+        WHERE t.auth_user_id = ${educatorId}
+          AND t.role = 'educator' AND t.is_active = true
+          AND (
+            (a.student_id IS NULL
+              AND a.metadata->>'createdByEducatorId' = ${educatorId}
+              AND a.metadata->>'academyId' = t.academy_id::text)
+            OR (a.student_id IS NOT NULL AND EXISTS (
+              SELECT 1 FROM public.teacher_student_links l
+              WHERE l.student_id = a.student_id AND l.teacher_id = t.id AND l.can_view = true
+            ))
+          )
       )
     LIMIT 1
   `;
@@ -207,19 +212,29 @@ export async function POST(request: Request) {
     if (action === 'create') {
       const studentId = sanitizeShortText(input.studentId, 80);
       const profileCode = input.profileCode;
-      if (!studentId) return json({ ok: false, error: 'student_required' }, 400);
-      if (!UUID_PATTERN.test(studentId)) return json({ ok: false, error: 'student_id_invalid' }, 400);
+      if (studentId && !UUID_PATTERN.test(studentId)) return json({ ok: false, error: 'student_id_invalid' }, 400);
       if (!isSpecialProfileCode(profileCode)) return json({ ok: false, error: 'special_profile_invalid' }, 400);
 
-      const student = await educatorStudent(sql, educatorId, studentId);
-      if (!student) return json({ ok: false, error: 'student_not_linked_to_educator' }, 403);
+      const student = studentId ? await educatorStudent(sql, educatorId, studentId) : undefined;
+      if (studentId && !student) return json({ ok: false, error: 'student_not_linked_to_educator' }, 403);
+      const studentLabel = student
+        ? String(student.name || student.username || 'Öğrenci').trim().slice(0, 80)
+        : sanitizeShortText(input.studentLabel, 80);
+      if (!studentLabel) return json({ ok: false, error: 'student_name_required' }, 400);
+      const educatorRows = await sql`
+        SELECT academy_id FROM public.users
+        WHERE auth_user_id = ${educatorId} AND role = 'educator' AND is_active = true
+        LIMIT 1
+      `;
+      if (!educatorRows.length) return json({ ok: false, error: 'educator_identity_invalid' }, 403);
+      const academyId = String(educatorRows[0].academy_id);
 
       const templateCode = specialTemplateCode(profileCode);
       const existing = await sql`
         SELECT id, student_id, template_code, student_label, status, current_task_code,
                started_at, completed_at, metadata
         FROM public.assessment_sessions
-        WHERE student_id = ${student.id}::uuid
+        WHERE student_id = ${student?.id || null}::uuid
           AND template_code = ${templateCode}
           AND status = 'active'
           AND metadata->>'createdByEducatorId' = ${educatorId}
@@ -231,27 +246,27 @@ export async function POST(request: Request) {
         return json({ ok: true, resumed: true, ...bundle }, 200);
       }
 
-      const studentLabel = String(student.name || student.username || 'Öğrenci').trim().slice(0, 80);
       const metadata = {
         version: SPECIAL_TEMPLATE_VERSION,
         moduleCode: SPECIAL_MODULE_CODE,
         profileCode,
-        centralStudentId: student.id,
-        campusStudentCode: student.code || null,
+        centralStudentId: student?.id || null,
+        campusStudentCode: student?.code || null,
         createdByEducatorId: educatorId,
+        academyId,
         grade: sanitizeShortText(input.grade, 80) || null,
         readingStage: sanitizeShortText(input.readingStage, 120) || null,
         birthDate: sanitizeShortText(input.birthDate, 20) || null,
         concerns: sanitizeShortText(input.concerns, 2000) || null,
         diagnosticUse: false,
-        source: 'EDUCATOR',
+        source: student ? 'EDUCATOR' : 'EDUCATOR_PRE_ENROLLMENT',
       };
 
       const rows = await sql`
         INSERT INTO public.assessment_sessions (
           student_id, template_code, student_label, current_task_code, metadata
         ) VALUES (
-          ${student.id}::uuid,
+          ${student?.id || null}::uuid,
           ${templateCode},
           ${studentLabel},
           NULL,
@@ -267,12 +282,12 @@ export async function POST(request: Request) {
         session: rows[0],
         attempts: [],
         observations: [],
-        student: {
+        student: student ? {
           id: student.id,
           name: studentLabel,
           code: student.code || null,
           username: student.username || null,
-        },
+        } : { id: null, name: studentLabel },
       }, 201);
     }
 
