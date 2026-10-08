@@ -1,9 +1,8 @@
 (function () {
-  const STUDENTS_API = '/api/educator-students?page=0';
+  const AUTH_API = '/api/educator-auth';
   const SPECIAL_API = '/api/assessment-special-linked';
 
   let studentPromise = null;
-  let studentCache = [];
   let centralMode = 'checking';
   const bootstrapParams = new URLSearchParams(window.location.search);
   const bootstrapStudentId = String(bootstrapParams.get('studentId') || '').trim();
@@ -13,8 +12,7 @@
   let bootstrapProfileConsumed = false;
 
   function ensureCentralState() {
-    if (!('centralStudentId' in state)) state.centralStudentId = '';
-    if (!state.centralStudentId && bootstrapStudentId) state.centralStudentId = bootstrapStudentId;
+    state.centralStudentId = bootstrapStudentId || '';
     if (!('centralStudentName' in state)) state.centralStudentName = '';
     if (!('centralSessionId' in state)) state.centralSessionId = '';
     if (!('centralProfileCode' in state)) state.centralProfileCode = '';
@@ -27,39 +25,29 @@
     if (studentPromise && !force) return studentPromise;
     studentPromise = (async function () {
       try {
-        const response = await fetch(STUDENTS_API, {
-          method: 'GET',
+        const response = await fetch(AUTH_API, {
+          method: 'POST',
           credentials: 'same-origin',
-          headers: { 'accept': 'application/json' }
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ action: 'me' })
         });
         if (response.status === 401) {
           centralMode = 'auth-required';
-          studentCache = [];
           return { mode: centralMode, students: [] };
         }
         if (!response.ok) {
           centralMode = response.status === 404 ? 'preview' : 'unavailable';
-          studentCache = [];
           return { mode: centralMode, students: [] };
         }
         const body = await response.json();
-        if (!body || body.ok !== true || !Array.isArray(body.students)) {
+        if (!body || body.ok !== true || !body.user) {
           centralMode = 'unavailable';
-          studentCache = [];
           return { mode: centralMode, students: [] };
         }
-        studentCache = body.students.map(function (student) {
-          return {
-            id: String(student.id || ''),
-            name: String(student.name || student.username || 'Öğrenci').trim(),
-            code: student.code ? String(student.code) : ''
-          };
-        }).filter(function (student) { return student.id; });
         centralMode = 'connected';
-        return { mode: centralMode, students: studentCache };
+        return { mode: centralMode, students: [] };
       } catch {
         centralMode = 'preview';
-        studentCache = [];
         return { mode: centralMode, students: [] };
       }
     })();
@@ -67,50 +55,23 @@
   }
 
   function modeText() {
-    if (centralMode === 'connected') return 'Merkezi öğrenci kaydı hazır';
+    if (centralMode === 'connected') return 'Eğitmen oturumu hazır';
     if (centralMode === 'auth-required') return 'Merkezi kayıt için eğitimci girişi gerekli';
     if (centralMode === 'unavailable') return 'Merkezi kayıt şu anda ulaşılamıyor';
     if (centralMode === 'preview') return 'Yerel önizleme modu · merkezi DB yazımı yok';
     return 'Merkezi bağlantı kontrol ediliyor';
   }
 
-  function selectedStudent() {
-    return studentCache.find(function (student) { return student.id === state.centralStudentId; }) || null;
-  }
-
-  function studentOptions() {
-    const initial = '<option value="">Merkezi öğrenciyi seç</option>';
-    return initial + studentCache.map(function (student) {
-      const suffix = student.code ? ' · ' + esc(student.code) : '';
-      return '<option value="' + esc(student.id) + '" ' +
-        (state.centralStudentId === student.id ? 'selected' : '') + '>' +
-        esc(student.name + suffix) + '</option>';
-    }).join('');
-  }
-
-  function applySelectedStudentName(nameInputId) {
-    const student = selectedStudent();
-    if (!student) return;
-    state.centralStudentName = student.name;
-    const input = document.getElementById(nameInputId);
-    if (input) {
-      input.value = student.name;
-      input.readOnly = true;
-    }
-    saveState();
-  }
-
-  function connectionMarkup(selectId) {
+  function connectionMarkup() {
     if (centralMode === 'connected') {
       return '<div class="central-link-panel connected">' +
-        '<div><span>MERKEZİ CZA ÖĞRENCİ KAYDI</span><b>Öğrenciyi merkezi kimliğiyle bağla</b>' +
-        '<small>Görev kanıtları assessment_sessions / attempts / observations tablolarına yazılır.</small></div>' +
-        '<label>Merkezi öğrenci<select id="' + selectId + '">' + studentOptions() + '</select></label>' +
+        '<div><span>EĞİTMEN GÖZETİMİNDE DEĞERLENDİRME</span><b>Eğitmen girişi doğrulandı</b>' +
+        '<small>Kayıtlı öğrenci hesabı gerekmez. Çocuğun adını aşağıya yazıp değerlendirmeyi başlatın.</small></div>' +
       '</div>';
     }
     const cls = centralMode === 'auth-required' ? 'blocked' : 'preview';
     return '<div class="central-link-panel ' + cls + '">' +
-      '<div><span>MERKEZİ CZA ÖĞRENCİ KAYDI</span><b>' + esc(modeText()) + '</b>' +
+      '<div><span>EĞİTMEN GÖZETİMİNDE DEĞERLENDİRME</span><b>' + esc(modeText()) + '</b>' +
       '<small>' + (centralMode === 'preview'
         ? 'Bu ekran statik kabul/önizleme ortamında yerel olarak çalışmaya devam eder.'
         : 'Gerçek öğrenci kanıtı merkezi kayda yazılmadan önce eğitimci oturumu gereklidir.') + '</small>' +
@@ -145,15 +106,14 @@
         const body = await response.json().catch(function () { return {}; });
         if (!response.ok || body.ok !== true) throw new Error(String(body.error || 'auth_unavailable'));
         passwordInput.value = '';
-        const students = await loadStudents(true);
-        if (students.mode !== 'connected') throw new Error('student_list_unavailable');
+        const auth = await loadStudents(true);
+        if (auth.mode !== 'connected') throw new Error('auth_unavailable');
         document.querySelector('.form-panel .central-link-panel')?.remove();
         await enhanceIntake();
       } catch (cause) {
         const code = cause instanceof Error ? cause.message : 'auth_unavailable';
         error.textContent = code === 'invalid_credentials' ? 'E-posta veya parola hatalı.'
           : code === 'rate_limited' ? 'Çok fazla deneme yapıldı. Birkaç dakika sonra tekrar deneyin.'
-          : code === 'student_list_unavailable' ? 'Giriş başarılı, ancak öğrenci listesi alınamadı. Sayfayı yenileyin.'
           : 'Giriş tamamlanamadı. Lütfen tekrar deneyin.';
       } finally {
         button.disabled = false;
@@ -163,34 +123,16 @@
 
   async function enhanceIntake() {
     if (state.screen !== 'dyslexia-intake' && state.screen !== 'special-generic-intake') return;
-    const result = await loadStudents(false);
+    await loadStudents(false);
     if (state.screen !== 'dyslexia-intake' && state.screen !== 'special-generic-intake') return;
     const formPanel = document.querySelector('.form-panel');
     if (!formPanel || formPanel.querySelector('.central-link-panel')) return;
 
     const wrapper = document.createElement('div');
     const isDyslexia = state.screen === 'dyslexia-intake';
-    const selectId = isDyslexia ? 'centralStudentDys' : 'centralStudentGeneric';
-    wrapper.innerHTML = connectionMarkup(selectId);
+    wrapper.innerHTML = connectionMarkup();
     formPanel.insertBefore(wrapper.firstElementChild, formPanel.firstChild);
     bindInlineLogin();
-
-    if (result.mode === 'connected') {
-      const select = document.getElementById(selectId);
-      if (select) {
-        select.onchange = function () {
-          const previous = state.centralStudentId;
-          state.centralStudentId = select.value;
-          if (previous !== state.centralStudentId) {
-            state.centralSessionId = '';
-            state.centralProfileCode = '';
-          }
-          applySelectedStudentName(isDyslexia ? 'name' : 'sgName');
-          saveState();
-        };
-      }
-      if (state.centralStudentId) applySelectedStudentName(isDyslexia ? 'name' : 'sgName');
-    }
 
     wrapStartButton(isDyslexia);
   }
@@ -210,11 +152,11 @@
       if (centralMode === 'auth-required') throw new Error('educator_session_required');
       return { localPreview: true };
     }
-    if (!state.centralStudentId) throw new Error('student_required');
-
+    const studentLabel = String(document.getElementById(isDyslexia ? 'name' : 'sgName')?.value || '').trim();
     const payload = {
       action: 'create',
-      studentId: state.centralStudentId,
+      studentId: bootstrapStudentId || undefined,
+      studentLabel,
       profileCode,
       grade: isDyslexia
         ? String(document.getElementById('grade')?.value || '')
@@ -265,8 +207,16 @@
         intakeError(isDyslexia, 'Merkezi kayıt için önce eğitimci oturumu açılmalı.');
         return;
       }
-      if (result.mode === 'connected' && !state.centralStudentId) {
-        intakeError(isDyslexia, 'Önce merkezi öğrenci kaydını seç.');
+      if (result.mode === 'connected' && !String(document.getElementById(isDyslexia ? 'name' : 'sgName')?.value || '').trim()) {
+        intakeError(isDyslexia, 'Öğrencinin adını yaz.');
+        return;
+      }
+      if (result.mode === 'connected' && isDyslexia && !document.getElementById('grade')?.value) {
+        intakeError(isDyslexia, 'Sınıf düzeyini seç.');
+        return;
+      }
+      if (result.mode === 'connected' && isDyslexia && !document.getElementById('readingStage')?.value) {
+        intakeError(isDyslexia, 'Okuma aşamasını seç.');
         return;
       }
       button.disabled = true;
@@ -280,7 +230,7 @@
             ? 'Bu öğrenci eğitimci hesabınıza bağlı değil.'
             : code === 'educator_session_required'
               ? 'Merkezi kayıt için eğitimci girişi gerekli.'
-              : 'Merkezi öğrenci kaydı açılamadı: ' + code
+              : 'Değerlendirme kaydı açılamadı: ' + code
         );
       } finally {
         button.disabled = false;
@@ -478,7 +428,7 @@
       state.centralSyncStatus = 'completed';
       state.centralLastSyncAt = new Date().toISOString();
       saveState();
-      if (statusNode) statusNode.textContent = 'Merkezi öğrenci kaydı tamamlandı.';
+      if (statusNode) statusNode.textContent = 'Merkezi değerlendirme kaydı tamamlandı.';
       button.textContent = 'Merkezi kayıt tamamlandı ✓';
     } catch (error) {
       if (statusNode) statusNode.textContent = 'Merkezi kayıt tamamlanamadı: ' +
@@ -498,7 +448,7 @@
     panel.className = 'central-finish-panel';
     if (state.centralSessionId && centralMode === 'connected') {
       panel.innerHTML =
-        '<div><span>MERKEZİ CZA KAYDI</span><b>Bu değerlendirme merkezi öğrenci kimliğine bağlı.</b>' +
+        '<div><span>MERKEZİ CZA KAYDI</span><b>Bu değerlendirme eğitmen hesabıyla kaydedildi.</b>' +
         '<small id="centralFinishStatus">Son kanıtları kaydedip oturumu tamamlayabilirsiniz.</small></div>' +
         '<button class="primary-btn" id="centralFinishButton">Merkezi kaydı tamamla</button>';
       hero.appendChild(panel);
