@@ -264,13 +264,9 @@ function assertUiMatchesApi(ui, api, label) {
 async function openUiReport(page, studentId) {
   await selectEducatorStudent(page, studentId);
   const openedFromStudent = await evalJson(page, `(() => {
-    const rows = Array.from(document.querySelectorAll('div')).filter(el =>
-      el.innerText?.includes(${JSON.stringify(studentId)}) &&
-      Array.from(el.querySelectorAll('button')).some(button => button.textContent?.includes('Çalışma raporu'))
-    );
-    const row = rows.sort((a,b) => a.innerText.length - b.innerText.length)[0];
-    if (!row) return false;
-    const button = Array.from(row.querySelectorAll('button')).find(el => el.textContent?.includes('Çalışma raporu'));
+    const studentHeader = document.querySelector('header[data-student-file=${JSON.stringify(studentId)}]');
+    if (!studentHeader) return false;
+    const button = Array.from(studentHeader.querySelectorAll('button')).find(el => el.textContent?.includes('Çalışma raporu'));
     if (!button) return false;
     button.click();
     return true;

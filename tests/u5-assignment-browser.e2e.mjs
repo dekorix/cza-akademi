@@ -33,7 +33,8 @@ async function verifyViewport(page, width, height) {
   await page.setViewport({ width, height, deviceScaleFactor: 1 }); await page.reload({ waitUntil: 'networkidle0' });
   await page.waitForFunction(() => document.body.innerText.includes('Ödev yönetimi')).catch(async error => { console.error('U5_UI_STATE=' + (await page.evaluate(() => document.body.innerText)).slice(0,1200)); throw error; });
   const state = await page.evaluate(() => ({ text: document.body.innerText, overflow: document.documentElement.scrollWidth > window.innerWidth }));
-  for (const label of ['Ödev yönetimi', 'Ödev oluştur', 'Eğitmen talimatı', 'U5 Atanmış Çalışma', 'Düzenle', 'İptal']) assert.ok(state.text.includes(label), label);
+  for (const label of ['Ödev yönetimi', 'Yeni ödev oluştur', 'U5 Atanmış Çalışma', 'Düzenle', 'İptal']) assert.ok(state.text.includes(label), label);
+  assert.equal(state.text.includes('Eğitmen talimatı'), false);
   assert.equal(state.overflow, false);
 }
 
@@ -61,10 +62,12 @@ try {
   await page.goto(`${origin}/educator`, { waitUntil: 'networkidle0' });
   await verifyViewport(page, 1440, 900); await verifyViewport(page, 390, 844);
   await selectEducatorStudent(await page.createCDPSession(), student.id);
+  await page.evaluate(() => [...document.querySelectorAll('button')].find(el => el.textContent?.includes('Yeni ödev oluştur'))?.click());
+  await page.waitForSelector('#u5-title');
   await page.type('#u5-title', 'U5 Yeni Demo Ödevi'); await page.type('#u5-instructions', 'Demo talimatı');
   await page.evaluate(() => document.querySelector('#u5-title')?.closest('form')?.requestSubmit());
   await page.waitForFunction(() => document.body.innerText.includes('Ödev oluşturuldu.'));
-  await page.evaluate(() => Array.from(document.querySelectorAll('button')).find(el => el.textContent?.includes('Çalışma raporu'))?.click());
+  await page.evaluate(() => Array.from(document.querySelectorAll('header[data-student-file] button')).find(el => el.textContent?.includes('Çalışma raporu'))?.click());
   await page.waitForFunction(() => document.querySelector('#studentCode')?.value === '55000000-0000-4000-8000-000000000009');
   assert.equal(await page.$eval('#studentCode', el => el.value), student.id);
   assert.equal(created.studentId, student.id); assert.match(created.clientRequestId, /^[0-9a-f-]{36}$/); assert.equal(created.educatorId, undefined); assert.deepEqual(errors, []);
