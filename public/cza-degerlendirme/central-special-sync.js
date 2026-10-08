@@ -101,10 +101,15 @@
           method: 'POST', credentials: 'same-origin',
           headers: { 'content-type': 'application/json' },
           body: JSON.stringify({ action: 'login', email, password: passwordInput.value }),
-          signal: AbortSignal.timeout(15000)
+          signal: AbortSignal.timeout(30000)
         });
         const body = await response.json().catch(function () { return {}; });
-        if (!response.ok || body.ok !== true) throw new Error(String(body.error || 'auth_unavailable'));
+        if (!response.ok || body.ok !== true) {
+          const known = ['invalid_credentials', 'rate_limited', 'educator_session_required',
+            'request_origin_or_identity_rejected', 'request_origin_rejected', 'auth_unavailable',
+            'provider_session_cookie_missing', 'provider_session_cookie_invalid'];
+          throw new Error(known.includes(body.error) ? body.error : 'http_' + response.status);
+        }
         passwordInput.value = '';
         const auth = await loadStudents(true);
         if (auth.mode !== 'connected') throw new Error('auth_unavailable');
@@ -112,9 +117,19 @@
         await enhanceIntake();
       } catch (cause) {
         const code = cause instanceof Error ? cause.message : 'auth_unavailable';
+        passwordInput.value = '';
         error.textContent = code === 'invalid_credentials' ? 'E-posta veya parola hatalı.'
           : code === 'rate_limited' ? 'Çok fazla deneme yapıldı. Birkaç dakika sonra tekrar deneyin.'
-          : 'Giriş tamamlanamadı. Lütfen tekrar deneyin.';
+          : code === 'educator_session_required' ? 'Giriş kabul edildi, ancak CZA eğitmen kaydı doğrulanamadı (AUTH-401).'
+          : code === 'request_origin_or_identity_rejected' || code === 'request_origin_rejected'
+            ? 'Bu önizlemenin güvenli giriş adresi doğrulanamadı (AUTH-403).'
+          : code === 'provider_session_cookie_missing' || code === 'provider_session_cookie_invalid'
+            ? 'Giriş hizmeti oturum oluşturamadı (AUTH-502).'
+          : code === 'TimeoutError' || code === 'AbortError'
+            ? 'Giriş yanıtı zaman aşımına uğradı (AUTH-TIMEOUT).'
+          : code === 'auth_unavailable' || code === 'http_503'
+            ? 'Giriş hizmeti şu anda yanıt vermiyor (AUTH-503).'
+          : 'Giriş tamamlanamadı (' + code + ').';
       } finally {
         button.disabled = false;
       }
