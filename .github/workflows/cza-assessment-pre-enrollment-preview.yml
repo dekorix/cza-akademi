@@ -3,7 +3,11 @@ name: CZA Assessment Inline Login Preview
 on:
   push:
     branches: [main]
-    paths: ['.github/workflows/cza-assessment-pre-enrollment-preview.yml']
+    paths:
+      - '.github/workflows/cza-assessment-pre-enrollment-preview.yml'
+      - 'cza-degerlendirme/central-special-sync.js'
+      - 'public/cza-degerlendirme/central-special-sync.js'
+      - 'app/api/assessment-special-linked/route.ts'
   workflow_dispatch:
     inputs:
       confirmation:

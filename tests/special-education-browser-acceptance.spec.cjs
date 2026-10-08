@@ -200,6 +200,25 @@ test.describe('CZA Özel Eğitim Başlangıç Değerlendirmesi V1 kabul', () => 
     await expect(page.locator('#name')).toBeVisible();
   });
 
+  test('giriş hatasında gerçek katman anlaşılır ve parola temizlenir', async ({ page }) => {
+    await page.route('**/api/educator-auth', async route => {
+      const input = JSON.parse(route.request().postData() || '{}');
+      await route.fulfill({
+        status: input.action === 'me' ? 401 : 503,
+        contentType: 'application/json',
+        body: JSON.stringify({ ok: false, error: input.action === 'me'
+          ? 'educator_session_required' : 'auth_unavailable' })
+      });
+    });
+    await page.goto(BASE, { waitUntil: 'networkidle' });
+    await page.locator('.special-card[data-code="SP-DYS"]').click();
+    await page.locator('#centralEducatorLogin [name="email"]').fill('test@example.invalid');
+    await page.locator('#centralEducatorLogin [name="password"]').fill('sentetik-parola');
+    await page.locator('#centralEducatorLogin button').click();
+    await expect(page.locator('#centralLoginError')).toContainText('AUTH-503');
+    await expect(page.locator('#centralEducatorLogin [name="password"]')).toHaveValue('');
+  });
+
   test('merkezi bağlantı: öğrenci hesabı olmadan session oluşturma ve görev kanıtı APIye gider', async ({ page }) => {
     const errors = await collectRuntimeErrors(page);
     const requests = [];
