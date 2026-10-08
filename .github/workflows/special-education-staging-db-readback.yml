@@ -22,6 +22,16 @@ on:
       - 'scripts/qa/special-staging-db-readback.mjs'
       - '.github/workflows/special-education-staging-db-readback.yml'
   workflow_dispatch:
+    inputs:
+      t5_action:
+        description: T5 pre-enrollment isolated staging action
+        required: true
+        type: choice
+        default: legacy
+        options:
+          - legacy
+          - preflight
+          - apply
 
 permissions:
   contents: read
@@ -32,7 +42,7 @@ concurrency:
 
 jobs:
   staging-db-readback:
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    if: (github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name == github.repository && github.head_ref != 'fix/t5-pre-enroll-resume-integrity')) && (github.event_name != 'workflow_dispatch' || inputs.t5_action == 'legacy')
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     environment: CZA-STAGING-SECURITY
@@ -74,7 +84,7 @@ jobs:
   
 
   special-program-staging-proof:
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    if: (github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name == github.repository && github.head_ref != 'fix/t5-pre-enroll-resume-integrity')) && (github.event_name != 'workflow_dispatch' || inputs.t5_action == 'legacy')
     runs-on: ubuntu-24.04
     timeout-minutes: 12
     environment: CZA-STAGING-SECURITY
@@ -143,3 +153,44 @@ jobs:
         env:
           CZA_STAGING_DATABASE_URL: ${{ secrets.CZA_STAGING_DATABASE_URL }}
         run: node --experimental-strip-types scripts/qa/special-program-staging-proof.mjs
+
+  t5-pre-enroll:
+    if: github.event_name == 'workflow_dispatch' && (inputs.t5_action == 'preflight' || inputs.t5_action == 'apply')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    environment: CZA-STAGING-SECURITY
+    steps:
+      - name: Checkout exact T5 branch
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Verify staging target and read-only preflight
+        env:
+          CZA_STAGING_DATABASE_URL: ${{ secrets.CZA_STAGING_DATABASE_URL }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${CZA_STAGING_DATABASE_URL:-}"
+          node -e "const u=new URL(process.env.CZA_STAGING_DATABASE_URL); const h=u.hostname.toLowerCase(); if(!h.endsWith('.neon.tech') || u.pathname!=='/cza_learning' || /(^|[.-])(prod|production)([.-]|$)/.test(h)) process.exit(2); console.log('T5_STAGING_URL_SHAPE=PASS')"
+          export PGOPTIONS='-c default_transaction_read_only=on'
+          test "$(psql "$CZA_STAGING_DATABASE_URL" -Atc "SELECT to_regclass('public.assessment_sessions')::text")" = "assessment_sessions"
+          conflicts="$(psql "$CZA_STAGING_DATABASE_URL" -Atc "SELECT count(*) FROM (SELECT 1 FROM public.assessment_sessions WHERE student_id IS NULL AND status='active' AND metadata->>'source'='EDUCATOR_PRE_ENROLLMENT' AND metadata->>'candidateId' IS NOT NULL AND metadata->>'cycleId' IS NOT NULL GROUP BY metadata->>'academyId', metadata->>'createdByEducatorId', metadata->>'candidateId', metadata->>'cycleId', template_code HAVING count(*)>1) collisions")"
+          echo "T5_EXISTING_IDENTITY_COLLISIONS=$conflicts"
+          test "$conflicts" = "0"
+          psql "$CZA_STAGING_DATABASE_URL" -Atc "SELECT 'T5_DB='||current_database()||'|STAGING_ACADEMIES='||count(*) FROM public.academies WHERE environment='staging'"
+          echo "T5_PREFLIGHT=PASS"
+      - name: Apply approved T5 unique index to isolated staging
+        if: inputs.t5_action == 'apply'
+        env:
+          CZA_STAGING_DATABASE_URL: ${{ secrets.CZA_STAGING_DATABASE_URL }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          psql "$CZA_STAGING_DATABASE_URL" -v ON_ERROR_STOP=1 -f db/migrations/20261008_t5_pre_enroll_active_identity_staging.sql
+          test "$(psql "$CZA_STAGING_DATABASE_URL" -Atc "SELECT count(*) FROM pg_index i JOIN pg_class c ON c.oid=i.indexrelid JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='public' AND c.relname='assessment_sessions_pre_enroll_active_identity_uq' AND i.indisunique AND i.indisvalid")" = "1"
+          echo "T5_STAGING_INDEX=PASS"
+      - name: Synthetic concurrent sessions and central readback
+        if: inputs.t5_action == 'apply'
+        env:
+          CZA_STAGING_DATABASE_URL: ${{ secrets.CZA_STAGING_DATABASE_URL }}
+        run: node scripts/qa/t5-pre-enroll-staging-readback.mjs
