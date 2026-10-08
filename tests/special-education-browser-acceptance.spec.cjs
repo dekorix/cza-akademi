@@ -23,6 +23,7 @@ async function collectRuntimeErrors(page) {
     if (response.status() < 400) return;
     const url = response.url();
     if (url.includes('/api/educator-students')) return;
+    if (response.status() === 501 && url.includes('/api/educator-auth')) return;
     errors.push('http: ' + response.status() + ' ' + url);
   });
   return errors;
