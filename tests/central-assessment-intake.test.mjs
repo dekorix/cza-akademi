@@ -50,3 +50,15 @@ test('special runtime accepts central student and profile bootstrap parameters',
   assert.match(source,/applyBootstrapProfile/);
   assert.match(source,/state\.centralStudentId = bootstrapStudentId/);
 });
+
+test('special pre-enrollment intake requires educator login and candidate name without registered student selection',()=>{
+  const client=fs.readFileSync(new URL('../cza-degerlendirme/central-special-sync.js',import.meta.url),'utf8');
+  const api=fs.readFileSync(new URL('../app/api/assessment-special-linked/route.ts',import.meta.url),'utf8');
+  assert.match(client,/action: 'me'/);
+  assert.match(client,/studentLabel,/);
+  assert.doesNotMatch(client,/centralStudentDys|centralStudentGeneric|studentOptions\(/);
+  assert.match(api,/student_id IS NULL/);
+  assert.match(api,/createdByEducatorId/);
+  assert.match(api,/academyId.*t\.academy_id::text/);
+  assert.match(api,/student_name_required/);
+});

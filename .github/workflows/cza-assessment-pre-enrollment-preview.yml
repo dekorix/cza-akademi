@@ -1,0 +1,77 @@
+name: CZA Assessment Inline Login Preview
+
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/cza-assessment-inline-preview.yml']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cza-assessment-inline-preview-upload
+  cancel-in-progress: false
+
+jobs:
+  upload-version:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout reviewed assessment fix
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Verify target and source
+        env:
+          CLOUDFLARE_ACCOUNT_ID: 8c23e36e747009ad8c8d0bdbda8d5606
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CZA_STAGING_PREVIEW_API_TOKEN }}
+        run: |
+          test "$(git rev-parse HEAD)" = "${{ github.sha }}"
+          test "$CLOUDFLARE_ACCOUNT_ID" = "8c23e36e747009ad8c8d0bdbda8d5606"
+          test -n "$CLOUDFLARE_API_TOKEN"
+      - name: Enable Corepack
+        run: corepack enable
+      - name: Setup Node
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: '22.13.0'
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+      - name: Build and test
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm exec tsc --noEmit
+          node --test tests/central-assessment-intake.test.mjs tests/f4-neon-educator-ingress.test.mjs
+          pnpm run build
+      - name: Upload only a new staging Worker version
+        env:
+          CLOUDFLARE_ACCOUNT_ID: 8c23e36e747009ad8c8d0bdbda8d5606
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CZA_STAGING_PREVIEW_API_TOKEN }}
+        run: |
+          set +e
+          pnpm exec wrangler versions upload \
+            --config dist/server/wrangler.json \
+            --name cza-akademi-staging \
+            --keep-vars \
+            --tag assessment-pre-enrollment \
+            --message "CZA educator-led pre-enrollment assessment preview only" 2>&1 | tee upload.log
+          upload_status=${PIPESTATUS[0]}
+          set -e
+          version="$(sed -n 's/.*Worker Version ID: \([0-9a-f-]\{36\}\).*/\1/p' upload.log | tail -1)"
+          test -n "$version"
+          if test "$upload_status" -ne 0; then
+            grep -q '/workers/subdomain' upload.log
+            grep -q 'Authentication error \[code: 10000\]' upload.log
+          fi
+          preview="https://${version:0:8}-cza-akademi-staging.cza-staging-habip.workers.dev"
+          for attempt in 1 2 3 4 5 6; do
+            if curl --fail --silent --show-error "$preview/cza-degerlendirme/" | grep -q 'CZA Değerlendirme Merkezi'; then
+              break
+            fi
+            sleep 3
+          done
+          curl --fail --silent --show-error "$preview/cza-degerlendirme/" | grep -q 'CZA Değerlendirme Merkezi'
+          curl --fail --silent --show-error "$preview/api/educator-auth" | grep -q '"ok":true'
+          echo "CZA_PREVIEW=$preview/cza-degerlendirme/" >> "$GITHUB_STEP_SUMMARY"
+          echo "WORKER_VERSION=$version" >> "$GITHUB_STEP_SUMMARY"
