@@ -176,22 +176,16 @@ test.describe('CZA Özel Eğitim Başlangıç Değerlendirmesi V1 kabul', () => 
     expect(errors).toEqual([]);
   });
 
-  test('oturumsuz eğitmen aynı değerlendirme formunda giriş yapıp öğrenci seçer', async ({ page }) => {
+  test('oturumsuz eğitmen aynı değerlendirme formunda giriş yapıp kayıt öncesi başlayabilir', async ({ page }) => {
     let signedIn = false;
-    await page.route('**/api/educator-students*', route => route.fulfill({
-      status: signedIn ? 200 : 401,
-      contentType: 'application/json',
-      body: signedIn
-        ? JSON.stringify({ ok: true, students: [{ id: '11111111-1111-4111-8111-111111111111', name: 'Sentetik Öğrenci' }] })
-        : JSON.stringify({ ok: false, error: 'educator_session_required' })
-    }));
     await page.route('**/api/educator-auth', async route => {
       const input = JSON.parse(route.request().postData() || '{}');
-      expect(input.action).toBe('login');
-      expect(input.email).toBe('test@example.invalid');
-      expect(input.password).toBe('sentetik-parola');
-      signedIn = true;
-      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ ok: true }) });
+      if (input.action === 'login') {
+        expect(input.email).toBe('test@example.invalid');
+        expect(input.password).toBe('sentetik-parola');
+        signedIn = true;
+      }
+      await route.fulfill({ status: signedIn ? 200 : 401, contentType: 'application/json', body: JSON.stringify(signedIn ? { ok: true, user: { id: 'educator' } } : { ok: false, error: 'educator_session_required' }) });
     });
     await page.goto(BASE, { waitUntil: 'networkidle' });
     await page.locator('.special-card[data-code="SP-DYS"]').click();
@@ -200,27 +194,17 @@ test.describe('CZA Özel Eğitim Başlangıç Değerlendirmesi V1 kabul', () => 
     await page.locator('#centralEducatorLogin [name="password"]').fill('sentetik-parola');
     await page.locator('#centralEducatorLogin button').click();
     await expect(page.locator('#centralEducatorLogin')).toHaveCount(0);
-    await expect(page.locator('#centralStudentDys')).toContainText('Sentetik Öğrenci');
+    await expect(page.locator('#centralStudentDys')).toHaveCount(0);
+    await expect(page.locator('.central-link-panel')).toContainText('Kayıtlı öğrenci hesabı gerekmez');
     await expect(page.locator('#name')).toBeVisible();
   });
 
-  test('merkezi bağlantı: öğrenci seçimi, session oluşturma ve görev kanıtı APIye gider', async ({ page }) => {
+  test('merkezi bağlantı: öğrenci hesabı olmadan session oluşturma ve görev kanıtı APIye gider', async ({ page }) => {
     const errors = await collectRuntimeErrors(page);
     const requests = [];
-    const studentId = '11111111-1111-4111-8111-111111111111';
     const sessionId = '22222222-2222-4222-8222-222222222222';
 
-    await page.route('**/api/educator-students*', async route => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({
-          ok: true,
-          students: [{ id: studentId, name: 'Sentetik Merkez Öğrenci', code: 'QA-01' }],
-          hasMore: false
-        })
-      });
-    });
+    await page.route('**/api/educator-auth', route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ ok: true, user: { id: 'educator' } }) }));
 
     await page.route('**/api/assessment-special-linked', async route => {
       const request = route.request();
@@ -236,14 +220,14 @@ test.describe('CZA Özel Eğitim Başlangıç Değerlendirmesi V1 kabul', () => 
             resumed: false,
             session: {
               id: sessionId,
-              student_id: studentId,
+              student_id: null,
               template_code: 'CZA_SPECIAL_V1_DYS',
               status: 'active',
-              metadata: { profileCode: 'SP-DYS', centralStudentId: studentId }
+              metadata: { profileCode: 'SP-DYS', centralStudentId: null }
             },
             attempts: [],
             observations: [],
-            student: { id: studentId, name: 'Sentetik Merkez Öğrenci', code: 'QA-01' }
+            student: { id: null, name: 'Sentetik Aday' }
           })
         });
         return;
@@ -269,9 +253,8 @@ test.describe('CZA Özel Eğitim Başlangıç Değerlendirmesi V1 kabul', () => 
     await page.goto(BASE, { waitUntil: 'networkidle' });
 
     await page.locator('.special-card[data-code="SP-DYS"]').click();
-    await expect(page.locator('#centralStudentDys')).toBeVisible();
-    await page.locator('#centralStudentDys').selectOption(studentId);
-    await expect(page.locator('#name')).toHaveValue('Sentetik Merkez Öğrenci');
+    await expect(page.locator('#centralStudentDys')).toHaveCount(0);
+    await page.locator('#name').fill('Sentetik Aday');
 
     await page.locator('#grade').selectOption('2. sınıf');
     await page.locator('#readingStage').selectOption('Kelime okuyor');
@@ -281,7 +264,7 @@ test.describe('CZA Özel Eğitim Başlangıç Değerlendirmesi V1 kabul', () => 
 
     expect(requests.some(item =>
       item.action === 'create' &&
-      item.studentId === studentId &&
+      !item.studentId && item.studentLabel === 'Sentetik Aday' &&
       item.profileCode === 'SP-DYS'
     )).toBeTruthy();
 
@@ -307,23 +290,13 @@ test.describe('CZA Özel Eğitim Başlangıç Değerlendirmesi V1 kabul', () => 
   test('merkezi başlangıç ekranı parametreleri öğrenciyi ve özel profili otomatik taşır', async ({ page }) => {
     const studentId = '11111111-1111-4111-8111-111111111111';
 
-    await page.route('**/api/educator-students*', async route => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({
-          ok: true,
-          students: [{ id: studentId, name: 'Merkezi Başlangıç Öğrencisi', code: 'QA-BRIDGE' }],
-          hasMore: false
-        })
-      });
-    });
+    await page.route('**/api/educator-auth', route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ ok: true, user: { id: 'educator' } }) }));
 
     await page.goto(BASE + '/?studentId=' + encodeURIComponent(studentId) + '&profile=SP-DYS', { waitUntil: 'networkidle' });
 
     await expect(page.getByRole('heading', { name: 'Okuma sisteminin nerede zorlandığını ayıralım' })).toBeVisible();
-    await expect(page.locator('#centralStudentDys')).toHaveValue(studentId);
-    await expect(page.locator('#name')).toHaveValue('Merkezi Başlangıç Öğrencisi');
+    await expect(page.locator('#centralStudentDys')).toHaveCount(0);
+    await expect(page.locator('#name')).toBeVisible();
   });
 
 });
