@@ -271,10 +271,18 @@ export function CentralStudentReport({ children, initialCode = '' }: { children?
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [report, setReport] = useState<Report | null>(null);
+  function returnToAssessment() {
+    const path = new URLSearchParams(window.location.search).get('returnTo');
+    if (path && path.startsWith('/cza-degerlendirme/') && !path.startsWith('//') && !path.includes('\\')) {
+      window.location.assign(path);
+      return true;
+    }
+    return false;
+  }
   useEffect(() => {
     let active = true;
     void educatorAuthRequest({ action: 'me' })
-      .then(() => { if (active) setAuthenticated(true); })
+      .then(() => { if (active && !returnToAssessment()) setAuthenticated(true); })
       .catch(() => { if (active) setAuthenticated(false); })
       .finally(() => { if (active) setChecking(false); });
     return () => { active = false; };
@@ -297,6 +305,7 @@ export function CentralStudentReport({ children, initialCode = '' }: { children?
     setError('');
     try {
       await educatorAuthRequest({ action: 'login', email, password });
+      if (returnToAssessment()) return;
       setAuthenticated(true);
       setPassword('');
     } catch (error) {
