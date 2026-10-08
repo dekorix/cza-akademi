@@ -265,7 +265,6 @@ export async function POST(request: Request) {
           AND template_code = ${templateCode}
           AND status = 'active'
           AND metadata->>'createdByEducatorId' = ${educatorId}
-          AND metadata->>'academyId' = ${academyId}
         ORDER BY started_at DESC
         LIMIT 1
       `;
