@@ -109,11 +109,14 @@
       '</div>';
     }
     const cls = centralMode === 'auth-required' ? 'blocked' : 'preview';
+    const returnPath = window.location.pathname + window.location.search;
+    const loginHref = '/educator?returnTo=' + encodeURIComponent(returnPath);
     return '<div class="central-link-panel ' + cls + '">' +
       '<div><span>MERKEZİ CZA ÖĞRENCİ KAYDI</span><b>' + esc(modeText()) + '</b>' +
       '<small>' + (centralMode === 'preview'
         ? 'Bu ekran statik kabul/önizleme ortamında yerel olarak çalışmaya devam eder.'
-        : 'Gerçek öğrenci kanıtı merkezi kayda yazılmadan önce eğitimci oturumu gereklidir.') + '</small></div>' +
+        : 'Gerçek öğrenci kanıtı merkezi kayda yazılmadan önce eğitimci oturumu gereklidir.') + '</small>' +
+      (centralMode === 'auth-required' ? '<a class="primary-btn" href="' + esc(loginHref) + '">Eğitimci girişi yap ve değerlendirmeye dön</a>' : '') + '</div>' +
     '</div>';
   }
 
