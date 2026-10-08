@@ -3,7 +3,13 @@ name: CZA Assessment Inline Login Preview
 on:
   push:
     branches: [main]
-    paths: ['.github/workflows/cza-assessment-inline-preview.yml']
+    paths: ['.github/workflows/cza-assessment-pre-enrollment-preview.yml']
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: 'Type UPLOAD_PREVIEW_ONLY to create a staging Worker version; no deployment.'
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -14,6 +20,7 @@ concurrency:
 
 jobs:
   upload-version:
+    if: ${{ github.event_name == 'push' || inputs.confirmation == 'UPLOAD_PREVIEW_ONLY' }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
