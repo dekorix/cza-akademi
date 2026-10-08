@@ -113,8 +113,52 @@
       '<div><span>MERKEZİ CZA ÖĞRENCİ KAYDI</span><b>' + esc(modeText()) + '</b>' +
       '<small>' + (centralMode === 'preview'
         ? 'Bu ekran statik kabul/önizleme ortamında yerel olarak çalışmaya devam eder.'
-        : 'Gerçek öğrenci kanıtı merkezi kayda yazılmadan önce eğitimci oturumu gereklidir.') + '</small></div>' +
+        : 'Gerçek öğrenci kanıtı merkezi kayda yazılmadan önce eğitimci oturumu gereklidir.') + '</small>' +
+      '</div>' + (centralMode === 'auth-required'
+        ? '<form id="centralEducatorLogin" class="central-educator-login">' +
+          '<label>Eğitimci e-postası<input name="email" type="email" autocomplete="username" required></label>' +
+          '<label>Parola<input name="password" type="password" autocomplete="current-password" required></label>' +
+          '<button class="primary-btn" type="submit">Giriş yap</button>' +
+          '<span id="centralLoginError" role="alert" aria-live="polite"></span>' +
+          '</form>' : '') +
     '</div>';
+  }
+
+  function bindInlineLogin() {
+    const form = document.getElementById('centralEducatorLogin');
+    if (!form) return;
+    form.onsubmit = async function (event) {
+      event.preventDefault();
+      const button = form.querySelector('button');
+      const error = document.getElementById('centralLoginError');
+      const email = form.querySelector('[name="email"]').value.trim();
+      const passwordInput = form.querySelector('[name="password"]');
+      button.disabled = true;
+      error.textContent = '';
+      try {
+        const response = await fetch('/api/educator-auth', {
+          method: 'POST', credentials: 'same-origin',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ action: 'login', email, password: passwordInput.value }),
+          signal: AbortSignal.timeout(15000)
+        });
+        const body = await response.json().catch(function () { return {}; });
+        if (!response.ok || body.ok !== true) throw new Error(String(body.error || 'auth_unavailable'));
+        passwordInput.value = '';
+        const students = await loadStudents(true);
+        if (students.mode !== 'connected') throw new Error('student_list_unavailable');
+        document.querySelector('.form-panel .central-link-panel')?.remove();
+        await enhanceIntake();
+      } catch (cause) {
+        const code = cause instanceof Error ? cause.message : 'auth_unavailable';
+        error.textContent = code === 'invalid_credentials' ? 'E-posta veya parola hatalı.'
+          : code === 'rate_limited' ? 'Çok fazla deneme yapıldı. Birkaç dakika sonra tekrar deneyin.'
+          : code === 'student_list_unavailable' ? 'Giriş başarılı, ancak öğrenci listesi alınamadı. Sayfayı yenileyin.'
+          : 'Giriş tamamlanamadı. Lütfen tekrar deneyin.';
+      } finally {
+        button.disabled = false;
+      }
+    };
   }
 
   async function enhanceIntake() {
@@ -129,6 +173,7 @@
     const selectId = isDyslexia ? 'centralStudentDys' : 'centralStudentGeneric';
     wrapper.innerHTML = connectionMarkup(selectId);
     formPanel.insertBefore(wrapper.firstElementChild, formPanel.firstChild);
+    bindInlineLogin();
 
     if (result.mode === 'connected') {
       const select = document.getElementById(selectId);

@@ -34,10 +34,12 @@ const reply = (error: string, status: number) =>
     { status, headers: { 'cache-control': 'no-store' } },
   );
 
-// One explicitly configured preview belonging to this same Worker. Canonical
-// origin remains available; arbitrary Sites, workers, and wildcard hosts are denied.
+// Version URLs are immutable builds of this staging Worker. Permit their exact
+// eight-hex prefix only; the existing Origin and session checks still apply.
+// Named aliases remain restricted to one explicitly configured origin.
 function educatorOriginAllowed(origin: string) {
   if (origin === STAGING_EDUCATOR_ORIGIN) return true;
+  if (/^https:\/\/[a-f0-9]{8}-cza-akademi-staging\.cza-staging-habip\.workers\.dev$/.test(origin)) return true;
   const preview = process.env.CZA_EDUCATOR_PREVIEW_ORIGIN?.trim();
   return Boolean(preview &&
     /^https:\/\/(?:[a-f0-9]{8}|cza-preview)-cza-akademi-staging\.cza-staging-habip\.workers\.dev$/.test(preview) &&

@@ -688,15 +688,13 @@ test('Neon reset provider failures, invalid token and rate gate are safe', async
 });
 
 
-test('explicit same-worker preview signs in with unchanged canonical role binding', async t => {
+test('immutable same-worker version preview signs in with unchanged canonical role binding', async t => {
   const h = await harness(t);
   const preview = 'https://51dc6520-cza-akademi-staging.cza-staging-habip.workers.dev';
   const request = () => new Request(preview + '/api/educator-auth', {
     method: 'POST', headers: {origin: preview, 'content-type':'application/json'},
     body: JSON.stringify({action:'login',email:'canonical@example.invalid',password:'test-password-only'}),
   });
-  assert.equal((await h.route.POST(request())).status, 403);
-  h.env.CZA_EDUCATOR_PREVIEW_ORIGIN = preview;
   const response = await h.route.POST(request());
   assert.equal(response.status, 200);
   assert.ok(response.headers.get('set-cookie').includes('__Host-cza_neon_educator='));
@@ -704,7 +702,7 @@ test('explicit same-worker preview signs in with unchanged canonical role bindin
   assert.equal((await h.route.POST(request())).status, 401);
 });
 
-test('preview configuration cannot allow other workers or cross-origin posts', async t => {
+test('version preview cannot allow other workers, aliases or cross-origin posts', async t => {
   const h = await harness(t);
   const preview = 'https://51dc6520-cza-akademi-staging.cza-staging-habip.workers.dev';
   h.env.CZA_EDUCATOR_PREVIEW_ORIGIN = preview;
@@ -722,6 +720,9 @@ test('preview configuration cannot allow other workers or cross-origin posts', a
   }
   h.env.CZA_EDUCATOR_PREVIEW_ORIGIN = 'https://other-worker.cza-staging-habip.workers.dev';
   assert.equal(h.ingress.neonIngressAllowed(new Request(h.env.CZA_EDUCATOR_PREVIEW_ORIGIN+'/api/educator-auth')),false);
+  assert.equal(h.ingress.neonIngressAllowed(new Request('https://other-alias-cza-akademi-staging.cza-staging-habip.workers.dev/api/educator-auth')),false);
+  assert.equal(h.ingress.neonIngressAllowed(new Request('https://51dc6520-other-worker.cza-staging-habip.workers.dev/api/educator-auth')),false);
+  assert.equal(h.ingress.neonIngressAllowed(new Request('https://aaaaaaaa-cza-akademi-staging.cza-staging-habip.workers.dev/api/educator-auth')),true);
   assert.equal(h.calls.length,0);
 });
 
