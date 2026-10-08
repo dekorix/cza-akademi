@@ -18,6 +18,9 @@
     if (!('centralProfileCode' in state)) state.centralProfileCode = '';
     if (!('centralSyncStatus' in state)) state.centralSyncStatus = 'local-preview';
     if (!('centralLastSyncAt' in state)) state.centralLastSyncAt = '';
+    if (!('centralCandidateId' in state)) state.centralCandidateId = '';
+    if (!('centralCycleId' in state)) state.centralCycleId = '';
+    if (!('centralCandidateLabel' in state)) state.centralCandidateLabel = '';
   }
 
   async function loadStudents(force) {
@@ -148,6 +151,28 @@
     wrapper.innerHTML = connectionMarkup();
     formPanel.insertBefore(wrapper.firstElementChild, formPanel.firstChild);
     bindInlineLogin();
+    if (centralMode === 'connected' && !bootstrapStudentId) {
+      const fresh = document.createElement('button');
+      fresh.type = 'button';
+      fresh.className = 'secondary-btn';
+      fresh.textContent = 'Yeni aday / yeni değerlendirme çevrimi';
+      fresh.onclick = function () {
+        state.centralCandidateId = '';
+        state.centralCycleId = '';
+        state.centralCandidateLabel = '';
+        state.centralSessionId = '';
+        state.centralProfileCode = '';
+        state.name = '';
+        state.birth = '';
+        state.grade = '';
+        state.readingStage = '';
+        state.concerns = '';
+        clearLocalSpecialEvidence();
+        saveState();
+        render();
+      };
+      formPanel.insertBefore(fresh, formPanel.firstChild);
+    }
 
     wrapStartButton(isDyslexia);
   }
@@ -161,6 +186,13 @@
     return isDyslexia ? 'SP-DYS' : String(state.specialGenericCode || '');
   }
 
+  function clearLocalSpecialEvidence() {
+    state.dysEvidence = {};
+    state.dysLsEvidence = {};
+    state.dysAdvancedEvidence = {};
+    state.specialGenericEvidence = {};
+  }
+
   async function createCentralSession(isDyslexia) {
     const profileCode = currentProfileCode(isDyslexia);
     if (centralMode !== 'connected') {
@@ -168,10 +200,26 @@
       return { localPreview: true };
     }
     const studentLabel = String(document.getElementById(isDyslexia ? 'name' : 'sgName')?.value || '').trim();
+    if (!bootstrapStudentId) {
+      // UUIDs identify the candidate and cycle; names are display-only. Keep
+      // them across reload, and require an explicit new-cycle action when
+      // another child has the same name.
+      if (state.centralCandidateLabel && state.centralCandidateLabel !== studentLabel) {
+        state.centralCandidateId = '';
+        state.centralCycleId = '';
+        state.centralSessionId = '';
+      }
+      state.centralCandidateId = state.centralCandidateId || crypto.randomUUID();
+      state.centralCycleId = state.centralCycleId || crypto.randomUUID();
+      state.centralCandidateLabel = studentLabel;
+      saveState();
+    }
     const payload = {
       action: 'create',
       studentId: bootstrapStudentId || undefined,
       studentLabel,
+      candidateId: bootstrapStudentId ? undefined : state.centralCandidateId,
+      cycleId: bootstrapStudentId ? undefined : state.centralCycleId,
       profileCode,
       grade: isDyslexia
         ? String(document.getElementById('grade')?.value || '')
@@ -205,6 +253,7 @@
     if (body.student && body.student.name) {
       state.centralStudentName = String(body.student.name);
     }
+    clearLocalSpecialEvidence();
     hydrateFromCentral(profileCode, body.attempts || [], body.observations || []);
     saveState();
     return body;
