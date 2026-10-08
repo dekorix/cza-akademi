@@ -1,0 +1,67 @@
+name: CZA Staging PR62 Preview Upload
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: "Type UPLOAD_PR62_ONLY to create a new staging Worker version; no deployment."
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cza-staging-pr62-preview-upload
+  cancel-in-progress: false
+
+jobs:
+  upload-version:
+    if: ${{ inputs.confirmation == 'UPLOAD_PR62_ONLY' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout exact reviewed educator UI commit
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          ref: 919af491bd24b34b8d3b41cf90d80508be4a8fcd
+          persist-credentials: false
+
+      - name: Verify source and target
+        run: |
+          test "$(git rev-parse HEAD)" = "919af491bd24b34b8d3b41cf90d80508be4a8fcd"
+          test "${CLOUDFLARE_ACCOUNT_ID}" = "8c23e36e747009ad8c8d0bdbda8d5606"
+          test -n "${CLOUDFLARE_API_TOKEN}"
+        env:
+          CLOUDFLARE_ACCOUNT_ID: 8c23e36e747009ad8c8d0bdbda8d5606
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CZA_STAGING_PREVIEW_API_TOKEN }}
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Setup Node
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: '22.13.0'
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install and verify
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm exec tsc --noEmit
+          node --test tests/u3-educator-core.test.mjs
+          pnpm run build
+
+      - name: Upload version only to existing CZA staging Worker
+        env:
+          CLOUDFLARE_ACCOUNT_ID: 8c23e36e747009ad8c8d0bdbda8d5606
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CZA_STAGING_PREVIEW_API_TOKEN }}
+        run: |
+          pnpm exec wrangler versions upload \
+            --config dist/server/wrangler.json \
+            --name cza-akademi-staging \
+            --keep-vars \
+            --preview-alias educator-ui-pr62 \
+            --tag pr62-919af491 \
+            --message "CZA educator UI PR62 919af491 preview only"
