@@ -41,6 +41,6 @@ Aynı öğrenci hem akademik hem beceri egzersizlerinden kanıt bırakır; iki a
 - `docs/CZA_MASTER_ARCHITECTURE.md`: mevcut çekirdek mimari ve eğitim ilkeleri (değiştirilmez).
 - `docs/CZA_14_Beceri_v1.md`: sabit S01–S14 kanıt çerçevesi (değiştirilmez).
 - `CENTRAL_IDENTITY_PLAN.md`: Neon kimlik/oturum kararları (değiştirilmez).
-- `docs/CZA_KONTROL_PROTOKOLU_TASLAK.md`: hafıza, görev, kontrol ve kabul kuralları.
+- `docs/CZA_KONTROL_PROTOKOLU.md`: hafıza, görev, kontrol ve kabul kuralları.
 
 > Açık karar: 0–YKS vizyonu sabitlenirken ilk tam ticari sürümün **hangi yaş ve programlarda** olacağı ayrıca karara bağlanacaktır. Bu belge her profilin hazır olduğunu ileri sürmez.
