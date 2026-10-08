@@ -16,6 +16,7 @@ import {
 const MAX_REQUEST_BYTES = 64 * 1024;
 const MAX_SUMMARY_BYTES = 16 * 1024;
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const PRE_ENROLL_UNIQUE_INDEX = 'assessment_sessions_pre_enroll_active_identity_uq';
 
 function json(body: unknown, status = 200) {
   return Response.json(body, {
@@ -230,19 +231,47 @@ export async function POST(request: Request) {
       const academyId = String(educatorRows[0].academy_id);
 
       const templateCode = specialTemplateCode(profileCode);
+      const candidateId = sanitizeShortText(input.candidateId, 80);
+      const cycleId = sanitizeShortText(input.cycleId, 80);
+      if (!student && (!UUID_PATTERN.test(candidateId) || !UUID_PATTERN.test(cycleId))) {
+        return json({ ok: false, error: 'candidate_cycle_identity_required' }, 400);
+      }
+      // The database index is the concurrency gate. Refuse candidate writes until
+      // the separately approved migration has been applied to this environment.
+      if (!student) {
+        const indexes = await sql`
+          SELECT 1 FROM pg_index i
+          JOIN pg_class idx ON idx.oid = i.indexrelid
+          JOIN pg_namespace ns ON ns.oid = idx.relnamespace
+          WHERE ns.nspname = 'public' AND idx.relname = ${PRE_ENROLL_UNIQUE_INDEX}
+            AND i.indisunique AND i.indisvalid
+          LIMIT 1
+        `;
+        if (!indexes.length) return json({ ok: false, error: 'pre_enroll_integrity_schema_missing' }, 503);
+      }
       const existing = await sql`
         SELECT id, student_id, template_code, student_label, status, current_task_code,
                started_at, completed_at, metadata
         FROM public.assessment_sessions
-        WHERE student_id = ${student?.id || null}::uuid
+        WHERE (
+          (${student?.id || null}::uuid IS NOT NULL AND student_id = ${student?.id || null}::uuid)
+          OR
+          (${student?.id || null}::uuid IS NULL AND student_id IS NULL
+            AND metadata->>'source' = 'EDUCATOR_PRE_ENROLLMENT'
+            AND metadata->>'academyId' = ${academyId}
+            AND metadata->>'candidateId' = ${candidateId}
+            AND metadata->>'cycleId' = ${cycleId})
+        )
           AND template_code = ${templateCode}
           AND status = 'active'
           AND metadata->>'createdByEducatorId' = ${educatorId}
+          AND metadata->>'academyId' = ${academyId}
         ORDER BY started_at DESC
         LIMIT 1
       `;
       if (existing.length) {
         const bundle = await sessionBundle(sql, educatorId, String(existing[0].id));
+        if (!bundle) return json({ ok: false, error: 'special_session_not_found' }, 404);
         return json({ ok: true, resumed: true, ...bundle }, 200);
       }
 
@@ -254,6 +283,8 @@ export async function POST(request: Request) {
         campusStudentCode: student?.code || null,
         createdByEducatorId: educatorId,
         academyId,
+        candidateId: student ? null : candidateId,
+        cycleId: student ? null : cycleId,
         grade: sanitizeShortText(input.grade, 80) || null,
         readingStage: sanitizeShortText(input.readingStage, 120) || null,
         birthDate: sanitizeShortText(input.birthDate, 20) || null,
@@ -272,9 +303,29 @@ export async function POST(request: Request) {
           NULL,
           ${JSON.stringify(metadata)}::jsonb
         )
+        ON CONFLICT DO NOTHING
         RETURNING id, student_id, template_code, student_label, status,
                   current_task_code, started_at, completed_at, metadata
       `;
+      if (!rows.length) {
+        // A concurrent request won the same candidate/cycle insert. Read the
+        // winner through the normal authorization path, including its evidence.
+        const winner = await sql`
+          SELECT id FROM public.assessment_sessions
+          WHERE student_id IS NULL AND template_code = ${templateCode}
+            AND status = 'active'
+            AND metadata->>'source' = 'EDUCATOR_PRE_ENROLLMENT'
+            AND metadata->>'academyId' = ${academyId}
+            AND metadata->>'createdByEducatorId' = ${educatorId}
+            AND metadata->>'candidateId' = ${candidateId}
+            AND metadata->>'cycleId' = ${cycleId}
+          LIMIT 1
+        `;
+        if (!winner.length) return json({ ok: false, error: 'special_session_conflict' }, 409);
+        const bundle = await sessionBundle(sql, educatorId, String(winner[0].id));
+        if (!bundle) return json({ ok: false, error: 'special_session_not_found' }, 404);
+        return json({ ok: true, resumed: true, ...bundle }, 200);
+      }
 
       return json({
         ok: true,
