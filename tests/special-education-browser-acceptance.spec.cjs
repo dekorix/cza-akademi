@@ -176,6 +176,34 @@ test.describe('CZA Özel Eğitim Başlangıç Değerlendirmesi V1 kabul', () => 
     expect(errors).toEqual([]);
   });
 
+  test('oturumsuz eğitmen aynı değerlendirme formunda giriş yapıp öğrenci seçer', async ({ page }) => {
+    let signedIn = false;
+    await page.route('**/api/educator-students*', route => route.fulfill({
+      status: signedIn ? 200 : 401,
+      contentType: 'application/json',
+      body: signedIn
+        ? JSON.stringify({ ok: true, students: [{ id: '11111111-1111-4111-8111-111111111111', name: 'Sentetik Öğrenci' }] })
+        : JSON.stringify({ ok: false, error: 'educator_session_required' })
+    }));
+    await page.route('**/api/educator-auth', async route => {
+      const input = JSON.parse(route.request().postData() || '{}');
+      expect(input.action).toBe('login');
+      expect(input.email).toBe('test@example.invalid');
+      expect(input.password).toBe('sentetik-parola');
+      signedIn = true;
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ ok: true }) });
+    });
+    await page.goto(BASE, { waitUntil: 'networkidle' });
+    await page.locator('.special-card[data-code="SP-DYS"]').click();
+    await expect(page.locator('#centralEducatorLogin')).toBeVisible();
+    await page.locator('#centralEducatorLogin [name="email"]').fill('test@example.invalid');
+    await page.locator('#centralEducatorLogin [name="password"]').fill('sentetik-parola');
+    await page.locator('#centralEducatorLogin button').click();
+    await expect(page.locator('#centralEducatorLogin')).toHaveCount(0);
+    await expect(page.locator('#centralStudentDys')).toContainText('Sentetik Öğrenci');
+    await expect(page.locator('#name')).toBeVisible();
+  });
+
   test('merkezi bağlantı: öğrenci seçimi, session oluşturma ve görev kanıtı APIye gider', async ({ page }) => {
     const errors = await collectRuntimeErrors(page);
     const requests = [];
