@@ -149,6 +149,8 @@ test('unauthenticated, other educator and other academy cannot read candidate se
       { action: 'get', sessionId: first.body.session.id });
     assert.equal(result.status, educator ? 404 : 401);
   }
+  const sameAcademyOtherEducator = await h.post('educatorB', h.create());
+  assert.notEqual(sameAcademyOtherEducator.body.session.id, first.body.session.id);
   const otherAcademy = await h.post('educatorC', h.create());
   assert.notEqual(otherAcademy.body.session.id, first.body.session.id);
 });
