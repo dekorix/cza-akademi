@@ -117,3 +117,4 @@
 .central-finish-panel{margin-top:20px;border-color:#bdddcf;background:linear-gradient(135deg,#f2fcf7,#f5f9ff)}
 .central-status-chip{display:inline-flex;align-items:center;border:1px solid #c9ddd6;border-radius:999px;padding:7px 10px;background:#f3faf7;color:#52756a;font-size:9px;font-weight:900;white-space:nowrap}
 @media(max-width:760px){.central-link-panel,.central-finish-panel{align-items:stretch;flex-direction:column}.central-link-panel label{min-width:0;width:100%}.central-finish-panel .primary-btn{width:100%}.central-status-chip{white-space:normal}}
+.central-save-error:not(:empty){margin:10px 0;padding:11px 13px;border:1px solid #e9b9aa;border-radius:10px;background:#fff4ef;color:#903f2b;font-size:12px;font-weight:750;line-height:1.5}
