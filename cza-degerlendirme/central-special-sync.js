@@ -306,22 +306,26 @@
   }
 
   async function syncTask(snapshot) {
-    if (!snapshot || !state.centralSessionId || centralMode !== 'connected') return;
+    if (!snapshot || !state.centralSessionId || centralMode !== 'connected') {
+      throw new Error('educator_session_required');
+    }
     try {
       const response = await fetch(SPECIAL_API, {
         method: 'POST',
         credentials: 'same-origin',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify(snapshot)
+        body: JSON.stringify(snapshot),
+        signal: AbortSignal.timeout(30000)
       });
       const body = await response.json().catch(function () { return {}; });
       if (!response.ok || body.ok !== true) throw new Error(String(body.error || 'sync_failed'));
       state.centralSyncStatus = 'synced';
       state.centralLastSyncAt = new Date().toISOString();
       saveState();
-    } catch {
+    } catch (error) {
       state.centralSyncStatus = 'sync-error';
       saveState();
+      throw error;
     }
   }
 
@@ -332,18 +336,61 @@
     'sgNext', 'sgSkip'
   ]);
 
-  document.addEventListener('click', function (event) {
-    const target = event.target instanceof Element ? event.target.closest('button') : null;
-    if (!target || !SAVE_BUTTONS.has(target.id)) return;
-    if (!state.centralSessionId || centralMode !== 'connected') return;
-
-    const taskCode = currentTaskCodeFromDom();
-    const row = evidenceByTask(taskCode);
-    const meta = currentTaskMetaFromDom();
-    if (!taskCode || !row) return;
-    const snapshot = buildAttemptPayload(taskCode, { ...row }, meta);
-    window.setTimeout(function () { syncTask(snapshot); }, 0);
-  }, true);
+  function wrapSaveButtons() {
+    SAVE_BUTTONS.forEach(function (id) {
+      const button = document.getElementById(id);
+      if (!button || button.dataset.centralWrapped === '1') return;
+      const original = button.onclick;
+      button.dataset.centralWrapped = '1';
+      button.onclick = async function (event) {
+        if (!state.centralSessionId) {
+          if (typeof original === 'function') original.call(button, event);
+          return;
+        }
+        const isSkip = id.endsWith('Skip');
+        const taskCode = currentTaskCodeFromDom();
+        const row = taskCode ? { ...(evidenceByTask(taskCode) || {}) } : null;
+        const needsChoice = Boolean(document.querySelector('[data-letter], [data-adv-choice], [data-sg-choice]'));
+        if (!isSkip && (!row?.verdict || !row?.support || (needsChoice && !row?.choice))) {
+          if (typeof original === 'function') original.call(button, event);
+          return;
+        }
+        const actions = button.closest('.panel-actions');
+        let error = actions?.parentElement?.querySelector('.central-save-error');
+        if (!error && actions) {
+          error = document.createElement('div');
+          error.className = 'central-save-error';
+          error.setAttribute('role', 'alert');
+          actions.insertAdjacentElement('afterend', error);
+        }
+        if (error) error.textContent = '';
+        if (!taskCode) {
+          if (error) error.textContent = 'Görev kimliği okunamadı. Kanıt kaydedilmedi.';
+          return;
+        }
+        if (isSkip) {
+          row.verdict = 'NO_RESPONSE';
+          row.support = 'NOT_ASSESSED';
+        } else {
+          const input = document.querySelector('#dysResponse, #lsResponse, #advResponse, #sgResponse');
+          if (input) row.response = input.value.trim();
+        }
+        const note = document.querySelector('#dysNote, #lsNote, #advNote, #sgNote');
+        if (note) row.note = note.value;
+        button.disabled = true;
+        try {
+          await syncTask(buildAttemptPayload(taskCode, row, currentTaskMetaFromDom()));
+          if (typeof original === 'function') original.call(button, event);
+        } catch (cause) {
+          const code = cause instanceof Error ? cause.message : 'sync_failed';
+          if (error) error.textContent = 'Kanıt merkezi kayda yazılamadı (' +
+            (code === 'TimeoutError' ? 'zaman aşımı' : code) + '). Tekrar deneyin.';
+        } finally {
+          button.disabled = false;
+        }
+      };
+    });
+  }
 
   function observationFromAttempt(row) {
     const payload = row && row.answer_payload && typeof row.answer_payload === 'object'
@@ -501,6 +548,7 @@
   render = function () {
     ensureCentralState();
     const result = baseRender();
+    wrapSaveButtons();
     applyBootstrapProfile();
     loadStudents(false).then(function () {
       enhanceConnectionBadge();
