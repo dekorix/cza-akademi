@@ -136,3 +136,60 @@ test('complete generic adaptive route resumes to summary instead of task 1', () 
   assert.equal(h.state.screen, 'special-generic-task');
   assert.equal(h.state.specialGenericTaskIndex, 4);
 });
+
+
+test('actual dyslexia domain helpers preserve completed evidence across LS and advanced routes', () => {
+  const state = { screen: 't5-test-idle', dysLsEvidence: {}, dysAdvancedEvidence: {} };
+  const window = {};
+  const runtime = {
+    state, window, dyslexiaDomains: Array.from({ length: 12 }, () => ['', '', 0]),
+    render: () => {}, saveState: () => {}, Date,
+    dyslexiaVerdicts: [], supportOptions: [], console,
+  };
+  const lsSource = fs.readFileSync(
+    new URL('../cza-degerlendirme/dyslexia-letter-sound.js', import.meta.url), 'utf8');
+  const advancedSource = fs.readFileSync(
+    new URL('../cza-degerlendirme/dyslexia-advanced.js', import.meta.url), 'utf8');
+  const instrumentedAdvanced = advancedSource.replace(
+    '  function ensureState() {',
+    `  window.t5AdvancedInventory = () => advancedDomains.map(d => ({
+      id: d.id, taskIds: d.tasks.map(t => t.id)
+    }));
+  function ensureState() {`);
+  assert.notEqual(instrumentedAdvanced, advancedSource);
+
+  vm.runInNewContext(lsSource, runtime);
+  vm.runInNewContext(instrumentedAdvanced, runtime);
+  const lsTaskIds = [...lsSource.matchAll(/id:'(DYS-LS\\d{2})'/g)].map(m => m[1]);
+  assert.equal(lsTaskIds.length, 10);
+
+  // A recorded NOT_ASSESSED/NO_RESPONSE task is completed, not missing.
+  for (const id of lsTaskIds.slice(0, 4)) {
+    state.dysLsEvidence[id] = { verdict: 'NO_RESPONSE', support: 'NOT_ASSESSED' };
+  }
+  assert.equal(window.czaFirstIncompleteDyslexiaLsTaskIndex(), 4);
+  for (const id of lsTaskIds) {
+    state.dysLsEvidence[id] = { verdict: 'NO_RESPONSE', support: 'NOT_ASSESSED' };
+  }
+  assert.equal(window.czaFirstIncompleteDyslexiaLsTaskIndex(), -1);
+
+  const domains = window.t5AdvancedInventory();
+  assert.equal(domains.length, 10);
+  for (const id of domains[0].taskIds) {
+    state.dysAdvancedEvidence[id] = { verdict: 'MATCH', support: 'INDEPENDENT' };
+  }
+  for (const id of domains[1].taskIds.slice(0, 2)) {
+    state.dysAdvancedEvidence[id] = { verdict: 'NO_RESPONSE', support: 'NOT_ASSESSED' };
+  }
+  const next = window.czaFirstIncompleteDyslexiaAdvancedTask();
+  assert.equal(next.domainId, domains[1].id);
+  assert.equal(next.taskIndex, 2);
+
+  // Mark every actual route task as recorded, even if all scores are insufficient.
+  for (const domain of domains) {
+    for (const id of domain.taskIds) {
+      state.dysAdvancedEvidence[id] = { verdict: 'NO_RESPONSE', support: 'NOT_ASSESSED' };
+    }
+  }
+  assert.equal(window.czaFirstIncompleteDyslexiaAdvancedTask(), null);
+});
