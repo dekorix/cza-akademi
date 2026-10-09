@@ -36,3 +36,13 @@
 - **KALAN:** Merkezi uçtan uca kabul, içerik ve UX sert kabul, paket/veli yaşam döngüsü.
 - **KAPSAM SAPMASI=YOK** (taslak kontrol paketinde hiçbir ürün kodu değiştirilmedi).
 - **SIRADAKİ TEK ADIM:** #72 kayıt öncesi oturum tekrar başlatma kusurunun testli düzeltilmesi.
+
+## 9 Ekim 2026 | Kontrol Kulesi yeni checkpoint (tarihsel, salt okunur)
+
+- PR #75, PR #74'ün yalnız **belge dalına** birleştirildi: `e6f9a7a1be4f8876bbd3d5beced887db8bc72e9b`.
+- PR #76, `AGENTS.md`, gerçek kaynak envanteri, devir senaryosu ve regresyon bekçisini aynı belge dalına birleştirdi: `72bdbf8240766057803583ddafe43c3f00e5baba`.
+- CZA değerlendirme kaynak envanteri: 16 yaş/sınıf + 10 özel eğitim kodu; P2 23 bölüm / 226–239 sözleşmesel görev; 14 beceri. **Gerçek mikro-görev karşılaştırması ve staging kabulü hâlâ açık.**
+- `docs/CZA_MODUL_KANONIK_MANIFEST.json` 10 ana faz ve 15 çapraz program ailesini taşır; her biri SOURCE_REFERENCE_PRESENT_ACCEPTANCE_UNVERIFIED olarak tutulur. Kaynak dosyanın varlığı nihai ürün kabulü değildir.
+- `tests/cza-handoff-inventory-guard.test.mjs` ve `tests/cza-module-manifest.test.mjs` için GitHub CI kaydı PR #74 HEAD ile ayrıca doğrulanır; önceki CI PASS otomatik olarak yeni HEAD'e taşınmaz.
+- **MAIN MERGE BLOCKED:** harici Cloudflare/Vercel/Sites yayın etkisi ve GitHub required check/branch protection admin düzeyinde net değil; PR #74 taslak kalacak.
+- **SIRADAKİ TEK ADIM:** PR #74 için yayın etkisi ve dal koruma kabulünü yetkili salt okunur kanıtla kapat; ancak sonra main merge konusunda karar ver.
