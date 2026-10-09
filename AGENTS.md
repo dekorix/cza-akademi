@@ -2,6 +2,11 @@
 
 Bu depo **ÇELİK ANZAN 2 / büyük Çelik Zihin Akademisi** platformudur; ayrı tanıtım Sites uygulamasıyla karıştırılmamalıdır. Yeni sohbet, Codex veya T5 Patronu görevi geldiğinde önce bu kuralları ve kanonik belge kaynaklarını oku. Bu dosyanın varlığı bir ajanın otomatik bağlandığını veya GitHub eylemlerini kendi kendine başlattığını kanıtlamaz.
 
+## Tek ekosistem, ayrı tanıtım modülü (CZA-K-006, ONAYLI)
+**Tek CZA markası ve tek üst ürün vardır.** `dekorix/cza-akademi` **Büyük CZA'nın ana eğitim/öğrenme platformudur**. Tanıtım/satış amaçlı ChatGPT Sites uygulaması bu ekosistemin **yalnız bir web/tanıtım modülüdür**, ana öğrenci/eğitmen platformu değildir. Tanıtım sitesi ayrı kaynak ve yayın yaşam döngüsüne sahip olmalıdır; ikinci öğrenci kimliği, Student Learning Profile, DB veya öğrenme kanıtı oluşturamaz. Kapsam: `docs/CZA_TEK_EKOSISTEM_TANITIM_SINIRI_20261009.md`.
+
+**ÖNEMLİ:** Çalışan kodda `.openai/hosting.json`, Vite Sites eklentisi ve `apps-script/Handoff.gs` içindeki `/work` yönlendirmesi bugün hâlâ bağlıdır. Sites'i ana ürünle kavramsal olarak karıştırma; ama bu teknik bağı da test etmeden silme, kimlik değiştirme veya üretim linkini bozma. Sites'e ait görsel/ticari görevleri T5, değerlendirme ve eğitim uygulaması yerine koyma. PR #78 bu sebeple reddedildi.
+
 ## Çalışmaya başlamadan oku
 1. `docs/CZA_KONTROL_PROTOKOLU.md` (onaylı yönetim standardı)
 2. `docs/CZA_MASTER_ARCHITECTURE.md` ve `CENTRAL_IDENTITY_PLAN.md`
@@ -11,7 +16,8 @@ Bu depo **ÇELİK ANZAN 2 / büyük Çelik Zihin Akademisi** platformudur; ayrı
 6. `docs/CZA_DURUM_PANOSU_TASLAK.md` (tarihsel snapshot, canlı durum değildir)
 7. `docs/CZA_DEGERLENDIRME_KAYNAK_ENVANTERI_20261009.md` (26 profil, P2 23 bölümün kaynak kanıtı, runtime kabulü değildir)
 8. `docs/CZA_MODUL_KANONIK_MANIFEST.json` (10 ana faz + 15 program ailesi, kaynak referansları; gerçek kabul değildir)
-9. Github `main` HEAD, açık PR/issue, CI ve hedef staging build SHA. Başta **güncel** doğrula.
+9. `docs/CZA_TEK_EKOSISTEM_TANITIM_SINIRI_20261009.md` (tek ürün, ayrı tanıtım modülü, mevcut teknik bağlar)
+10. Github `main` HEAD, açık PR/issue, CI ve hedef staging build SHA. Başta **güncel** doğrula.
 
 ## Nihai ürün vizyonu ve değişmez kural
 Tek Student ID ve Student Learning Profile, yaşa uyarlanmış 0–YKS gelişim/akademik öğrenme/beceri atölyesi. Öğrencinin üç yüzeyi: **Benim Öğrenme Rotam / Akademik Öğrenme Merkezi / Beceri ve Zihin Atölyesi**; verileri ayrılmaz. 14 beceri ölçme kanıtının boyutlarıdır; klinik tanı veya öğrenciyi sabit etiketleme aracı değildir. 0–2 yaşta yetişkin aracılı gözlem/esas çalışma. LGS/YKS çekirdek kapsam; KPSS/AGS gelecekteki opsiyon. Paket, veli ve satış akışları ortak omurgaya bağlanır; ayrı bir öğrenci kimliği kurulmaz.
