@@ -177,6 +177,11 @@ test('same named index with reordered keys, broader predicate or invalid definit
     { predicate: "student_id IS NULL AND status = 'active'" },
     { key_count: 4 }, { attribute_count: 6 }, { is_valid: false },
     { method: 'hash' },
+    // PostgreSQL JSON keys and predicate string literals are case-sensitive;
+    // a well-formed unique/valid index with different casing is unsafe.
+    { key_3: "(metadata ->> 'candidateid'::text)" },
+    { predicate: "((student_id IS NULL) AND (status = 'active'::text) AND ((metadata ->> 'source'::text) = 'educator_pre_enrollment'::text) AND ((metadata ->> 'candidateId'::text) IS NOT NULL) AND ((metadata ->> 'cycleId'::text) IS NOT NULL))" },
+    { predicate: "((student_id IS NULL) AND (status = 'active'::text) AND ((metadata ->> 'Source'::text) = 'EDUCATOR_PRE_ENROLLMENT'::text) AND ((metadata ->> 'candidateId'::text) IS NOT NULL) AND ((metadata ->> 'cycleId'::text) IS NOT NULL))" },
   ];
   for (const indexPatch of variants) {
     const h = harness({ indexPatch });
