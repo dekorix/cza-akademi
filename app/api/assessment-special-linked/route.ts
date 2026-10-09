@@ -22,8 +22,15 @@ function validPreEnrollIndex(row: Record<string, unknown> | undefined) {
   if (!row || row.is_unique !== true || row.is_valid !== true ||
       row.is_ready !== true || row.is_live !== true || row.method !== 'btree' ||
       Number(row.key_count) !== 5 || Number(row.attribute_count) !== 5) return false;
-  const canonical = (value: unknown) => String(value || '').replace(/::text\b/gi, '')
-    .replace(/[()\s]/g, '').toLowerCase();
+  // PostgreSQL keywords can be normalized, but JSON keys and SQL string literals
+  // are case-sensitive. Never lowercase values inside single quotes.
+  const canonical = (value: unknown) => String(value || '')
+    .match(/'(?:''|[^'])*'|[^']+/g)?.map((token) => {
+      if (token.startsWith("'")) return token;
+      return token.replace(/::text\b/gi, '')
+        .replace(/\b(?:IS|NOT|NULL)\b/gi, (keyword) => keyword.toLowerCase())
+        .replace(/[()\s]/g, '');
+    }).join('') || '';
   const keys = ['academyId', 'createdByEducatorId', 'candidateId', 'cycleId'];
   for (let n = 0; n < keys.length; n++) {
     if (canonical(row['key_' + (n + 1)]) !== canonical(`metadata->>'${keys[n]}'`)) return false;
