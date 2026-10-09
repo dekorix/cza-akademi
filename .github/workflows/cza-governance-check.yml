@@ -26,6 +26,10 @@ jobs:
           node-version: '22'
       - name: Verify governance validator and examples
         run: node --test tests/cza-governance-contract.test.mjs
+      - name: Verify canonical source inventory and prevent accidental removal
+        run: |
+          node --test tests/cza-handoff-inventory-guard.test.mjs
+          node scripts/qa/cza-handoff-inventory-guard.mjs
       - name: Check pull request documentation and unresolved publish effect
         env:
           CZA_PR_BODY: ${{ github.event.pull_request.body }}
