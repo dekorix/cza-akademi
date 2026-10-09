@@ -176,6 +176,22 @@
     return base;
   }
 
+  // Central resume must inspect all adaptive domain routes, not only the
+  // first task or the overall evidence-status badge.
+  window.czaFirstIncompleteDyslexiaAdvancedTask = function () {
+    ensureState();
+    for (var i = 0; i < advancedDomains.length; i++) {
+      var domain = advancedDomains[i];
+      var tasks = routeFor(domain);
+      var taskIndex = tasks.findIndex(function (task) {
+        var row = state.dysAdvancedEvidence[task.id];
+        return !row || !row.verdict || !row.support;
+      });
+      if (taskIndex >= 0) return { domainId: domain.id, taskIndex: taskIndex };
+    }
+    return null;
+  };
+
   function currentDomain() {
     return domainById(state.dysAdvancedDomainId);
   }
