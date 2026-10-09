@@ -14,6 +14,9 @@ Kullanıcı fikirlerini doğal dille söyler; tek tek teknik komut yazması gere
 `İstek | çözmek istediği sorun | hedef yaş/kullanıcı | ilgili modül | mevcut kanıt | önerilen alternatif | öncelik | kapsam dışı | kabul ölçütleri | etkilenen dosya/API | regresyon testleri | karar/onarım durumu`.
 Onaylı vizyon ile çelişirse **KAPSAM SAPMASI=VAR**, uygulama durdurulur ve kullanıcıya gerekçe bildirilir. Taslak fikir ile onaylı teknik görev karıştırılmaz.
 
+## Kanonik ürün sınırı | CZA-K-006
+**Büyük CZA ana eğitim platformudur; tanıtım ve satış web sitesi tek CZA ekosisteminin yalnız bir parçasıdır.** “Ayrı ürün” ifadesi bağımsız öğrenci/veri/öğrenme sistemi anlamında kullanılamaz. Tanıtımın ayrı **teknik uygulama, kaynak alanı ve yayını** bulunabilir; CZA'nın tek Student ID/SLP ve yetkili değerlendirme/kayıt akışı merkezde kalır. İlgili onaylı sınır: `docs/CZA_TEK_EKOSISTEM_TANITIM_SINIRI_20261009.md`. Site vitrini veya Sites preview'u büyük platform için işlevsel kabul değildir. Sites bağlantıları bugün kodda mevcut olduğundan gerekli migration test yapılmadan `.openai/hosting.json`, `/work`, Apps Script handoff ya da Vite eklentisi kaldırılmaz.
+
 ## Paralel ama uyumlu iş kulvarları
 - **A: Entegrasyon:** Student ID, aday/öğrenci kimliği, API, öğretmen/veli yetkisi, Neon veri bütünlüğü, oturum, kayıt, readback, rapor.
 - **B: İçerik + ürün tasarımı:** Yaşa uygunluk, 14 beceri ile kazanım eşleşmesi, soru özgünlüğü/çeşitliliği, pedagojik değerlendirme, öğrenci/öğretmen ekranı, renk, mobil, erişilebilirlik.
@@ -48,7 +51,7 @@ Gerçek öğrenci verisi üzerinde deney yapılmaz, kimlik/kurum izolasyonu aş�
 
 ## Kontrol Kulesi uygulama düzeyleri ve hâlen açık sınır
 
-- PR ve Issue şablonları, karar defteri, `AGENTS.md`, 10 faz + 15 çapraz modül manifesti ve `cza-governance-check.yml` salt-okunur kaynak kontrolü **belge dalında geliştirildi**. Bunların `main` üzerinde bulunduğu iddia edilemez; bunun için PR #74 güvenli entegrasyon kabulü beklenir.
+- PR #74 **9 Ekim 2026'da `main` dalına birleştirildi**: checkpoint `a3e3a1437adc20d93c3c55f7091a7322feab9773`, tree `1610ae8a46858e1450522ad3cbc04568492be33b`. PR/Issue şablonları, karar defteri, AGENTS, 10 faz + 15 modül manifesti ve salt okunur kalite kontrolü ana dalda bulunur; gerçek yeni ajan devir E2E'si, T5 staging ve tüm modüllerin nihai kabulü bununla tamamlanmış sayılmaz.
 - Kanonik modül manifesti: `docs/CZA_MODUL_KANONIK_MANIFEST.json`; gerçek başlangıç değerlendirme envanteri: `docs/CZA_DEGERLENDIRME_KAYNAK_ENVANTERI_20261009.md`.
 - Yeni çalışma oturumu için başlangıç talimatı: depo kökündeki `AGENTS.md`, süreç testi: `docs/CZA_DEVIR_KABUL_SENARYOSU.md`.
 - **Belge / kaynak var** ≠ **modül gerçekten çalışıyor** ≠ **CI PASS** ≠ **staging kabulü** ≠ **nihai ürün kabulü**.
