@@ -18,6 +18,27 @@ const MAX_SUMMARY_BYTES = 16 * 1024;
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const PRE_ENROLL_UNIQUE_INDEX = 'assessment_sessions_pre_enroll_active_identity_uq';
 
+function validPreEnrollIndex(row: Record<string, unknown> | undefined) {
+  if (!row || row.is_unique !== true || row.is_valid !== true ||
+      row.is_ready !== true || row.is_live !== true || row.method !== 'btree' ||
+      Number(row.key_count) !== 5 || Number(row.attribute_count) !== 5) return false;
+  const canonical = (value: unknown) => String(value || '').replace(/::text\b/gi, '')
+    .replace(/[()\s]/g, '').toLowerCase();
+  const keys = ['academyId', 'createdByEducatorId', 'candidateId', 'cycleId'];
+  for (let n = 0; n < keys.length; n++) {
+    if (canonical(row['key_' + (n + 1)]) !== canonical(`metadata->>'${keys[n]}'`)) return false;
+  }
+  if (canonical(row.key_5) !== 'template_code') return false;
+  const clauses = String(row.predicate || '').split(/\s+AND\s+/i).map(canonical).sort();
+  const expected = [
+    'student_idisnull', "status='active'",
+    "metadata->>'source'='EDUCATOR_PRE_ENROLLMENT'",
+    "metadata->>'candidateId'isnotnull", "metadata->>'cycleId'isnotnull"
+  ].map(canonical).sort();
+  return clauses.length === expected.length &&
+    clauses.every((clause, index) => clause === expected[index]);
+}
+
 function json(body: unknown, status = 200) {
   return Response.json(body, {
     status,
@@ -240,14 +261,27 @@ export async function POST(request: Request) {
       // the separately approved migration has been applied to this environment.
       if (!student) {
         const indexes = await sql`
-          SELECT 1 FROM pg_index i
+          SELECT i.indisunique AS is_unique, i.indisvalid AS is_valid,
+                 i.indisready AS is_ready, i.indislive AS is_live,
+                 i.indnkeyatts AS key_count, i.indnatts AS attribute_count,
+                 am.amname AS method,
+                 pg_get_indexdef(i.indexrelid, 1, true) AS key_1,
+                 pg_get_indexdef(i.indexrelid, 2, true) AS key_2,
+                 pg_get_indexdef(i.indexrelid, 3, true) AS key_3,
+                 pg_get_indexdef(i.indexrelid, 4, true) AS key_4,
+                 pg_get_indexdef(i.indexrelid, 5, true) AS key_5,
+                 pg_get_expr(i.indpred, i.indrelid) AS predicate
+          FROM pg_index i
           JOIN pg_class idx ON idx.oid = i.indexrelid
           JOIN pg_namespace ns ON ns.oid = idx.relnamespace
+          JOIN pg_am am ON am.oid = idx.relam
           WHERE ns.nspname = 'public' AND idx.relname = ${PRE_ENROLL_UNIQUE_INDEX}
-            AND i.indisunique AND i.indisvalid
+            AND i.indrelid = 'public.assessment_sessions'::regclass
           LIMIT 1
         `;
-        if (!indexes.length) return json({ ok: false, error: 'pre_enroll_integrity_schema_missing' }, 503);
+        if (!validPreEnrollIndex(indexes[0])) {
+          return json({ ok: false, error: 'pre_enroll_integrity_schema_missing' }, 503);
+        }
       }
       const existing = await sql`
         SELECT id, student_id, template_code, student_label, status, current_task_code,
