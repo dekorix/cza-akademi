@@ -89,3 +89,50 @@ test('new candidate identity cannot retain prior central evidence', async () => 
   assert.equal(h.state.dysEvidence['DYS-PH01'], undefined);
   assert.equal(h.state.centralSessionId, 'session-2');
 });
+
+
+test('resumed dyslexia moves from completed phonology to the first pending letter-sound task', () => {
+  const h = client();
+  h.state.dysEvidence = {
+    'DYS-PH01': { verdict: 'MATCH', support: 'INDEPENDENT' },
+    'DYS-PH02': { verdict: 'NO_RESPONSE', support: 'NOT_ASSESSED' },
+  };
+  h.context.window.czaFirstIncompleteDyslexiaLsTaskIndex = () => 4;
+  h.context.window.czaFirstIncompleteDyslexiaAdvancedTask = () => ({ domainId: 'ORTH', taskIndex: 2 });
+  h.context.t5.resumeCentralTask(true);
+  assert.equal(h.state.screen, 'dyslexia-ls-task');
+  assert.equal(h.state.dysLsTaskIndex, 4);
+  assert.equal(h.state.dysLsDelayRevealed, false);
+});
+
+test('resumed dyslexia moves into advanced domains and finishes on final summary', () => {
+  const h = client();
+  h.state.dysEvidence = {
+    'DYS-PH01': { verdict: 'MATCH', support: 'INDEPENDENT' },
+    'DYS-PH02': { verdict: 'MATCH', support: 'INDEPENDENT' },
+  };
+  h.context.window.czaFirstIncompleteDyslexiaLsTaskIndex = () => -1;
+  h.context.window.czaFirstIncompleteDyslexiaAdvancedTask = () => ({ domainId: 'BLEND', taskIndex: 3 });
+  h.context.t5.resumeCentralTask(true);
+  assert.equal(h.state.screen, 'dyslexia-advanced-task');
+  assert.equal(h.state.dysAdvancedDomainId, 'BLEND');
+  assert.equal(h.state.dysAdvancedTaskIndex, 3);
+
+  h.context.window.czaFirstIncompleteDyslexiaAdvancedTask = () => null;
+  h.context.t5.resumeCentralTask(true);
+  assert.equal(h.state.screen, 'dyslexia-final-summary');
+});
+
+test('complete generic adaptive route resumes to summary instead of task 1', () => {
+  const h = client();
+  h.state.specialGenericCode = 'SP-DELAY';
+  h.state.specialGenericTaskIndex = 0;
+  h.context.window.czaFirstIncompleteGenericTaskIndex = () => -1;
+  h.context.t5.resumeCentralTask(false);
+  assert.equal(h.state.screen, 'special-generic-summary');
+
+  h.context.window.czaFirstIncompleteGenericTaskIndex = () => 4;
+  h.context.t5.resumeCentralTask(false);
+  assert.equal(h.state.screen, 'special-generic-task');
+  assert.equal(h.state.specialGenericTaskIndex, 4);
+});
