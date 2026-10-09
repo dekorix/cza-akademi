@@ -10,7 +10,7 @@ const uuid = (n) => '00000000-0000-4000-8000-' + String(n).padStart(12, '0');
 const candidate = uuid(11);
 const cycle = uuid(12);
 
-function harness({ indexInstalled = true } = {}) {
+function harness({ indexInstalled = true, indexPatch = {} } = {}) {
   const sessions = [];
   const attempts = new Map();
   const users = { educatorA: 'academyA', educatorB: 'academyA', educatorC: 'academyC' };
@@ -18,7 +18,16 @@ function harness({ indexInstalled = true } = {}) {
   let inserts = 0;
   const sql = async (parts, ...values) => {
     const query = parts.join('?');
-    if (/SELECT 1 FROM pg_index/.test(query)) return indexInstalled ? [{ ok: 1 }] : [];
+    if (/FROM pg_index i/.test(query)) return indexInstalled ? [{
+      is_unique: true, is_valid: true, is_ready: true, is_live: true,
+      method: 'btree', key_count: 5, attribute_count: 5,
+      key_1: "(metadata ->> 'academyId'::text)",
+      key_2: "(metadata ->> 'createdByEducatorId'::text)",
+      key_3: "(metadata ->> 'candidateId'::text)",
+      key_4: "(metadata ->> 'cycleId'::text)", key_5: 'template_code',
+      predicate: "((student_id IS NULL) AND (status = 'active'::text) AND ((metadata ->> 'source'::text) = 'EDUCATOR_PRE_ENROLLMENT'::text) AND ((metadata ->> 'candidateId'::text) IS NOT NULL) AND ((metadata ->> 'cycleId'::text) IS NOT NULL))",
+      ...indexPatch,
+    }] : [];
     if (/SELECT academy_id FROM public.users/.test(query)) {
       const academy = users[values[0]];
       return academy ? [{ academy_id: academy }] : [];
@@ -160,4 +169,32 @@ test('missing unique index fails closed; invalid candidate identity is rejected'
   assert.equal((await h.post('educatorA', h.create())).status, 503);
   assert.equal(h.sessions.length, 0);
   assert.equal((await h.post('educatorA', h.create('not-a-uuid'))).status, 400);
+});
+
+test('same named index with reordered keys, broader predicate or invalid definition fails closed', async () => {
+  const variants = [
+    { key_1: "metadata ->> 'candidateId'" },
+    { predicate: "student_id IS NULL AND status = 'active'" },
+    { key_count: 4 }, { attribute_count: 6 }, { is_valid: false },
+    { method: 'hash' },
+  ];
+  for (const indexPatch of variants) {
+    const h = harness({ indexPatch });
+    const result = await h.post('educatorA', h.create());
+    assert.equal(result.status, 503);
+    assert.equal(h.sessions.length, 0);
+  }
+});
+
+test('corrected display name resumes same candidate and central evidence', async () => {
+  const h = harness();
+  const first = await h.post('educatorA', h.create(candidate, cycle, 'Yanlış Yazım'));
+  h.attempts.set(first.body.session.id, [{ task_code: 'DYS-PH01', answer_text: 'al' }]);
+  const corrected = await h.post('educatorA', h.create(candidate, cycle, 'Düzeltilmiş Ad'));
+  assert.equal(corrected.status, 200);
+  assert.equal(corrected.body.session.id, first.body.session.id);
+  assert.equal(corrected.body.attempts[0].answer_text, 'al');
+  const different = await h.post('educatorA', h.create(uuid(15), uuid(16), 'Düzeltilmiş Ad'));
+  assert.notEqual(different.body.session.id, first.body.session.id);
+  assert.equal(different.body.attempts.length, 0);
 });
