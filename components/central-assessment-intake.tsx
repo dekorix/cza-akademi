@@ -79,6 +79,11 @@ export function CentralAssessmentIntake({onP2Created}:{onP2Created:(payload:P2Cr
   const [message,setMessage]=useState('');
 
   useEffect(()=>{
+    const requested=new URLSearchParams(window.location.search).get('profile');
+    if(requested && resolveAssessmentBridge(requested, 'GENERAL')) setProfileCode(requested);
+  },[]);
+
+  useEffect(()=>{
     const controller=new AbortController();
     void fetch('/api/educator-students?page=0',{signal:controller.signal,cache:'no-store'})
       .then(async response=>{
