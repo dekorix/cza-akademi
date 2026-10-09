@@ -3,6 +3,10 @@
 > Son görüşme tarihi: 2026-10-08. **Durum: Taslak; main ve production için nihai kabul değildir.**
 > Ürün sahibi tarafından teyit edilen fikirlerin güncel özeti. Mevcut çalışan kapsamı eksiltme yetkisi vermez.
 
+## Kanonik sistem sınırı (CZA-K-006, onaylı karar)
+
+**Tek Çelik Zihin Akademisi ekosistemi vardır.** Büyük CZA Eğitim Platformu ana üründür; tanıtım/satış web sitesi bu ürünün **bir parçası ve ayrı yayınlanan tanıtım yüzeyi**dir. Akademik öğrenme, egzersizler, değerlendirme, öğrenci/eğitmen/veli kimliği ve gerçek raporlar tanıtım sitesinin ayrı öğrenme veritabanına taşınmaz. Hedef satış yolu: tanıtım → başvuru → büyük CZA yetkili değerlendirme → eğitmen onaylı rapor ve teklif → tek öğrenci kimliğinde kayıt/erişim. Ticari ayrıntılar hâlâ kendi karar kapılarına tabidir. Bk. `docs/CZA_TEK_EKOSISTEM_TANITIM_SINIRI_20261009.md`.
+
 ## 1. Kanonik amaç
 Çelik Zihin Akademisi, 0 yaşından YKS dönemine uzanan gelişim, akademik öğrenme ve zihinsel beceri ekosistemidir. İleride KPSS/AGS gibi yetişkin programlarına genişleyebilmelidir; **bu programlar şu an teslim taahhüdü değildir**. Bütün modüller tek öğrenci kimliği (Student ID) ve ortak Student Learning Profile üzerinde çalışır. 0–2 yaşta dijital ürün ağırlıkla eğitmen/veli arayüzüdür; bebeğin doğrudan ekran kullanımı hedeflenmez. Yaşa göre pedagojik yöntem ve arayüz farklılaşır.
 
