@@ -1,0 +1,35 @@
+name: CZA T5 Staging Index Read-only Acceptance
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'scripts/qa/t5-staging-index-readonly.mjs'
+      - '.github/workflows/cza-t5-staging-index-readonly.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  read-only-index-catalog:
+    if: github.event.pull_request.number == 73 && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    environment: CZA-STAGING-SECURITY
+    steps:
+      - name: Checkout exact candidate without write credentials
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Set up Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22.13.0'
+      - name: Enable Corepack
+        run: corepack enable
+      - name: Install locked dependencies without lifecycle scripts
+        run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Verify actual staging secret target and canonical index via SELECT only
+        env:
+          CZA_STAGING_DATABASE_URL: ${{ secrets.CZA_STAGING_DATABASE_URL }}
+        run: node scripts/qa/t5-staging-index-readonly.mjs
