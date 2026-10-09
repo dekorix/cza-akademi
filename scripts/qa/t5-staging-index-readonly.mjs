@@ -82,6 +82,14 @@ const actual = String(row.predicate || '').split(/\s+AND\s+/i)
   .map(normalized).sort();
 checks.push(actual.length === expected.length &&
   actual.every((clause, idx) => clause === expected[idx]));
+// Endpoint ID is non-secret Neon routing metadata. Never output full DB URL,
+// hostname with credentials, passwords, or user-provided connection strings.
+const endpointId = target.hostname.split('.')[0].replace(/-pooler$/, '');
+if (!/^ep-[a-z0-9-]+$/.test(endpointId)) {
+  console.error('T5_STAGING_INDEX_READBACK=BLOCKED;REASON=NEON_ENDPOINT_UNRESOLVED');
+  process.exit(2);
+}
+console.log('T5_STAGING_NEON_ENDPOINT_ID=' + endpointId);
 console.log('T5_STAGING_INDEX_CATALOG_DB=' + row.db_name);
 console.log('T5_STAGING_INDEX_CATALOG_ROLE=' + row.role_name);
 console.log('T5_STAGING_INDEX_READONLY=YES');
