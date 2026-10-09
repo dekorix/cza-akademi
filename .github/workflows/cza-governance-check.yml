@@ -28,7 +28,7 @@ jobs:
         run: node --test tests/cza-governance-contract.test.mjs
       - name: Verify canonical source inventory and prevent accidental removal
         run: |
-          node --test tests/cza-handoff-inventory-guard.test.mjs tests/cza-module-manifest.test.mjs
+          node --test tests/cza-handoff-inventory-guard.test.mjs tests/cza-module-manifest.test.mjs tests/cza-ecosystem-marketing-boundary.test.mjs
           node scripts/qa/cza-handoff-inventory-guard.mjs
       - name: Check pull request documentation and unresolved publish effect
         env:
