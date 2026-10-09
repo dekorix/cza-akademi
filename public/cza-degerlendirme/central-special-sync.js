@@ -201,14 +201,8 @@
     }
     const studentLabel = String(document.getElementById(isDyslexia ? 'name' : 'sgName')?.value || '').trim();
     if (!bootstrapStudentId) {
-      // UUIDs identify the candidate and cycle; names are display-only. Keep
-      // them across reload, and require an explicit new-cycle action when
-      // another child has the same name.
-      if (state.centralCandidateLabel && state.centralCandidateLabel !== studentLabel) {
-        state.centralCandidateId = '';
-        state.centralCycleId = '';
-        state.centralSessionId = '';
-      }
+      // The displayed name may be corrected. Only the explicit new-candidate
+      // control rotates the stable candidate and cycle identity.
       state.centralCandidateId = state.centralCandidateId || crypto.randomUUID();
       state.centralCycleId = state.centralCycleId || crypto.randomUUID();
       state.centralCandidateLabel = studentLabel;
@@ -259,6 +253,36 @@
     return body;
   }
 
+  function firstIncompleteTaskIndex(taskIds, evidence) {
+    return taskIds.findIndex(function (id) {
+      const row = evidence[id];
+      return !row || !row.verdict || !row.support;
+    });
+  }
+
+  function resumeCentralTask(isDyslexia) {
+    if (isDyslexia) {
+      const index = firstIncompleteTaskIndex(dyslexiaTasks.map(function (task) {
+        return task.id;
+      }), state.dysEvidence || {});
+      if (index < 0) {
+        document.getElementById('openNextIncomplete')?.click();
+        return;
+      }
+      state.dysTaskIndex = index;
+      state.screen = 'dyslexia-task';
+    } else {
+      const index = window.czaFirstIncompleteGenericTaskIndex?.(state.specialGenericCode,
+        state.specialGenericEvidence || {});
+      if (!Number.isInteger(index) || index < 0) return;
+      state.specialGenericTaskIndex = index;
+      state.screen = 'special-generic-task';
+    }
+    state.taskStartedAt = Date.now();
+    saveState();
+    render();
+  }
+
   function wrapStartButton(isDyslexia) {
     const id = isDyslexia ? 'startDys' : 'sgStart';
     const button = document.getElementById(id);
@@ -285,8 +309,9 @@
       }
       button.disabled = true;
       try {
-        await createCentralSession(isDyslexia);
+        const central = await createCentralSession(isDyslexia);
         if (typeof original === 'function') original.call(button, event);
+        if (central.resumed) resumeCentralTask(isDyslexia);
       } catch (error) {
         const code = error instanceof Error ? error.message : 'central_connection_failed';
         intakeError(isDyslexia,
