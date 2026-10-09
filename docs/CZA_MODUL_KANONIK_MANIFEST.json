@@ -1,0 +1,255 @@
+{
+  "schema_version": "1.0",
+  "last_source_review": "2026-10-09",
+  "repository": "dekorix/cza-akademi",
+  "source_base_sha": "9f76b6322991a850980dd1240e6232882bface2e",
+  "governance_ref": "docs/CZA_KONTROL_PROTOKOLU.md",
+  "notice": "Bu manifest yalnız modüllerin unutulmamasını ve kaynak referanslarının korunmasını sağlar; test/staging/pedagoji/gerçek öğrenci erişimi başarı veya tamamlanma kanıtı değildir.",
+  "acceptance_states": [
+    "PLANLANDI",
+    "KODLANDI",
+    "HEDEFLI_TEST_PASS",
+    "STAGING_KABUL_PASS",
+    "NIHAI_KABUL",
+    "BLOCKED"
+  ],
+  "canonical_phases": [
+    {
+      "id": "F01",
+      "name": "Öğrenci Paneli",
+      "source_refs": [
+        "components/student-dashboard.tsx"
+      ],
+      "source_status": "SOURCE_REFERENCE_PRESENT_ACCEPTANCE_UNVERIFIED",
+      "acceptance_required": "Öğrenci kimliği, giriş, günlük rota, kaldığı yer ve kişisel öğrenci kanıtı"
+    },
+    {
+      "id": "F02",
+      "name": "Çalışma Merkezi",
+      "source_refs": [
+        "components/work-center.tsx"
+      ],
+      "source_status": "SOURCE_REFERENCE_PRESENT_ACCEPTANCE_UNVERIFIED",
+      "acceptance_required": "Çalıştırılabilir egzersiz, doğru öğrenci oturumu, kanıt ve hard reload"
+    },
+    {
+      "id": "F03",
+      "name": "Eğitmen Paneli",
+      "source_refs": [
+        "components/educator-students.tsx"
+      ],
+      "source_status": "SOURCE_REFERENCE_PRESENT_ACCEPTANCE_UNVERIFIED",
+      "acceptance_required": "Eğitmen girişi, linked öğrenci seçimi, kurum/yetki izolasyonu, yönetim UI"
+    },
+    {
+      "id": "F04",
+      "name": "Gerçek öğrenci geçmişi",
+      "source_refs": [
+        "components/student-learning-history.tsx"
+      ],
+      "source_status": "SOURCE_REFERENCE_PRESENT_ACCEPTANCE_UNVERIFIED",
+      "acceptance_required": "Öğrenci çalışması→oturum→deneme→kanıt→zaman çizelgesi readback"
+    },
+    {
+      "id": "F05",
+      "name": "Ödevlendirme",
+      "source_refs": [
+        "components/educator-assignment-manager.tsx"
+      ],
+      "source_status": "SOURCE_REFERENCE_PRESENT_ACCEPTANCE_UNVERIFIED",
+      "acceptance_required": "Eğitmen atama→öğrenci uygulama→tamamlama→geri bildirim"
+    },
+    {
+      "id": "F06",
+      "name": "Raporlar",
+      "source_refs": [
+        "components/central-student-report.tsx"
+      ],
+      "source_status": "SOURCE_REFERENCE_PRESENT_ACCEPTANCE_UNVERIFIED",
+      "acceptance_required": "Gerçek kayıtlar, süreç analizi, eğitmen onayı, veliye uygun rapor"
+    },
+    {
+      "id": "F07",
+      "name": "Ortak Student Learning Profile",
+      "source_refs": [
+        "components/student-learning-profile.tsx"
+      ],
+      "source_status": "SOURCE_REFERENCE_PRESENT_ACCEPTANCE_UNVERIFIED",
+      "acceptance_required": "Tek öğrenci kimliği, kurum ve geçmiş, modüller arası tutarlı profil"
+    },
+    {
+      "id": "F08",
+      "name": "Koçluk, LGS ve YKS",
+      "source_refs": [
+        "components/coaching-center.tsx"
+      ],
+      "source_status": "SOURCE_REFERENCE_PRESENT_ACCEPTANCE_UNVERIFIED",
+      "acceptance_required": "Hedef, çalışma disiplini, gerçek deneme/kazanım takibi ve eğitmen onayı"
+    },
+    {
+      "id": "F09",
+      "name": "Veli Paneli",
+      "source_refs": [
+        "components/guardian-panel.tsx"
+      ],
+      "source_status": "SOURCE_REFERENCE_PRESENT_ACCEPTANCE_UNVERIFIED",
+      "acceptance_required": "Veli erişim sınırı, izin, gelişim özeti, bilgilendirme ve paket durumu"
+    },
+    {
+      "id": "F10",
+      "name": "AI öneri motoru",
+      "source_refs": [
+        "lib/cza-work-recommendations.ts"
+      ],
+      "source_status": "SOURCE_REFERENCE_PRESENT_ACCEPTANCE_UNVERIFIED",
+      "acceptance_required": "Kanıta dayalı açıklanabilir öneri, güvenlik ve eğitmen onayı"
+    }
+  ],
+  "cross_cutting_modules": [
+    {
+      "id": "X01",
+      "name": "Başlangıç Değerlendirmesi",
+      "source_refs": [
+        "components/central-assessment-intake.tsx"
+      ],
+      "source_status": "SOURCE_REFERENCE_PRESENT_ACCEPTANCE_UNVERIFIED",
+      "acceptance_required": "Aday/eğitmen giriş→oturum→öğrenci kimliği→kanıt→rapor"
+    },
+    {
+      "id": "X02",
+      "name": "Katalog ve 26 profil",
+      "source_refs": [
+        "lib/assessment-bridge.ts"
+      ],
+      "source_status": "SOURCE_REFERENCE_PRESENT_ACCEPTANCE_UNVERIFIED",
+      "acceptance_required": "16 yaş/sınıf + 10 özel eğitim kaynak kontratı; gerçek tarayıcı/evidence kapısı ayrı"
+    },
+    {
+      "id": "X03",
+      "name": "P2 özgün değerlendirme",
+      "source_refs": [
+        "lib/p2-full-assessment-contract.ts"
+      ],
+      "source_status": "SOURCE_REFERENCE_PRESENT_ACCEPTANCE_UNVERIFIED",
+      "acceptance_required": "23 bölüm ve bütün mikro görevler için eski/yeni parity+staging"
+    },
+    {
+      "id": "X04",
+      "name": "Özel Eğitim",
+      "source_refs": [
+        "lib/special-assessment.ts"
+      ],
+      "source_status": "SOURCE_REFERENCE_PRESENT_ACCEPTANCE_UNVERIFIED",
+      "acceptance_required": "Görev çeşitliliği, yaşa uygun pedagojik inceleme, rapor ve merkezi oturum"
+    },
+    {
+      "id": "X05",
+      "name": "Tanıtım / paket / kayıt",
+      "source_refs": [
+        "lib/package-catalog.ts"
+      ],
+      "source_status": "SOURCE_REFERENCE_PRESENT_ACCEPTANCE_UNVERIFIED",
+      "acceptance_required": "Ayrı Sites tanıtımı→başvuru→rapor→paket yetkisi→kayıt ve veli izinleri"
+    },
+    {
+      "id": "X06",
+      "name": "Anzan / zihinsel aritmetik",
+      "source_refs": [
+        "components/anzan-exercise-renderer.tsx"
+      ],
+      "source_status": "SOURCE_REFERENCE_PRESENT_ACCEPTANCE_UNVERIFIED",
+      "acceptance_required": "İşlem pedagojisi, görsel/sesli oyuncu, çalışma kanıtı"
+    },
+    {
+      "id": "X07",
+      "name": "Soroban",
+      "source_refs": [
+        "components/soroban.tsx"
+      ],
+      "source_status": "SOURCE_REFERENCE_PRESENT_ACCEPTANCE_UNVERIFIED",
+      "acceptance_required": "Abaküs etkileşimi, pedagoji, kanıt ve mobil kontrol"
+    },
+    {
+      "id": "X08",
+      "name": "Parmak Aritmetiği",
+      "source_refs": [
+        "components/finger-hand.tsx"
+      ],
+      "source_status": "SOURCE_REFERENCE_PRESENT_ACCEPTANCE_UNVERIFIED",
+      "acceptance_required": "Doğru hareket, el görselleri, uygulama ve kayıt"
+    },
+    {
+      "id": "X09",
+      "name": "Hafıza teknikleri",
+      "source_refs": [
+        "app/memory/page.tsx"
+      ],
+      "source_status": "SOURCE_REFERENCE_PRESENT_ACCEPTANCE_UNVERIFIED",
+      "acceptance_required": "Özgün materyal ve yaşa uygun bellek görevleri"
+    },
+    {
+      "id": "X10",
+      "name": "Dikkat ve odaklanma",
+      "source_refs": [
+        "app/attention/page.tsx"
+      ],
+      "source_status": "SOURCE_REFERENCE_PRESENT_ACCEPTANCE_UNVERIFIED",
+      "acceptance_required": "Dikkat görevleri, süreklilik ve ölçüm geçerliği"
+    },
+    {
+      "id": "X11",
+      "name": "Hızlı ve anlamlı okuma",
+      "source_refs": [
+        "app/speed-reading/page.tsx"
+      ],
+      "source_status": "SOURCE_REFERENCE_PRESENT_ACCEPTANCE_UNVERIFIED",
+      "acceptance_required": "Okuma doğruluğu, anlam ve akıcılık ayrımı"
+    },
+    {
+      "id": "X12",
+      "name": "Zihin haritaları",
+      "source_refs": [
+        "app/mind-maps/page.tsx"
+      ],
+      "source_status": "SOURCE_REFERENCE_PRESENT_ACCEPTANCE_UNVERIFIED",
+      "acceptance_required": "Düşünme/organizasyon becerileri ve aktif üretim"
+    },
+    {
+      "id": "X13",
+      "name": "Zekâ oyunları",
+      "source_refs": [
+        "app/intelligence-games/page.tsx"
+      ],
+      "source_status": "SOURCE_REFERENCE_PRESENT_ACCEPTANCE_UNVERIFIED",
+      "acceptance_required": "Zorluk, kural, strateji ve transfer"
+    },
+    {
+      "id": "X14",
+      "name": "Etkili not alma",
+      "source_refs": [
+        "app/effective-notes/page.tsx"
+      ],
+      "source_status": "SOURCE_REFERENCE_PRESENT_ACCEPTANCE_UNVERIFIED",
+      "acceptance_required": "Yaşa uygun örgütleme, geri getirme, çalışma kanıtı"
+    },
+    {
+      "id": "X15",
+      "name": "Tam Öğrenme 37",
+      "source_refs": [
+        "app/full-study/page.tsx"
+      ],
+      "source_status": "SOURCE_REFERENCE_PRESENT_ACCEPTANCE_UNVERIFIED",
+      "acceptance_required": "37 araç/enstrümanın amaç, izin ve uygulama kabulü"
+    }
+  ],
+  "commercial_decisions_open": [
+    "İlk satışa açılacak yaş-program kapsamı",
+    "Paket isimleri/fiyat ve erişim matrisi",
+    "Veli bilgilendirme, izin ve rapor paylaşımı"
+  ],
+  "high_risk_open": [
+    "T5 özel eğitim aday oturumu PR #73 staging/DB readback",
+    "Başlangıç değerlendirmesi A-Z denetim #72",
+    "PR #74 main merge yayın etkisi/required-check enforcement"
+  ]
+}
