@@ -46,8 +46,14 @@ Her kulvar aynı Student Learning Profile ve tek yetki modeline bağlıdır; ba�
 ## Yetki sınırı
 Gerçek öğrenci verisi üzerinde deney yapılmaz, kimlik/kurum izolasyonu aşılmaz, geri dönüşü zor migration izinsiz uygulanmaz. Production ancak ürün sahibinin açık yetkisiyle. Onaysız yapılabilecek hazırlık: doküman/issue taslağı, salt okunur inceleme, önerilen test ve görev emri.
 
-## Bir sonraki iyileştirme (öneri)
-PR şablonu, issue şablonu ve GitHub Actions kabul kontrolünü, bu protokol onaylandıktan sonra **ayrı küçük PR** ile tanımla; geniş kod değişikliğiyle karıştırma.
+## Kontrol Kulesi uygulama düzeyleri ve hâlen açık sınır
+
+- PR ve Issue şablonları, karar defteri, `AGENTS.md`, 10 faz + 15 çapraz modül manifesti ve `cza-governance-check.yml` salt-okunur kaynak kontrolü **belge dalında geliştirildi**. Bunların `main` üzerinde bulunduğu iddia edilemez; bunun için PR #74 güvenli entegrasyon kabulü beklenir.
+- Kanonik modül manifesti: `docs/CZA_MODUL_KANONIK_MANIFEST.json`; gerçek başlangıç değerlendirme envanteri: `docs/CZA_DEGERLENDIRME_KAYNAK_ENVANTERI_20261009.md`.
+- Yeni çalışma oturumu için başlangıç talimatı: depo kökündeki `AGENTS.md`, süreç testi: `docs/CZA_DEVIR_KABUL_SENARYOSU.md`.
+- **Belge / kaynak var** ≠ **modül gerçekten çalışıyor** ≠ **CI PASS** ≠ **staging kabulü** ≠ **nihai ürün kabulü**.
+- GitHub Actions PASS bir PR'ı otomatik olarak merge'den men etmez. **Dal korumasında zorunlu status check** ayrıca etkin ve kanıtlı olmalıdır. Harici yayın otomasyonu kanıtlanmadan `main` merge durdurulur.
+- Bu ilk sistemde modülün tüm gerçek mikro-görevleri için eski/yeni diff ve başka bir ajanın gerçek devir E2E sonucu **açık kabul** olarak kalır. Kanıtsız tamamlanmış gösterme.
 
 ## Yeni sohbet / T5 Patronu / Codex devri için başlangıç emri
 
