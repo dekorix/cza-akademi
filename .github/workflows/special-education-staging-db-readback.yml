@@ -33,6 +33,7 @@ on:
           - preflight
           - apply
           - ui_readback
+          - ui_two_candidates
 
 permissions:
   contents: read
@@ -156,7 +157,7 @@ jobs:
         run: node --experimental-strip-types scripts/qa/special-program-staging-proof.mjs
 
   t5-pre-enroll:
-    if: github.event_name == 'workflow_dispatch' && (inputs.t5_action == 'preflight' || inputs.t5_action == 'apply' || inputs.t5_action == 'ui_readback')
+    if: github.event_name == 'workflow_dispatch' && (inputs.t5_action == 'preflight' || inputs.t5_action == 'apply' || inputs.t5_action == 'ui_readback' || inputs.t5_action == 'ui_two_candidates' || inputs.t5_action == 'ui_two_candidates')
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     environment: CZA-STAGING-SECURITY
@@ -192,17 +193,17 @@ jobs:
           test "$(psql "$CZA_STAGING_DATABASE_URL" -Atc "SELECT count(*) FROM pg_index i JOIN pg_class c ON c.oid=i.indexrelid JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='public' AND c.relname='assessment_sessions_pre_enroll_active_identity_uq' AND i.indisunique AND i.indisvalid")" = "1"
           echo "T5_STAGING_INDEX=PASS"
       - name: Enable Corepack for T5 readback
-        if: inputs.t5_action == 'apply' || inputs.t5_action == 'ui_readback'
+        if: inputs.t5_action == 'apply' || inputs.t5_action == 'ui_readback' || inputs.t5_action == 'ui_two_candidates'
         run: corepack enable
       - name: Setup Node for T5 readback
-        if: inputs.t5_action == 'apply' || inputs.t5_action == 'ui_readback'
+        if: inputs.t5_action == 'apply' || inputs.t5_action == 'ui_readback' || inputs.t5_action == 'ui_two_candidates'
         uses: actions/setup-node@v4
         with:
           node-version: '22.13.0'
           cache: pnpm
           cache-dependency-path: pnpm-lock.yaml
       - name: Install T5 readback dependencies
-        if: inputs.t5_action == 'apply' || inputs.t5_action == 'ui_readback'
+        if: inputs.t5_action == 'apply' || inputs.t5_action == 'ui_readback' || inputs.t5_action == 'ui_two_candidates'
         run: pnpm install --frozen-lockfile
       - name: Synthetic concurrent sessions and central readback
         if: inputs.t5_action == 'apply'
@@ -214,3 +215,8 @@ jobs:
         env:
           CZA_STAGING_DATABASE_URL: ${{ secrets.CZA_STAGING_DATABASE_URL }}
         run: node scripts/qa/t5-ui-central-readback.mjs
+      - name: Verify two same-name browser candidates and clean synthetic data
+        if: inputs.t5_action == 'ui_two_candidates'
+        env:
+          CZA_STAGING_DATABASE_URL: ${{ secrets.CZA_STAGING_DATABASE_URL }}
+        run: node scripts/qa/t5-ui-two-candidates-readback.mjs
