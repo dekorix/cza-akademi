@@ -265,18 +265,44 @@
       const index = firstIncompleteTaskIndex(dyslexiaTasks.map(function (task) {
         return task.id;
       }), state.dysEvidence || {});
-      if (index < 0) {
-        document.getElementById('openNextIncomplete')?.click();
-        return;
+      if (index >= 0) {
+        state.dysTaskIndex = index;
+        state.screen = 'dyslexia-task';
+      } else {
+        // All PH tasks are done. Inspect the LS route and every advanced domain
+        // from central evidence, not their score/INSUFFICIENT status badges.
+        if (typeof window.czaFirstIncompleteDyslexiaLsTaskIndex !== 'function' ||
+            typeof window.czaFirstIncompleteDyslexiaAdvancedTask !== 'function') {
+          state.screen = 'dyslexia-overview'; // fail safely if a script is absent
+        } else {
+          const lsIndex = window.czaFirstIncompleteDyslexiaLsTaskIndex();
+          if (lsIndex >= 0) {
+            state.dysLsTaskIndex = lsIndex;
+            state.dysLsDelayRevealed = false;
+            state.screen = 'dyslexia-ls-task';
+          } else {
+            const nextAdvanced = window.czaFirstIncompleteDyslexiaAdvancedTask();
+            if (nextAdvanced) {
+              state.dysAdvancedDomainId = nextAdvanced.domainId;
+              state.dysAdvancedTaskIndex = nextAdvanced.taskIndex;
+              state.screen = 'dyslexia-advanced-task';
+            } else {
+              state.screen = 'dyslexia-final-summary';
+            }
+          }
+        }
       }
-      state.dysTaskIndex = index;
-      state.screen = 'dyslexia-task';
     } else {
       const index = window.czaFirstIncompleteGenericTaskIndex?.(state.specialGenericCode,
         state.specialGenericEvidence || {});
-      if (!Number.isInteger(index) || index < 0) return;
-      state.specialGenericTaskIndex = index;
-      state.screen = 'special-generic-task';
+      if (!Number.isInteger(index)) {
+        state.screen = 'special-generic-intake'; // missing route helper; no false completion
+      } else if (index < 0) {
+        state.screen = 'special-generic-summary';
+      } else {
+        state.specialGenericTaskIndex = index;
+        state.screen = 'special-generic-task';
+      }
     }
     state.taskStartedAt = Date.now();
     saveState();
