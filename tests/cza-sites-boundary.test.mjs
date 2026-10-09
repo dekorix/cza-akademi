@@ -21,3 +21,11 @@ test('the boundary decision and historical Site IDs stay auditable', () => {
     'Deploy/Publish a version',
   ]) assert.ok(document.includes(marker), 'Missing audit detail: ' + marker);
 });
+
+test('CZA Vite config does not load Sites plugin or an implicit Sites manifest', () => {
+  const viteConfig = readFileSync('vite.config.ts', 'utf8');
+  assert.ok(!viteConfig.includes('@openai/sites-vite-plugin'), 'Sites plugin is not part of core Vite build');
+  assert.ok(!viteConfig.includes('.openai/hosting.json'), 'No hidden Sites manifest import');
+  assert.ok(viteConfig.includes('d1_databases: []'), 'Preserve the old null D1 binding behavior');
+  assert.ok(viteConfig.includes('r2_buckets: []'), 'Preserve the old null R2 binding behavior');
+});
