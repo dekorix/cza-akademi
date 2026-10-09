@@ -160,7 +160,7 @@ test('actual dyslexia domain helpers preserve completed evidence across LS and a
 
   vm.runInNewContext(lsSource, runtime);
   vm.runInNewContext(instrumentedAdvanced, runtime);
-  const lsTaskIds = [...lsSource.matchAll(/id:'(DYS-LS\\d{2})'/g)].map(m => m[1]);
+  const lsTaskIds = [...lsSource.matchAll(/id:'(DYS-LS\d{2})'/g)].map(m => m[1]);
   assert.equal(lsTaskIds.length, 10);
 
   // A recorded NOT_ASSESSED/NO_RESPONSE task is completed, not missing.
