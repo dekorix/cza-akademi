@@ -21,6 +21,8 @@ function client() {
   const centralSessions = new Map();
   const document = {
     getElementById: (id) => id in values ? { value: values[id] } : null,
+    querySelector: () => null,
+    querySelectorAll: () => [],
   };
   const context = {
     state, document, window: { location: { search: '' } },
