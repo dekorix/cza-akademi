@@ -1,29 +1,17 @@
-name: CZA V01 Active DB Version Attestation Read-only
+name: CZA SECURE HOLD - V01 active version database owner-secret readback
+# Disabled 2026-10-10 following independent Codex P1 review.
+# PR-controlled scripts must not access owner DB credentials or Cloudflare tokens.
+# Re-enable only through trusted immutable code and isolated, least-privilege credentials.
+# This workflow NEVER runs DB SQL, deploys, uploads, or reads any secrets.
 on:
-  pull_request:
-    branches: [main]
-    paths:
-      - 'scripts/qa/cza-v01-active-db-version-attest-readonly.mjs'
-      - '.github/workflows/cza-v01-active-db-version-attest-readonly.yml'
+  workflow_dispatch:
+
 permissions:
   contents: read
+
 jobs:
-  check-active-version-target:
-    if: github.event.pull_request.number == 73 && github.event.pull_request.head.repo.full_name == github.repository
+  review-required:
+    if: false
     runs-on: ubuntu-24.04
-    timeout-minutes: 6
-    environment: CZA-STAGING-SECURITY
     steps:
-      - name: Checkout exact PR source, no persisted credentials
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
-        with:
-          persist-credentials: false
-      - name: Set up Node
-        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
-        with:
-          node-version: '22.13.0'
-      - name: Compare Cloudflare active version binding without exposing secret
-        env:
-          CZA_STAGING_PREVIEW_API_TOKEN: ${{ secrets.CZA_STAGING_PREVIEW_API_TOKEN }}
-          CZA_STAGING_DATABASE_URL: ${{ secrets.CZA_STAGING_DATABASE_URL }}
-        run: node scripts/qa/cza-v01-active-db-version-attest-readonly.mjs
+      - run: echo "BLOCKED_PENDING_TRUSTED_ISOLATED_ACCEPTANCE"
