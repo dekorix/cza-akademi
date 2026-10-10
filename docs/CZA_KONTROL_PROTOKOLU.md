@@ -5,7 +5,14 @@
 ## Tek kaynak, üç iz
 - **Ürün vizyonu (değişimi kontrollü):** `docs/CZA_URUN_VIZYONU_TASLAK.md` ve mevcut mimari/14 beceri/kimlik kararları.
 - **İş kaydı (değişen):** GitHub Issues + PR; tek kanıt bağlantısı, sorumlu, öncelik, bitiş koşulu. Örnek: Başlangıç Değerlendirmesi [#72](https://github.com/dekorix/cza-akademi/issues/72).
-- **Durum ve karar defteri (güncellenen):** `docs/CZA_DURUM_PANOSU_TASLAK.md`; karar tarihi, kaynak SHA, test, staging hedefi, PASS/FAIL/BLOCKED, sonraki tek adım.
+- **Canlı durum (koordinasyon için kanonik, her görev başında okunur):** `docs/CZA_CANLI_DURUM.md`; aktif tek zincir (issue → uygulama emri → çalışma PR'ı ve HEAD'i), aktif hedef, kapsam sınırları ve sıradaki tek adım. **Bu içerik için kanonik koordinasyon kaynağı budur.**
+
+### İki kaynağın ayrımı (zorunlu)
+
+- **GitHub = mutable repo state için gerçek kaynak.** Main HEAD, açık PR sayısı ve trafiği, branch sayısı, PR başlık/draft/HEAD durumu, CI sonuçları ve kabul kanıtları yalnız canlı GitHub'dan okunur ve doğrulanır. `docs/CZA_CANLI_DURUM.md` içindeki bu değerler **son doğrulanan snapshot**tır; canlı GitHub'ın yerine geçmez ve kendi başına kanıt sayılmaz.
+- **`docs/CZA_CANLI_DURUM.md` = aktif yönetim zinciri ve kapsam için kanonik koordinasyon kaynağı.** Hangi görevin aktif olduğu, hangi işin kapsam içinde/dışında olduğu, kabul sınırları ve sıradaki tek adım buradan okunur.
+- **Self-referential HEAD sınırı:** Bir belge kendi merge sonrası `main` HEAD'ini kesin kanonik değer olarak taşıyamaz; o belgeyi değiştiren commit HEAD'i yeniden değiştirir. Bu nedenle yalnız **snapshot ilerlemesi** (main HEAD'in ilerlemesi, PR sayısının değişmesi, branch sayısının değişmesi) uygulamayı durdurmaz; snapshot yenilenir ve iş devam eder. Yalnız **aktif zincir / aktif PR / korunan HEAD / kapsam / kabul durumu** çelişkisi uygulamayı durdurur.
+- **Durum panosu (YALNIZ TARİHSEL SNAPSHOT):** `docs/CZA_DURUM_PANOSU_TASLAK.md` 2026-10-08/09 tarihli anlık görüntüdür; canlı durum, güncel PR/CI veya kabul kararı için kullanılmaz. Bu dosyaya dayanarak uygulama başlatılmaz; yalnız geçmiş bağlam okuması için saklanır.
 
 ChatGPT bellek/sohbet geçmişi **resmî teknik doğrulama değildir**. Yeni sohbette/ajan devrinde bu dosyalar, açık issue/PR ve güncel commitlerden başlanır. Eski konuşma alıntıları canlı kaynağın yerine geçmez.
 
@@ -57,9 +64,9 @@ Gerçek öğrenci verisi üzerinde deney yapılmaz, kimlik/kurum izolasyonu aş�
 
 ## Yeni sohbet / T5 Patronu / Codex devri için başlangıç emri
 
-1. `docs/CZA_KONTROL_PROTOKOLU.md`, `docs/CZA_MASTER_ARCHITECTURE.md`, `docs/CZA_14_Beceri_v1.md`, `CENTRAL_IDENTITY_PLAN.md`, `docs/CZA_URUN_VIZYONU_TASLAK.md` ve `docs/CZA_DURUM_PANOSU_TASLAK.md` belgelerini oku.
+1. `docs/CZA_KONTROL_PROTOKOLU.md`, `docs/CZA_CANLI_DURUM.md` (kanonik canlı durum), `docs/CZA_MASTER_ARCHITECTURE.md`, `docs/CZA_14_Beceri_v1.md`, `CENTRAL_IDENTITY_PLAN.md`, `docs/CZA_URUN_VIZYONU_TASLAK.md` ve `docs/CZA_KARAR_DEFTERI.md` belgelerini oku. `docs/CZA_DURUM_PANOSU_TASLAK.md` yalnız tarihsel snapshot olarak okunur; canlı kaynak sayılmaz.
 2. Ürün vizyonu içinde henüz ürün sahibi onayı bekleyen detayları **taslak** kabul et; onaylanmış yönetim standardıyla karıştırma.
-3. `main` HEAD, açık PR/issue ve staging kaynak SHA'sını kanıtla; durum panosundaki tarihsel SHA'yı canlı kabul etme.
+3. `main` HEAD, açık PR/issue ve staging kaynak SHA'sını canlı GitHub'dan kanıtla; `docs/CZA_CANLI_DURUM.md` içindeki snapshot SHA ve sayılarını canlı kabul etme. Snapshot yalnız yönlendirme içindir; kanıt her zaman GitHub'dan alınır.
 4. Şu anda açık olan **tek teknik adımı** çıkar. Tek görev için `BASE_SHA`, dosya sınırı, kullanım akışı, içerik/pedagoji, kabul testleri, geri dönüş ve kanıt teslimini belirle.
 5. Ürün kodunu, migration'ı ve production'ı kendiliğinden değiştirme. Uygulama için kod sorumlusuna küçük iş emri yaz ve kanıtlı sonucu denetle.
 6. Sonunda zorunlu ilerleme raporu ver: `GENEL PROJE İLERLEME %`, `MEVCUT FAZ İLERLEME %`, `TAMAMLANAN`, `KALAN`, `KAPSAM SAPMASI=YOK|VAR`, `SIRADAKİ TEK ADIM`.

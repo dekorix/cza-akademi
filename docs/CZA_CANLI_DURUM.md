@@ -2,13 +2,21 @@
 
 > Bu dosya büyük Çelik Zihin Akademisi için **tek canlı yönlendirme panosudur**. Tarihsel kararların yerine geçmez. Her yeni görev başlangıcında GitHub canlı durumu yeniden okunur; bu dosya eskiyse güncellenmeden uygulama başlatılmaz.
 
-**Güncelleme tarihi:** 2026-10-10 (TRT)  
+**Güncelleme tarihi:** 2026-10-10 (TRT), self-referential HEAD düzeltmesi  
 **Kanonik depo:** `dekorix/cza-akademi`  
 **Default branch:** `main`  
-**Doğrulanan main HEAD:** `a3e3a1437adc20d93c3c55f7091a7322feab9773`  
-**Main korumalı:** EVET  
-**Açık PR sayısı:** 8  
-**Toplam branch sayısı:** 80
+**Main korumalı:** EVET
+
+### Son doğrulanan GitHub snapshot
+
+> Aşağıdaki üç değer **mutable GitHub metadata'sıdır** ve yalnız bu dosyanın son doğrulama anındaki görüntüsüdür. **Canlı GitHub'ın yerine geçmez**; hiçbir kabul, blokaj veya kanonik değer üretmez. Bu dosyayı değiştiren commit'in kendisi `main` HEAD'i yeniden değiştireceği için, burada tutulan HEAD/sayı değerleri tanım gereği bir adım geridedir.
+
+- **Son doğrulanan main HEAD:** `4605cbbcb20aedbc322e3abfaa5170611c73e750`
+- **Son doğrulanan açık PR sayısı:** 7
+- **Son doğrulanan toplam branch sayısı:** 80
+- **Doğrulama anı:** 2026-10-10, GitHub API okuması
+
+**Kanonik olan bu snapshot değil, aşağıdaki yönetim içeriğidir:** aktif zincir, aktif hedef, kapsam sınırları ve sıradaki tek adım. Güncel repo durumu (main HEAD, PR sayısı, branch sayısı) her zaman canlı GitHub'dan okunur.
 
 ## AKTİF TEK ZİNCİR
 
@@ -55,7 +63,6 @@ okunur.
 
 ## AÇIK PR TRAFİĞİ
 
-- **#83 YÖNETİM-KURULUMU** — docs(cza): GitHub Mission Control ve tek aktif görev panosunu kur — `docs/cza-mission-control-20261010` → `main` — DRAFT
 - **#79 BEKLEME** — docs/qa(cza): tanıtım sitesi tek CZA ekosisteminin alt modülüdür — `docs/cza-one-ecosystem-marketing-boundary-20261009` → `main` — DRAFT
 - **#73 AKTİF** — fix: kayıt öncesi özel eğitim oturumunu aday ve çevrim kimliğiyle sürdür — `fix/t5-pre-enroll-resume-integrity` → `main` — DRAFT
 - **#69 BEKLEME** — fix(intake): show truthful special education readiness badges — `fix/intake-special-status-truth-20261008` → `main` — DRAFT
@@ -69,13 +76,14 @@ Diğer açık PR'lar aktif tek görevin önüne geçemez. Kapatma/merge kararı 
 ## YÖNETİM CHECKPOINT
 
 - Mission Control kurulum branch'i: `docs/cza-mission-control-20261010`
-- Mission Control PR: **#83 / DRAFT**
-- Bu branch yalnız yönetim/dokümantasyon kurulumudur; ürün kodu, migration, staging veya production değişikliği içermez.
-- Merge edilmeden önce governance CI ve içerik kontrolü aranır.
+- Mission Control PR: **#83 / MERGED** — 2026-10-10T19:14:42Z, merge commit `4605cbbcb20aedbc322e3abfaa5170611c73e750`
+- Mission Control kurulumu `main`'e alındı; bu dosya artık kanonik canlı durum kaynağıdır ve her görev başında buradan okunur.
+- Post-merge tutarlılık düzeltmesi (bu güncelleme): yönetim/dokümantasyon branch'i `docs/cza-mission-control-consistency`; ürün kodu, migration, staging veya production değişikliği içermez.
+- Bu düzeltme ayrıca **self-referential HEAD** sorununu kapatır: yukarıdaki GitHub snapshot değerleri kanonik değer değildir ve ilerlemeleri tek başına uygulama blokajı oluşturmaz; yalnız aktif zincir/PR/korunan HEAD/kapsam/kabul durumu çelişkisi durdurur.
 
 **GENEL PROJE İLERLEME %:** ÖLÇÜLMEDİ  
 **MEVCUT FAZ İLERLEME %:** ÖLÇÜLMEDİ  
-**TAMAMLANAN:** GitHub merkezli canlı durum standardı ve aktif tek görev zinciri tanımlandı.  
-**KALAN:** Mission Control PR #83 kabulü; ardından #82'nin doğrulanmış teslimi.  
+**TAMAMLANAN:** GitHub merkezli canlı durum standardı ve aktif tek görev zinciri tanımlandı; Mission Control kurulumu (#83) `main`'e alındı ve canlı durum dosyası gerçek GitHub durumuyla eşitlendi.  
+**KALAN:** Bu doküman tutarlılık PR'ının kabulü; ardından yalnız #82 üzerinden #73'ün doğrulanmış teslimi.  
 **KAPSAM SAPMASI=YOK**  
-**SIRADAKİ TEK ADIM:** PR #83 CI ve içerik denetimini tamamla; merge yetkisi verilirse main'e al, sonra yalnız #82 üzerinden devam et.
+**SIRADAKİ TEK ADIM:** `docs/cza-mission-control-consistency` PR'ının governance CI ve içerik denetimini tamamla; merge yetkisi verilirse `main`'e al. Bu tutarlılık kanonik `main`'de kapanmadan #82 uygulamasına başlanmaz.
