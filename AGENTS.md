@@ -14,7 +14,18 @@ Bu depo **ÇELİK ANZAN 2 / büyük Çelik Zihin Akademisi** platformudur; ayrı
 9. `docs/CZA_MODUL_KANONIK_MANIFEST.json` (10 ana faz + 15 program ailesi, kaynak referansları; gerçek kabul değildir)
 10. Github `main` HEAD, açık PR/issue, CI ve hedef staging build SHA. Başta **güncel** doğrula.
 
-**Tek aktif görev kuralı:** `CZA_CANLI_DURUM.md` içindeki aktif zincirin önüne başka ürün işi alınmaz. Canlı GitHub verisi dosyayla çelişirse uygulamayı durdur, panoyu güncelle ve yalnız doğrulanmış yeni aktif zincirle devam et.
+**Tek aktif görev kuralı:** `CZA_CANLI_DURUM.md` içindeki aktif zincirin önüne başka ürün işi alınmaz.
+
+**Kaynak ayrımı:** Güncel repo durumu (main HEAD, açık PR sayısı/trafiği, branch sayısı, CI, kabul kanıtı) için gerçek kaynak **GitHub**'dır. `CZA_CANLI_DURUM.md` aktif yönetim zinciri ve kapsam için kanonik **koordinasyon** kaynağıdır; içindeki HEAD/PR/branch değerleri yalnız **son doğrulanan snapshot**tır, canlı GitHub'ın yerine geçmez ve kanıt sayılmaz.
+
+**Durdurma kuralı (daraltılmış):** Aşağıdaki beş alanda GitHub ile dosya **çelişirse** uygulamayı durdur, panoyu güncelle ve yalnız doğrulanmış yeni aktif zincirle devam et:
+1. aktif zincir (issue → uygulama emri → çalışma PR'ı),
+2. aktif PR (kimliği, draft/açık durumu, HEAD'i),
+3. korunan/kabul edilmiş HEAD,
+4. kapsam (kapsam içi/dışı ve eksiltme yasağı),
+5. kabul durumu (PASS/FAIL/BLOCKED kanıtı).
+
+**Blokaj üretmeyen durum:** Yalnız `main` HEAD'in ilerlemesi, açık PR sayısının değişmesi veya branch sayısının değişmesi tek başına uygulama blokajı oluşturmaz. Bu durumda snapshot yenilenir ve iş devam eder. (Bir belge kendi merge sonrası `main` HEAD'ini kesin kanonik değer olarak tutamaz; onu değiştiren commit HEAD'i yeniden değiştirir.)
 
 ## Nihai ürün vizyonu ve değişmez kural
 Tek Student ID ve Student Learning Profile, yaşa uyarlanmış 0–YKS gelişim/akademik öğrenme/beceri atölyesi. Öğrencinin üç yüzeyi: **Benim Öğrenme Rotam / Akademik Öğrenme Merkezi / Beceri ve Zihin Atölyesi**; verileri ayrılmaz. 14 beceri ölçme kanıtının boyutlarıdır; klinik tanı veya öğrenciyi sabit etiketleme aracı değildir. 0–2 yaşta yetişkin aracılı gözlem/esas çalışma. LGS/YKS çekirdek kapsam; KPSS/AGS gelecekteki opsiyon. Paket, veli ve satış akışları ortak omurgaya bağlanır; ayrı bir öğrenci kimliği kurulmaz.
