@@ -75,7 +75,7 @@ test('U3 panel provides responsive student list, detail, work, errors, history, 
     'Hata görünümü',
     'Evidence görünümü',
     'Kronolojik öğrenci geçmişi',
-    'Student Learning Profile özeti',
+    'Öğrenme profili',
   ]) {
     assert.match(panel, new RegExp(label));
   }

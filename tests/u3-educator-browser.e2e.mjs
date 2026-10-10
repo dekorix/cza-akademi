@@ -71,15 +71,27 @@ async function viewport(page, width, height) {
       evidence: text.includes('Evidence görünümü'),
       history: text.includes('Kronolojik öğrenci geçmişi'),
       profile: text.includes('Student Learning Profile özeti'),
-      client: text.includes('Öğrenci/istemci bildirimi'),
-      verified: text.includes('Sunucu doğrulamalı'),
+      assessment: text.includes('Başlangıç değerlendirmesini aç'),
+      report: text.includes('Çalışma raporu'),
+      assignment: text.includes('Yeni ödev oluştur'),
       overflow: document.documentElement.scrollWidth > window.innerWidth,
     };
   });
   assert.deepEqual(state, {
-    list: true, active: true, errors: true, evidence: true, history: true,
-    profile: true, client: true, verified: true, overflow: false,
+    list: true, active: true, errors: false, evidence: false, history: false,
+    profile: false, assessment: true, report: true, assignment: true, overflow: false,
   });
+  const openDetails = async (label) => page.evaluate((name) => {
+    const button = [...document.querySelectorAll('button')].find(node => node.textContent?.includes(name));
+    if (!button) throw new Error(`Missing section ${name}`);
+    button.click();
+  }, label);
+  await page.evaluate(() => [...document.querySelectorAll('button')].find(node => node.textContent?.includes('Ayrıntılı kayıtlar'))?.focus());
+  await page.keyboard.press('Enter');
+  await page.waitForFunction(() => document.body.innerText.includes('Hata görünümü'));
+  assert.ok((await page.evaluate(() => document.body.innerText)).includes('Evidence görünümü'));
+  await openDetails('Geçmiş çalışmalar');
+  await page.waitForFunction(() => document.body.innerText.includes('Kronolojik öğrenci geçmişi'));
 }
 
 try {
