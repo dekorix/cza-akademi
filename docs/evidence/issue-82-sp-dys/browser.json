@@ -1,0 +1,9 @@
+{
+  "profile": "SP-DYS",
+  "networkMocks": false,
+  "cookieInjection": false,
+  "steps": [],
+  "errors": [],
+  "passed": false,
+  "failure": "net::ERR_CERT_AUTHORITY_INVALID at https://cza-v01-isolated-synthetic-20261010.cza-staging-habip.workers.dev/cza-degerlendirme/?profile=SP-DYS"
+}

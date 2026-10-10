@@ -85,6 +85,9 @@ function harness({ indexInstalled = true, indexPatch = {} } = {}) {
   }).outputText;
   const exports = {};
   const require = (name) => {
+    if (name === '@/lib/isolated-qa-auth') return {
+      isolatedQaEnabled: () => false, isolatedQaDatabaseAllowed: async () => true,
+    };
     if (name === '@neondatabase/serverless') return { neon: () => sql };
     if (name === '@/lib/educator-auth') return {
       authenticatedEducator: async (req) =>

@@ -181,6 +181,7 @@ async function harness(t) {
     env,
     fetcher,
   );
+  modules['@/lib/isolated-qa-auth'] = load('lib/isolated-qa-auth.ts', modules, env, fetcher);
   const ingress = load('lib/educator-neon-ingress.ts', modules, env, fetcher);
   modules['@/lib/educator-neon-ingress'] = ingress;
   const auth = load('lib/educator-auth.ts', modules, env, fetcher);

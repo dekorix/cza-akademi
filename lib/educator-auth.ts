@@ -1,3 +1,4 @@
+import { isolatedQaEnabled, qaAuthStage } from '@/lib/isolated-qa-auth';
 import {
   createHash,
   createHmac,
@@ -398,8 +399,23 @@ async function authenticatedNeonEducator(request: Request) {
       AND is_active = true AND role::text IN ('admin','teacher','educator')
     LIMIT 2
   `;
-  if (rows.length !== 1 || !rows[0].academy_id) return null;
+  if (rows.length !== 1 || !rows[0].academy_id) {
+    qaAuthStage(request, 'canonical_mapping_missing');
+    return null;
+  }
   const canonical = rows[0] as CanonicalEducator;
+  // The standalone QA origin verifies the real synthetic Neon session above.
+  // It has no Sites proxy; canonical ID/role/academy remain database-derived.
+  // Staging keeps its existing signed proxy/nonce handoff unchanged.
+  if (isolatedQaEnabled()) {
+    return {
+      id: canonical.auth_user_id,
+      email: canonical.email || '',
+      name: canonical.display_name || 'CZA Eğitimci',
+      academyId: canonical.academy_id,
+      educatorId: canonical.id,
+    };
+  }
   const secret = process.env.CZA_TRUSTED_PROXY_HMAC_SECRET || '';
   if (Buffer.byteLength(secret) < 32) return null;
   const timestamp = String(Math.floor(Date.now() / 1000));
@@ -439,10 +455,13 @@ async function authenticatedNeonEducator(request: Request) {
 }
 
 export async function authenticatedEducator(request: Request) {
-  if (process.env.CZA_EDUCATOR_AUTH_MODE === 'neon') {
+  if (process.env.CZA_EDUCATOR_AUTH_MODE === 'neon' || isolatedQaEnabled()) {
     try {
       return await authenticatedNeonEducator(request);
-    } catch {
+    } catch (cause) {
+      const code = (cause as { code?: string }).code;
+      qaAuthStage(request, code && /^[A-Z0-9]{5}$/.test(code)
+        ? 'canonical_query_' + code : 'canonical_query_failed');
       return null;
     }
   }

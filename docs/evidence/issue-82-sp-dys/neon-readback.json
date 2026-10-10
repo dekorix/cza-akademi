@@ -1,0 +1,19 @@
+[
+  {
+    "id": "9bdde550-f245-4e90-bc66-d2d44c8c326d",
+    "student_id": null,
+    "template_code": "CZA_SPECIAL_V1_DYS",
+    "status": "active",
+    "candidate_id": "7b6bc3fb-437a-4c1b-bc45-b3caa68d69b1",
+    "cycle_id": "f9e43614-65ca-4885-b560-00635d6b7357",
+    "attempts": "1",
+    "observations": "1",
+    "answer_evidence": [
+      {
+        "task_code": "DYS-PH01",
+        "answer_text": "al"
+      }
+    ],
+    "active_identity_count": "1"
+  }
+]

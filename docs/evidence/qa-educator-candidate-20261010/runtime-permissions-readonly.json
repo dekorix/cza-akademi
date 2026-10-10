@@ -1,0 +1,13 @@
+[
+  {
+    "rolname": "cza_v01_app_runtime_min",
+    "rolsuper": false,
+    "rolcreaterole": false,
+    "rolcreatedb": false,
+    "rolbypassrls": false,
+    "public_schema_create": false,
+    "users_select": true,
+    "users_insert": false,
+    "assessment_insert": true
+  }
+]

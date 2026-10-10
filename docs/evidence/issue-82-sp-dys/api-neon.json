@@ -1,0 +1,118 @@
+{
+  "profile": "SP-DYS",
+  "tests": [
+    {
+      "name": "wrong password denied",
+      "passed": true,
+      "evidence": {
+        "status": 401
+      }
+    },
+    {
+      "name": "real synthetic educator login and secure bounded cookie",
+      "passed": true,
+      "evidence": {
+        "status": 200,
+        "secure": true,
+        "httpOnly": true,
+        "sameSite": "Strict"
+      }
+    },
+    {
+      "name": "canonical educator and tenant",
+      "passed": true,
+      "evidence": {
+        "status": 200
+      }
+    },
+    {
+      "name": "SP-DYS candidate creation",
+      "passed": true,
+      "evidence": {
+        "status": 201,
+        "sessionId": "9bdde550-f245-4e90-bc66-d2d44c8c326d",
+        "studentId": null
+      }
+    },
+    {
+      "name": "first answer persisted",
+      "passed": true,
+      "evidence": {
+        "status": 200
+      }
+    },
+    {
+      "name": "reload API returns same identity and response",
+      "passed": true,
+      "evidence": {
+        "status": 200,
+        "attempts": 1
+      }
+    },
+    {
+      "name": "display-name correction preserves identity",
+      "passed": true,
+      "evidence": {
+        "status": 200,
+        "sessionId": "9bdde550-f245-4e90-bc66-d2d44c8c326d"
+      }
+    },
+    {
+      "name": "concurrent create resumes one active session",
+      "passed": true,
+      "evidence": {
+        "statuses": [
+          200,
+          200
+        ]
+      }
+    },
+    {
+      "name": "foreign origin rejected",
+      "passed": true,
+      "evidence": {
+        "status": 403
+      }
+    },
+    {
+      "name": "forged educator rejected",
+      "passed": true,
+      "evidence": {
+        "status": 403
+      }
+    },
+    {
+      "name": "provider logout and cookie clearing",
+      "passed": true,
+      "evidence": {
+        "status": 200
+      }
+    },
+    {
+      "name": "revoked session rejected",
+      "passed": true,
+      "evidence": {
+        "status": 401
+      }
+    },
+    {
+      "name": "unauthenticated central endpoint denied",
+      "passed": true,
+      "evidence": {
+        "status": 401
+      }
+    }
+  ],
+  "passed": true,
+  "target": {
+    "project": "patient-firefly-51111834",
+    "branch": "br-withered-queen-b15ltb40",
+    "database": "cza_t5_synthetic",
+    "readback": "connector SQL performed separately"
+  },
+  "identity": {
+    "candidateId": "7b6bc3fb-437a-4c1b-bc45-b3caa68d69b1",
+    "cycleId": "f9e43614-65ca-4885-b560-00635d6b7357",
+    "sessionId": "9bdde550-f245-4e90-bc66-d2d44c8c326d"
+  }
+}

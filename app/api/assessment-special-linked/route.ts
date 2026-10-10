@@ -1,3 +1,4 @@
+import { isolatedQaEnabled, isolatedQaDatabaseAllowed } from '@/lib/isolated-qa-auth';
 import { neon } from '@neondatabase/serverless';
 import { authenticatedEducator } from '@/lib/educator-auth';
 import { allowRequest, rateLimited } from '@/lib/request-guard';
@@ -57,6 +58,11 @@ async function db() {
   const url = process.env.DATABASE_URL;
   if (!url) throw new Error('database_unavailable');
   const sql = neon(url);
+  // QA uses its already-provisioned schema; never run runtime DDL here.
+  if (isolatedQaEnabled()) {
+    if (!(await isolatedQaDatabaseAllowed())) throw new Error('qa_database_target_rejected');
+    return sql;
+  }
 
   await sql`
     CREATE TABLE IF NOT EXISTS public.assessment_sessions (
@@ -205,6 +211,10 @@ function safeSummary(value: unknown) {
 }
 
 export async function POST(request: Request) {
+  if (isolatedQaEnabled()) {
+    try { if (!(await isolatedQaDatabaseAllowed())) return json({ok:false,error:'qa_database_target_rejected'},503); }
+    catch { return json({ok:false,error:'qa_database_unavailable'},503); }
+  }
   const gate = await allowRequest(request, 'assessment-special-linked', 180, 10 * 60_000);
   if (!gate.allowed) return rateLimited(gate.retryAfterSeconds);
 
