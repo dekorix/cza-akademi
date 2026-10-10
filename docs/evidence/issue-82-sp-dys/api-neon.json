@@ -30,7 +30,7 @@
       "passed": true,
       "evidence": {
         "status": 201,
-        "sessionId": "9bdde550-f245-4e90-bc66-d2d44c8c326d",
+        "sessionId": "c0ab8deb-52f4-4b36-b95d-72c392d0c2b0",
         "studentId": null
       }
     },
@@ -54,7 +54,7 @@
       "passed": true,
       "evidence": {
         "status": 200,
-        "sessionId": "9bdde550-f245-4e90-bc66-d2d44c8c326d"
+        "sessionId": "c0ab8deb-52f4-4b36-b95d-72c392d0c2b0"
       }
     },
     {
@@ -63,6 +63,19 @@
       "evidence": {
         "statuses": [
           200,
+          200
+        ]
+      }
+    },
+    {
+      "name": "two simultaneous first creates produce one session",
+      "passed": true,
+      "evidence": {
+        "candidateId": "cff7d63b-d554-4fd9-b82b-af138782a98e",
+        "cycleId": "65d916d8-f576-44a2-8be7-760bc0c5eea4",
+        "sessionId": "5c9c91e9-202e-4229-b4e0-9e458fc9d50f",
+        "statuses": [
+          201,
           200
         ]
       }
@@ -111,8 +124,17 @@
     "readback": "connector SQL performed separately"
   },
   "identity": {
-    "candidateId": "7b6bc3fb-437a-4c1b-bc45-b3caa68d69b1",
-    "cycleId": "f9e43614-65ca-4885-b560-00635d6b7357",
-    "sessionId": "9bdde550-f245-4e90-bc66-d2d44c8c326d"
+    "candidateId": "6503a796-fd73-4079-af96-40cab1528cff",
+    "cycleId": "0d246b71-3a50-40bc-a1d1-c56e067fcae7",
+    "sessionId": "c0ab8deb-52f4-4b36-b95d-72c392d0c2b0"
+  },
+  "concurrentFirstCreate": {
+    "candidateId": "cff7d63b-d554-4fd9-b82b-af138782a98e",
+    "cycleId": "65d916d8-f576-44a2-8be7-760bc0c5eea4",
+    "sessionId": "5c9c91e9-202e-4229-b4e0-9e458fc9d50f",
+    "statuses": [
+      201,
+      200
+    ]
   }
 }

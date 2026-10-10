@@ -1,11 +1,65 @@
 [
   {
-    "id": "9bdde550-f245-4e90-bc66-d2d44c8c326d",
+    "project": "patient-firefly-51111834",
+    "branch": "br-withered-queen-b15ltb40",
+    "database": "cza_t5_synthetic",
+    "id": "3db6ac62-aa10-44e5-b4fa-4f99fa599e0d",
     "student_id": null,
     "template_code": "CZA_SPECIAL_V1_DYS",
-    "status": "active",
-    "candidate_id": "7b6bc3fb-437a-4c1b-bc45-b3caa68d69b1",
-    "cycle_id": "f9e43614-65ca-4885-b560-00635d6b7357",
+    "candidate_id": "8b38bfe7-60d3-4d42-a96c-501c489be547",
+    "cycle_id": "e81d8275-9a03-4ad6-8caf-ab9cfd901fb0",
+    "attempts": "1",
+    "observations": "1",
+    "answer_evidence": [
+      {
+        "task_code": "DYS-PH01",
+        "answer_text": "al"
+      }
+    ],
+    "active_identity_count": "1"
+  },
+  {
+    "project": "patient-firefly-51111834",
+    "branch": "br-withered-queen-b15ltb40",
+    "database": "cza_t5_synthetic",
+    "id": "5c9c91e9-202e-4229-b4e0-9e458fc9d50f",
+    "student_id": null,
+    "template_code": "CZA_SPECIAL_V1_DYS",
+    "candidate_id": "cff7d63b-d554-4fd9-b82b-af138782a98e",
+    "cycle_id": "65d916d8-f576-44a2-8be7-760bc0c5eea4",
+    "attempts": "0",
+    "observations": "0",
+    "answer_evidence": null,
+    "active_identity_count": "1"
+  },
+  {
+    "project": "patient-firefly-51111834",
+    "branch": "br-withered-queen-b15ltb40",
+    "database": "cza_t5_synthetic",
+    "id": "c0ab8deb-52f4-4b36-b95d-72c392d0c2b0",
+    "student_id": null,
+    "template_code": "CZA_SPECIAL_V1_DYS",
+    "candidate_id": "6503a796-fd73-4079-af96-40cab1528cff",
+    "cycle_id": "0d246b71-3a50-40bc-a1d1-c56e067fcae7",
+    "attempts": "1",
+    "observations": "1",
+    "answer_evidence": [
+      {
+        "task_code": "DYS-PH01",
+        "answer_text": "al"
+      }
+    ],
+    "active_identity_count": "1"
+  },
+  {
+    "project": "patient-firefly-51111834",
+    "branch": "br-withered-queen-b15ltb40",
+    "database": "cza_t5_synthetic",
+    "id": "f825e4d0-c702-4a58-bb7a-7ec991940a89",
+    "student_id": null,
+    "template_code": "CZA_SPECIAL_V1_DYS",
+    "candidate_id": "753e2d0a-213c-4ab7-81f1-691fa4c999ba",
+    "cycle_id": "424a3f4d-57ee-42f1-acc3-7d99188501b5",
     "attempts": "1",
     "observations": "1",
     "answer_evidence": [
