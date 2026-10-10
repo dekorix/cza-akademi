@@ -1,0 +1,68 @@
+name: CZA V01 One-time Staging Endpoint Probe Version Only
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'scripts/qa/cza-v01-staging-inherited-db-probe.mjs'
+      - '.github/workflows/cza-v01-staging-endpoint-probe-version-only.yml'
+permissions:
+  contents: read
+concurrency:
+  group: cza-v01-staging-only-db-probe
+  cancel-in-progress: false
+jobs:
+  audit-inherited-secret-preview:
+    if: github.event.pull_request.number == 73 && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    environment: CZA-STAGING-SECURITY
+    steps:
+      - name: Checkout PR without persisted credentials
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+      - name: Enable Corepack
+        run: corepack enable
+      - name: Setup Node
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: '22.13.0'
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+      - name: Install locked CLI
+        run: pnpm install --frozen-lockfile
+      - name: Generate one-use challenge and confirm active staging unchanged
+        env:
+          CZA_STAGING_PREVIEW_API_TOKEN: ${{ secrets.CZA_STAGING_PREVIEW_API_TOKEN }}
+          CZA_STAGING_DATABASE_URL: ${{ secrets.CZA_STAGING_DATABASE_URL }}
+        run: |
+          node --check scripts/qa/cza-v01-staging-inherited-db-probe.mjs
+          node scripts/qa/cza-v01-staging-inherited-db-probe.mjs generate
+      - name: Validate generated source, upload version ONLY without deploying
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CZA_STAGING_PREVIEW_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: 8c23e36e747009ad8c8d0bdbda8d5606
+        run: |
+          node --check "$CZA_V01_AUDIT_DIR/worker.mjs"
+          set +e
+          pnpm exec wrangler versions upload "$CZA_V01_AUDIT_DIR/worker.mjs" \
+            --config "$CZA_V01_AUDIT_DIR/wrangler.toml" \
+            --name cza-akademi-staging --keep-vars \
+            --tag cza-v01-temporary-endpoint-audit \
+            --message "CZA V01 one-use DB endpoint audit preview ONLY; no traffic change" \
+            > "$CZA_V01_AUDIT_DIR/upload.log" 2>&1
+          status=$?
+          set -e
+          if [ "$status" -ne 0 ]; then
+            echo "CZA_VERSION_ONLY_UPLOAD=BLOCKED"
+            exit 1
+          fi
+          if ! grep -Eq 'Worker Version ID: [0-9a-f-]{36}' "$CZA_V01_AUDIT_DIR/upload.log"; then
+            echo "CZA_VERSION_ONLY_UPLOAD=BLOCKED_ID_MISSING"
+            exit 1
+          fi
+          echo "CZA_VERSION_ONLY_UPLOAD=SUCCESS_NO_DEPLOY"
+      - name: Test inherited secret using opaque preview-only proof
+        env:
+          CZA_STAGING_PREVIEW_API_TOKEN: ${{ secrets.CZA_STAGING_PREVIEW_API_TOKEN }}
+        run: node scripts/qa/cza-v01-staging-inherited-db-probe.mjs verify
