@@ -46,8 +46,11 @@ try{
     if(!expected||!expected.startsWith('ep-falling-resonance-b2qnvtwf'))throw new Error('EXPECTED_TARGET_INVALID');
     mkdirSync(workdir,{recursive:true,mode:0o700});
     const nonce=randomBytes(32).toString('hex');
+    const parts=expected.split('|');
     const worker=[
-      'const expectedHash='+JSON.stringify(sha(expected))+';',
+      'const expectedHostHash='+JSON.stringify(sha(parts[0]))+';',
+      'const expectedDbHash='+JSON.stringify(sha(parts[1]))+';',
+      'const expectedRoleHash='+JSON.stringify(sha(parts[2]))+';',
       'const nonce='+JSON.stringify(nonce)+';',
       'async function digest(value){',
       " const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(value));",
@@ -61,9 +64,10 @@ try{
       ' let target;',
       ' try{target=new URL(env.DATABASE_URL);}catch{return new Response("{\\"proof\\":\\"INVALID_URL\\"}",{status:503});}',
       ' if(!["postgres:","postgresql:"].includes(target.protocol)||!target.hostname.endsWith(".neon.tech"))return new Response("{\\"proof\\":\\"INVALID_TARGET\\"}",{status:503});',
-      ' const identity=target.hostname.toLowerCase()+"|"+target.pathname+"|"+decodeURIComponent(target.username);',
-      ' const match=(await digest(identity))===expectedHash;',
-      ' return new Response(JSON.stringify({proof:match?"MATCH":"MISMATCH"}),{headers:{"content-type":"application/json","cache-control":"no-store"}});',
+      ' const hostMatch=(await digest(target.hostname.toLowerCase()))===expectedHostHash;',
+      ' const dbMatch=(await digest(target.pathname))===expectedDbHash;',
+      ' const roleMatch=(await digest(decodeURIComponent(target.username)))===expectedRoleHash;',
+      ' return new Response(JSON.stringify({hostMatch,dbMatch,roleMatch}),{headers:{"content-type":"application/json","cache-control":"no-store"}});',
       '}};',
       ''
     ].join('\n');
@@ -93,7 +97,7 @@ try{
         const response=await fetch(url,{method:'POST',
           headers:{'x-cza-v01-nonce':readFileSync(join(workdir,'nonce.txt'),'utf8'),'content-type':'application/json'},
           body:'{}',signal:AbortSignal.timeout(12000)});
-        if(response.status===200){proof=(await response.json()).proof;break;}
+        if(response.status===200){proof=await response.json();break;}
       }catch{}
       await new Promise(res=>setTimeout(res,2500));
     }
@@ -103,9 +107,11 @@ try{
     console.log('CZA_ACTIVE_VERSION_UNCHANGED=YES');
     console.log('CZA_ACTIVE_TRAFFIC=100_PERCENT_ORIGINAL');
     console.log('CZA_PREVIEW_SECRET_BINDING=INHERITED');
-    console.log('CZA_PREVIEW_RUNTIME_DB_TARGET_MATCH='+ (proof==='MATCH'?'PASS':'BLOCKED'));
+    console.log('CZA_PREVIEW_ENDPOINT_MATCH='+ (proof.hostMatch===true?'PASS':'MISMATCH'));
+    console.log('CZA_PREVIEW_DATABASE_NAME_MATCH='+ (proof.dbMatch===true?'PASS':'MISMATCH'));
+    console.log('CZA_PREVIEW_DATABASE_ROLE_MATCH='+ (proof.roleMatch===true?'PASS':'MISMATCH'));
     console.log('CZA_ACTIVE_OLD_VERSION_DB_ENDPOINT_MATCH=NOT_DIRECTLY_ATTESTED');
-    if(proof!=='MATCH')process.exitCode=2;
+    if(!proof.hostMatch||!proof.dbMatch||!proof.roleMatch)process.exitCode=2;
   }else throw new Error('UNKNOWN_MODE');
 }catch(e){
   console.error('CZA_PREVIEW_DIAGNOSTIC=BLOCKED;REASON='+String(e.message).replace(/[^A-Z0-9_]/g,'_').slice(0,90));
