@@ -317,8 +317,10 @@
     button.dataset.centralWrapped = '1';
     button.onclick = async function (event) {
       const result = await loadStudents(false);
-      if (result.mode === 'auth-required') {
-        intakeError(isDyslexia, 'Merkezi kayıt için önce eğitimci oturumu açılmalı.');
+      if (result.mode === 'auth-required' || result.mode === 'unavailable') {
+        intakeError(isDyslexia, result.mode === 'auth-required'
+          ? 'Merkezi kayıt için önce eğitimci oturumu açılmalı.'
+          : 'Merkezi kayıt hizmetine ulaşılamıyor. Kayıt güvenliği doğrulanmadan değerlendirme başlatılamaz.');
         return;
       }
       if (result.mode === 'connected' && !String(document.getElementById(isDyslexia ? 'name' : 'sgName')?.value || '').trim()) {
