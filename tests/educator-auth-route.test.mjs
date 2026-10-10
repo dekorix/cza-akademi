@@ -26,6 +26,7 @@ function route(fetch, options = {}) {
   // oxlint-disable-next-line typescript/no-implied-eval -- isolated route module harness
   new Function('require', 'module', 'exports', 'fetch', js)(
     (id) => {
+      if (id.includes('educator-neon-ingress')) return { neonEducatorEnabled: () => false };
       if (id.includes('request-guard')) {
         return {
           allowAccountRequest: async (...args) => {

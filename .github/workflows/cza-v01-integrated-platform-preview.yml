@@ -1,0 +1,102 @@
+name: CZA V01 Integrated Platform Build (NO SECRETS)
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/cza-v01-integrated-platform-preview.yml'
+      # The isolation gate must re-run whenever a protected security workflow or
+      # the isolation test itself changes. A protected-workflow-only change must
+      # never be able to skip this no-secrets gate.
+      - '.github/workflows/special-education-staging-db-readback.yml'
+      - '.github/workflows/cza-t5-staging-index-readonly.yml'
+      - '.github/workflows/cza-v01-active-db-version-attest-readonly.yml'
+      - '.github/workflows/cza-vertical01-worker-provenance-readonly.yml'
+      - '.github/workflows/cza-v01-staging-endpoint-probe-version-only.yml'
+      - 'tests/cza-v01-pr-secrets-isolation.test.mjs'
+      - 'scripts/qa/cza-v01-integrated-preview-smoke.mjs'
+      - 'app/**'
+      - 'components/**'
+      - 'lib/**'
+      - 'public/cza-degerlendirme/**'
+      - 'cza-degerlendirme/**'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cza-v01-unprivileged-pr-build
+  cancel-in-progress: false
+
+jobs:
+  unprivileged-full-build:
+    if: github.event.pull_request.number == 73 && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Checkout candidate without credentials
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Verify scope without exposing secrets
+        run: |
+          test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha }}"
+          test -f public/cza-degerlendirme/index.html
+          test -f app/api/assessment-special-linked/route.ts
+          test -f app/page.tsx
+          test -f app/work/page.tsx
+          test -f app/educator/page.tsx
+          test -f components/student-learning-profile.tsx
+          test -f components/guardian-panel.tsx
+          echo "CZA_V01_SOURCE_SHA=$(git rev-parse HEAD)" >> "$GITHUB_STEP_SUMMARY"
+          echo 'CZA_V01_NO_PRIVILEGED_STAGING_CREDS=YES' >> "$GITHUB_STEP_SUMMARY"
+      - name: Enable Corepack
+        run: corepack enable
+      - name: Set up Node
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: '22.13.0'
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+      - name: Install, typecheck, test, and build the whole CZA source
+        run: |
+          pnpm install --frozen-lockfile --ignore-scripts
+          pnpm exec tsc --noEmit
+          # One identity across evaluation, student, work, educator, history,
+          # assignment, learning profile and guardian boundaries.
+          node --experimental-strip-types --test \
+            tests/cza-v01-pr-secrets-isolation.test.mjs \
+            tests/t5-pre-enroll-client-resume.test.mjs \
+            tests/t5-pre-enroll-resume.test.mjs \
+            tests/central-assessment-intake.test.mjs \
+            tests/assessment-bridge.test.mjs \
+            tests/work-student-id-integration.test.mjs \
+            tests/u1-student-panel.test.mjs \
+            tests/u2-work-center.test.mjs \
+            tests/u3-educator-core.test.mjs \
+            tests/u4-learning-timeline.test.mjs \
+            tests/u5-assignment-management.test.mjs \
+            tests/real-assignment-auth-integration.test.mjs \
+            tests/u7-student-learning-profile.test.mjs \
+            tests/u9-guardian-api-ui.test.mjs
+          echo 'CZA_V01_SOURCE_CONTRACT_V01_TO_V07=PASS_TEST_ONLY' >> "$GITHUB_STEP_SUMMARY"
+          pnpm run build
+          test -s dist/server/wrangler.json
+          echo 'CZA_V01_INTEGRATED_SOURCE_BUILD=PASS_NO_SECRETS' >> "$GITHUB_STEP_SUMMARY"
+          echo 'CZA_V01_STAGING_UPLOAD=DISABLED_PENDING_ISOLATED_SANDBOX' >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Write immutable source and build evidence
+        run: |
+          mkdir -p dist/cza-evidence
+          printf 'SOURCE_COMMIT=%s\nSOURCE_TREE=%s\n' "$(git rev-parse HEAD)" "$(git rev-parse HEAD^{tree})" > dist/cza-evidence/source.txt
+          find dist -type f ! -path 'dist/cza-evidence/*' -print0 | sort -z | xargs -0 sha256sum > dist/cza-evidence/sha256sums.txt
+          echo 'CZA_V01_UNPRIVILEGED_ARTIFACT=GENERATED' >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload no-secrets immutable build artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: cza-v01-public-build-${{ github.event.pull_request.head.sha }}
+          path: dist/
+          if-no-files-found: error
+          retention-days: 3
+          include-hidden-files: true

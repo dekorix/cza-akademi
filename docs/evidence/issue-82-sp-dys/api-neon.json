@@ -1,0 +1,140 @@
+{
+  "profile": "SP-DYS",
+  "tests": [
+    {
+      "name": "wrong password denied",
+      "passed": true,
+      "evidence": {
+        "status": 401
+      }
+    },
+    {
+      "name": "real synthetic educator login and secure bounded cookie",
+      "passed": true,
+      "evidence": {
+        "status": 200,
+        "secure": true,
+        "httpOnly": true,
+        "sameSite": "Strict"
+      }
+    },
+    {
+      "name": "canonical educator and tenant",
+      "passed": true,
+      "evidence": {
+        "status": 200
+      }
+    },
+    {
+      "name": "SP-DYS candidate creation",
+      "passed": true,
+      "evidence": {
+        "status": 201,
+        "sessionId": "c0ab8deb-52f4-4b36-b95d-72c392d0c2b0",
+        "studentId": null
+      }
+    },
+    {
+      "name": "first answer persisted",
+      "passed": true,
+      "evidence": {
+        "status": 200
+      }
+    },
+    {
+      "name": "reload API returns same identity and response",
+      "passed": true,
+      "evidence": {
+        "status": 200,
+        "attempts": 1
+      }
+    },
+    {
+      "name": "display-name correction preserves identity",
+      "passed": true,
+      "evidence": {
+        "status": 200,
+        "sessionId": "c0ab8deb-52f4-4b36-b95d-72c392d0c2b0"
+      }
+    },
+    {
+      "name": "concurrent create resumes one active session",
+      "passed": true,
+      "evidence": {
+        "statuses": [
+          200,
+          200
+        ]
+      }
+    },
+    {
+      "name": "two simultaneous first creates produce one session",
+      "passed": true,
+      "evidence": {
+        "candidateId": "cff7d63b-d554-4fd9-b82b-af138782a98e",
+        "cycleId": "65d916d8-f576-44a2-8be7-760bc0c5eea4",
+        "sessionId": "5c9c91e9-202e-4229-b4e0-9e458fc9d50f",
+        "statuses": [
+          201,
+          200
+        ]
+      }
+    },
+    {
+      "name": "foreign origin rejected",
+      "passed": true,
+      "evidence": {
+        "status": 403
+      }
+    },
+    {
+      "name": "forged educator rejected",
+      "passed": true,
+      "evidence": {
+        "status": 403
+      }
+    },
+    {
+      "name": "provider logout and cookie clearing",
+      "passed": true,
+      "evidence": {
+        "status": 200
+      }
+    },
+    {
+      "name": "revoked session rejected",
+      "passed": true,
+      "evidence": {
+        "status": 401
+      }
+    },
+    {
+      "name": "unauthenticated central endpoint denied",
+      "passed": true,
+      "evidence": {
+        "status": 401
+      }
+    }
+  ],
+  "passed": true,
+  "target": {
+    "project": "patient-firefly-51111834",
+    "branch": "br-withered-queen-b15ltb40",
+    "database": "cza_t5_synthetic",
+    "readback": "connector SQL performed separately"
+  },
+  "identity": {
+    "candidateId": "6503a796-fd73-4079-af96-40cab1528cff",
+    "cycleId": "0d246b71-3a50-40bc-a1d1-c56e067fcae7",
+    "sessionId": "c0ab8deb-52f4-4b36-b95d-72c392d0c2b0"
+  },
+  "concurrentFirstCreate": {
+    "candidateId": "cff7d63b-d554-4fd9-b82b-af138782a98e",
+    "cycleId": "65d916d8-f576-44a2-8be7-760bc0c5eea4",
+    "sessionId": "5c9c91e9-202e-4229-b4e0-9e458fc9d50f",
+    "statuses": [
+      201,
+      200
+    ]
+  }
+}

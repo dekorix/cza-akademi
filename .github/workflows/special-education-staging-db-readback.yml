@@ -31,8 +31,21 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # T5 pre-enrollment manual path is HELD. It is reachable only through an
+  # owner-approved, isolated and least-privilege acceptance path; a
+  # PR-controlled candidate must never receive CZA_STAGING_DATABASE_URL,
+  # owner credentials, SQL execution or synthetic write capability.
+  # Disabled 2026-10-10 following independent P1 QA-secret isolation review.
+  # This job NEVER runs a mutable checkout, DB SQL, a migration, a deploy,
+  # an upload, or reads any secrets.
+  t5-pre-enroll:
+    if: false
+    runs-on: ubuntu-24.04
+    steps:
+      - run: echo "BLOCKED_PENDING_TRUSTED_ISOLATED_ACCEPTANCE"
+
   staging-db-readback:
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    if: github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name == github.repository && github.head_ref != 'fix/t5-pre-enroll-resume-integrity')
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     environment: CZA-STAGING-SECURITY
@@ -74,7 +87,7 @@ jobs:
   
 
   special-program-staging-proof:
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    if: github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name == github.repository && github.head_ref != 'fix/t5-pre-enroll-resume-integrity')
     runs-on: ubuntu-24.04
     timeout-minutes: 12
     environment: CZA-STAGING-SECURITY

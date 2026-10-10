@@ -1,3 +1,4 @@
+import { qaAuthStage, isolatedQaEnabled, isolatedQaDatabaseAllowed, QA_EDUCATOR_ORIGIN, QA_NEON_AUTH } from '@/lib/isolated-qa-auth';
 import {
   type EducatorAuthRequest,
   EDUCATOR_MAX_REQUEST_BYTES,
@@ -27,7 +28,7 @@ const protectedHeaders = [
 export type NeonIdentity = { id: string; expiresAt: number };
 export type EducatorIdentity = { id: string; email: string; name: string };
 export const neonEducatorEnabled = () =>
-  process.env.CZA_EDUCATOR_AUTH_MODE === 'neon';
+  process.env.CZA_EDUCATOR_AUTH_MODE === 'neon' || isolatedQaEnabled();
 const reply = (error: string, status: number) =>
   Response.json(
     { ok: false, error },
@@ -38,6 +39,7 @@ const reply = (error: string, status: number) =>
 // eight-hex prefix only; the existing Origin and session checks still apply.
 // Named aliases remain restricted to one explicitly configured origin.
 function educatorOriginAllowed(origin: string) {
+  if (isolatedQaEnabled()) return origin === QA_EDUCATOR_ORIGIN;
   if (origin === STAGING_EDUCATOR_ORIGIN) return true;
   if (/^https:\/\/[a-f0-9]{8}-cza-akademi-staging\.cza-staging-habip\.workers\.dev$/.test(origin)) return true;
   const preview = process.env.CZA_EDUCATOR_PREVIEW_ORIGIN?.trim();
@@ -51,7 +53,7 @@ export function neonIngressAllowed(request: Request) {
   return (
     neonEducatorEnabled() &&
     educatorOriginAllowed(url.origin) &&
-    process.env.CZA_NEON_AUTH_BASE_URL === STAGING_NEON_AUTH &&
+    process.env.CZA_NEON_AUTH_BASE_URL === (isolatedQaEnabled() ? QA_NEON_AUTH : STAGING_NEON_AUTH) &&
     !protectedHeaders.some((header) => request.headers.has(header)) &&
     (!request.headers.has('origin') ||
       request.headers.get('origin') === url.origin) &&
@@ -93,12 +95,12 @@ async function provider(
   body?: object,
 ) {
   const headers: Record<string, string> = {
-    origin: STAGING_EDUCATOR_ORIGIN,
+    origin: isolatedQaEnabled() ? new URL(QA_NEON_AUTH).origin : STAGING_EDUCATOR_ORIGIN,
     accept: 'application/json',
   };
   if (value) headers.cookie = `${PROVIDER_COOKIE}=${value}`;
   if (body) headers['content-type'] = 'application/json';
-  const response = await fetch(STAGING_NEON_AUTH + path, {
+  const response = await fetch((isolatedQaEnabled() ? QA_NEON_AUTH : STAGING_NEON_AUTH) + path, {
     method: body ? 'POST' : 'GET',
     headers,
     body: body ? JSON.stringify(body) : undefined,
@@ -115,7 +117,9 @@ async function provider(
 export async function verifiedNeonIdentity(
   request: Request,
 ): Promise<NeonIdentity | null> {
+  qaAuthStage(request, 'provider_ingress_rejected');
   if (!neonIngressAllowed(request)) return null;
+  if (!(await isolatedQaDatabaseAllowed())) return null;
   const value = neonCookieValue(request);
   if (!value) return null;
   try {
@@ -123,6 +127,7 @@ export async function verifiedNeonIdentity(
       '/get-session?disableCookieCache=true&disableRefresh=true',
       value,
     );
+    qaAuthStage(request, 'provider_session_http_' + response.status);
     if (!response.ok) return null;
     const data = (await response.json()) as {
       user?: { id?: unknown };
@@ -142,6 +147,7 @@ export async function verifiedNeonIdentity(
       expiresAt <= Date.now()
     )
       return null;
+    qaAuthStage(request, 'provider_identity_valid');
     return { id, expiresAt };
   } catch {
     return null;
@@ -156,6 +162,14 @@ export async function handleNeonEducatorAuth(
 ) {
   if (!neonIngressAllowed(request))
     return reply('request_origin_or_identity_rejected', 403);
+  try {
+    if (!(await isolatedQaDatabaseAllowed()))
+      return reply('qa_database_target_rejected', 503);
+  } catch {
+    return reply('qa_database_unavailable', 503);
+  }
+  if (isolatedQaEnabled() && ['reset', 'request-reset'].includes(input.action))
+    return reply('qa_password_reset_disabled', 403);
   const gate = await allowRequest(
     request,
     'educator-neon-' + input.action,
@@ -286,6 +300,16 @@ export async function handleNeonEducatorAuth(
     const user = await authenticate(sessionRequest);
     if (!user) {
       const revoked = await provider('/sign-out', value, {});
+      if (isolatedQaEnabled()) {
+        return Response.json(
+          {
+            ok: false,
+            error: revoked.ok ? 'educator_session_required' : 'logout_revocation_failed',
+            stage: qaAuthStage(sessionRequest),
+          },
+          { status: revoked.ok ? 401 : 503, headers: { 'cache-control': 'no-store' } },
+        );
+      }
       return reply(
         revoked.ok ? 'educator_session_required' : 'logout_revocation_failed',
         revoked.ok ? 401 : 503,

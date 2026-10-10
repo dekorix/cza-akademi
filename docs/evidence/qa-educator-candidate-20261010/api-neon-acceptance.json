@@ -1,0 +1,186 @@
+{
+  "tests": [
+    {
+      "name": "real educator identity and academy",
+      "passed": true,
+      "evidence": {
+        "status": 200,
+        "user": {
+          "id": "99963cb7-f9e6-4c1c-9737-b9893785ba8b",
+          "email": "qa-educator-99963cb7-f9e6-4c1c-9737-b9893785ba8b@cza.invalid",
+          "name": "QA Sentetik Eğitmen",
+          "academyId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "educatorId": "17114480-0fbd-4468-ab57-06d559579c07"
+        }
+      }
+    },
+    {
+      "name": "Worker record equals Chrome identity",
+      "passed": true,
+      "evidence": {
+        "status": 200,
+        "sessionId": "190f03b9-7e94-4167-8958-fb0ac25673af",
+        "metadata": {
+          "grade": "2. sınıf",
+          "source": "EDUCATOR_PRE_ENROLLMENT",
+          "cycleId": "13b484fd-56a0-461b-821c-f305b775da4b",
+          "version": 1,
+          "concerns": null,
+          "academyId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "birthDate": null,
+          "moduleCode": "special_education_assessment",
+          "candidateId": "795c3171-876d-475d-a85b-7183f3ed593a",
+          "profileCode": "SP-ATTN",
+          "readingStage": null,
+          "diagnosticUse": false,
+          "centralStudentId": null,
+          "campusStudentCode": null,
+          "createdByEducatorId": "99963cb7-f9e6-4c1c-9737-b9893785ba8b"
+        },
+        "attemptCount": 1
+      }
+    },
+    {
+      "name": "repeat start preserves all three IDs",
+      "passed": true,
+      "evidence": {
+        "status": 200,
+        "resumed": true,
+        "sessionId": "190f03b9-7e94-4167-8958-fb0ac25673af"
+      }
+    },
+    {
+      "name": "Neon IDs and one saved response match API",
+      "passed": true,
+      "evidence": {
+        "record": {
+          "id": "190f03b9-7e94-4167-8958-fb0ac25673af",
+          "student_id": null,
+          "status": "active",
+          "current_task_code": null,
+          "metadata": {
+            "grade": "2. sınıf",
+            "source": "EDUCATOR_PRE_ENROLLMENT",
+            "cycleId": "13b484fd-56a0-461b-821c-f305b775da4b",
+            "version": 1,
+            "concerns": null,
+            "academyId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+            "birthDate": null,
+            "moduleCode": "special_education_assessment",
+            "candidateId": "795c3171-876d-475d-a85b-7183f3ed593a",
+            "profileCode": "SP-ATTN",
+            "readingStage": null,
+            "diagnosticUse": false,
+            "centralStudentId": null,
+            "campusStudentCode": null,
+            "createdByEducatorId": "99963cb7-f9e6-4c1c-9737-b9893785ba8b"
+          },
+          "attempt_count": "1"
+        },
+        "count": "1"
+      }
+    },
+    {
+      "name": "browser cookie has a real unexpired Neon Auth session",
+      "passed": true,
+      "evidence": {
+        "providerSession": {
+          "id": "71ece0a7-5526-4a4a-94c5-9577622d9fa5",
+          "userId": "99963cb7-f9e6-4c1c-9737-b9893785ba8b",
+          "expiresAt": "2026-10-11T18:14:44.261Z"
+        }
+      }
+    },
+    {
+      "name": "unauthenticated",
+      "passed": true,
+      "evidence": {
+        "status": 401,
+        "error": "educator_session_required"
+      }
+    },
+    {
+      "name": "foreign-origin",
+      "passed": true,
+      "evidence": {
+        "status": 403,
+        "error": "request_origin_rejected"
+      }
+    },
+    {
+      "name": "forged-role",
+      "passed": true,
+      "evidence": {
+        "status": 401,
+        "error": "educator_session_required"
+      }
+    },
+    {
+      "name": "other-educator-same-academy record hidden",
+      "passed": true,
+      "evidence": {
+        "status": 404,
+        "error": "special_session_not_found",
+        "fixtureSessionId": "7fd3053d-08ba-4365-91cd-2d0e07d993f7",
+        "academyId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"
+      }
+    },
+    {
+      "name": "other-academy record hidden",
+      "passed": true,
+      "evidence": {
+        "status": 404,
+        "error": "special_session_not_found",
+        "fixtureSessionId": "f55189e9-48d5-4723-9927-49f969b6ea4b",
+        "academyId": "b865155b-4ec0-448d-ba10-1998e5a8b5ab"
+      }
+    },
+    {
+      "name": "real provider logout",
+      "passed": true,
+      "evidence": {
+        "status": 200
+      }
+    },
+    {
+      "name": "revoked cookie rejected",
+      "passed": true,
+      "evidence": {
+        "status": 401,
+        "error": "educator_session_required"
+      }
+    },
+    {
+      "name": "record blocked after logout",
+      "passed": true,
+      "evidence": {
+        "status": 401
+      }
+    },
+    {
+      "name": "logout preserves evaluation record",
+      "passed": true,
+      "evidence": {
+        "count": "1"
+      }
+    }
+  ],
+  "identity": {
+    "candidateId": "795c3171-876d-475d-a85b-7183f3ed593a",
+    "cycleId": "13b484fd-56a0-461b-821c-f305b775da4b",
+    "sessionId": "190f03b9-7e94-4167-8958-fb0ac25673af",
+    "screen": "special-generic-task",
+    "taskIndex": 0
+  },
+  "neonReadbackTarget": {
+    "project": "patient-firefly-51111834",
+    "branch": "br-withered-queen-b15ltb40",
+    "role": "cza_t5_test_owner"
+  },
+  "assertionCorrection": "Forged identity is rejected by authenticatedEducator as HTTP401; previous assertion expected ingress HTTP403. No product code or authorization was weakened.",
+  "negativeFixtureSessionIds": [
+    "7fd3053d-08ba-4365-91cd-2d0e07d993f7",
+    "f55189e9-48d5-4723-9927-49f969b6ea4b"
+  ],
+  "passed": true
+}

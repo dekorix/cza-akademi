@@ -1,0 +1,229 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import vm from 'node:vm';
+
+const source = fs.readFileSync(
+  new URL('../cza-degerlendirme/central-special-sync.js', import.meta.url), 'utf8');
+const instrumented = source.replace(
+  /  ensureCentralState\(\);\s*applyBootstrapProfile\(\);\s*loadStudents\(false\)\.then\(function \(\) \{[\s\S]*?\}\);\s*\}\)\(\);\s*$/,
+  '  globalThis.t5 = { createCentralSession, resumeCentralTask, ensureCentralState, wrapStartButton, setConnected: () => { centralMode = "connected"; } };\n})();');
+assert.notEqual(instrumented, source);
+
+function client() {
+  const state = { screen: 'dyslexia-intake', dysEvidence: {}, dysLsEvidence: {},
+    dysAdvancedEvidence: {}, specialGenericEvidence: {} };
+  const values = { name: 'Yazım Hatası', grade: '2. sınıf',
+    readingStage: 'Hece birleştiriyor', birth: '', concerns: '' };
+  const requests = [];
+  let nextId = 1;
+  let renderCount = 0;
+  const centralSessions = new Map();
+  const elements = {};
+  const document = {
+    getElementById: (id) => elements[id] || (id in values ? { value: values[id] } : null),
+    querySelector: () => null,
+    querySelectorAll: () => [],
+  };
+  const context = {
+    state, document, window: { location: { search: '' } },
+    URLSearchParams, Date, String, Number, Object, Array,
+    crypto: { randomUUID: () => '00000000-0000-4000-8000-' +
+      String(nextId++).padStart(12, '0') },
+    fetch: async (_url, options) => {
+      const payload = JSON.parse(options.body);
+      requests.push(payload);
+      const key = payload.candidateId + ':' + payload.cycleId;
+      const resumed = centralSessions.has(key);
+      if (!resumed) centralSessions.set(key, 'session-' + (centralSessions.size + 1));
+      return { ok: true, json: async () => ({
+        ok: true, resumed,
+        session: { id: centralSessions.get(key) }, student: { name: payload.studentLabel },
+        attempts: resumed ? [{
+          task_code: 'DYS-PH01', answer_text: 'al',
+          answer_payload: { verdict: 'MATCH', supportLevel: 'INDEPENDENT' },
+        }] : [],
+        observations: resumed ? [{
+          task_code: 'DYS-PH01', educator_note: 'Sentetik',
+        }] : [],
+      }) };
+    },
+    saveState: () => {}, render: () => { renderCount++; },
+    dyslexiaTasks: [{ id: 'DYS-PH01' }, { id: 'DYS-PH02' }],
+    setTimeout, console,
+  };
+  vm.runInNewContext(instrumented, context);
+  context.t5.ensureCentralState();
+  return { context, state, values, elements, requests, get renderCount() { return renderCount; } };
+}
+
+test('correcting visible name keeps candidate/cycle/session and resumes first incomplete task', async () => {
+  const h = client();
+  h.context.t5.setConnected();
+  await h.context.t5.createCentralSession(true);
+  const candidateId = h.state.centralCandidateId;
+  const cycleId = h.state.centralCycleId;
+  h.values.name = 'Düzeltilmiş Ad';
+  const resumed = await h.context.t5.createCentralSession(true);
+  assert.equal(resumed.resumed, true);
+  assert.equal(h.state.centralCandidateId, candidateId);
+  assert.equal(h.state.centralCycleId, cycleId);
+  assert.equal(h.state.centralSessionId, 'session-1');
+  assert.equal(h.requests[1].candidateId, candidateId);
+  assert.equal(h.requests[1].cycleId, cycleId);
+  assert.equal(h.state.dysEvidence['DYS-PH01'].response, 'al');
+  h.context.t5.resumeCentralTask(true);
+  assert.equal(h.state.dysTaskIndex, 1);
+  assert.equal(h.state.screen, 'dyslexia-task');
+  assert.ok(h.renderCount > 0);
+});
+
+test('new candidate identity cannot retain prior central evidence', async () => {
+  const h = client();
+  h.context.t5.setConnected();
+  await h.context.t5.createCentralSession(true);
+  h.state.centralCandidateId = '';
+  h.state.centralCycleId = '';
+  h.state.centralSessionId = '';
+  h.state.dysEvidence['DYS-PH01'] = { verdict: 'MATCH', support: 'INDEPENDENT' };
+  await h.context.t5.createCentralSession(true);
+  assert.notEqual(h.requests[0].candidateId, h.requests[1].candidateId);
+  assert.notEqual(h.requests[0].cycleId, h.requests[1].cycleId);
+  assert.equal(h.state.dysEvidence['DYS-PH01'], undefined);
+  assert.equal(h.state.centralSessionId, 'session-2');
+});
+
+
+test('resumed dyslexia moves from completed phonology to the first pending letter-sound task', () => {
+  const h = client();
+  h.state.dysEvidence = {
+    'DYS-PH01': { verdict: 'MATCH', support: 'INDEPENDENT' },
+    'DYS-PH02': { verdict: 'NO_RESPONSE', support: 'NOT_ASSESSED' },
+  };
+  h.context.window.czaFirstIncompleteDyslexiaLsTaskIndex = () => 4;
+  h.context.window.czaFirstIncompleteDyslexiaAdvancedTask = () => ({ domainId: 'ORTH', taskIndex: 2 });
+  h.context.t5.resumeCentralTask(true);
+  assert.equal(h.state.screen, 'dyslexia-ls-task');
+  assert.equal(h.state.dysLsTaskIndex, 4);
+  assert.equal(h.state.dysLsDelayRevealed, false);
+});
+
+test('resumed dyslexia moves into advanced domains and finishes on final summary', () => {
+  const h = client();
+  h.state.dysEvidence = {
+    'DYS-PH01': { verdict: 'MATCH', support: 'INDEPENDENT' },
+    'DYS-PH02': { verdict: 'MATCH', support: 'INDEPENDENT' },
+  };
+  h.context.window.czaFirstIncompleteDyslexiaLsTaskIndex = () => -1;
+  h.context.window.czaFirstIncompleteDyslexiaAdvancedTask = () => ({ domainId: 'BLEND', taskIndex: 3 });
+  h.context.t5.resumeCentralTask(true);
+  assert.equal(h.state.screen, 'dyslexia-advanced-task');
+  assert.equal(h.state.dysAdvancedDomainId, 'BLEND');
+  assert.equal(h.state.dysAdvancedTaskIndex, 3);
+
+  h.context.window.czaFirstIncompleteDyslexiaAdvancedTask = () => null;
+  h.context.t5.resumeCentralTask(true);
+  assert.equal(h.state.screen, 'dyslexia-final-summary');
+});
+
+test('complete generic adaptive route resumes to summary instead of task 1', () => {
+  const h = client();
+  h.state.specialGenericCode = 'SP-DELAY';
+  h.state.specialGenericTaskIndex = 0;
+  h.context.window.czaFirstIncompleteGenericTaskIndex = () => -1;
+  h.context.t5.resumeCentralTask(false);
+  assert.equal(h.state.screen, 'special-generic-summary');
+
+  h.context.window.czaFirstIncompleteGenericTaskIndex = () => 4;
+  h.context.t5.resumeCentralTask(false);
+  assert.equal(h.state.screen, 'special-generic-task');
+  assert.equal(h.state.specialGenericTaskIndex, 4);
+});
+
+
+test('actual dyslexia domain helpers preserve completed evidence across LS and advanced routes', () => {
+  const state = { screen: 't5-test-idle', dysLsEvidence: {}, dysAdvancedEvidence: {} };
+  const window = {};
+  const runtime = {
+    state, window, dyslexiaDomains: Array.from({ length: 12 }, () => ['', '', 0]),
+    render: () => {}, saveState: () => {}, Date,
+    dyslexiaVerdicts: [], supportOptions: [], console,
+  };
+  const lsSource = fs.readFileSync(
+    new URL('../cza-degerlendirme/dyslexia-letter-sound.js', import.meta.url), 'utf8');
+  const advancedSource = fs.readFileSync(
+    new URL('../cza-degerlendirme/dyslexia-advanced.js', import.meta.url), 'utf8');
+  const instrumentedAdvanced = advancedSource.replace(
+    '  function ensureState() {',
+    `  window.t5AdvancedInventory = () => advancedDomains.map(d => ({
+      id: d.id, taskIds: d.tasks.map(t => t.id)
+    }));
+  function ensureState() {`);
+  assert.notEqual(instrumentedAdvanced, advancedSource);
+
+  vm.runInNewContext(lsSource, runtime);
+  vm.runInNewContext(instrumentedAdvanced, runtime);
+  const lsTaskIds = [...lsSource.matchAll(/id:'(DYS-LS\d{2})'/g)].map(m => m[1]);
+  assert.equal(lsTaskIds.length, 10);
+
+  // A recorded NOT_ASSESSED/NO_RESPONSE task is completed, not missing.
+  for (const id of lsTaskIds.slice(0, 4)) {
+    state.dysLsEvidence[id] = { verdict: 'NO_RESPONSE', support: 'NOT_ASSESSED' };
+  }
+  assert.equal(window.czaFirstIncompleteDyslexiaLsTaskIndex(), 4);
+  for (const id of lsTaskIds) {
+    state.dysLsEvidence[id] = { verdict: 'NO_RESPONSE', support: 'NOT_ASSESSED' };
+  }
+  assert.equal(window.czaFirstIncompleteDyslexiaLsTaskIndex(), -1);
+
+  const domains = window.t5AdvancedInventory();
+  assert.equal(domains.length, 10);
+  for (const id of domains[0].taskIds) {
+    state.dysAdvancedEvidence[id] = { verdict: 'MATCH', support: 'INDEPENDENT' };
+  }
+  for (const id of domains[1].taskIds.slice(0, 2)) {
+    state.dysAdvancedEvidence[id] = { verdict: 'NO_RESPONSE', support: 'NOT_ASSESSED' };
+  }
+  const next = window.czaFirstIncompleteDyslexiaAdvancedTask();
+  assert.equal(next.domainId, domains[1].id);
+  assert.equal(next.taskIndex, 2);
+
+  // Mark every actual route task as recorded, even if all scores are insufficient.
+  for (const domain of domains) {
+    for (const id of domain.taskIds) {
+      state.dysAdvancedEvidence[id] = { verdict: 'NO_RESPONSE', support: 'NOT_ASSESSED' };
+    }
+  }
+  assert.equal(window.czaFirstIncompleteDyslexiaAdvancedTask(), null);
+});
+
+test('unavailable central auth must not silently advance an untracked V01 candidate', async () => {
+  const h = client();
+  let localStarts = 0;
+  const button = { dataset: {}, disabled: false, onclick: () => { localStarts++; } };
+  const error = { textContent: '' };
+  h.elements.startDys = button;
+  h.elements.err = error;
+  h.context.t5.wrapStartButton(true);
+  await button.onclick({});
+  assert.equal(localStarts, 0);
+  assert.match(error.textContent, /Merkezi kayıt hizmetine ulaşılamıyor/);
+  assert.equal(h.state.centralSessionId, '');
+  assert.equal(h.state.centralCandidateId, '');
+  assert.equal(h.requests.filter((p) => p.action === 'create').length, 0);
+});
+
+test('local static preview remains usable without creating any central student identity', async () => {
+  const h = client();
+  h.context.window.location.hostname = '127.0.0.1';
+  let previewStarts = 0;
+  const button = { dataset: {}, disabled: false, onclick: () => { previewStarts++; } };
+  h.elements.startDys = button;
+  h.elements.err = { textContent: '' };
+  h.context.t5.wrapStartButton(true);
+  await button.onclick({});
+  assert.equal(previewStarts, 1);
+  assert.equal(h.state.centralSessionId, '');
+  assert.equal(h.state.centralCandidateId, '');
+  assert.equal(h.requests.filter((p) => p.action === 'create').length, 0);
+});

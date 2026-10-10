@@ -1,0 +1,12 @@
+{
+  "target": {
+    "project": "patient-firefly-51111834",
+    "branch": "br-withered-queen-b15ltb40",
+    "database": "cza_t5_synthetic",
+    "role": "cza_t5_test_owner"
+  },
+  "educatorId": "17114480-0fbd-4468-ab57-06d559579c07",
+  "authUserId": "99963cb7-f9e6-4c1c-9737-b9893785ba8b",
+  "academyId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+  "operation": "INSERT one new canonical educator fixture only; no grants/schema/index or existing secrets changed"
+}
