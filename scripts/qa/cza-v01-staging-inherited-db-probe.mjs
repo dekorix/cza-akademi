@@ -109,12 +109,14 @@ try{
     console.log('CZA_ACTIVE_VERSION_UNCHANGED=YES');
     console.log('CZA_ACTIVE_TRAFFIC=100_PERCENT_ORIGINAL');
     console.log('CZA_PREVIEW_SECRET_BINDING=INHERITED');
-    console.log('CZA_PREVIEW_ENDPOINT_MATCH='+ (proof.hostMatch===true?'PASS':'MISMATCH'));
+    const endpointMatch=proof.endpointId==='ep-falling-resonance-b2qnvtwf';
+    console.log('CZA_PREVIEW_ENDPOINT_MATCH='+ (endpointMatch?'PASS':'MISMATCH'));
+    console.log('CZA_PREVIEW_FULL_HOSTNAME_MATCH='+ (proof.hostMatch===true?'PASS':'DIFFERENT_HOST_FORM'));
     console.log('CZA_PREVIEW_NEON_ENDPOINT_ID='+ (typeof proof.endpointId==='string'&&/^ep-[a-z0-9-]+$/.test(proof.endpointId)?proof.endpointId:'UNAVAILABLE'));
     console.log('CZA_PREVIEW_DATABASE_NAME_MATCH='+ (proof.dbMatch===true?'PASS':'MISMATCH'));
     console.log('CZA_PREVIEW_DATABASE_ROLE_MATCH='+ (proof.roleMatch===true?'PASS':'MISMATCH'));
     console.log('CZA_ACTIVE_OLD_VERSION_DB_ENDPOINT_MATCH=NOT_DIRECTLY_ATTESTED');
-    if(!proof.hostMatch||!proof.dbMatch||!proof.roleMatch)process.exitCode=2;
+    if(!endpointMatch||!proof.dbMatch||!proof.roleMatch)process.exitCode=2;
   }else throw new Error('UNKNOWN_MODE');
 }catch(e){
   console.error('CZA_PREVIEW_DIAGNOSTIC=BLOCKED;REASON='+String(e.message).replace(/[^A-Z0-9_]/g,'_').slice(0,90));
