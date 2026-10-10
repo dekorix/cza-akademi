@@ -1,0 +1,39 @@
+{
+  "browser": "Real headless Chromium, no network mocks or injected auth cookies",
+  "steps": [
+    {
+      "action": "create",
+      "status": 201,
+      "candidateId": "795c3171-876d-475d-a85b-7183f3ed593a",
+      "cycleId": "13b484fd-56a0-461b-821c-f305b775da4b",
+      "sessionId": "190f03b9-7e94-4167-8958-fb0ac25673af"
+    },
+    {
+      "action": "attempt",
+      "status": 200
+    }
+  ],
+  "errors": [],
+  "before": {
+    "candidateId": "795c3171-876d-475d-a85b-7183f3ed593a",
+    "cycleId": "13b484fd-56a0-461b-821c-f305b775da4b",
+    "sessionId": "190f03b9-7e94-4167-8958-fb0ac25673af",
+    "screen": "special-generic-task",
+    "taskIndex": 0
+  },
+  "afterAnswer": {
+    "candidateId": "795c3171-876d-475d-a85b-7183f3ed593a",
+    "cycleId": "13b484fd-56a0-461b-821c-f305b775da4b",
+    "sessionId": "190f03b9-7e94-4167-8958-fb0ac25673af",
+    "taskIndex": 1
+  },
+  "afterReload": {
+    "candidateId": "795c3171-876d-475d-a85b-7183f3ed593a",
+    "cycleId": "13b484fd-56a0-461b-821c-f305b775da4b",
+    "sessionId": "190f03b9-7e94-4167-8958-fb0ac25673af",
+    "screen": "special-generic-task",
+    "taskIndex": 1
+  },
+  "chromeVersion": "HeadlessChrome/153.0.8010.0",
+  "passed": true
+}

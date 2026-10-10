@@ -176,6 +176,22 @@
     return base;
   }
 
+  // Central resume must inspect all adaptive domain routes, not only the
+  // first task or the overall evidence-status badge.
+  window.czaFirstIncompleteDyslexiaAdvancedTask = function () {
+    ensureState();
+    for (var i = 0; i < advancedDomains.length; i++) {
+      var domain = advancedDomains[i];
+      var tasks = routeFor(domain);
+      var taskIndex = tasks.findIndex(function (task) {
+        var row = state.dysAdvancedEvidence[task.id];
+        return !row || !row.verdict || !row.support;
+      });
+      if (taskIndex >= 0) return { domainId: domain.id, taskIndex: taskIndex };
+    }
+    return null;
+  };
+
   function currentDomain() {
     return domainById(state.dysAdvancedDomainId);
   }
@@ -421,7 +437,7 @@
         var res=severityForDomain(d); if(res.status!=='INSUFFICIENT'){cards[d.index].setAttribute('data-result',statusText(res.status));}
       }
     });
-    if(cards[0])cards[0].onclick=function(){state.dysTaskIndex=0;state.taskStartedAt=Date.now();state.screen='dyslexia-task';render();};
+    if(cards[0])cards[0].onclick=function(){var next=dyslexiaTasks.findIndex(function(t){var e=state.dysEvidence[t.id];return !e||!e.verdict||!e.support;});state.dysTaskIndex=Math.max(0,next);state.taskStartedAt=Date.now();state.screen='dyslexia-task';render();};
     if(cards[1]&&window.startDyslexiaLetterSound)cards[1].onclick=window.startDyslexiaLetterSound;
 
     var launch=document.querySelector('.launch-panel.dys-launch');
@@ -429,7 +445,7 @@
       launch.innerHTML='<div><b>12 alanın tamamı aktif</b><p>Alan kartına dokunarak istediğin derin taramayı aç. Sistem güçlü alanı kısa tutar, zorlanma gördüğü yerde derinleşir.</p></div><div class="summary-actions"><button class="secondary-btn" id="openNextIncomplete">Eksik ilk alanı aç</button><button class="primary-btn" id="openFullProfile">Bütüncül profili oluştur</button></div>';
       document.getElementById('openFullProfile').onclick=function(){state.screen='dyslexia-final-summary';render();};
       document.getElementById('openNextIncomplete').onclick=function(){
-        for(var i=0;i<12;i++){var r=domainResultFromExternal(i);if(r.status==='INSUFFICIENT'){if(i===0){state.dysTaskIndex=0;state.taskStartedAt=Date.now();state.screen='dyslexia-task';return render();}if(i===1&&window.startDyslexiaLetterSound)return window.startDyslexiaLetterSound();var d=advancedDomains.find(function(x){return x.index===i;});if(d)return startDomain(d.id);}}
+        for(var i=0;i<12;i++){var r=domainResultFromExternal(i);if(r.status==='INSUFFICIENT'){if(i===0){var next=dyslexiaTasks.findIndex(function(t){var e=state.dysEvidence[t.id];return !e||!e.verdict||!e.support;});if(next<0)continue;state.dysTaskIndex=next;state.taskStartedAt=Date.now();state.screen='dyslexia-task';return render();}if(i===1&&window.startDyslexiaLetterSound)return window.startDyslexiaLetterSound();var d=advancedDomains.find(function(x){return x.index===i;});if(d)return startDomain(d.id);}}
         state.screen='dyslexia-final-summary';render();
       };
     }
