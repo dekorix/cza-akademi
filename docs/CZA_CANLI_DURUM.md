@@ -2,7 +2,7 @@
 
 > Bu dosya büyük Çelik Zihin Akademisi için **tek canlı yönlendirme panosudur**. Tarihsel kararların yerine geçmez. Her yeni görev başlangıcında GitHub canlı durumu yeniden okunur; bu dosya eskiyse güncellenmeden uygulama başlatılmaz.
 
-**Güncelleme tarihi:** 2026-10-10 (TRT), self-referential HEAD düzeltmesi  
+**Güncelleme tarihi:** 2026-10-10 (TRT), V01→V02 yönetim geçişi  
 **Kanonik depo:** `dekorix/cza-akademi`  
 **Default branch:** `main`  
 **Main korumalı:** EVET
@@ -11,7 +11,7 @@
 
 > Aşağıdaki üç değer **mutable GitHub metadata'sıdır** ve yalnız bu dosyanın son doğrulama anındaki görüntüsüdür. **Canlı GitHub'ın yerine geçmez**; hiçbir kabul, blokaj veya kanonik değer üretmez. Bu dosyayı değiştiren commit'in kendisi `main` HEAD'i yeniden değiştireceği için, burada tutulan HEAD/sayı değerleri tanım gereği bir adım geridedir.
 
-- **Son doğrulanan main HEAD:** `4605cbbcb20aedbc322e3abfaa5170611c73e750`
+- **Son doğrulanan main HEAD:** `3799cfe5cc046f37762d08c2288d7397d4b5dee5`
 - **Son doğrulanan açık PR sayısı:** 7
 - **Son doğrulanan toplam branch sayısı:** 80
 - **Doğrulama anı:** 2026-10-10, GitHub API okuması
@@ -20,15 +20,22 @@
 
 ## AKTİF TEK ZİNCİR
 
-**Üst kabul zinciri:** #81 — CZA-VERTICAL-01 | Tek öğrencinin değerlendirme → çalışma → eğitmen → rapor staging kabulü  
-**Aktif tek uygulama emri:** #82 — CZA MÜDÜR / CODEX | V01 izole QA sentetik eğitmen girişi ve merkezi kayıt kabulü  
+**Üst kabul zinciri:** #81 — CZA-VERTICAL-01 | Tek öğrencinin değerlendirme → çalışma → eğitmen → rapor staging kabulü (OPEN, 1/7)  
+**Tamamlanmış alt görev:** #82 — V01 izole QA sentetik eğitmen girişi ve merkezi kayıt kabulü — **CLOSED / COMPLETED** (2026-10-10T20:57:42Z)  
+**Aktif tek uygulama emri:** **#85 — V02 sentetik adayın eğitmen onayıyla mevcut tek Student ID'ye güvenli bağlanması** (PLANLANDI, uygulama başlamadı)  
 **Tek çalışma PR:** #73 — fix: kayıt öncesi özel eğitim oturumunu aday ve çevrim kimliğiyle sürdür  
 **PR durumu:** OPEN / DRAFT  
 **PR branch:** `fix/t5-pre-enroll-resume-integrity`  
-**PR HEAD:** `957fa1b8bdcc8d1a6da40c2b22ad90d0cdd98a01`
+**PR HEAD:** `5011469f8f9afa18c020b0ce88506059a711cf99`
 
-### Aktif hedef
-Yalnız izole QA Worker için bağımsız, gerçek doğrulamalı ve güvenli sentetik eğitmen kimlik doğrulama akışı; ardından `/api/assessment-special-linked` üzerinde aynı `candidateId/cycleId/sessionId` ile V01 kayıt / reload / resume kanıtı.
+### V01 kabul kararı (Baş Mimar, 2026-10-10)
+- **`V01_QA_ACCEPTED=PASS_SCOPED`**, **`V01-V07_ACCEPTED=1/7`**.
+- Kapsam yalnız SP-ATTN ve SP-DYS sentetik eğitmen/aday **başlangıç + ilk cevap/gözlem + yenileme/isim düzeltmesi + kimlik koruma + negatif erişim** akışının **izole QA** kabulüdür.
+- **Kabul EDİLMEDİ:** tüm değerlendirme soruları, diğer profiller, PDF, gerçek öğrenci bağlama, ortak Student Learning Profile'ın tamamı, staging/production, main merge.
+- **`V01_ACCEPTED=NO`** — nihai kabul CZA Baş Mimarı'na aittir.
+
+### Aktif hedef (V02)
+Sentetik adayın **eğitmen onayıyla mevcut tek Student ID dosyasına güvenli biçimde bağlanması** ve **ikinci bir öğrenci kimliği yaratılmaması**. Bağlama yalnız yetkili eğitmen + doğru kurum altında yapılır; `candidateId/cycleId` geçmişi korunur.
 
 ### Korunacak kabul sınırları
 - Tek Student ID + tek Student Learning Profile.
@@ -44,8 +51,15 @@ Issue #82 kaynak kaydına göre:
 - İzole sentetik Neon üzerinde `assessment_sessions_pre_enroll_active_identity_uq` PASS; aynı migration tekrar açılmayacak.
 - Ayrı QA Worker ile sentetik Neon bağlantısı PASS.
 - V01 sayfası ve SP-DYS intake açılıyor.
-- Final kaynak HEAD için kaynak CI/statik kabul var; ancak gerçek QA auth + merkezi DB canlı kabulü tamamlanmadıkça `V01_ACCEPTED=NO`.
-- Aktif tek teknik sorun: izole QA Worker'da gerçek sentetik eğitmen auth ve ardından güvenli aday/çevrim/oturum E2E.
+- **V01 kapandı:** Baş Mimar kararı `V01_QA_ACCEPTED=PASS_SCOPED`; #82 CLOSED/COMPLETED.
+- **P1 QA-secret izolasyon açıkları kapandı** (commit `5011469f`): T5 manual yolu secretsiz secure-hold; izolasyon kapısı trigger kapsamı ve test kapsamı genişletildi.
+- Aktif tek teknik iş artık **V02 bağlama**: sentetik adayın eğitmen onayıyla mevcut tek `studentId` dosyasına güvenli bağlanması.
+
+## V02 ÖN KOŞUL NOTU (salt okunur bulgu)
+- QA Worker host'u `cza-v01-isolated-synthetic-20261010.cza-staging-habip.workers.dev` sertifika zinciri: `cza-staging-habip.workers.dev` ← `YE2` ← `Root YE` ← `ISRG Root X2` ← `ISRG Root X1` (self-signed).
+- Windows `LocalMachine\Root` deposunda **ISRG Root X1 var**; **ISRG Root X2 YOK**; `LocalMachine\CA` ara deposunda ISRG/LE ara sertifikası YOK.
+- Bu nedenle gerçek Chrome kabulünde `ERR_CERT_AUTHORITY_INVALID` görülme riski vardır. Bu, V02 uygulamasının önündeki ayrı bir teknik engeldir ve **henüz çözülmemiştir**; çözüm kullanıcı izni gerektirir.
+- CA/trust değişikliği **yapılmadı**; TLS doğrulaması kapatılmadı; `--ignore-certificate-errors` kullanılmadı.
 
 ## TEK İŞ AKIŞI
 
@@ -54,14 +68,16 @@ Issue #82 kaynak kaydına göre:
 Bir ajan yeni işe başlamadan önce:
 1. `AGENTS.md`
 2. bu dosya
-3. aktif issue (#82)
-4. üst kabul zinciri (#81)
+3. aktif issue (#85 — V02)
+4. üst kabul zinciri (#81) ve tamamlanmış alt görev kaydı (#82)
 5. aktif PR (#73) ve güncel HEAD/CI
 6. yalnız ilgili mimari/protokol belgeleri
 
 okunur.
 
 ## AÇIK PR TRAFİĞİ
+
+> Sayı ve durum **son doğrulanan snapshot**tır; güncel liste her zaman canlı GitHub'dan okunur.
 
 - **#79 BEKLEME** — docs/qa(cza): tanıtım sitesi tek CZA ekosisteminin alt modülüdür — `docs/cza-one-ecosystem-marketing-boundary-20261009` → `main` — DRAFT
 - **#73 AKTİF** — fix: kayıt öncesi özel eğitim oturumunu aday ve çevrim kimliğiyle sürdür — `fix/t5-pre-enroll-resume-integrity` → `main` — DRAFT
@@ -78,12 +94,13 @@ Diğer açık PR'lar aktif tek görevin önüne geçemez. Kapatma/merge kararı 
 - Mission Control kurulum branch'i: `docs/cza-mission-control-20261010`
 - Mission Control PR: **#83 / MERGED** — 2026-10-10T19:14:42Z, merge commit `4605cbbcb20aedbc322e3abfaa5170611c73e750`
 - Mission Control kurulumu `main`'e alındı; bu dosya artık kanonik canlı durum kaynağıdır ve her görev başında buradan okunur.
-- Post-merge tutarlılık düzeltmesi (bu güncelleme): yönetim/dokümantasyon branch'i `docs/cza-mission-control-consistency`; ürün kodu, migration, staging veya production değişikliği içermez.
+- Post-merge tutarlılık düzeltmesi: yönetim/dokümantasyon branch'i `docs/cza-mission-control-consistency`; PR **#84 / MERGED** (merge commit `3799cfe5cc046f37762d08c2288d7397d4b5dee5`).
+- V01→V02 yönetim geçişi (bu güncelleme): yönetim/dokümantasyon branch'i `docs/cza-v02-transition`; ürün kodu, migration, staging veya production değişikliği içermez.
 - Bu düzeltme ayrıca **self-referential HEAD** sorununu kapatır: yukarıdaki GitHub snapshot değerleri kanonik değer değildir ve ilerlemeleri tek başına uygulama blokajı oluşturmaz; yalnız aktif zincir/PR/korunan HEAD/kapsam/kabul durumu çelişkisi durdurur.
 
 **GENEL PROJE İLERLEME %:** ÖLÇÜLMEDİ  
 **MEVCUT FAZ İLERLEME %:** ÖLÇÜLMEDİ  
-**TAMAMLANAN:** GitHub merkezli canlı durum standardı ve aktif tek görev zinciri tanımlandı; Mission Control kurulumu (#83) `main`'e alındı ve canlı durum dosyası gerçek GitHub durumuyla eşitlendi.  
-**KALAN:** Bu doküman tutarlılık PR'ının kabulü; ardından yalnız #82 üzerinden #73'ün doğrulanmış teslimi.  
+**TAMAMLANAN:** Mission Control kurulumu (#83) ve self-referential HEAD tutarlılığı (#84) `main`'e alındı; #82 V01 izole QA kabulü kapandı (`PASS_SCOPED`, 1/7); 3 P1 QA-secret izolasyon açığı kapatıldı.  
+**KALAN:** V02–V07 (6/7); V02 için eğitmen onaylı tek Student ID bağlama; QA TLS/CA trust engelinin çözümü (kullanıcı izni gerekir).  
 **KAPSAM SAPMASI=YOK**  
-**SIRADAKİ TEK ADIM:** `docs/cza-mission-control-consistency` PR'ının governance CI ve içerik denetimini tamamla; merge yetkisi verilirse `main`'e al. Bu tutarlılık kanonik `main`'de kapanmadan #82 uygulamasına başlanmaz.
+**SIRADAKİ TEK ADIM:** V02 uygulama issue'su açılıp yalnız o kapsamda çalışılması; V02 başlamadan QA TLS/CA trust engelinin kullanıcı izniyle kapatılması.
