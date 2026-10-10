@@ -7,7 +7,7 @@
 **Default branch:** `main`  
 **Doğrulanan main HEAD:** `a3e3a1437adc20d93c3c55f7091a7322feab9773`  
 **Main korumalı:** EVET  
-**Açık PR sayısı:** 7  
+**Açık PR sayısı:** 8  
 **Toplam branch sayısı:** 80
 
 ## AKTİF TEK ZİNCİR
@@ -55,6 +55,7 @@ okunur.
 
 ## AÇIK PR TRAFİĞİ
 
+- **#83 YÖNETİM-KURULUMU** — docs(cza): GitHub Mission Control ve tek aktif görev panosunu kur — `docs/cza-mission-control-20261010` → `main` — DRAFT
 - **#79 BEKLEME** — docs/qa(cza): tanıtım sitesi tek CZA ekosisteminin alt modülüdür — `docs/cza-one-ecosystem-marketing-boundary-20261009` → `main` — DRAFT
 - **#73 AKTİF** — fix: kayıt öncesi özel eğitim oturumunu aday ve çevrim kimliğiyle sürdür — `fix/t5-pre-enroll-resume-integrity` → `main` — DRAFT
 - **#69 BEKLEME** — fix(intake): show truthful special education readiness badges — `fix/intake-special-status-truth-20261008` → `main` — DRAFT
@@ -68,12 +69,13 @@ Diğer açık PR'lar aktif tek görevin önüne geçemez. Kapatma/merge kararı 
 ## YÖNETİM CHECKPOINT
 
 - Mission Control kurulum branch'i: `docs/cza-mission-control-20261010`
+- Mission Control PR: **#83 / DRAFT**
 - Bu branch yalnız yönetim/dokümantasyon kurulumudur; ürün kodu, migration, staging veya production değişikliği içermez.
 - Merge edilmeden önce governance CI ve içerik kontrolü aranır.
 
 **GENEL PROJE İLERLEME %:** ÖLÇÜLMEDİ  
 **MEVCUT FAZ İLERLEME %:** ÖLÇÜLMEDİ  
 **TAMAMLANAN:** GitHub merkezli canlı durum standardı ve aktif tek görev zinciri tanımlandı.  
-**KALAN:** Mission Control PR kabulü; ardından #82'nin doğrulanmış teslimi.  
+**KALAN:** Mission Control PR #83 kabulü; ardından #82'nin doğrulanmış teslimi.  
 **KAPSAM SAPMASI=YOK**  
-**SIRADAKİ TEK ADIM:** Bu Mission Control PR'ını denetle; merge yetkisi verilirse main'e al, sonra yalnız #82 üzerinden devam et.
+**SIRADAKİ TEK ADIM:** PR #83 CI ve içerik denetimini tamamla; merge yetkisi verilirse main'e al, sonra yalnız #82 üzerinden devam et.
