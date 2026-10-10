@@ -212,3 +212,18 @@ test('unavailable central auth must not silently advance an untracked V01 candid
   assert.equal(h.state.centralCandidateId, '');
   assert.equal(h.requests.filter((p) => p.action === 'create').length, 0);
 });
+
+test('local static preview remains usable without creating any central student identity', async () => {
+  const h = client();
+  h.context.window.location.hostname = '127.0.0.1';
+  let previewStarts = 0;
+  const button = { dataset: {}, disabled: false, onclick: () => { previewStarts++; } };
+  h.elements.startDys = button;
+  h.elements.err = { textContent: '' };
+  h.context.t5.wrapStartButton(true);
+  await button.onclick({});
+  assert.equal(previewStarts, 1);
+  assert.equal(h.state.centralSessionId, '');
+  assert.equal(h.state.centralCandidateId, '');
+  assert.equal(h.requests.filter((p) => p.action === 'create').length, 0);
+});
