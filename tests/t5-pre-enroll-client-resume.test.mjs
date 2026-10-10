@@ -7,7 +7,7 @@ const source = fs.readFileSync(
   new URL('../cza-degerlendirme/central-special-sync.js', import.meta.url), 'utf8');
 const instrumented = source.replace(
   /  ensureCentralState\(\);\s*applyBootstrapProfile\(\);\s*loadStudents\(false\)\.then\(function \(\) \{[\s\S]*?\}\);\s*\}\)\(\);\s*$/,
-  '  globalThis.t5 = { createCentralSession, resumeCentralTask, ensureCentralState, setConnected: () => { centralMode = "connected"; } };\n})();');
+  '  globalThis.t5 = { createCentralSession, resumeCentralTask, ensureCentralState, wrapStartButton, setConnected: () => { centralMode = "connected"; } };\n})();');
 assert.notEqual(instrumented, source);
 
 function client() {
@@ -19,8 +19,9 @@ function client() {
   let nextId = 1;
   let renderCount = 0;
   const centralSessions = new Map();
+  const elements = {};
   const document = {
-    getElementById: (id) => id in values ? { value: values[id] } : null,
+    getElementById: (id) => elements[id] || (id in values ? { value: values[id] } : null),
     querySelector: () => null,
     querySelectorAll: () => [],
   };
@@ -53,7 +54,7 @@ function client() {
   };
   vm.runInNewContext(instrumented, context);
   context.t5.ensureCentralState();
-  return { context, state, values, requests, get renderCount() { return renderCount; } };
+  return { context, state, values, elements, requests, get renderCount() { return renderCount; } };
 }
 
 test('correcting visible name keeps candidate/cycle/session and resumes first incomplete task', async () => {
@@ -194,4 +195,20 @@ test('actual dyslexia domain helpers preserve completed evidence across LS and a
     }
   }
   assert.equal(window.czaFirstIncompleteDyslexiaAdvancedTask(), null);
+});
+
+test('unavailable central auth must not silently advance an untracked V01 candidate', async () => {
+  const h = client();
+  let localStarts = 0;
+  const button = { dataset: {}, disabled: false, onclick: () => { localStarts++; } };
+  const error = { textContent: '' };
+  h.elements.startDys = button;
+  h.elements.err = error;
+  h.context.t5.wrapStartButton(true);
+  await button.onclick({});
+  assert.equal(localStarts, 0);
+  assert.match(error.textContent, /Merkezi kayıt hizmetine ulaşılamıyor/);
+  assert.equal(h.state.centralSessionId, '');
+  assert.equal(h.state.centralCandidateId, '');
+  assert.equal(h.requests.filter((p) => p.action === 'create').length, 0);
 });
