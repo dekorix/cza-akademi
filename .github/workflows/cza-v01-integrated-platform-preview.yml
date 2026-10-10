@@ -54,7 +54,8 @@ jobs:
           pnpm exec tsc --noEmit
           # One identity across evaluation, student, work, educator, history,
           # assignment, learning profile and guardian boundaries.
-          node --test \
+          node --experimental-strip-types --test \
+            tests/cza-v01-pr-secrets-isolation.test.mjs \
             tests/t5-pre-enroll-client-resume.test.mjs \
             tests/t5-pre-enroll-resume.test.mjs \
             tests/central-assessment-intake.test.mjs \
