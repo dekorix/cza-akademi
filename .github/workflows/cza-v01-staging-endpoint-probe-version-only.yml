@@ -1,10 +1,11 @@
 name: CZA V01 One-time Staging Endpoint Probe Version Only
 on:
-  pull_request:
-    branches: [main]
-    paths:
-      - 'scripts/qa/cza-v01-staging-inherited-db-probe.mjs'
-      - '.github/workflows/cza-v01-staging-endpoint-probe-version-only.yml'
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: 'Enter CZA_V01_PREVIEW_ONLY for one explicit staging audit version; no deployment.'
+        required: true
+        type: string
 permissions:
   contents: read
 concurrency:
@@ -12,7 +13,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   audit-inherited-secret-preview:
-    if: github.event.pull_request.number == 73 && github.event.pull_request.head.repo.full_name == github.repository
+    if: github.event_name == 'workflow_dispatch' && inputs.confirmation == 'CZA_V01_PREVIEW_ONLY'
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     environment: CZA-STAGING-SECURITY
