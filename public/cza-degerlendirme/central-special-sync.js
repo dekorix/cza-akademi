@@ -317,7 +317,11 @@
     button.dataset.centralWrapped = '1';
     button.onclick = async function (event) {
       const result = await loadStudents(false);
-      if (result.mode === 'auth-required' || result.mode === 'unavailable') {
+      // Local static previews have no central API; keep that explicit demo route.
+      // Online Workers must never treat a failed central API as a saved session.
+      const staticLocalPreview = ['localhost', '127.0.0.1'].includes(window.location.hostname);
+      if (result.mode === 'auth-required' ||
+          (result.mode === 'unavailable' && !staticLocalPreview)) {
         intakeError(isDyslexia, result.mode === 'auth-required'
           ? 'Merkezi kayıt için önce eğitimci oturumu açılmalı.'
           : 'Merkezi kayıt hizmetine ulaşılamıyor. Kayıt güvenliği doğrulanmadan değerlendirme başlatılamaz.');
