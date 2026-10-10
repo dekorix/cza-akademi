@@ -74,3 +74,17 @@ jobs:
           test -s dist/server/wrangler.json
           echo 'CZA_V01_INTEGRATED_SOURCE_BUILD=PASS_NO_SECRETS' >> "$GITHUB_STEP_SUMMARY"
           echo 'CZA_V01_STAGING_UPLOAD=DISABLED_PENDING_ISOLATED_SANDBOX' >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Write immutable source and build evidence
+        run: |
+          mkdir -p dist/cza-evidence
+          printf 'SOURCE_COMMIT=%s\nSOURCE_TREE=%s\n' "$(git rev-parse HEAD)" "$(git rev-parse HEAD^{tree})" > dist/cza-evidence/source.txt
+          find dist -type f ! -path 'dist/cza-evidence/*' -print0 | sort -z | xargs -0 sha256sum > dist/cza-evidence/sha256sums.txt
+          echo 'CZA_V01_UNPRIVILEGED_ARTIFACT=GENERATED' >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload no-secrets immutable build artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: cza-v01-public-build-${{ github.event.pull_request.head.sha }}
+          path: dist/
+          if-no-files-found: error
+          retention-days: 3
