@@ -1,0 +1,22 @@
+[
+  {
+    "path": "/api/student-history",
+    "status": 200,
+    "containsSameTrainingId": true
+  },
+  {
+    "path": "/api/core/history",
+    "status": 200,
+    "containsSameTrainingId": true
+  },
+  {
+    "path": "/api/p2-original/session/00000000-0000-4000-8000-000000000000",
+    "status": 403,
+    "containsSameTrainingId": false
+  },
+  {
+    "path": "/api/educator-auth",
+    "status": 403,
+    "containsSameTrainingId": false
+  }
+]

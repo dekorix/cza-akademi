@@ -14,6 +14,9 @@ const isCodexSeatbeltSandbox = process.env.CODEX_SANDBOX === 'seatbelt';
 
 const localBindingConfig = {
   main: 'vinext/server/fetch-handler',
+  // Explicit opt-in for an isolated local synthetic test; no secret files.
+  secrets: process.env.CZA_P2_SYNTHETIC_DEV === '1'
+    ? { required: ['DATABASE_URL'] } : undefined,
   compatibility_flags: ['nodejs_compat'],
   d1_databases: d1
     ? [
@@ -52,10 +55,10 @@ export default defineConfig(async () => {
     plugins: [
       vinext(),
       sites(),
-      cloudflare({
+      ...(process.env.CZA_P2_NODE_DEV === '1' ? [] : [cloudflare({
         viteEnvironment: { name: 'rsc', childEnvironments: ['ssr'] },
         config: localBindingConfig,
-      }),
+      })]),
     ],
   };
 });

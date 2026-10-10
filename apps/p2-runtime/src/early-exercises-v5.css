@@ -1,0 +1,12 @@
+.ex-v5-shell{background:linear-gradient(180deg,#f6faf8 0%,#eef5f6 100%)}
+.ex-v5-child-card{max-width:980px;margin:0 auto;background:#fffdf9}
+.ex-practice-card,.ex-phase-card{max-width:900px;margin:28px auto;text-align:center;justify-items:center;padding:36px}
+.ex-practice-copy{max-width:720px}.ex-practice-copy small,.ex-phase-card>span{font-size:12px;font-weight:900;letter-spacing:.14em;color:#317a75}.ex-practice-copy h1,.ex-phase-card h1{font-size:clamp(32px,5vw,52px);margin:8px 0 10px}.ex-practice-copy p,.ex-phase-card p{font-size:18px;line-height:1.65;color:#4c625d;max-width:720px}
+.ex-practice-options{max-width:560px;grid-template-columns:repeat(2,1fr)}.ex-practice-options button{min-height:190px}
+.ex-phase-card{min-height:520px;align-content:center;background:linear-gradient(145deg,#fffdf8,#f1f8f5)}.ex-phase-route{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin:12px 0}.ex-phase-route>*{padding:8px 11px;border-radius:999px;background:#edf6f3;color:#4d6f68}
+.ex-ceiling-note{display:flex;align-items:center;justify-content:center;gap:9px;flex-wrap:wrap;padding:10px 14px;border-radius:14px;background:#f3effa;border:1px solid #ded2ee;color:#65587a}.ex-ceiling-note b{font-size:12px;text-transform:uppercase;letter-spacing:.05em}.ex-ceiling-note span{font-size:12px}
+.ex-operator-progress{background:rgba(255,255,255,.92)}
+.ex-v5-child-card .ex-options{max-width:720px}.ex-v5-child-card .ex-options button{min-height:190px;border-width:2px;box-shadow:0 8px 20px rgba(24,61,69,.06)}.ex-v5-child-card .ex-options button:hover{transform:none}.ex-v5-child-card .ex-options button:focus-visible{outline:4px solid rgba(49,122,117,.28);outline-offset:3px}
+.ex-v5-child-card .ex-child-head h1{font-size:clamp(30px,5vw,50px)}.ex-v5-child-card .ex-child-head p{font-size:clamp(24px,4vw,34px);line-height:1.25}.ex-v5-child-card .ex-sample{max-width:300px;margin:0 auto;width:100%;background:#fbfdfc}
+@media(max-width:700px){.ex-practice-card,.ex-phase-card{padding:24px 16px}.ex-practice-options button,.ex-v5-child-card .ex-options button{min-height:145px}.ex-v5-child-card .ex-options{grid-template-columns:repeat(2,1fr)}.ex-v5-child-card .ex-emoji{font-size:62px}}
+

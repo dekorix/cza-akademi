@@ -1,3 +1,4 @@
+import {P2OriginalRuntime} from '@/components/p2-original-runtime';
 import {
   P2_FULL_MAX_TASKS,
   P2_FULL_MIN_TASKS,
@@ -40,6 +41,7 @@ export default function P2AssessmentRestorationPage() {
           </div>
 
           <div className="grid gap-8 px-6 py-7 md:px-9">
+            <P2OriginalRuntime/>
             <div>
               <div className="flex flex-wrap gap-3">
                 <span className="rounded-full bg-[#e7f5ed] px-4 py-2 text-sm font-bold text-[#226f60]">23 bölüm</span>

@@ -38,6 +38,7 @@
   ],
   "exclude": [
     "node_modules",
-    "apps/assessment-appdeploy/**"
+    "apps/assessment-appdeploy/**",
+    "apps/p2-runtime/**"
   ]
 }

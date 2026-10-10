@@ -40,3 +40,7 @@ next-env.d.ts
 /outputs/
 /work/
 *.tsbuildinfo
+
+# Original P2 generated runtime assets (built from preserved source)
+/apps/p2-runtime/dist/
+/public/p2-runtime/

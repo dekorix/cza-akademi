@@ -238,7 +238,7 @@ export function CentralAssessmentIntake({onP2Created}:{onP2Created:(payload:P2Cr
         {target&&<div className={'mt-5 flex gap-3 rounded-xl border p-4 '+(target.status==='CENTRAL_READY'?'border-[#cce2d6] bg-[#f1f8f4]':'border-[#eadfbf] bg-[#fffaf0]')}><ShieldCheck className={target.status==='CENTRAL_READY'?'text-[#276151]':'text-[#856f32]'}/><div><b>{target.status==='CENTRAL_READY'?'Merkezi CZA hattı hazır.':target.status==='SOURCE_REFERENCE_ONLY'?'Tam P2 değerlendirme motoru hazır.':'Bu profil güvenli biçimde kilitli.'}</b><p className="mt-1 text-xs leading-5 text-muted-foreground">{target.reason}</p></div></div>}
         {message&&<p role="status" className="mt-4 rounded-xl bg-[#fff4e7] p-4 text-sm font-semibold text-[#825b2d]">{message}</p>}
         {profileCode==='P2'&&target?.status==='SOURCE_REFERENCE_ONLY'&&
-          <Button type="button" onClick={()=>{window.location.href='/assessment/p2';}} className="mt-6 min-h-12 w-full bg-[#856f32] text-base hover:bg-[#6f5c29]">
+          <Button type="button" onClick={()=>{window.location.href='/assessment/p2'+(studentId?'?studentId='+encodeURIComponent(studentId):'');}} className="mt-6 min-h-12 w-full bg-[#856f32] text-base hover:bg-[#6f5c29]">
             P2 tam değerlendirme durumunu aç →
           </Button>}
         <Button onClick={()=>void start()} disabled={!ready||busy} className="mt-3 min-h-12 w-full bg-[#226f60] text-base hover:bg-[#195749]">{busy?'Merkezi bağlantı kuruluyor…':'Değerlendirme planını aç →'}</Button>

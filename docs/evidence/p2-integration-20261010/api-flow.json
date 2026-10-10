@@ -1,0 +1,138 @@
+{
+  "record": {
+    "id": "8940aef7-2cdf-45ee-a75b-f0bc6c410b0c",
+    "student_id": "20000000-0000-4000-8000-000000000001",
+    "status": "completed",
+    "training_id": "8940aef7-2cdf-45ee-a75b-f0bc6c410b0c",
+    "training_student_id": "20000000-0000-4000-8000-000000000001",
+    "attempt_count": "30",
+    "learning_count": "1",
+    "evidence_count": "1"
+  },
+  "rows": [
+    {
+      "task": "W1",
+      "status": 200
+    },
+    {
+      "task": "W2",
+      "status": 200
+    },
+    {
+      "task": "W3",
+      "status": 200
+    },
+    {
+      "task": "W4",
+      "status": 200
+    },
+    {
+      "task": "ZG1",
+      "status": 200
+    },
+    {
+      "task": "DA1",
+      "status": 200
+    },
+    {
+      "task": "DA1S",
+      "status": 200
+    },
+    {
+      "task": "DA1T",
+      "status": 200
+    },
+    {
+      "task": "M1A",
+      "status": 200
+    },
+    {
+      "task": "M1S",
+      "status": 200
+    },
+    {
+      "task": "M1B",
+      "status": 200
+    },
+    {
+      "task": "M1T",
+      "status": 200
+    },
+    {
+      "task": "L1A",
+      "status": 200
+    },
+    {
+      "task": "GV1",
+      "status": 200
+    },
+    {
+      "task": "WM1",
+      "status": 200
+    },
+    {
+      "task": "HB1",
+      "status": 200
+    },
+    {
+      "task": "EX1",
+      "status": 200
+    },
+    {
+      "task": "ZX1",
+      "status": 200
+    },
+    {
+      "task": "DU1",
+      "status": 200
+    },
+    {
+      "task": "DK1",
+      "status": 200
+    },
+    {
+      "task": "AV1",
+      "status": 200
+    },
+    {
+      "task": "MC1",
+      "status": 200
+    },
+    {
+      "task": "RF1",
+      "status": 200
+    },
+    {
+      "task": "SV1",
+      "status": 200
+    },
+    {
+      "task": "DX1",
+      "status": 200
+    },
+    {
+      "task": "MA1",
+      "status": 200
+    },
+    {
+      "task": "EA1",
+      "status": 200
+    },
+    {
+      "task": "SL1",
+      "status": 200
+    },
+    {
+      "task": "CG1",
+      "status": 200
+    },
+    {
+      "task": "MV1",
+      "status": 200
+    }
+  ],
+  "replay": "exact response preserved",
+  "unauth": 401,
+  "crossOrigin": 403,
+  "scope": "New synthetic all-skip session only; tests record integrity, not content proficiency."
+}
