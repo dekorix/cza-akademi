@@ -4,12 +4,12 @@ Bu dosya Mission Control kurulumu sırasında alınmış **anlık envanterdir**.
 
 **Kanonik main:** `a3e3a1437adc20d93c3c55f7091a7322feab9773`  
 **Branch sayısı:** 80  
-**Açık PR sayısı:** 7
+**Açık PR sayısı:** 8
 
 ## Sınıflandırma
 - **ANA-KANONİK:** `main`.
 - **AKTİF-TEK-ÇALIŞMA:** yalnız aktif uygulama PR'ının branch'i.
-- **YÖNETİM-KURULUMU:** bu Mission Control kurulum branch'i.
+- **YÖNETİM-KURULUMU:** Mission Control PR #83 branch'i.
 - **BEKLEME-PR#N:** açık fakat aktif tek görevin dışında kalan PR branch'i.
 - **İNCELEME-GEREKLİ:** açık PR'a bağlı görünmeyen tarihsel/yardımcı branch. Otomatik silinmez.
 
@@ -17,6 +17,7 @@ Bu dosya Mission Control kurulumu sırasında alınmış **anlık envanterdir**.
 
 | PR | Durum | Branch | HEAD | Başlık |
 |---|---|---|---|---|
+| #83 | YÖNETİM-KURULUMU / DRAFT | `docs/cza-mission-control-20261010` | `4400f359bbdff145d7e78a55620b3284bdb744a0` | docs(cza): GitHub Mission Control ve tek aktif görev panosunu kur |
 | #79 | BEKLEME / DRAFT | `docs/cza-one-ecosystem-marketing-boundary-20261009` | `6939918a2089813299f21f62059a3ee57c8c7a6d` | docs/qa(cza): tanıtım sitesi tek CZA ekosisteminin alt modülüdür |
 | #73 | AKTİF / DRAFT | `fix/t5-pre-enroll-resume-integrity` | `957fa1b8bdcc8d1a6da40c2b22ad90d0cdd98a01` | fix: kayıt öncesi özel eğitim oturumunu aday ve çevrim kimliğiyle sürdür |
 | #69 | BEKLEME / DRAFT | `fix/intake-special-status-truth-20261008` | `7a2fca8dc5fc7bd22ae1e74f3fb6824301fa56c8` | fix(intake): show truthful special education readiness badges |
@@ -49,7 +50,7 @@ Bu dosya Mission Control kurulumu sırasında alınmış **anlık envanterdir**.
 | `docs/cza-control-tower-20261008` | `6227aa9a50081c3a00ae869d5284168958326a6d` | İNCELEME-GEREKLİ |
 | `docs/cza-governance-gates-20261009` | `3f71c92dc11176eac8022ced0f919dd267040751` | İNCELEME-GEREKLİ |
 | `docs/cza-main-product-boundary-20261007` | `ea4036e1f0cac863928a1333feb3e8e8a94f7d8d` | BEKLEME-PR#59 |
-| `docs/cza-mission-control-20261010` | `a3e3a1437adc20d93c3c55f7091a7322feab9773` | YÖNETİM-KURULUMU |
+| `docs/cza-mission-control-20261010` | `4400f359bbdff145d7e78a55620b3284bdb744a0` | YÖNETİM-KURULUMU-PR#83 |
 | `docs/cza-one-ecosystem-marketing-boundary-20261009` | `6939918a2089813299f21f62059a3ee57c8c7a6d` | BEKLEME-PR#79 |
 | `feature/assessment-central-identity-bridge-v1` | `8db0b23cc3475a7b954f9cbdd5fab6c55fc4a39b` | İNCELEME-GEREKLİ |
 | `feature/assignment-lifecycle-v1` | `5c53da33df87d39747978ec60f8fe6b3a328ae0b` | İNCELEME-GEREKLİ |
@@ -99,7 +100,7 @@ Bu dosya Mission Control kurulumu sırasında alınmış **anlık envanterdir**.
 | `fix/p2-full-assessment-entry` | `7b0e943795f26543034b43c5dcd9833fd7049c1e` | İNCELEME-GEREKLİ |
 | `fix/separate-core-from-chatgpt-sites-20261009` | `5e4618db867de116685574a5e053a6c2537c20a0` | İNCELEME-GEREKLİ |
 | `fix/student-work-sso` | `33e62aa68f1a2538a16197d4ebd17b3cd2f533e9` | İNCELEME-GEREKLİ |
-| `fix/t5-pre-enroll-resume-integrity` | `957fa1b8bdcc8d1a6da40c2b22ad90d0cdd98a01` | AKTİF-TEK-ÇALIŞMA |
+| `fix/t5-pre-enroll-resume-integrity` | `957fa1b8bdcc8d1a6da40c2b22ad90d0cdd98a01` | AKTİF-TEK-ÇALIŞMA-PR#73 |
 | `infra/cza-staging-preview-upload` | `ec5ad53bc2138a2bbdf6d703e526f8495336ce1b` | İNCELEME-GEREKLİ |
 | `integration/assignment-lifecycle-main-20261006` | `a9a2e4c84b661a19722048b0eae9b1e69c2be0d5` | İNCELEME-GEREKLİ |
 | `integration/real-student-history-main-20261006` | `e422bf49ae9b4192ed0ee609bff6c9c44f685e86` | İNCELEME-GEREKLİ |
@@ -112,6 +113,7 @@ Bu dosya Mission Control kurulumu sırasında alınmış **anlık envanterdir**.
 
 ## Temizlik kuralı
 1. Aktif PR branch'i silinmez/yeniden tabanlanmaz.
-2. Diğer açık PR branch'leri kanonik kapsam ve main farkı incelenmeden kapatılmaz.
-3. `İNCELEME-GEREKLİ` branch'ler yalnız commit/PR/CI bağı ispatlandıktan sonra arşiv/temizlik adayı olur.
-4. Force reset/rebase yok; gerekiyorsa ayrı karar ve checkpoint gerekir.
+2. Mission Control branch'i PR #83 kararı verilene kadar korunur.
+3. Diğer açık PR branch'leri kanonik kapsam ve main farkı incelenmeden kapatılmaz.
+4. `İNCELEME-GEREKLİ` branch'ler yalnız commit/PR/CI bağı ispatlandıktan sonra arşiv/temizlik adayı olur.
+5. Force reset/rebase yok; gerekiyorsa ayrı karar ve checkpoint gerekir.
