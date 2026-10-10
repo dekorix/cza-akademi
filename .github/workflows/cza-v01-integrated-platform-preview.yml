@@ -1,0 +1,126 @@
+name: CZA V01 Integrated Platform Preview ONLY
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/cza-v01-integrated-platform-preview.yml'
+      - 'scripts/qa/cza-v01-integrated-preview-smoke.mjs'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cza-v01-integrated-preview-only
+  cancel-in-progress: false
+
+jobs:
+  build-and-upload-version-only:
+    if: github.event.pull_request.number == 73 && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'fix/t5-pre-enroll-resume-integrity'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    environment: CZA-STAGING-SECURITY
+    steps:
+      - name: Checkout the exact PR source with no persisted credentials
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - name: Verify Git source and target
+        env:
+          PR_SHA: ${{ github.event.pull_request.head.sha }}
+          CLOUDFLARE_ACCOUNT_ID: 8c23e36e747009ad8c8d0bdbda8d5606
+        run: |
+          test "$(git rev-parse HEAD)" = "$PR_SHA"
+          test "$CLOUDFLARE_ACCOUNT_ID" = '8c23e36e747009ad8c8d0bdbda8d5606'
+          test -f public/cza-degerlendirme/index.html
+          test -f app/api/assessment-special-linked/route.ts
+          test -f app/page.tsx
+          test -f app/work/page.tsx
+          test -f app/educator/page.tsx
+          test -f components/student-learning-profile.tsx
+          test -f components/guardian-panel.tsx
+          echo "CZA_V01_SOURCE_SHA=$(git rev-parse HEAD)" >> "$GITHUB_STEP_SUMMARY"
+          echo "CZA_V01_SOURCE_TREE=$(git rev-parse HEAD^{tree})" >> "$GITHUB_STEP_SUMMARY"
+          echo 'CZA_V01_INTEGRATED_SOURCE_INVENTORY=PASS'
+      - name: Enable Corepack
+        run: corepack enable
+      - name: Setup Node
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: '22.13.0'
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+      - name: Install locked dependencies and check TypeScript
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm exec tsc --noEmit
+      - name: Test T5 identity resume and connected educator intake
+        run: |
+          node --test tests/t5-pre-enroll-client-resume.test.mjs tests/t5-pre-enroll-resume.test.mjs tests/central-assessment-intake.test.mjs tests/u3-educator-core.test.mjs
+      - name: Build full CZA Worker bundle
+        run: |
+          pnpm run build
+          test -s dist/server/wrangler.json
+          echo "CZA_V01_BUILD_CONFIG_SHA256=$(sha256sum dist/server/wrangler.json | cut -d ' ' -f 1)" >> "$GITHUB_STEP_SUMMARY"
+          echo 'CZA_V01_FULL_PLATFORM_BUILD=PASS'
+      - name: Verify existing staging Worker remains on original active version
+        env:
+          CZA_STAGING_PREVIEW_API_TOKEN: ${{ secrets.CZA_STAGING_PREVIEW_API_TOKEN }}
+        run: node scripts/qa/cza-vertical01-worker-provenance-readonly.mjs
+      - name: Upload integrated CZA as preview version ONLY (never deploy)
+        id: upload
+        env:
+          CLOUDFLARE_ACCOUNT_ID: 8c23e36e747009ad8c8d0bdbda8d5606
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CZA_STAGING_PREVIEW_API_TOKEN }}
+          SOURCE_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set +e
+          pnpm exec wrangler versions upload \
+            --config dist/server/wrangler.json \
+            --name cza-akademi-staging \
+            --keep-vars \
+            --tag cza-v01-integrated-preview \
+            --message "CZA V01 integrated source $SOURCE_SHA; VERSION ONLY, NO DEPLOY" \
+            > upload.log 2>&1
+          upload_status=$?
+          set -e
+          version="$(sed -n 's/.*Worker Version ID: \([0-9a-f-]\{36\}\).*/\1/p' upload.log | tail -1)"
+          if [[ ! "$version" =~ ^[0-9a-f-]{36}$ ]]; then
+            echo 'CZA_V01_UPLOAD=BLOCKED_NO_VERSION'
+            exit 1
+          fi
+          if [ "$upload_status" -ne 0 ]; then
+            if ! grep -q '/workers/subdomain' upload.log ||
+               ! grep -q 'Authentication error \[code: 10000\]' upload.log; then
+              echo 'CZA_V01_UPLOAD=BLOCKED_UNEXPLAINED_ERROR'
+              exit 1
+            fi
+            echo 'CZA_V01_VERSION_CREATED_SUBDOMAIN_LOOKUP_UNAUTHORIZED'
+          fi
+          preview="https://${version:0:8}-cza-akademi-staging.cza-staging-habip.workers.dev"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "preview=$preview" >> "$GITHUB_OUTPUT"
+          echo "CZA_V01_PREVIEW_ONLY_WORKER_VERSION=$version" >> "$GITHUB_STEP_SUMMARY"
+          echo "CZA_V01_PREVIEW_ORIGIN=$preview" >> "$GITHUB_STEP_SUMMARY"
+          echo 'CZA_V01_NO_ACTIVE_DEPLOY=YES'
+      - name: Verify integrated public routes, assessment files and unauthorized access
+        env:
+          CZA_V01_PREVIEW_ORIGIN: ${{ steps.upload.outputs.preview }}
+        run: |
+          for attempt in 1 2 3 4 5 6; do
+            if node scripts/qa/cza-v01-integrated-preview-smoke.mjs; then
+              echo 'CZA_V01_INTEGRATED_PREVIEW_SMOKE=PASS' >> "$GITHUB_STEP_SUMMARY"
+              exit 0
+            fi
+            sleep 3
+          done
+          echo 'CZA_V01_INTEGRATED_PREVIEW_SMOKE=BLOCKED' >> "$GITHUB_STEP_SUMMARY"
+          exit 1
+      - name: Ensure original active Worker version and traffic remain unchanged
+        if: always()
+        env:
+          CZA_STAGING_PREVIEW_API_TOKEN: ${{ secrets.CZA_STAGING_PREVIEW_API_TOKEN }}
+        run: |
+          node scripts/qa/cza-vertical01-worker-provenance-readonly.mjs
+          echo 'CZA_V01_ACTIVE_WORKER_UNCHANGED=PASS' >> "$GITHUB_STEP_SUMMARY"
