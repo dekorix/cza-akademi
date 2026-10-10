@@ -67,7 +67,9 @@ try{
       ' const hostMatch=(await digest(target.hostname.toLowerCase()))===expectedHostHash;',
       ' const dbMatch=(await digest(target.pathname))===expectedDbHash;',
       ' const roleMatch=(await digest(decodeURIComponent(target.username)))===expectedRoleHash;',
-      ' return new Response(JSON.stringify({hostMatch,dbMatch,roleMatch}),{headers:{"content-type":"application/json","cache-control":"no-store"}});',
+      ' const endpointId=target.hostname.split(".")[0].replace(/-pooler$/,"");',
+      ' const safeId=/^ep-[a-z0-9-]+$/.test(endpointId)?endpointId:"UNAVAILABLE";',
+      ' return new Response(JSON.stringify({hostMatch,dbMatch,roleMatch,endpointId:safeId}),{headers:{"content-type":"application/json","cache-control":"no-store"}});',
       '}};',
       ''
     ].join('\n');
@@ -108,6 +110,7 @@ try{
     console.log('CZA_ACTIVE_TRAFFIC=100_PERCENT_ORIGINAL');
     console.log('CZA_PREVIEW_SECRET_BINDING=INHERITED');
     console.log('CZA_PREVIEW_ENDPOINT_MATCH='+ (proof.hostMatch===true?'PASS':'MISMATCH'));
+    console.log('CZA_PREVIEW_NEON_ENDPOINT_ID='+ (typeof proof.endpointId==='string'&&/^ep-[a-z0-9-]+$/.test(proof.endpointId)?proof.endpointId:'UNAVAILABLE'));
     console.log('CZA_PREVIEW_DATABASE_NAME_MATCH='+ (proof.dbMatch===true?'PASS':'MISMATCH'));
     console.log('CZA_PREVIEW_DATABASE_ROLE_MATCH='+ (proof.roleMatch===true?'PASS':'MISMATCH'));
     console.log('CZA_ACTIVE_OLD_VERSION_DB_ENDPOINT_MATCH=NOT_DIRECTLY_ATTESTED');
