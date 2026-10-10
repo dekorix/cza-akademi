@@ -23,7 +23,8 @@ test('V01 and T5 former privileged PR workflows are disabled', () => {
     'cza-v01-staging-endpoint-probe-version-only.yml',
   ];
   for (const path of paths) {
-    const source = read(path);
+    // Comments can explain held credentials; only active workflow YAML counts.
+    const source = read(path).split('\n').filter(line => !line.trimStart().startsWith('#')).join('\n');
     assert.doesNotMatch(source, /pull_request:/, path);
     assert.match(source, /if:\s*false/, path);
     assert.doesNotMatch(source, /secrets\./, path);
