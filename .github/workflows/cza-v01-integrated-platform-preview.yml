@@ -52,7 +52,23 @@ jobs:
         run: |
           pnpm install --frozen-lockfile --ignore-scripts
           pnpm exec tsc --noEmit
-          node --test tests/t5-pre-enroll-client-resume.test.mjs tests/t5-pre-enroll-resume.test.mjs tests/central-assessment-intake.test.mjs tests/u3-educator-core.test.mjs
+          # One identity across evaluation, student, work, educator, history,
+          # assignment, learning profile and guardian boundaries.
+          node --test \
+            tests/t5-pre-enroll-client-resume.test.mjs \
+            tests/t5-pre-enroll-resume.test.mjs \
+            tests/central-assessment-intake.test.mjs \
+            tests/assessment-bridge.test.mjs \
+            tests/work-student-id-integration.test.mjs \
+            tests/u1-student-panel.test.mjs \
+            tests/u2-work-center.test.mjs \
+            tests/u3-educator-core.test.mjs \
+            tests/u4-learning-timeline.test.mjs \
+            tests/u5-assignment-management.test.mjs \
+            tests/real-assignment-auth-integration.test.mjs \
+            tests/u7-student-learning-profile.test.mjs \
+            tests/u9-guardian-api-ui.test.mjs
+          echo 'CZA_V01_SOURCE_CONTRACT_V01_TO_V07=PASS_TEST_ONLY' >> "$GITHUB_STEP_SUMMARY"
           pnpm run build
           test -s dist/server/wrangler.json
           echo 'CZA_V01_INTEGRATED_SOURCE_BUILD=PASS_NO_SECRETS' >> "$GITHUB_STEP_SUMMARY"
