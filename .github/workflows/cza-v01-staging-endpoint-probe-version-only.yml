@@ -53,15 +53,28 @@ jobs:
             > "$CZA_V01_AUDIT_DIR/upload.log" 2>&1
           status=$?
           set -e
-          if [ "$status" -ne 0 ]; then
-            echo "CZA_VERSION_ONLY_UPLOAD=BLOCKED"
-            exit 1
-          fi
           if ! grep -Eq 'Worker Version ID: [0-9a-f-]{36}' "$CZA_V01_AUDIT_DIR/upload.log"; then
-            echo "CZA_VERSION_ONLY_UPLOAD=BLOCKED_ID_MISSING"
+            if grep -qi 'Authentication error' "$CZA_V01_AUDIT_DIR/upload.log"; then
+              echo "CZA_VERSION_ONLY_UPLOAD=BLOCKED_AUTH"
+            elif grep -qiE 'configuration|config file|wrangler.toml' "$CZA_V01_AUDIT_DIR/upload.log"; then
+              echo "CZA_VERSION_ONLY_UPLOAD=BLOCKED_CONFIG"
+            else
+              echo "CZA_VERSION_ONLY_UPLOAD=BLOCKED_OTHER"
+            fi
             exit 1
           fi
-          echo "CZA_VERSION_ONLY_UPLOAD=SUCCESS_NO_DEPLOY"
+          if [ "$status" -ne 0 ]; then
+            # Previously confirmed Wrangler can upload the version before
+            # failing its optional /workers/subdomain read with API error 10000.
+            if ! grep -q '/workers/subdomain' "$CZA_V01_AUDIT_DIR/upload.log" ||
+               ! grep -q 'Authentication error' "$CZA_V01_AUDIT_DIR/upload.log"; then
+              echo "CZA_VERSION_ONLY_UPLOAD=BLOCKED_PARTIAL_UNEXPLAINED"
+              exit 1
+            fi
+            echo "CZA_VERSION_ONLY_UPLOAD=VERSION_CREATED_SUBDOMAIN_LOOKUP_UNAUTHORIZED"
+          else
+            echo "CZA_VERSION_ONLY_UPLOAD=SUCCESS_NO_DEPLOY"
+          fi
       - name: Test inherited secret using opaque preview-only proof
         env:
           CZA_STAGING_PREVIEW_API_TOKEN: ${{ secrets.CZA_STAGING_PREVIEW_API_TOKEN }}
