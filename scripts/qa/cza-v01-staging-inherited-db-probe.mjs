@@ -72,7 +72,7 @@ try{
       'name = "'+workerName+'"\nmain = "worker.mjs"\ncompatibility_date = "2026-10-01"\nworkers_dev = true\n',
       {mode:0o600});
     saveEnv('CZA_V01_AUDIT_DIR',workdir);
-    saveEnv('CZA_V01_AUDIT_NONCE',nonce);
+    writeFileSync(join(workdir,'nonce.txt'),nonce,{mode:0o600});
     console.log('CZA_PROBE_SOURCE_GENERATED=YES');
     console.log('CZA_SECRET_URL_NOT_LOGGED=YES');
   }else if(mode==='verify'){
@@ -91,7 +91,7 @@ try{
     for(let i=0;i<7;i++){
       try{
         const response=await fetch(url,{method:'POST',
-          headers:{'x-cza-v01-nonce':process.env.CZA_V01_AUDIT_NONCE,'content-type':'application/json'},
+          headers:{'x-cza-v01-nonce':readFileSync(join(workdir,'nonce.txt'),'utf8'),'content-type':'application/json'},
           body:'{}',signal:AbortSignal.timeout(12000)});
         if(response.status===200){proof=(await response.json()).proof;break;}
       }catch{}
