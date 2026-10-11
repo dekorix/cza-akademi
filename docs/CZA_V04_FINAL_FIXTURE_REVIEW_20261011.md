@@ -38,7 +38,7 @@ New function preserves exact project/branch/database/auth/session-expiry/revocat
 launch operation validates the scope and old completed10/8 anchor; returns settings/fixtureID only, no data mutation. It authorizes ONLY a fixture launch, not reopening the original session.
 start operation locks recipe and inserts fixed fixture session at most once with canonical plan/version and audit label. Calls unchanged canonical K3C binder with the fixed session ID and its stable first clientSessionId. On further starts resumes only that row; after its completion refuses launch/start.
 attempt/finish require p_session=the fixed fixture ID then delegate to original approved QA wrapper. Original canonical attempt, ledger and verified evidence behavior reused unchanged.
-Local PGlite review-only test PASS: launch creates no row; two starts one fixed row; stable plan; old session cannot be addressed through new wrapper; committed UUID replay and changed-answer rejection; next-question conflict; 10/8 completion; one record/evidence replay; original anchor full-row hash unchanged; PUBLIC absent. This is NOT live acceptance.
+Local PGlite review-only test PASS: launch creates no row; two starts one fixed row; stable plan; old session cannot be addressed through new wrapper; committed UUID replay and changed-answer rejection; next-question conflict; 10/8 completion; one record/evidence replay; original anchor full-row hash unchanged; PUBLIC absent. A second local test verifies partial-fixture cancellation, retained answer, blocked old-wrapper writes and unchanged old anchor/permissions. These are NOT live acceptance.
 New test included in V04 read-only CI; no live install/deploy jobs.
 
 ## Necessary temporary Worker routing — proposed, NOT IMPLEMENTED
@@ -61,10 +61,10 @@ No second fixture/session or reset/retry from scratch if failed; resume only thi
 
 ## Rollback / cleanup: no deletion of records
 
-Full script db/qa/v04-final-fixture.rollback.review.sql SHA2568248756f2f4cc3ce4c40ea0b742556342a41d5aed8deda4601cff47ca5ed9766 .
-Turn fixture switch OFF / restore isolated Worker to accepted f1b6ad4 source (versiona2469a65-c2df-43fe-a25f-2669d721849c or reproducible build) first; then same-target transaction REVOKE only new function EXECUTE. PUBLIC remains revoked throughout. Existing approved V04 function/role/RLS/table grants stay intact.
+Full script db/qa/v04-final-fixture.rollback.review.sql SHA256290fb3415e0195f03c7612ef075883879c02690b9416bf0ccf5430e9750fa075 .
+Turn fixture switch OFF / restore isolated Worker to accepted f1b6ad4 source (versiona2469a65-c2df-43fe-a25f-2669d721849c or reproducible build) first; then one same-target transaction cancels ONLY the new fixed-ID/marker-matched partial active fixture (status=cancelled, disabled audit marker) and REVOKEs only the new function EXECUTE. This prevents the unchanged original approved wrapper from writing to a leftover active fixture. A completed new fixture is not altered. PUBLIC remains revoked throughout. Existing approved V04 function/role/RLS/table grants stay intact.
 Installation failure atomically rolls back before any fixture row. Before first start no data exists to undo.
-After a test/partial failure retain all newly labelled rows for audit, never delete/reopen old or new ledger rows. REVOKE blocks further calls. Retaining a partial active fixture is explicit quarantine, not a claim of successful reversible data cleanup; report it for architect disposition.
+After a test/partial failure retain every labelled row for audit; only the NEW partial active session is marked cancelled. Old sessions/answers/ledger are never deleted, reset or reopened. New-wrapper EXECUTE is revoked; original wrapper also rejects further new answers on the cancelled fixture. Data remains in isolated QA history and cannot be rolled back by deletion. Report partial counts and cancellation.
 The extra record remains part of this isolated synthetic student's QA history/profile; no production migration or generic fixture support.
 
 GENEL PROJE İLERLEME %=ÖLÇÜLMEDİ

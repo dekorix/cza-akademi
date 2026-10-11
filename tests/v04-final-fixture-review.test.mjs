@@ -215,3 +215,82 @@ test('review-only fixture isolates exactly one fresh work row and reuses unchang
     await db.close();
   }
 });
+
+test('rollback freezes only a partial new fixture and blocks old-wrapper writes without deleting evidence', async () => {
+  const db = await setup();
+  try {
+    await owner(
+      db,
+      `INSERT INTO training_sessions(id,academy_id,student_id,module_code,recipe_id,source,status,started_at,answered_count,correct_count) VALUES('${OLD}','${A}','${S}','finger_read','${R}','teacher_assignment','completed',now(),10,8)`,
+    );
+    const old = (
+      await owner(
+        db,
+        `SELECT md5(to_jsonb(t)::text) hash FROM training_sessions t WHERE id='${OLD}'`,
+      )
+    ).rows[0].hash;
+    await db.exec('SET ROLE cza_t5_test_owner');
+    await db.exec(
+      'BEGIN;' +
+        read('db/qa/v04-final-fixture.review.sql').replaceAll(
+          "'cza_t5_synthetic'",
+          "'postgres'",
+        ) +
+        'COMMIT;',
+    );
+    await db.exec('SET ROLE cza_v01_app_runtime_min');
+    const started = await fixture(db, 'start', {
+      clientSessionId: randomUUID(),
+      moduleCode: 'finger_read',
+      source: 'teacher_assignment',
+    });
+    const p = answer(started.questions[0], 1);
+    await fixture(db, 'attempt', p, F);
+    await db.exec('SET ROLE cza_t5_test_owner');
+    await db.exec(
+      'BEGIN;' +
+        read('db/qa/v04-final-fixture.rollback.review.sql').replaceAll(
+          "'cza_t5_synthetic'",
+          "'postgres'",
+        ) +
+        'COMMIT;',
+    );
+    await db.exec('SET ROLE cza_v01_app_runtime_min');
+    await assert.rejects(
+      fixture(db, 'start', {
+        clientSessionId: randomUUID(),
+        moduleCode: 'finger_read',
+        source: 'teacher_assignment',
+      }),
+      /permission denied/,
+    );
+    await assert.rejects(
+      db.query(
+        'SELECT public.cza_v04_qa_assigned_work($1,$2,$3,$4,$5::jsonb)',
+        [H, 'attempt', R, F, JSON.stringify(answer(started.questions[1], 2))],
+      ),
+      /CZA_WORK_SESSION_CLOSED/,
+    );
+    const rows = await owner(
+      db,
+      `SELECT (SELECT status FROM training_sessions WHERE id='${F}') status,(SELECT count(*) FROM question_attempts) attempts,(SELECT count(*) FROM learning_records) records,has_function_privilege('cza_v01_app_runtime_min','public.cza_v04_qa_assigned_work(text,text,uuid,uuid,jsonb)','EXECUTE') original_allowed`,
+    );
+    assert.deepEqual(rows.rows[0], {
+      status: 'cancelled',
+      attempts: 1,
+      records: 0,
+      original_allowed: true,
+    });
+    assert.equal(
+      (
+        await owner(
+          db,
+          `SELECT md5(to_jsonb(t)::text) hash FROM training_sessions t WHERE id='${OLD}'`,
+        )
+      ).rows[0].hash,
+      old,
+    );
+  } finally {
+    await db.close();
+  }
+});
