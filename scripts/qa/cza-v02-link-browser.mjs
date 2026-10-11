@@ -28,6 +28,12 @@ try{
  proof.after={sessionId:after.body.session.id,studentId:after.body.session.student_id,metadata:after.body.session.metadata,attempts:after.body.attempts,observations:after.body.observations};
  const stored=await page.evaluate(()=>{const s=JSON.parse(localStorage.getItem('cza-e3-preview'));return{candidateId:s.centralCandidateId,cycleId:s.centralCycleId,sessionId:s.centralSessionId,taskIndex:s.dysTaskIndex};});for(const k of ['candidateId','cycleId','sessionId'])assert.equal(stored[k],identity[k]);assert.equal(stored.taskIndex,1);proof.restored=stored;
  await page.screenshot({path:out+'/'+name+'-restored.png',fullPage:true});proof.chromeVersion=await browser.version();
+ proof.negativeChecks=await page.evaluate(async ({sessionId,studentId})=>{
+   const post=async(body,headers={})=>{const r=await fetch('/api/assessment-student-link',{method:'POST',headers:{'content-type':'application/json',...headers},body:JSON.stringify({sessionId,...body})});return r.status;};
+   return {missingConfirmation:await post({action:'bind',studentId}),crossTenant:await post({action:'bind',studentId:'a810b746-7c15-4acd-824d-932bd37acc39',confirmStudentId:'a810b746-7c15-4acd-824d-932bd37acc39'}),forgedHeader:await post({action:'bind',studentId,confirmStudentId:studentId},{'x-educator-id':'forged'})};
+ },{sessionId:identity.sessionId,studentId});
+ assert.deepEqual(proof.negativeChecks,{missingConfirmation:400,crossTenant:403,forgedHeader:401});
+
  const logout=await page.evaluate(async()=>{const r=await fetch('/api/educator-auth',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({action:'logout'})});return {status:r.status,body:await r.json()};});assert.equal(logout.status,200);assert.equal(logout.body.revoked,true);proof.logout={status:200,revoked:true};
  const noAuth=await page.evaluate(async sid=>{const r=await fetch('/api/assessment-student-link',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({action:'students',sessionId:sid})});return r.status;},identity.sessionId);assert.equal(noAuth,401);proof.afterLogout=noAuth;
  assert.equal(proof.errors.length,0);proof.passed=true;
