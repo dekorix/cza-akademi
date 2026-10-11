@@ -1,0 +1,20 @@
+[
+  {
+    "function": "cza_v02_bind_assessment",
+    "source_md5": "73efb806f35b1f1f8be9e5c2a6bace5e",
+    "database_md5": "73efb806f35b1f1f8be9e5c2a6bace5e",
+    "matched": true
+  },
+  {
+    "function": "cza_v02_eligible_students",
+    "source_md5": "1384234a231881197f8f06f73bfbfc61",
+    "database_md5": "1384234a231881197f8f06f73bfbfc61",
+    "matched": true
+  },
+  {
+    "function": "cza_v02_student_history",
+    "source_md5": "87ed051956cd7a40808260f310524813",
+    "database_md5": "87ed051956cd7a40808260f310524813",
+    "matched": true
+  }
+]

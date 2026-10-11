@@ -46,4 +46,4 @@ update candidate resume lookup so a linked candidate cannot create a new
 session. Existing answers, observations, outbox and cycle remain untouched.
 The P2_ASSESSMENT_SESSION_CREATED outbox event is not reused.
 
-No Chrome/API binding, SQL before/after, CI or deployment PASS is claimed.
+Completed evidence is recorded in CZA_V02_DELIVERY_20261011.md; V02_ACCEPTED remains NO.

@@ -1,0 +1,44 @@
+{
+  "passed": true,
+  "comparisons": [
+    {
+      "sessionId": "3db6ac62-aa10-44e5-b4fa-4f99fa599e0d",
+      "checks": {
+        "sameSession": true,
+        "sameMetadata": true,
+        "sameAttemptFingerprint": true,
+        "sameObservationFingerprint": true,
+        "sameStudentCount": true,
+        "sameSessionCount": true,
+        "linkedExistingStudent": true,
+        "oneAudit": true
+      }
+    },
+    {
+      "sessionId": "c0ab8deb-52f4-4b36-b95d-72c392d0c2b0",
+      "checks": {
+        "sameSession": true,
+        "sameMetadata": true,
+        "sameAttemptFingerprint": true,
+        "sameObservationFingerprint": true,
+        "sameStudentCount": true,
+        "sameSessionCount": true,
+        "linkedExistingStudent": true,
+        "oneAudit": true
+      }
+    },
+    {
+      "sessionId": "f825e4d0-c702-4a58-bb7a-7ec991940a89",
+      "checks": {
+        "sameSession": true,
+        "sameMetadata": true,
+        "sameAttemptFingerprint": true,
+        "sameObservationFingerprint": true,
+        "sameStudentCount": true,
+        "sameSessionCount": true,
+        "linkedExistingStudent": true,
+        "oneAudit": true
+      }
+    }
+  ]
+}

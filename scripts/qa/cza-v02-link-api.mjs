@@ -29,7 +29,7 @@ try{
    ['cross tenant',{action:'bind',studentId:'a810b746-7c15-4acd-824d-932bd37acc39',confirmStudentId:'a810b746-7c15-4acd-824d-932bd37acc39'},{},403],
    ['foreign origin',{action:'bind',studentId,confirmStudentId:studentId},{origin:'https://foreign.invalid'},403],
    ['forged educator',{action:'bind',studentId,confirmStudentId:studentId},{'x-educator-id':fixture.authId},401],
-   ['other creator session',{action:'students',sessionId:'30000000-0000-4000-8000-000000000001'},{},403]]){
+   ['other creator session',{action:'students',sessionId:'7fd3053d-08ba-4365-91cd-2d0e07d993f7'},{},403]]){
     const result=await link(payload,headers);check(name,result.status===status,{status:result.status});
   }
   const results=await Promise.all([link({action:'bind',studentId,confirmStudentId:studentId}),link({action:'bind',studentId,confirmStudentId:studentId})]);

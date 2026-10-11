@@ -48,10 +48,12 @@ test('first link, repeat and conflict preserve original evidence and identity',a
  assert.equal((await db.query('SELECT count(*)::int n FROM assessment_student_link_audit')).rows[0].n,1);
 });
 test('peer creator and cross-academy target denied',async()=>{
+ await db.query('INSERT INTO teacher_student_links(id,academy_id,teacher_id,student_id,can_view,can_coach,can_link_assessment) VALUES($1,$2,$3,$4,true,false,true)',[id(23),id(1),id(4),id(10)]);
+ assert.equal((await db.query(eligibleStudentsSql,['peer',true])).rows.length,1);
  assert.equal((await bind(31,10,'peer')).rows.length,0);assert.equal((await bind(31,12)).rows.length,0);
 });
 test('revocation, inactive student, inactive educator and can_view denial',async()=>{
- for(const change of ["UPDATE teacher_student_links SET can_link_assessment=false WHERE student_id='"+id(10)+"'", "UPDATE teacher_student_links SET can_view=false WHERE student_id='"+id(10)+"'", "UPDATE students SET status='inactive' WHERE id='"+id(10)+"'", "UPDATE users SET is_active=false WHERE auth_user_id='auth'"]){
+ for(const change of ["UPDATE users SET role='student' WHERE auth_user_id='auth'","UPDATE teacher_student_links SET can_link_assessment=false WHERE student_id='"+id(10)+"'", "UPDATE teacher_student_links SET can_view=false WHERE student_id='"+id(10)+"'", "UPDATE students SET status='inactive' WHERE id='"+id(10)+"'", "UPDATE users SET is_active=false WHERE auth_user_id='auth'"]){
   await db.exec('BEGIN');await db.exec(change);assert.equal((await bind(32,10)).rows.length,0);await db.exec('ROLLBACK');
  }
 });

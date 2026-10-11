@@ -1,0 +1,1524 @@
+{
+  "base": "5011469f8f9afa18c020b0ce88506059a711cf99",
+  "files": 252,
+  "unchanged": 250,
+  "intentional_additive_ui_changes": [
+    "cza-degerlendirme/central-special-sync.js",
+    "public/cza-degerlendirme/central-special-sync.js"
+  ],
+  "no_deletions": true,
+  "entries": [
+    {
+      "path": "cza-degerlendirme/app.js",
+      "preserved": true,
+      "before_sha256": "f13ae9edde01ae235e18e5edf3f693655f9010bcb6fc613a48b848c02d275a3c",
+      "after_sha256": "f13ae9edde01ae235e18e5edf3f693655f9010bcb6fc613a48b848c02d275a3c"
+    },
+    {
+      "path": "cza-degerlendirme/central-special-sync.js",
+      "preserved": false,
+      "before_sha256": "5affe5919f34b00621ff2a34400a17fd10178315171864b190805601ab1d8c54",
+      "after_sha256": "1e4c2d6b6e9c1dd1b573cb677260860ffba2e65487d2798448789b1661fd17d6"
+    },
+    {
+      "path": "cza-degerlendirme/dyslexia-advanced.js",
+      "preserved": true,
+      "before_sha256": "457f7fd5d92ad749b1a7bacbe29c09e6c16e52681fe6b284e52a3bd79024eecd",
+      "after_sha256": "457f7fd5d92ad749b1a7bacbe29c09e6c16e52681fe6b284e52a3bd79024eecd"
+    },
+    {
+      "path": "cza-degerlendirme/dyslexia-letter-sound.js",
+      "preserved": true,
+      "before_sha256": "84c4d8e055e033961b64c96558a87f75dc0279a4d7ed3e257d0966ee6229f4e4",
+      "after_sha256": "84c4d8e055e033961b64c96558a87f75dc0279a4d7ed3e257d0966ee6229f4e4"
+    },
+    {
+      "path": "cza-degerlendirme/index.html",
+      "preserved": true,
+      "before_sha256": "2e1a8d3b1565b572c7bb1dfb0c30397fd295359e4e66ad228d1eaf6c96f438e9",
+      "after_sha256": "2e1a8d3b1565b572c7bb1dfb0c30397fd295359e4e66ad228d1eaf6c96f438e9"
+    },
+    {
+      "path": "cza-degerlendirme/mobile-premium.css",
+      "preserved": true,
+      "before_sha256": "1ed68c86b4e77acc383d5eed46ee689369989751a7b524babdd4fa66dfba82c0",
+      "after_sha256": "1ed68c86b4e77acc383d5eed46ee689369989751a7b524babdd4fa66dfba82c0"
+    },
+    {
+      "path": "cza-degerlendirme/netlify.toml",
+      "preserved": true,
+      "before_sha256": "04fab5f366071eaded8a4320b6a8bea245c25baab1f51684709fedc0d2c5f990",
+      "after_sha256": "04fab5f366071eaded8a4320b6a8bea245c25baab1f51684709fedc0d2c5f990"
+    },
+    {
+      "path": "cza-degerlendirme/special-profiles.js",
+      "preserved": true,
+      "before_sha256": "9ae01db90e6844ba3951d42c0fa211e2eeaa20425f0939910f5ec567220c4724",
+      "after_sha256": "9ae01db90e6844ba3951d42c0fa211e2eeaa20425f0939910f5ec567220c4724"
+    },
+    {
+      "path": "cza-degerlendirme/styles.css",
+      "preserved": true,
+      "before_sha256": "22540bb847a6ff9ff81816ccfd75f5915a2fbf5c531ea7b8bf21e5d65529723f",
+      "after_sha256": "22540bb847a6ff9ff81816ccfd75f5915a2fbf5c531ea7b8bf21e5d65529723f"
+    },
+    {
+      "path": "db/migrations/20260907_central_identity.sql",
+      "preserved": true,
+      "before_sha256": "cb68a378ec37a87e0b2f3eecbd43799890007d25cd70554fcfc9468c614d3535",
+      "after_sha256": "cb68a378ec37a87e0b2f3eecbd43799890007d25cd70554fcfc9468c614d3535"
+    },
+    {
+      "path": "db/migrations/20260908_assessment_engine_v1.sql",
+      "preserved": true,
+      "before_sha256": "d73748395e5a9761bea8019185d65ee537a7bd237a8e2e640f3582239b604fed",
+      "after_sha256": "d73748395e5a9761bea8019185d65ee537a7bd237a8e2e640f3582239b604fed"
+    },
+    {
+      "path": "db/migrations/20260908_legacy_assessment_imports.sql",
+      "preserved": true,
+      "before_sha256": "dacbe41fd5bab1bc97f9e41300eb0664f24f42d21c845e47e824ceecd4fd4381",
+      "after_sha256": "dacbe41fd5bab1bc97f9e41300eb0664f24f42d21c845e47e824ceecd4fd4381"
+    },
+    {
+      "path": "db/migrations/20260912_staging_core_prerequisites_v1.sql",
+      "preserved": true,
+      "before_sha256": "f9fd6ec39f565b31c868813517b90674c8a01352f32de5314364138319cf248f",
+      "after_sha256": "f9fd6ec39f565b31c868813517b90674c8a01352f32de5314364138319cf248f"
+    },
+    {
+      "path": "db/migrations/20260913_canonical_learning_ledger_v1.sql",
+      "preserved": true,
+      "before_sha256": "0cba90def4fb7398167443d37adb415f62b94b16681fc3fad3377e2d82273e53",
+      "after_sha256": "0cba90def4fb7398167443d37adb415f62b94b16681fc3fad3377e2d82273e53"
+    },
+    {
+      "path": "db/migrations/20260916_u1_student_panel_core_v1.sql",
+      "preserved": true,
+      "before_sha256": "c5e71dabab51b2e3f4f9374963a53afa623a0262231aba0945b57871927f95b1",
+      "after_sha256": "c5e71dabab51b2e3f4f9374963a53afa623a0262231aba0945b57871927f95b1"
+    },
+    {
+      "path": "db/migrations/20260917_u2_client_reported_completion_remediation_v1.sql",
+      "preserved": true,
+      "before_sha256": "0216353c35afb5f46fe840d1e062d00474046d1c296c8f278e4b03cf2a83bf97",
+      "after_sha256": "0216353c35afb5f46fe840d1e062d00474046d1c296c8f278e4b03cf2a83bf97"
+    },
+    {
+      "path": "db/migrations/20260917_u2_work_center_core_v1.sql",
+      "preserved": true,
+      "before_sha256": "f1bedcadb69b9e2106318bcc6fe32256c42487a64e19af8254d2ae72d0f86a37",
+      "after_sha256": "f1bedcadb69b9e2106318bcc6fe32256c42487a64e19af8254d2ae72d0f86a37"
+    },
+    {
+      "path": "db/migrations/20260917_u3_educator_student_access_v1.sql",
+      "preserved": true,
+      "before_sha256": "13f18117f981fad6a40f0958aefa6562ee5818d7b5e3cc93b6f6d9c6e8428413",
+      "after_sha256": "13f18117f981fad6a40f0958aefa6562ee5818d7b5e3cc93b6f6d9c6e8428413"
+    },
+    {
+      "path": "db/migrations/20260917_u5_assignment_management_v1.sql",
+      "preserved": true,
+      "before_sha256": "9039abf1059a0924bc3cc2c9839b31e61d999c9c62e38e5f074901f21c15a9e9",
+      "after_sha256": "9039abf1059a0924bc3cc2c9839b31e61d999c9c62e38e5f074901f21c15a9e9"
+    },
+    {
+      "path": "db/migrations/20260917_u5_cancelled_assignment_write_barrier_v1.sql",
+      "preserved": true,
+      "before_sha256": "d8b85675718ec70797bfd10b9f84a2c66a9d2e53d1a42f0989558f14688f16c6",
+      "after_sha256": "d8b85675718ec70797bfd10b9f84a2c66a9d2e53d1a42f0989558f14688f16c6"
+    },
+    {
+      "path": "db/migrations/20260918_u8_atomicity_guard_v3.sql",
+      "preserved": true,
+      "before_sha256": "4df1b385598454d53dc154e1e483c8f0663839d9b1c1f41f3d54c923f39152cf",
+      "after_sha256": "4df1b385598454d53dc154e1e483c8f0663839d9b1c1f41f3d54c923f39152cf"
+    },
+    {
+      "path": "db/migrations/20260918_u8_coaching_core_hardening_v2.sql",
+      "preserved": true,
+      "before_sha256": "1c48b8ab348ee1ef8c4ae2366bb03a03340c03690e658a488779ee445d795e1f",
+      "after_sha256": "1c48b8ab348ee1ef8c4ae2366bb03a03340c03690e658a488779ee445d795e1f"
+    },
+    {
+      "path": "db/migrations/20260918_u8_coaching_core_v1.sql",
+      "preserved": true,
+      "before_sha256": "25c9f16ab50956c096cc7943fb619cb8fb6ad88a428556ab9b11308fe4d18f1e",
+      "after_sha256": "25c9f16ab50956c096cc7943fb619cb8fb6ad88a428556ab9b11308fe4d18f1e"
+    },
+    {
+      "path": "db/migrations/20260918_u9_guardian_panel_v1.sql",
+      "preserved": true,
+      "before_sha256": "e9e7d32f5be0d7f6a2bb48163d2e0141d3d2a5d74723e8237a80b302a8e66b56",
+      "after_sha256": "e9e7d32f5be0d7f6a2bb48163d2e0141d3d2a5d74723e8237a80b302a8e66b56"
+    },
+    {
+      "path": "db/migrations/20260921_k3c_engine_provenance_v1.sql",
+      "preserved": true,
+      "before_sha256": "e0bcf261ecf4ee300c2c65e16c66c6d85be9f909eaac4f920cc8179eea399c1a",
+      "after_sha256": "e0bcf261ecf4ee300c2c65e16c66c6d85be9f909eaac4f920cc8179eea399c1a"
+    },
+    {
+      "path": "db/migrations/20260927_f3a_educator_role_enum_v1.sql",
+      "preserved": true,
+      "before_sha256": "0d487c433bca9077c200162463bf95133822f21461f4c92e83864cf750b042d7",
+      "after_sha256": "0d487c433bca9077c200162463bf95133822f21461f4c92e83864cf750b042d7"
+    },
+    {
+      "path": "db/migrations/20260927_f3c3_coaching_read_prerequisites_v1.sql",
+      "preserved": true,
+      "before_sha256": "205b4f3caa135e6d8da58cc5b3ed69e9c4495bb95d883b5c82b9a3a946f4fe73",
+      "after_sha256": "205b4f3caa135e6d8da58cc5b3ed69e9c4495bb95d883b5c82b9a3a946f4fe73"
+    },
+    {
+      "path": "db/migrations/20260928_t1_assessment_observer_provenance_v1.sql",
+      "preserved": true,
+      "before_sha256": "e7a87a456ab55ec5142d2f1b22b3060fd9af15f7f8d6ee72d1e000a95f7fcaa0",
+      "after_sha256": "e7a87a456ab55ec5142d2f1b22b3060fd9af15f7f8d6ee72d1e000a95f7fcaa0"
+    },
+    {
+      "path": "db/migrations/20260929_t2_p2_assessment_definition_contract_v1.sql",
+      "preserved": true,
+      "before_sha256": "fdb305496679ffa344ebd65884a7e4dec25c98f49cc7666ac5a85c7a217b356c",
+      "after_sha256": "fdb305496679ffa344ebd65884a7e4dec25c98f49cc7666ac5a85c7a217b356c"
+    },
+    {
+      "path": "db/migrations/20260929_t3_p2_assessment_session_outbox_v1.sql",
+      "preserved": true,
+      "before_sha256": "e98c12ff13eb9f6abf4d26ad3b5bbbe18120937cb8f33d05f5732788f8f339bc",
+      "after_sha256": "e98c12ff13eb9f6abf4d26ad3b5bbbe18120937cb8f33d05f5732788f8f339bc"
+    },
+    {
+      "path": "db/migrations/20260929_t4_p2_server_evaluator_v1.sql",
+      "preserved": true,
+      "before_sha256": "4ffa654decfc52b1ab8dbc75d5ff5e67c01d612de90444d6f88ce8fcc01266e7",
+      "after_sha256": "4ffa654decfc52b1ab8dbc75d5ff5e67c01d612de90444d6f88ce8fcc01266e7"
+    },
+    {
+      "path": "db/migrations/20261005_canonical_learning_student_session_binding_v1.sql",
+      "preserved": true,
+      "before_sha256": "27ed5e574fcd063ce70f99282b5feed6740f9edffcf580f03901fcfaaf3849fe",
+      "after_sha256": "27ed5e574fcd063ce70f99282b5feed6740f9edffcf580f03901fcfaaf3849fe"
+    },
+    {
+      "path": "db/migrations/20261005_special_education_program_sessions_v1.sql",
+      "preserved": true,
+      "before_sha256": "2678cc3087488816af068ea31b81d48a88e51dc84164a5437cf6477d9cc9d0e6",
+      "after_sha256": "2678cc3087488816af068ea31b81d48a88e51dc84164a5437cf6477d9cc9d0e6"
+    },
+    {
+      "path": "db/migrations/20261005_special_education_programs_v1.sql",
+      "preserved": true,
+      "before_sha256": "a132a4977e19c01dea7fcffc0f658b195029cf529ca389d78e67caaf7a6efd48",
+      "after_sha256": "a132a4977e19c01dea7fcffc0f658b195029cf529ca389d78e67caaf7a6efd48"
+    },
+    {
+      "path": "db/migrations/20261005_special_education_reassessments_v1.sql",
+      "preserved": true,
+      "before_sha256": "007a3a7ba20c45195d951b1fba648f53c45bcde7d952695e9b9cad5b5d94e3c4",
+      "after_sha256": "007a3a7ba20c45195d951b1fba648f53c45bcde7d952695e9b9cad5b5d94e3c4"
+    },
+    {
+      "path": "db/migrations/20261005_student_package_entitlements_v1.sql",
+      "preserved": true,
+      "before_sha256": "2971917ef2211c18f39453a701d8d9885aab043ee728b1f1b290f732ed7d6227",
+      "after_sha256": "2971917ef2211c18f39453a701d8d9885aab043ee728b1f1b290f732ed7d6227"
+    },
+    {
+      "path": "db/migrations/20261006_attention_focus_module_v1.sql",
+      "preserved": true,
+      "before_sha256": "db7d5cf9653e1253ba896ecb05b0e919eb2bf5de2850171cf16b3927f0ceeacb",
+      "after_sha256": "db7d5cf9653e1253ba896ecb05b0e919eb2bf5de2850171cf16b3927f0ceeacb"
+    },
+    {
+      "path": "db/migrations/20261006_effective_notes_module_v1.sql",
+      "preserved": true,
+      "before_sha256": "81fdb4a23ad13b8b38c3acb08b62ca7891a4a8862a2f96da445706a7a89f143b",
+      "after_sha256": "81fdb4a23ad13b8b38c3acb08b62ca7891a4a8862a2f96da445706a7a89f143b"
+    },
+    {
+      "path": "db/migrations/20261006_full_learning_37_module_v1.sql",
+      "preserved": true,
+      "before_sha256": "9238c1228c7fc6c5de2af6b75ea8aab8697476d7e1d7e660ab564d457944c5f7",
+      "after_sha256": "9238c1228c7fc6c5de2af6b75ea8aab8697476d7e1d7e660ab564d457944c5f7"
+    },
+    {
+      "path": "db/migrations/20261006_intelligence_games_module_v1.sql",
+      "preserved": true,
+      "before_sha256": "17ed9bbc97213779591b07e23073c26865fca2ea83cda4a05bb33d46d6848e93",
+      "after_sha256": "17ed9bbc97213779591b07e23073c26865fca2ea83cda4a05bb33d46d6848e93"
+    },
+    {
+      "path": "db/migrations/20261006_memory_module_v1.sql",
+      "preserved": true,
+      "before_sha256": "38849c04a5d570065256494fb2e1efec085f7856b764daaa21c12efc382be119",
+      "after_sha256": "38849c04a5d570065256494fb2e1efec085f7856b764daaa21c12efc382be119"
+    },
+    {
+      "path": "db/migrations/20261006_mind_maps_module_v1.sql",
+      "preserved": true,
+      "before_sha256": "f8318fb9bccab49eb8a7e2e5414b54bd9be9f470b2fdf5bbeee56bed6bdf1c68",
+      "after_sha256": "f8318fb9bccab49eb8a7e2e5414b54bd9be9f470b2fdf5bbeee56bed6bdf1c68"
+    },
+    {
+      "path": "db/migrations/20261006_speed_reading_module_v1.sql",
+      "preserved": true,
+      "before_sha256": "a97301b78eee54b91bd36edc836aa5931459137758baebabcaa556797cda586f",
+      "after_sha256": "a97301b78eee54b91bd36edc836aa5931459137758baebabcaa556797cda586f"
+    },
+    {
+      "path": "db/migrations/20261008_t5_pre_enroll_active_identity_staging.sql",
+      "preserved": true,
+      "before_sha256": "c6050d70d22ca2b82e10f1c1ace26904af2dec153c8d9ea8422fec5236053734",
+      "after_sha256": "c6050d70d22ca2b82e10f1c1ace26904af2dec153c8d9ea8422fec5236053734"
+    },
+    {
+      "path": "public/cza-degerlendirme/app.js",
+      "preserved": true,
+      "before_sha256": "f13ae9edde01ae235e18e5edf3f693655f9010bcb6fc613a48b848c02d275a3c",
+      "after_sha256": "f13ae9edde01ae235e18e5edf3f693655f9010bcb6fc613a48b848c02d275a3c"
+    },
+    {
+      "path": "public/cza-degerlendirme/central-special-sync.js",
+      "preserved": false,
+      "before_sha256": "5affe5919f34b00621ff2a34400a17fd10178315171864b190805601ab1d8c54",
+      "after_sha256": "1e4c2d6b6e9c1dd1b573cb677260860ffba2e65487d2798448789b1661fd17d6"
+    },
+    {
+      "path": "public/cza-degerlendirme/dyslexia-advanced.js",
+      "preserved": true,
+      "before_sha256": "457f7fd5d92ad749b1a7bacbe29c09e6c16e52681fe6b284e52a3bd79024eecd",
+      "after_sha256": "457f7fd5d92ad749b1a7bacbe29c09e6c16e52681fe6b284e52a3bd79024eecd"
+    },
+    {
+      "path": "public/cza-degerlendirme/dyslexia-letter-sound.js",
+      "preserved": true,
+      "before_sha256": "84c4d8e055e033961b64c96558a87f75dc0279a4d7ed3e257d0966ee6229f4e4",
+      "after_sha256": "84c4d8e055e033961b64c96558a87f75dc0279a4d7ed3e257d0966ee6229f4e4"
+    },
+    {
+      "path": "public/cza-degerlendirme/index.html",
+      "preserved": true,
+      "before_sha256": "2e1a8d3b1565b572c7bb1dfb0c30397fd295359e4e66ad228d1eaf6c96f438e9",
+      "after_sha256": "2e1a8d3b1565b572c7bb1dfb0c30397fd295359e4e66ad228d1eaf6c96f438e9"
+    },
+    {
+      "path": "public/cza-degerlendirme/mobile-premium.css",
+      "preserved": true,
+      "before_sha256": "1ed68c86b4e77acc383d5eed46ee689369989751a7b524babdd4fa66dfba82c0",
+      "after_sha256": "1ed68c86b4e77acc383d5eed46ee689369989751a7b524babdd4fa66dfba82c0"
+    },
+    {
+      "path": "public/cza-degerlendirme/special-profiles.js",
+      "preserved": true,
+      "before_sha256": "9ae01db90e6844ba3951d42c0fa211e2eeaa20425f0939910f5ec567220c4724",
+      "after_sha256": "9ae01db90e6844ba3951d42c0fa211e2eeaa20425f0939910f5ec567220c4724"
+    },
+    {
+      "path": "public/cza-degerlendirme/styles.css",
+      "preserved": true,
+      "before_sha256": "22540bb847a6ff9ff81816ccfd75f5915a2fbf5c531ea7b8bf21e5d65529723f",
+      "after_sha256": "22540bb847a6ff9ff81816ccfd75f5915a2fbf5c531ea7b8bf21e5d65529723f"
+    },
+    {
+      "path": "tests/anzan-engine.test.mjs",
+      "preserved": true,
+      "before_sha256": "af1fa4b042305873b5255b65cab19e9295c664c28e06293e3f4488570723b276",
+      "after_sha256": "af1fa4b042305873b5255b65cab19e9295c664c28e06293e3f4488570723b276"
+    },
+    {
+      "path": "tests/api-guard.test.mjs",
+      "preserved": true,
+      "before_sha256": "90914a2710f8d0abcc1cd233881ea5e1160f789558b371b0bd938f4cddba6235",
+      "after_sha256": "90914a2710f8d0abcc1cd233881ea5e1160f789558b371b0bd938f4cddba6235"
+    },
+    {
+      "path": "tests/approved-hand.test.mjs",
+      "preserved": true,
+      "before_sha256": "ab10242f850e2feacbdab80b9ac591b99dcb0b472e58ba6bf4a2c07159ec56e5",
+      "after_sha256": "ab10242f850e2feacbdab80b9ac591b99dcb0b472e58ba6bf4a2c07159ec56e5"
+    },
+    {
+      "path": "tests/arithmetic-engine.test.mjs",
+      "preserved": true,
+      "before_sha256": "71082b0243b4d063ca2251d3c7c15f0470eb930424e87c5d284ca44d77a81aed",
+      "after_sha256": "71082b0243b4d063ca2251d3c7c15f0470eb930424e87c5d284ca44d77a81aed"
+    },
+    {
+      "path": "tests/assessment-bridge.test.mjs",
+      "preserved": true,
+      "before_sha256": "0f34647b2d7d55e404d3bb17f7ca0f93e7decf2602fbbdd1231e27dadf458c27",
+      "after_sha256": "0f34647b2d7d55e404d3bb17f7ca0f93e7decf2602fbbdd1231e27dadf458c27"
+    },
+    {
+      "path": "tests/assignment-lifecycle-v1.test.mjs",
+      "preserved": true,
+      "before_sha256": "0d0c2d6978f50b64edb70567d77752dc23a0a235eb991868726ef53d0635be11",
+      "after_sha256": "0d0c2d6978f50b64edb70567d77752dc23a0a235eb991868726ef53d0635be11"
+    },
+    {
+      "path": "tests/attention-browser-acceptance.spec.cjs",
+      "preserved": true,
+      "before_sha256": "a0c1481202e5a3745be362b9d755a13d394eea5303f805c73edb488556840adb",
+      "after_sha256": "a0c1481202e5a3745be362b9d755a13d394eea5303f805c73edb488556840adb"
+    },
+    {
+      "path": "tests/attention-browser.e2e.mjs",
+      "preserved": true,
+      "before_sha256": "66d8d82b438122064318e45959aa8c15522996ca5e600d9fadc459d025c795ed",
+      "after_sha256": "66d8d82b438122064318e45959aa8c15522996ca5e600d9fadc459d025c795ed"
+    },
+    {
+      "path": "tests/attention-core.test.mjs",
+      "preserved": true,
+      "before_sha256": "6081da5a803eef216694b227cc91003139f8676b8aea35d36cca467eef4a710f",
+      "after_sha256": "6081da5a803eef216694b227cc91003139f8676b8aea35d36cca467eef4a710f"
+    },
+    {
+      "path": "tests/attention-e2e-server.mjs",
+      "preserved": true,
+      "before_sha256": "385ba67e59f3bdf668182872f9194a2a6d196a088b3ad4573b4a1a3cbf7aea31",
+      "after_sha256": "385ba67e59f3bdf668182872f9194a2a6d196a088b3ad4573b4a1a3cbf7aea31"
+    },
+    {
+      "path": "tests/attention-focus.test.mjs",
+      "preserved": true,
+      "before_sha256": "4a82b8dd5c8b1bb84e946c65697770085b9a2a7cc12eeca1b9cece2e80c1bc73",
+      "after_sha256": "4a82b8dd5c8b1bb84e946c65697770085b9a2a7cc12eeca1b9cece2e80c1bc73"
+    },
+    {
+      "path": "tests/attention-route.test.mjs",
+      "preserved": true,
+      "before_sha256": "f225e7310fb01517a8dac4f13e3bdc0e1f751fd755a572f9b4e282014ec8d5bf",
+      "after_sha256": "f225e7310fb01517a8dac4f13e3bdc0e1f751fd755a572f9b4e282014ec8d5bf"
+    },
+    {
+      "path": "tests/attention-session-server.test.mjs",
+      "preserved": true,
+      "before_sha256": "bd1b03148f0f1a3f53d293e43a1cbf58025b6cbee6cca6d202dba70f2cd6c7c1",
+      "after_sha256": "bd1b03148f0f1a3f53d293e43a1cbf58025b6cbee6cca6d202dba70f2cd6c7c1"
+    },
+    {
+      "path": "tests/book-preparation-browser.e2e.mjs",
+      "preserved": true,
+      "before_sha256": "939cf8b812d54de5cc46167ab6dd9c29fec6a69751d4a2bdb43f6f0eaeaf193c",
+      "after_sha256": "939cf8b812d54de5cc46167ab6dd9c29fec6a69751d4a2bdb43f6f0eaeaf193c"
+    },
+    {
+      "path": "tests/book-preparation-core.test.mjs",
+      "preserved": true,
+      "before_sha256": "02daebfca0fa43d50671e634f25284960066912b258808fb25b0fddb5d0b7bbe",
+      "after_sha256": "02daebfca0fa43d50671e634f25284960066912b258808fb25b0fddb5d0b7bbe"
+    },
+    {
+      "path": "tests/book-preparation-e2e-server.mjs",
+      "preserved": true,
+      "before_sha256": "b6285ca539522007d798472cf836781faeb78cf8b6c63eb1485b50bb46966e8f",
+      "after_sha256": "b6285ca539522007d798472cf836781faeb78cf8b6c63eb1485b50bb46966e8f"
+    },
+    {
+      "path": "tests/book-preparation-preview-auth.test.mjs",
+      "preserved": true,
+      "before_sha256": "760cafddc63358125487a323565d799cbb06ca394bc262d484de4dc33be4d34f",
+      "after_sha256": "760cafddc63358125487a323565d799cbb06ca394bc262d484de4dc33be4d34f"
+    },
+    {
+      "path": "tests/book-preparation-route.test.mjs",
+      "preserved": true,
+      "before_sha256": "a4bae30ecce2fbc2c2eed5f172ed1a3bb7e016872cd60cc18ae3786ad11cc2dd",
+      "after_sha256": "a4bae30ecce2fbc2c2eed5f172ed1a3bb7e016872cd60cc18ae3786ad11cc2dd"
+    },
+    {
+      "path": "tests/book-preparation-session-route.test.mjs",
+      "preserved": true,
+      "before_sha256": "9524ea176dbdee7cfd5f74714cf2d6a80d3476b9f77b86904358801d93aa85be",
+      "after_sha256": "9524ea176dbdee7cfd5f74714cf2d6a80d3476b9f77b86904358801d93aa85be"
+    },
+    {
+      "path": "tests/canonical-learning-persistence.test.mjs",
+      "preserved": true,
+      "before_sha256": "00c70c9c0ae5f939ba6621090aeba8abbbe718d71a63096124bd43d7759f3f1a",
+      "after_sha256": "00c70c9c0ae5f939ba6621090aeba8abbbe718d71a63096124bd43d7759f3f1a"
+    },
+    {
+      "path": "tests/canonical-postgres-behavior.test.mjs",
+      "preserved": true,
+      "before_sha256": "8ff5e4ac446b2373add44dde09bdb2af528fb26e3d2a8c63d31e51e6615ee0ce",
+      "after_sha256": "8ff5e4ac446b2373add44dde09bdb2af528fb26e3d2a8c63d31e51e6615ee0ce"
+    },
+    {
+      "path": "tests/canonical-postgres-concurrency.integration.mjs",
+      "preserved": true,
+      "before_sha256": "10381de4e5e18767433cdfc323e8cca3f72d3137097c5a51c26b19f644af52b9",
+      "after_sha256": "10381de4e5e18767433cdfc323e8cca3f72d3137097c5a51c26b19f644af52b9"
+    },
+    {
+      "path": "tests/canonical-security-hardening.test.mjs",
+      "preserved": true,
+      "before_sha256": "b0199241db2c4213fc40d1bd89184678f63c630cf6fd6baf6f8a91f5bf6fd587",
+      "after_sha256": "b0199241db2c4213fc40d1bd89184678f63c630cf6fd6baf6f8a91f5bf6fd587"
+    },
+    {
+      "path": "tests/central-assessment-intake.test.mjs",
+      "preserved": true,
+      "before_sha256": "916a9dba4f57d2f3f34c76ef2f5c1e78ddae219a99ff383fc02d0def64a30ebc",
+      "after_sha256": "916a9dba4f57d2f3f34c76ef2f5c1e78ddae219a99ff383fc02d0def64a30ebc"
+    },
+    {
+      "path": "tests/central-identity-migration.test.mjs",
+      "preserved": true,
+      "before_sha256": "ea5e06527551c99acc3d153edb8e8924a7b9688c97b0c7de6eaf325ec65fb9a5",
+      "after_sha256": "ea5e06527551c99acc3d153edb8e8924a7b9688c97b0c7de6eaf325ec65fb9a5"
+    },
+    {
+      "path": "tests/core-records.test.mjs",
+      "preserved": true,
+      "before_sha256": "f5ce700971af515850f47f3ffabf3967c5601b7e8d2572400d7a104017330aab",
+      "after_sha256": "f5ce700971af515850f47f3ffabf3967c5601b7e8d2572400d7a104017330aab"
+    },
+    {
+      "path": "tests/cza-v01-pr-secrets-isolation.test.mjs",
+      "preserved": true,
+      "before_sha256": "6c89602808d249e0de6555b3e2e19782dc495635317ad6f2d3d55c5a31207c61",
+      "after_sha256": "6c89602808d249e0de6555b3e2e19782dc495635317ad6f2d3d55c5a31207c61"
+    },
+    {
+      "path": "tests/cza-work-recommendations.test.mjs",
+      "preserved": true,
+      "before_sha256": "2566bc7ae8b4d9d16933a3e9e81f961b39bb87275c080a4256663b079fb12a7c",
+      "after_sha256": "2566bc7ae8b4d9d16933a3e9e81f961b39bb87275c080a4256663b079fb12a7c"
+    },
+    {
+      "path": "tests/e2-browser-acceptance.spec.cjs",
+      "preserved": true,
+      "before_sha256": "b63a4f4a4fdc74a88e3240696f9e1b8476af32361e5f5ed70309a7daadb2f1bb",
+      "after_sha256": "b63a4f4a4fdc74a88e3240696f9e1b8476af32361e5f5ed70309a7daadb2f1bb"
+    },
+    {
+      "path": "tests/e2-central-assessment.test.mjs",
+      "preserved": true,
+      "before_sha256": "168de4600bafd23384bebaa8291a0bf54f020b41021549b2d7d44de26bf02c9b",
+      "after_sha256": "168de4600bafd23384bebaa8291a0bf54f020b41021549b2d7d44de26bf02c9b"
+    },
+    {
+      "path": "tests/e3-assessment-content-v2.test.mjs",
+      "preserved": true,
+      "before_sha256": "1f3124999d65eb074f08474a434d7527a71bbdf08e130ade17bcccb624fde384",
+      "after_sha256": "1f3124999d65eb074f08474a434d7527a71bbdf08e130ade17bcccb624fde384"
+    },
+    {
+      "path": "tests/e3-daily-living-safety-v3.test.mjs",
+      "preserved": true,
+      "before_sha256": "da816624eceaf5fe9b2dfb95f072e55cc328b3cda8a2d3239f97ee77f9a01a39",
+      "after_sha256": "da816624eceaf5fe9b2dfb95f072e55cc328b3cda8a2d3239f97ee77f9a01a39"
+    },
+    {
+      "path": "tests/e3-development-assessment.test.mjs",
+      "preserved": true,
+      "before_sha256": "5f2387ecca6ed0e0860a7b65a95c287ff780cf0428e72ecd0af01a57095c3f4a",
+      "after_sha256": "5f2387ecca6ed0e0860a7b65a95c287ff780cf0428e72ecd0af01a57095c3f4a"
+    },
+    {
+      "path": "tests/e3-early-math-v3.test.mjs",
+      "preserved": true,
+      "before_sha256": "935698d8af654365a2ad49cc22a2fb156f39b28b599161605d85de612fa987c3",
+      "after_sha256": "935698d8af654365a2ad49cc22a2fb156f39b28b599161605d85de612fa987c3"
+    },
+    {
+      "path": "tests/e3-executive-attention-v3.test.mjs",
+      "preserved": true,
+      "before_sha256": "e46da070c4f592f0af77c12beb29f0dda0bb2668907224fdc72b0b635cd41bb6",
+      "after_sha256": "e46da070c4f592f0af77c12beb29f0dda0bb2668907224fdc72b0b635cd41bb6"
+    },
+    {
+      "path": "tests/e3-expressive-language-v3.test.mjs",
+      "preserved": true,
+      "before_sha256": "00722f659776db45b5f23a31f775f1f07ab6f1ed51ef8d7ef596e959970ddfd9",
+      "after_sha256": "00722f659776db45b5f23a31f775f1f07ab6f1ed51ef8d7ef596e959970ddfd9"
+    },
+    {
+      "path": "tests/e3-learning-transfer-v3.test.mjs",
+      "preserved": true,
+      "before_sha256": "927a6e16274ed8fbcce13ad53f9adb0a42894de38fe015907f192e481e13d96c",
+      "after_sha256": "927a6e16274ed8fbcce13ad53f9adb0a42894de38fe015907f192e481e13d96c"
+    },
+    {
+      "path": "tests/e3-memory-v3.test.mjs",
+      "preserved": true,
+      "before_sha256": "c896940e206fd8a463a2c66207b198434beaf2a2b6f7b78accb80fe58d9a12df",
+      "after_sha256": "c896940e206fd8a463a2c66207b198434beaf2a2b6f7b78accb80fe58d9a12df"
+    },
+    {
+      "path": "tests/e3-motor-graphomotor-v3.test.mjs",
+      "preserved": true,
+      "before_sha256": "bdc0332e7b206192f6555c580de6472cd0b7e8466d4c9046e00c7f8bf1b31163",
+      "after_sha256": "bdc0332e7b206192f6555c580de6472cd0b7e8466d4c9046e00c7f8bf1b31163"
+    },
+    {
+      "path": "tests/e3-receptive-language-v3.test.mjs",
+      "preserved": true,
+      "before_sha256": "b959c150839448ae4fb7c54aa5c7193ffc98333a85c9eff0ade89de08c12e549",
+      "after_sha256": "b959c150839448ae4fb7c54aa5c7193ffc98333a85c9eff0ade89de08c12e549"
+    },
+    {
+      "path": "tests/e3-social-emotion-v3.test.mjs",
+      "preserved": true,
+      "before_sha256": "1302546925573b8614059353046d1f7ae8c82789e93efa8d8cf1054eec3fdb1a",
+      "after_sha256": "1302546925573b8614059353046d1f7ae8c82789e93efa8d8cf1054eec3fdb1a"
+    },
+    {
+      "path": "tests/e3-visual-concepts-v3.test.mjs",
+      "preserved": true,
+      "before_sha256": "068164ac6d49e939307a7ff64ba5720af0d39938882e887b2d7ee6bc5132e22f",
+      "after_sha256": "068164ac6d49e939307a7ff64ba5720af0d39938882e887b2d7ee6bc5132e22f"
+    },
+    {
+      "path": "tests/educator-assignment-report.test.mjs",
+      "preserved": true,
+      "before_sha256": "d67fa81cbe55a93d2e3f9768318415969d30acca0144e5aa46cee5a2fc5704fb",
+      "after_sha256": "d67fa81cbe55a93d2e3f9768318415969d30acca0144e5aa46cee5a2fc5704fb"
+    },
+    {
+      "path": "tests/educator-auth-client.test.mjs",
+      "preserved": true,
+      "before_sha256": "48afe1441f2723ff09fa854828b2a49a4b311e3762f556dce660ea9d9d43393c",
+      "after_sha256": "48afe1441f2723ff09fa854828b2a49a4b311e3762f556dce660ea9d9d43393c"
+    },
+    {
+      "path": "tests/educator-auth-route.test.mjs",
+      "preserved": true,
+      "before_sha256": "a11c808cc35889410b78daee670f6e3f7030d62906b1197dd09060cbf210bcc3",
+      "after_sha256": "a11c808cc35889410b78daee670f6e3f7030d62906b1197dd09060cbf210bcc3"
+    },
+    {
+      "path": "tests/educator-gate.test.mjs",
+      "preserved": true,
+      "before_sha256": "803d799ad6d2752c13543953f85347ba3fc2c8758c5116993de9a0f8ec95cfe2",
+      "after_sha256": "803d799ad6d2752c13543953f85347ba3fc2c8758c5116993de9a0f8ec95cfe2"
+    },
+    {
+      "path": "tests/educator-proxy-cloudflare.e2e.mjs",
+      "preserved": true,
+      "before_sha256": "5d830fcf9ddca8072c045655155fb1e1a61f7ecd9474cca300ac60a8b6352905",
+      "after_sha256": "5d830fcf9ddca8072c045655155fb1e1a61f7ecd9474cca300ac60a8b6352905"
+    },
+    {
+      "path": "tests/educator-request-security.test.mjs",
+      "preserved": true,
+      "before_sha256": "a3c00674b0f2896443ec8d97126287f2dc1aa3eebc1dc9b8fc29cd1bfed3e8aa",
+      "after_sha256": "a3c00674b0f2896443ec8d97126287f2dc1aa3eebc1dc9b8fc29cd1bfed3e8aa"
+    },
+    {
+      "path": "tests/educator-site-owner-auth.test.mjs",
+      "preserved": true,
+      "before_sha256": "30bab65090e2e415a4ae23831ad86aa0491d56813b635af82dc0754fd70b1288",
+      "after_sha256": "30bab65090e2e415a4ae23831ad86aa0491d56813b635af82dc0754fd70b1288"
+    },
+    {
+      "path": "tests/educator-students.test.mjs",
+      "preserved": true,
+      "before_sha256": "8070f2be02ccffa88478cf76ccf5e54bf44cbcc94def728f729489cb54a8f6a9",
+      "after_sha256": "8070f2be02ccffa88478cf76ccf5e54bf44cbcc94def728f729489cb54a8f6a9"
+    },
+    {
+      "path": "tests/effective-notes-browser-acceptance.spec.cjs",
+      "preserved": true,
+      "before_sha256": "8f7660340d0c2fad893d767510b0d8ea098f4c281f9a27e1247438a384ac5bb4",
+      "after_sha256": "8f7660340d0c2fad893d767510b0d8ea098f4c281f9a27e1247438a384ac5bb4"
+    },
+    {
+      "path": "tests/effective-notes.test.mjs",
+      "preserved": true,
+      "before_sha256": "3f29669b7222c9015ea88330cdb68cabcac0751d80240ea516c68f2d156df394",
+      "after_sha256": "3f29669b7222c9015ea88330cdb68cabcac0751d80240ea516c68f2d156df394"
+    },
+    {
+      "path": "tests/exercise-engine.test.mjs",
+      "preserved": true,
+      "before_sha256": "89022f2c1d1c3706d266d463c10c1267c3f5900e879af30a287bc51d97243e8c",
+      "after_sha256": "89022f2c1d1c3706d266d463c10c1267c3f5900e879af30a287bc51d97243e8c"
+    },
+    {
+      "path": "tests/f3a-educator-role-enum-postgres.test.mjs",
+      "preserved": true,
+      "before_sha256": "bdb9d605cc0fb5a0775e3596f62a056ca643c1e05e07f9c860ff09b9a1956932",
+      "after_sha256": "bdb9d605cc0fb5a0775e3596f62a056ca643c1e05e07f9c860ff09b9a1956932"
+    },
+    {
+      "path": "tests/f3c1-educator-analytics-enum.test.mjs",
+      "preserved": true,
+      "before_sha256": "7dd2ab88d11e3d2831fc1f243dfc2b769b1803038ca6027ce86e61565822a1e7",
+      "after_sha256": "7dd2ab88d11e3d2831fc1f243dfc2b769b1803038ca6027ce86e61565822a1e7"
+    },
+    {
+      "path": "tests/f3c2-learning-profile-decoupling.test.mjs",
+      "preserved": true,
+      "before_sha256": "8258d568272e352bfe2010bc24e65571e298fc460c5823d32c9654f63471bcf1",
+      "after_sha256": "8258d568272e352bfe2010bc24e65571e298fc460c5823d32c9654f63471bcf1"
+    },
+    {
+      "path": "tests/f3c3-coaching-read-compat.test.mjs",
+      "preserved": true,
+      "before_sha256": "768cc889e121a72588dbc051a09674b90b2f50a3bd5a73af0dd45160a05236f7",
+      "after_sha256": "768cc889e121a72588dbc051a09674b90b2f50a3bd5a73af0dd45160a05236f7"
+    },
+    {
+      "path": "tests/f4-login-form-browser.test.mjs",
+      "preserved": true,
+      "before_sha256": "d39b44e64a5f8ab5dc8e9cdd583308156a4b90fc21817a0d7eaca3ce66b10457",
+      "after_sha256": "d39b44e64a5f8ab5dc8e9cdd583308156a4b90fc21817a0d7eaca3ce66b10457"
+    },
+    {
+      "path": "tests/f4-login-workers-runtime.test.mjs",
+      "preserved": true,
+      "before_sha256": "340ef2f2b8e82f8d0953887a572cb54574cfb28bc710c873fbed4a9793f60411",
+      "after_sha256": "340ef2f2b8e82f8d0953887a572cb54574cfb28bc710c873fbed4a9793f60411"
+    },
+    {
+      "path": "tests/f4-neon-educator-ingress.test.mjs",
+      "preserved": true,
+      "before_sha256": "87ef0e9d97a30a9906acded559fec51d6b9819342c1d08830b4c545d8c895be3",
+      "after_sha256": "87ef0e9d97a30a9906acded559fec51d6b9819342c1d08830b4c545d8c895be3"
+    },
+    {
+      "path": "tests/f4-selected-student-reclick.test.mjs",
+      "preserved": true,
+      "before_sha256": "261bbcd80c9986b29e9181d12cdef635519547f52cb42d5a610d083963c79964",
+      "after_sha256": "261bbcd80c9986b29e9181d12cdef635519547f52cb42d5a610d083963c79964"
+    },
+    {
+      "path": "tests/fast-reading-browser.e2e.mjs",
+      "preserved": true,
+      "before_sha256": "37290294a7c3a5e0a3d3a89de160664d70c70e027800d28b9b763239cac9df0c",
+      "after_sha256": "37290294a7c3a5e0a3d3a89de160664d70c70e027800d28b9b763239cac9df0c"
+    },
+    {
+      "path": "tests/fast-reading-core.test.mjs",
+      "preserved": true,
+      "before_sha256": "244e0ecad96e581c08ea780dcf6dd958f5501615bba30a184ee2de1d7389e77c",
+      "after_sha256": "244e0ecad96e581c08ea780dcf6dd958f5501615bba30a184ee2de1d7389e77c"
+    },
+    {
+      "path": "tests/fast-reading-e2e-server.mjs",
+      "preserved": true,
+      "before_sha256": "c50e8c6b7e460a3d9820c044ef81d740e48da0a74f85a84bff18b1b7cdc03bf5",
+      "after_sha256": "c50e8c6b7e460a3d9820c044ef81d740e48da0a74f85a84bff18b1b7cdc03bf5"
+    },
+    {
+      "path": "tests/fast-reading-session-server.test.mjs",
+      "preserved": true,
+      "before_sha256": "f96f7c308295df944cd52154195844a4c54aa299c1cc4fbf3eb65774f1a80ce9",
+      "after_sha256": "f96f7c308295df944cd52154195844a4c54aa299c1cc4fbf3eb65774f1a80ce9"
+    },
+    {
+      "path": "tests/fast-reading-ui-route-behavior.test.mjs",
+      "preserved": true,
+      "before_sha256": "06d89a3565d38af779aabcea9ac77e75c9be8552ac369687ed7ad98f125ab95e",
+      "after_sha256": "06d89a3565d38af779aabcea9ac77e75c9be8552ac369687ed7ad98f125ab95e"
+    },
+    {
+      "path": "tests/faz3-archival-snapshots.test.mjs",
+      "preserved": true,
+      "before_sha256": "1bd7aad10a9147ad4c1efdf31d540a27dc8d8ef8b19838dea1d2e3a21ba881af",
+      "after_sha256": "1bd7aad10a9147ad4c1efdf31d540a27dc8d8ef8b19838dea1d2e3a21ba881af"
+    },
+    {
+      "path": "tests/faz3-canonical-cross-runtime.test.mjs",
+      "preserved": true,
+      "before_sha256": "0b2a5c7b02929dab5da58302f7c63409dfc5e98e899e0c553b39fdc43fd1cf88",
+      "after_sha256": "0b2a5c7b02929dab5da58302f7c63409dfc5e98e899e0c553b39fdc43fd1cf88"
+    },
+    {
+      "path": "tests/faz3-iac-graph.test.mjs",
+      "preserved": true,
+      "before_sha256": "0c6456dade51e87e842ebb5ae37c630df813e7ca8502d56d164bb99d0df2f5ea",
+      "after_sha256": "0c6456dade51e87e842ebb5ae37c630df813e7ca8502d56d164bb99d0df2f5ea"
+    },
+    {
+      "path": "tests/faz3-native-provider-proof.test.mjs",
+      "preserved": true,
+      "before_sha256": "6aecb620be0e6f996d32db90920d1e1b370d70f5943c76a0214d994f2522764e",
+      "after_sha256": "6aecb620be0e6f996d32db90920d1e1b370d70f5943c76a0214d994f2522764e"
+    },
+    {
+      "path": "tests/faz3-oidc-policy.test.mjs",
+      "preserved": true,
+      "before_sha256": "5539072d39ab874014c6e969b4bcf1f0dc919860d52e0ae755a32e92ff83e075",
+      "after_sha256": "5539072d39ab874014c6e969b4bcf1f0dc919860d52e0ae755a32e92ff83e075"
+    },
+    {
+      "path": "tests/faz3-origin-verifier.behavior.test.mjs",
+      "preserved": true,
+      "before_sha256": "8b6abf90d352d956614baa30c06a0311f4469d0a3b23f5f9927c09eac1f4ae8b",
+      "after_sha256": "8b6abf90d352d956614baa30c06a0311f4469d0a3b23f5f9927c09eac1f4ae8b"
+    },
+    {
+      "path": "tests/faz3-p1-credential-contract.test.mjs",
+      "preserved": true,
+      "before_sha256": "7734005e59c017f0611fd715b477258ef8b06e4b062c59ccd73a71cbd1887375",
+      "after_sha256": "7734005e59c017f0611fd715b477258ef8b06e4b062c59ccd73a71cbd1887375"
+    },
+    {
+      "path": "tests/faz3-p1-neon-pagination.test.mjs",
+      "preserved": true,
+      "before_sha256": "484c43042eef9df997657568bbcab2c44d354e8a976c8b2e52dbd812944bcd72",
+      "after_sha256": "484c43042eef9df997657568bbcab2c44d354e8a976c8b2e52dbd812944bcd72"
+    },
+    {
+      "path": "tests/faz3-p1-neon-step1.test.mjs",
+      "preserved": true,
+      "before_sha256": "b67ff8c5d4ce23378e3a8d316092be22923003c6675acd0b0de61f466c519288",
+      "after_sha256": "b67ff8c5d4ce23378e3a8d316092be22923003c6675acd0b0de61f466c519288"
+    },
+    {
+      "path": "tests/faz3-p1-runtime-foundation.test.mjs",
+      "preserved": true,
+      "before_sha256": "778261fc704f56eb3189409bb9e65eaa1041527d3232db057cada0fff6f6818c",
+      "after_sha256": "778261fc704f56eb3189409bb9e65eaa1041527d3232db057cada0fff6f6818c"
+    },
+    {
+      "path": "tests/faz3-p2-real-staging-evidence.test.mjs",
+      "preserved": true,
+      "before_sha256": "cc2bba17578120854b1a9c52457ec44c14214847652b1355e4ba00e8e426ace6",
+      "after_sha256": "cc2bba17578120854b1a9c52457ec44c14214847652b1355e4ba00e8e426ace6"
+    },
+    {
+      "path": "tests/faz3-p3-staging-acceptance.test.mjs",
+      "preserved": true,
+      "before_sha256": "5afb3c43922ad70a434e2e16612b57573a39e113edb87d9b88fcfe6f58aec31c",
+      "after_sha256": "5afb3c43922ad70a434e2e16612b57573a39e113edb87d9b88fcfe6f58aec31c"
+    },
+    {
+      "path": "tests/faz3-recovery-discovery.test.mjs",
+      "preserved": true,
+      "before_sha256": "8ba55a124135baede739505ce44937c801ff0234f72a7a12f6f6df223281fa40",
+      "after_sha256": "8ba55a124135baede739505ce44937c801ff0234f72a7a12f6f6df223281fa40"
+    },
+    {
+      "path": "tests/faz3-recovery-wal.test.mjs",
+      "preserved": true,
+      "before_sha256": "9c70ad54cf7667aa3ac27adaa828f21a37c46505ec3cec3b8bc2a3a458b4a2e7",
+      "after_sha256": "9c70ad54cf7667aa3ac27adaa828f21a37c46505ec3cec3b8bc2a3a458b4a2e7"
+    },
+    {
+      "path": "tests/faz3-replay-concurrency.test.mjs",
+      "preserved": true,
+      "before_sha256": "f39cdf3bf69689758be98041967a813f37698366ae93b09ecf6c93eff7edb88f",
+      "after_sha256": "f39cdf3bf69689758be98041967a813f37698366ae93b09ecf6c93eff7edb88f"
+    },
+    {
+      "path": "tests/faz3-trust-root-rotation.test.mjs",
+      "preserved": true,
+      "before_sha256": "03b3842f07e0ae758d3f4e98919fb00f2742c28e66a5ddf86145e331d8f7856c",
+      "after_sha256": "03b3842f07e0ae758d3f4e98919fb00f2742c28e66a5ddf86145e331d8f7856c"
+    },
+    {
+      "path": "tests/faz3-worker-bundle.test.mjs",
+      "preserved": true,
+      "before_sha256": "6b85a0e4ce3cec2782452890f365380992d944c019981aad27dc500b951ede42",
+      "after_sha256": "6b85a0e4ce3cec2782452890f365380992d944c019981aad27dc500b951ede42"
+    },
+    {
+      "path": "tests/finger-engine.test.mjs",
+      "preserved": true,
+      "before_sha256": "bbdf0b3ea1b76bed1a21be0c8f66247155019f588f9fd8d35518da93e8ec563f",
+      "after_sha256": "bbdf0b3ea1b76bed1a21be0c8f66247155019f588f9fd8d35518da93e8ec563f"
+    },
+    {
+      "path": "tests/fixtures/faz3-checkpoints/README.md",
+      "preserved": true,
+      "before_sha256": "b71cdc4f417eb7df3e0696ef833dba208f8c5603fff7662b4434e53ce14f0a4a",
+      "after_sha256": "b71cdc4f417eb7df3e0696ef833dba208f8c5603fff7662b4434e53ce14f0a4a"
+    },
+    {
+      "path": "tests/fixtures/faz3-checkpoints/p2-caller.yml",
+      "preserved": true,
+      "before_sha256": "4733a4ecbf8873202f2cef6fd05d8f9f0cb31e4deaaacf6c4808c8765fe76a82",
+      "after_sha256": "4733a4ecbf8873202f2cef6fd05d8f9f0cb31e4deaaacf6c4808c8765fe76a82"
+    },
+    {
+      "path": "tests/fixtures/faz3-checkpoints/p2-reusable.yml",
+      "preserved": true,
+      "before_sha256": "e6bd8f1b24307521f3b9d89bd89c6056f6792d61600eae8e748b39a26ec95c05",
+      "after_sha256": "e6bd8f1b24307521f3b9d89bd89c6056f6792d61600eae8e748b39a26ec95c05"
+    },
+    {
+      "path": "tests/fixtures/faz3-checkpoints/p3-ledger.sql",
+      "preserved": true,
+      "before_sha256": "0cba90def4fb7398167443d37adb415f62b94b16681fc3fad3377e2d82273e53",
+      "after_sha256": "0cba90def4fb7398167443d37adb415f62b94b16681fc3fad3377e2d82273e53"
+    },
+    {
+      "path": "tests/fixtures/faz3-checkpoints/p3-prerequisites.sql",
+      "preserved": true,
+      "before_sha256": "f9fd6ec39f565b31c868813517b90674c8a01352f32de5314364138319cf248f",
+      "after_sha256": "f9fd6ec39f565b31c868813517b90674c8a01352f32de5314364138319cf248f"
+    },
+    {
+      "path": "tests/fixtures/faz3-checkpoints/sources.json",
+      "preserved": true,
+      "before_sha256": "2481a46d8db2225a0bbef6c736c74be55acb44c65ed4ec8ec5e537ad5f5fbb9f",
+      "after_sha256": "2481a46d8db2225a0bbef6c736c74be55acb44c65ed4ec8ec5e537ad5f5fbb9f"
+    },
+    {
+      "path": "tests/full-learning-37-browser-acceptance.spec.cjs",
+      "preserved": true,
+      "before_sha256": "a595954e54db88045ad4d74fac7117302a44934a25a04bfabb32719ce5c95cdd",
+      "after_sha256": "a595954e54db88045ad4d74fac7117302a44934a25a04bfabb32719ce5c95cdd"
+    },
+    {
+      "path": "tests/full-learning-37.test.mjs",
+      "preserved": true,
+      "before_sha256": "16bd7cdfc5c858e13ab5a897fbed2a434d1b84fc200d99e3f2ab5db638d3ec28",
+      "after_sha256": "16bd7cdfc5c858e13ab5a897fbed2a434d1b84fc200d99e3f2ab5db638d3ec28"
+    },
+    {
+      "path": "tests/helpers/f4-auth-response-evidence.mjs",
+      "preserved": true,
+      "before_sha256": "6cd5fc86d198f3d0f689614cbf8d91fba790c8034ac9fc64a3efe8b11c0e5c31",
+      "after_sha256": "6cd5fc86d198f3d0f689614cbf8d91fba790c8034ac9fc64a3efe8b11c0e5c31"
+    },
+    {
+      "path": "tests/intelligence-games-browser-acceptance.spec.cjs",
+      "preserved": true,
+      "before_sha256": "d2c6ea14f9939d203fc2b16c4d34056d87a369c75f6c47e4c0f27d7f3290dff0",
+      "after_sha256": "d2c6ea14f9939d203fc2b16c4d34056d87a369c75f6c47e4c0f27d7f3290dff0"
+    },
+    {
+      "path": "tests/intelligence-games.test.mjs",
+      "preserved": true,
+      "before_sha256": "50929236f2b8cde24021137bde6e39da71437b518289409f6a241f221a42e8fb",
+      "after_sha256": "50929236f2b8cde24021137bde6e39da71437b518289409f6a241f221a42e8fb"
+    },
+    {
+      "path": "tests/isolated-qa-educator-auth.test.mjs",
+      "preserved": true,
+      "before_sha256": "9da9ef5383fa6326f89817be8d549097e40344e7d30601a79a34018d14b18390",
+      "after_sha256": "9da9ef5383fa6326f89817be8d549097e40344e7d30601a79a34018d14b18390"
+    },
+    {
+      "path": "tests/k3a-engine-characterization.test.mjs",
+      "preserved": true,
+      "before_sha256": "7fb20f38681e5e976433df67f110c14340ff31e83219423b4e77f8ae1515ace2",
+      "after_sha256": "7fb20f38681e5e976433df67f110c14340ff31e83219423b4e77f8ae1515ace2"
+    },
+    {
+      "path": "tests/k3a-studio-browser.e2e.mjs",
+      "preserved": true,
+      "before_sha256": "f6aed3eb6be8906748ef91b63155fa21dcd56707cf43ec32bfc414b598e47dc1",
+      "after_sha256": "f6aed3eb6be8906748ef91b63155fa21dcd56707cf43ec32bfc414b598e47dc1"
+    },
+    {
+      "path": "tests/k3a-studio-e2e-server.mjs",
+      "preserved": true,
+      "before_sha256": "d46ff1d0244a274dd118bb74845e5564ce3fb68f54639dd44b58357015dfe6a9",
+      "after_sha256": "d46ff1d0244a274dd118bb74845e5564ce3fb68f54639dd44b58357015dfe6a9"
+    },
+    {
+      "path": "tests/k3a-studio-harness-security.test.mjs",
+      "preserved": true,
+      "before_sha256": "92a4f7043cdae8381aa11ec391ed4a78b94ca75d512da45194731dc03231835b",
+      "after_sha256": "92a4f7043cdae8381aa11ec391ed4a78b94ca75d512da45194731dc03231835b"
+    },
+    {
+      "path": "tests/k3a-studio-harness.mjs",
+      "preserved": true,
+      "before_sha256": "7bba4e024fabaa9c5cdb5e57a83da5d63ab33b1dc57987c45db399a600714a9f",
+      "after_sha256": "7bba4e024fabaa9c5cdb5e57a83da5d63ab33b1dc57987c45db399a600714a9f"
+    },
+    {
+      "path": "tests/k3b-engine-registry.test.mjs",
+      "preserved": true,
+      "before_sha256": "e9e63157c88eafc0facfce78baab5bc340fa56964253ccff0a46fd71dc64a636",
+      "after_sha256": "e9e63157c88eafc0facfce78baab5bc340fa56964253ccff0a46fd71dc64a636"
+    },
+    {
+      "path": "tests/k3c-engine-provenance.test.mjs",
+      "preserved": true,
+      "before_sha256": "5b7faa59b43ef532a468aec8ffa9cf69ac0dbf820b7555bfa5b8d2b9ed755b57",
+      "after_sha256": "5b7faa59b43ef532a468aec8ffa9cf69ac0dbf820b7555bfa5b8d2b9ed755b57"
+    },
+    {
+      "path": "tests/k3d-exercise-player.test.mjs",
+      "preserved": true,
+      "before_sha256": "c7ccf6c9404adbab436c62868fbebe562bd84d5f752b50137b221506029a1a47",
+      "after_sha256": "c7ccf6c9404adbab436c62868fbebe562bd84d5f752b50137b221506029a1a47"
+    },
+    {
+      "path": "tests/k3d-studio-browser.e2e.mjs",
+      "preserved": true,
+      "before_sha256": "f09c1bd12d34ef73e19d07b8b06664bc75adc4886bad3cb86ac41b9d9f8a5429",
+      "after_sha256": "f09c1bd12d34ef73e19d07b8b06664bc75adc4886bad3cb86ac41b9d9f8a5429"
+    },
+    {
+      "path": "tests/k3e-assigned-lifecycle.test.mjs",
+      "preserved": true,
+      "before_sha256": "9267ffb17ecb7b48359ae4c7d4c99de7b01fdb8325fd0b5b538277e352250256",
+      "after_sha256": "9267ffb17ecb7b48359ae4c7d4c99de7b01fdb8325fd0b5b538277e352250256"
+    },
+    {
+      "path": "tests/k3e-core-bypass-bridge.test.mjs",
+      "preserved": true,
+      "before_sha256": "6fb1d343108d97dcf97681e0a3a1610204a4f0c1f1d700c198b9246b25a38f66",
+      "after_sha256": "6fb1d343108d97dcf97681e0a3a1610204a4f0c1f1d700c198b9246b25a38f66"
+    },
+    {
+      "path": "tests/k3e-core-staging-vercel-runtime.test.mjs",
+      "preserved": true,
+      "before_sha256": "eb0d30a0998c387d5465961e4e33de9f1bcd6433632dc07095106731ecd220dc",
+      "after_sha256": "eb0d30a0998c387d5465961e4e33de9f1bcd6433632dc07095106731ecd220dc"
+    },
+    {
+      "path": "tests/k3e-core-staging.test.mjs",
+      "preserved": true,
+      "before_sha256": "df968ea39f41b37646e0316c708fb0c07ebb73e3938ced84990169d39b5ac4ff",
+      "after_sha256": "df968ea39f41b37646e0316c708fb0c07ebb73e3938ced84990169d39b5ac4ff"
+    },
+    {
+      "path": "tests/k3e-staging-diagnostics.test.mjs",
+      "preserved": true,
+      "before_sha256": "a4741ded61d410b7e6fad8d3cd0ba3b593e2b5f305652eaa20692b876142665e",
+      "after_sha256": "a4741ded61d410b7e6fad8d3cd0ba3b593e2b5f305652eaa20692b876142665e"
+    },
+    {
+      "path": "tests/legacy-assessment-import.test.mjs",
+      "preserved": true,
+      "before_sha256": "96e878f677e4f05265df53011ea247f1d3c7cd14cc5554314738d2bf04d49046",
+      "after_sha256": "96e878f677e4f05265df53011ea247f1d3c7cd14cc5554314738d2bf04d49046"
+    },
+    {
+      "path": "tests/legacy-handoff.test.mjs",
+      "preserved": true,
+      "before_sha256": "59365f660ec14412dde0f194af12bff272dce3865e6f1c168fb88e4d22061c08",
+      "after_sha256": "59365f660ec14412dde0f194af12bff272dce3865e6f1c168fb88e4d22061c08"
+    },
+    {
+      "path": "tests/memory-browser-acceptance.spec.cjs",
+      "preserved": true,
+      "before_sha256": "3c46a8d65092b2d4d1c4547a3620477ac3745b3c434dbbea36723e6ea1d68943",
+      "after_sha256": "3c46a8d65092b2d4d1c4547a3620477ac3745b3c434dbbea36723e6ea1d68943"
+    },
+    {
+      "path": "tests/memory-techniques.test.mjs",
+      "preserved": true,
+      "before_sha256": "1bf8ce69d819d2008b630b33c6825289e7dd677360981622e174f9bf6e0f03fc",
+      "after_sha256": "1bf8ce69d819d2008b630b33c6825289e7dd677360981622e174f9bf6e0f03fc"
+    },
+    {
+      "path": "tests/mind-maps-browser-acceptance.spec.cjs",
+      "preserved": true,
+      "before_sha256": "ab35c96741f2acdc29879d1e3053bbcdd47eea23cb926e7ca0347413fedf0edd",
+      "after_sha256": "ab35c96741f2acdc29879d1e3053bbcdd47eea23cb926e7ca0347413fedf0edd"
+    },
+    {
+      "path": "tests/mind-maps.test.mjs",
+      "preserved": true,
+      "before_sha256": "55461ce594d4945dbdee7400c2a24947b37ba78ddd9b1c025eb51962a3b22275",
+      "after_sha256": "55461ce594d4945dbdee7400c2a24947b37ba78ddd9b1c025eb51962a3b22275"
+    },
+    {
+      "path": "tests/navigation.test.mjs",
+      "preserved": true,
+      "before_sha256": "e645e9da3d99acd46b45b79117ed9b73e1d06fcf4af4ca002a5dda75098aacfb",
+      "after_sha256": "e645e9da3d99acd46b45b79117ed9b73e1d06fcf4af4ca002a5dda75098aacfb"
+    },
+    {
+      "path": "tests/p2-full-assessment-contract.test.mjs",
+      "preserved": true,
+      "before_sha256": "c67de993273ad48e6f9ab81e41e95e6712aa7363b5f9df3dc3150650584e79cf",
+      "after_sha256": "c67de993273ad48e6f9ab81e41e95e6712aa7363b5f9df3dc3150650584e79cf"
+    },
+    {
+      "path": "tests/p2-restoration-browser-acceptance.spec.cjs",
+      "preserved": true,
+      "before_sha256": "710615e2f6864fb10a2b514132b5edbab41e3f348de185cbe8ca532b78202ef7",
+      "after_sha256": "710615e2f6864fb10a2b514132b5edbab41e3f348de185cbe8ca532b78202ef7"
+    },
+    {
+      "path": "tests/package-catalog.test.mjs",
+      "preserved": true,
+      "before_sha256": "a2dcf1a4b3e50df0dc4bf2ea9b5166599ef34d9928312cb5c9c4bbc06f2cbb8e",
+      "after_sha256": "a2dcf1a4b3e50df0dc4bf2ea9b5166599ef34d9928312cb5c9c4bbc06f2cbb8e"
+    },
+    {
+      "path": "tests/package-enrollment-auth.test.mjs",
+      "preserved": true,
+      "before_sha256": "a0b397084130328d2d743a8b49ea205510f8e9d9ef4a030acd64e62e5730885f",
+      "after_sha256": "a0b397084130328d2d743a8b49ea205510f8e9d9ef4a030acd64e62e5730885f"
+    },
+    {
+      "path": "tests/phase2-browser.e2e.mjs",
+      "preserved": true,
+      "before_sha256": "8e5953697030512a2f9c229ce9007da03c899c0af4cb4653c2393870d1612a17",
+      "after_sha256": "8e5953697030512a2f9c229ce9007da03c899c0af4cb4653c2393870d1612a17"
+    },
+    {
+      "path": "tests/phase2-e2e-server.mjs",
+      "preserved": true,
+      "before_sha256": "c604ccccb1537b0138db31dfe0925c1f9bf2ef4ddf3203878bcc3b1cc2e6ca96",
+      "after_sha256": "c604ccccb1537b0138db31dfe0925c1f9bf2ef4ddf3203878bcc3b1cc2e6ca96"
+    },
+    {
+      "path": "tests/phase2-integration.test.mjs",
+      "preserved": true,
+      "before_sha256": "61108462de47d79736022778da1b90320c01a31ce4ed686132abe85f7f98fc2d",
+      "after_sha256": "61108462de47d79736022778da1b90320c01a31ce4ed686132abe85f7f98fc2d"
+    },
+    {
+      "path": "tests/phase2-token-security.test.mjs",
+      "preserved": true,
+      "before_sha256": "9d025df8de0a99584c0f3a3d7a4872b8c733b338daddd3703c9080eeae896566",
+      "after_sha256": "9d025df8de0a99584c0f3a3d7a4872b8c733b338daddd3703c9080eeae896566"
+    },
+    {
+      "path": "tests/practice-mode.test.mjs",
+      "preserved": true,
+      "before_sha256": "3c6764aaba5a235172792760c256a8f2cc29d475d90872677218bf6fb0f51c70",
+      "after_sha256": "3c6764aaba5a235172792760c256a8f2cc29d475d90872677218bf6fb0f51c70"
+    },
+    {
+      "path": "tests/qa-proxy-schema.test.mjs",
+      "preserved": true,
+      "before_sha256": "39802ef8d40c8e9aac6fbabef2e55c15aef74cf098f4af77909b2ae60f04a133",
+      "after_sha256": "39802ef8d40c8e9aac6fbabef2e55c15aef74cf098f4af77909b2ae60f04a133"
+    },
+    {
+      "path": "tests/qa-trusted-educator-transport.test.mjs",
+      "preserved": true,
+      "before_sha256": "e84f61e654fadea2af6ab8029bc3b9744d575386b93050fbc300d81c6ee19af7",
+      "after_sha256": "e84f61e654fadea2af6ab8029bc3b9744d575386b93050fbc300d81c6ee19af7"
+    },
+    {
+      "path": "tests/real-assignment-auth-integration.test.mjs",
+      "preserved": true,
+      "before_sha256": "e477ec1ae1643ab437923121c55454bab0108b447c9e59784b2ee5efd10b97a0",
+      "after_sha256": "e477ec1ae1643ab437923121c55454bab0108b447c9e59784b2ee5efd10b97a0"
+    },
+    {
+      "path": "tests/reports-v1.test.mjs",
+      "preserved": true,
+      "before_sha256": "03e1f791079b2bc76b52d776a099ea87b948934d1d5409aa6bc9124db130219d",
+      "after_sha256": "03e1f791079b2bc76b52d776a099ea87b948934d1d5409aa6bc9124db130219d"
+    },
+    {
+      "path": "tests/request-guard-account.test.mjs",
+      "preserved": true,
+      "before_sha256": "3ac5fc5f0f95656bba97a27c6772d0697ede59fa7283b3220d2258ffac4b886e",
+      "after_sha256": "3ac5fc5f0f95656bba97a27c6772d0697ede59fa7283b3220d2258ffac4b886e"
+    },
+    {
+      "path": "tests/security-ci-hardening.test.mjs",
+      "preserved": true,
+      "before_sha256": "c4d8ded4a00eff89608a9e05c30823a864d1a69775c54e11d755442871ab95bf",
+      "after_sha256": "c4d8ded4a00eff89608a9e05c30823a864d1a69775c54e11d755442871ab95bf"
+    },
+    {
+      "path": "tests/sites-canonical-binding.test.mjs",
+      "preserved": true,
+      "before_sha256": "28b97f6b9c0e339694244d7f85f0db5c21b4d48d075bb272c27b5ce135ca292a",
+      "after_sha256": "28b97f6b9c0e339694244d7f85f0db5c21b4d48d075bb272c27b5ce135ca292a"
+    },
+    {
+      "path": "tests/soroban-curriculum.test.mjs",
+      "preserved": true,
+      "before_sha256": "107620eaca518147192e315e79661f099232106cf5d8b4e0f1c6191315f37810",
+      "after_sha256": "107620eaca518147192e315e79661f099232106cf5d8b4e0f1c6191315f37810"
+    },
+    {
+      "path": "tests/special-assessment-contract.test.mjs",
+      "preserved": true,
+      "before_sha256": "9b2a661983f5413eeec9cd549a60bc957084bb75cfd6495e41c24d692771dc5b",
+      "after_sha256": "9b2a661983f5413eeec9cd549a60bc957084bb75cfd6495e41c24d692771dc5b"
+    },
+    {
+      "path": "tests/special-daily-work-auth.test.mjs",
+      "preserved": true,
+      "before_sha256": "065a5e7419957f16450abfe40f3e60ddf1fe81486e295384c85f3b35f70fcbff",
+      "after_sha256": "065a5e7419957f16450abfe40f3e60ddf1fe81486e295384c85f3b35f70fcbff"
+    },
+    {
+      "path": "tests/special-daily-work.test.mjs",
+      "preserved": true,
+      "before_sha256": "cc406a620e39fcc0e98f2c2a61ee1599d71b66556c9b86aa40750bad761950bf",
+      "after_sha256": "cc406a620e39fcc0e98f2c2a61ee1599d71b66556c9b86aa40750bad761950bf"
+    },
+    {
+      "path": "tests/special-education-browser-acceptance.spec.cjs",
+      "preserved": true,
+      "before_sha256": "71d7339862afbb9cea27e2f0b47f91a7d4de1c696b66823119edf38bcb52c5bb",
+      "after_sha256": "71d7339862afbb9cea27e2f0b47f91a7d4de1c696b66823119edf38bcb52c5bb"
+    },
+    {
+      "path": "tests/special-education-program-auth.test.mjs",
+      "preserved": true,
+      "before_sha256": "c9c2a2de6a38bb5bc56ddb31ef78b9462095a40661a6c6455f53833d5aabb5b8",
+      "after_sha256": "c9c2a2de6a38bb5bc56ddb31ef78b9462095a40661a6c6455f53833d5aabb5b8"
+    },
+    {
+      "path": "tests/special-education-program.test.mjs",
+      "preserved": true,
+      "before_sha256": "8361471612aef8213c5cfaf288142101b605fdc7aa86fbdb843a9f79526e61c7",
+      "after_sha256": "8361471612aef8213c5cfaf288142101b605fdc7aa86fbdb843a9f79526e61c7"
+    },
+    {
+      "path": "tests/special-family-report-auth.test.mjs",
+      "preserved": true,
+      "before_sha256": "89bdc728f436d192f2a09e345e058f118f0256b52c297fb2042c7bd8fe6ae594",
+      "after_sha256": "89bdc728f436d192f2a09e345e058f118f0256b52c297fb2042c7bd8fe6ae594"
+    },
+    {
+      "path": "tests/special-learning-profile.test.mjs",
+      "preserved": true,
+      "before_sha256": "ff15b7dde8df48e5c34fd61bcaed8a1e0fb12ae7de3a25b69b4b29b9b9731bb9",
+      "after_sha256": "ff15b7dde8df48e5c34fd61bcaed8a1e0fb12ae7de3a25b69b4b29b9b9731bb9"
+    },
+    {
+      "path": "tests/special-parent-report.test.mjs",
+      "preserved": true,
+      "before_sha256": "8f644c7e60d2966ccfc7d55cab6f37451a226c294319f83a73af13682d8695c9",
+      "after_sha256": "8f644c7e60d2966ccfc7d55cab6f37451a226c294319f83a73af13682d8695c9"
+    },
+    {
+      "path": "tests/special-reassessment-auth.test.mjs",
+      "preserved": true,
+      "before_sha256": "653e5732433bffcfd78df0cba16098e298d05bc586a763b434bb9d4e808beef7",
+      "after_sha256": "653e5732433bffcfd78df0cba16098e298d05bc586a763b434bb9d4e808beef7"
+    },
+    {
+      "path": "tests/special-reassessment.test.mjs",
+      "preserved": true,
+      "before_sha256": "20bfba0f1855a978b62d82bf1ba620357113d5f71322570e03815576152d7d0f",
+      "after_sha256": "20bfba0f1855a978b62d82bf1ba620357113d5f71322570e03815576152d7d0f"
+    },
+    {
+      "path": "tests/speed-reading-browser-acceptance.spec.cjs",
+      "preserved": true,
+      "before_sha256": "c12111bd34a7e05b3427dc3b9fe15a5dcfdd6011d49cd409553eff1ed9f6761e",
+      "after_sha256": "c12111bd34a7e05b3427dc3b9fe15a5dcfdd6011d49cd409553eff1ed9f6761e"
+    },
+    {
+      "path": "tests/speed-reading.test.mjs",
+      "preserved": true,
+      "before_sha256": "eaab7d6b18c3272cc2774b4b35ef8ee65f065f1650cb873ad3d2164b4cb5e802",
+      "after_sha256": "eaab7d6b18c3272cc2774b4b35ef8ee65f065f1650cb873ad3d2164b4cb5e802"
+    },
+    {
+      "path": "tests/student-history-integration.test.mjs",
+      "preserved": true,
+      "before_sha256": "be6f5caeb067264a3e3ce29d86d83e524f6ba24fb157a23fb80fddf4bf50b2d9",
+      "after_sha256": "be6f5caeb067264a3e3ce29d86d83e524f6ba24fb157a23fb80fddf4bf50b2d9"
+    },
+    {
+      "path": "tests/student-session-cookie-browser.test.mjs",
+      "preserved": true,
+      "before_sha256": "c8d0f0b6fd62d5e101cb43005e1d3a6c62c4a088757fe8d8d2851581e9daa889",
+      "after_sha256": "c8d0f0b6fd62d5e101cb43005e1d3a6c62c4a088757fe8d8d2851581e9daa889"
+    },
+    {
+      "path": "tests/studio-architecture.test.mjs",
+      "preserved": true,
+      "before_sha256": "4669da119afaf056455887c00fd58fd5c44715e602658dc6d833954d4bb1f9d5",
+      "after_sha256": "4669da119afaf056455887c00fd58fd5c44715e602658dc6d833954d4bb1f9d5"
+    },
+    {
+      "path": "tests/t1-assessment-authorization.test.mjs",
+      "preserved": true,
+      "before_sha256": "8c8425f44c8103e76542d44083fcfc442ad0a707fe6b0890ac35bd38892551c3",
+      "after_sha256": "8c8425f44c8103e76542d44083fcfc442ad0a707fe6b0890ac35bd38892551c3"
+    },
+    {
+      "path": "tests/t1-assessment-linked-report.test.mjs",
+      "preserved": true,
+      "before_sha256": "0420bbba561329f5710c8dee3fb52fa9d66d8223a0c9a33a9c6e3270a22ec08b",
+      "after_sha256": "0420bbba561329f5710c8dee3fb52fa9d66d8223a0c9a33a9c6e3270a22ec08b"
+    },
+    {
+      "path": "tests/t1-assessment-observer-provenance.test.mjs",
+      "preserved": true,
+      "before_sha256": "cc0b8adf8cb4a0db2c204f9601224d74d958a01d523142d31d86e67cc3ec9e3c",
+      "after_sha256": "cc0b8adf8cb4a0db2c204f9601224d74d958a01d523142d31d86e67cc3ec9e3c"
+    },
+    {
+      "path": "tests/t2-assessment-definition.test.mjs",
+      "preserved": true,
+      "before_sha256": "6af875b51fe771d782c68f871afc7b605f15cef2a81af283b07b962e3b83ca3d",
+      "after_sha256": "6af875b51fe771d782c68f871afc7b605f15cef2a81af283b07b962e3b83ca3d"
+    },
+    {
+      "path": "tests/t3-p2-session-outbox.test.mjs",
+      "preserved": true,
+      "before_sha256": "b344a63442f846204265ff9eb11d0e77d8c742fd6a758239e2e6e3323092c34b",
+      "after_sha256": "b344a63442f846204265ff9eb11d0e77d8c742fd6a758239e2e6e3323092c34b"
+    },
+    {
+      "path": "tests/t4-p2-server-evaluator.test.mjs",
+      "preserved": true,
+      "before_sha256": "426187e9d15e0261f64c18842f9006089e74022909208f5d26a482d69b17c73e",
+      "after_sha256": "426187e9d15e0261f64c18842f9006089e74022909208f5d26a482d69b17c73e"
+    },
+    {
+      "path": "tests/t5-p2-learning-outcome.test.mjs",
+      "preserved": true,
+      "before_sha256": "e5fe1c373f517686b5c4eae9145587d0198e2492548474f47d327f86e6f9259f",
+      "after_sha256": "e5fe1c373f517686b5c4eae9145587d0198e2492548474f47d327f86e6f9259f"
+    },
+    {
+      "path": "tests/t5-pre-enroll-client-resume.test.mjs",
+      "preserved": true,
+      "before_sha256": "7bf0669e3e8c896dc57242c6c9dc3f0d126e4852b061077462b2b9b334e2ac94",
+      "after_sha256": "7bf0669e3e8c896dc57242c6c9dc3f0d126e4852b061077462b2b9b334e2ac94"
+    },
+    {
+      "path": "tests/t5-pre-enroll-resume.test.mjs",
+      "preserved": true,
+      "before_sha256": "776c827d54107af92df8eff8524bba3f8c08e1aa89a3bdedbccaa13a7e23b70f",
+      "after_sha256": "776c827d54107af92df8eff8524bba3f8c08e1aa89a3bdedbccaa13a7e23b70f"
+    },
+    {
+      "path": "tests/u1-staging-closure.test.mjs",
+      "preserved": true,
+      "before_sha256": "5369644bc76b941e62a2e6a796f8765bf9563eaf3c79a7d22a3ee5ddf13e10f1",
+      "after_sha256": "5369644bc76b941e62a2e6a796f8765bf9563eaf3c79a7d22a3ee5ddf13e10f1"
+    },
+    {
+      "path": "tests/u1-student-panel-postgres.test.mjs",
+      "preserved": true,
+      "before_sha256": "8a0c8a97d26723ab68d95668921e5d872a775afcd55aa8b6221b61d42e473dc1",
+      "after_sha256": "8a0c8a97d26723ab68d95668921e5d872a775afcd55aa8b6221b61d42e473dc1"
+    },
+    {
+      "path": "tests/u1-student-panel.test.mjs",
+      "preserved": true,
+      "before_sha256": "a3ef7574492bcef4209f929a9ebab27014d56f4a56614426595fea643e01a620",
+      "after_sha256": "a3ef7574492bcef4209f929a9ebab27014d56f4a56614426595fea643e01a620"
+    },
+    {
+      "path": "tests/u2-work-center-browser.e2e.mjs",
+      "preserved": true,
+      "before_sha256": "b28cd53721387fff8e8c55aba844ba046aeee5b158235d238a0e8270c17359d6",
+      "after_sha256": "b28cd53721387fff8e8c55aba844ba046aeee5b158235d238a0e8270c17359d6"
+    },
+    {
+      "path": "tests/u2-work-center-e2e-server.mjs",
+      "preserved": true,
+      "before_sha256": "d72ba94cc34eef16abd06e5f47d312e7af7f6122963eac5288230d8868312a3b",
+      "after_sha256": "d72ba94cc34eef16abd06e5f47d312e7af7f6122963eac5288230d8868312a3b"
+    },
+    {
+      "path": "tests/u2-work-center-postgres.test.mjs",
+      "preserved": true,
+      "before_sha256": "5afbb0d7a062e340d50fe28e02a93ae3973c46ffa27089ca5fb38e2641f4d34e",
+      "after_sha256": "5afbb0d7a062e340d50fe28e02a93ae3973c46ffa27089ca5fb38e2641f4d34e"
+    },
+    {
+      "path": "tests/u2-work-center.test.mjs",
+      "preserved": true,
+      "before_sha256": "c9821080ec6927d33e2fe74a95a3eee288d1252c1a42262df8f9b82f33cbee57",
+      "after_sha256": "c9821080ec6927d33e2fe74a95a3eee288d1252c1a42262df8f9b82f33cbee57"
+    },
+    {
+      "path": "tests/u3-canonical-role-auth.test.mjs",
+      "preserved": true,
+      "before_sha256": "7a9804aeafd053ef2b01f05ccf5301ec9140d86ae09e456a168b946dee633045",
+      "after_sha256": "7a9804aeafd053ef2b01f05ccf5301ec9140d86ae09e456a168b946dee633045"
+    },
+    {
+      "path": "tests/u3-educator-browser.e2e.mjs",
+      "preserved": true,
+      "before_sha256": "909a490be283b048f223f4591f3d37559c7925deda05938c62908df9044d8ebc",
+      "after_sha256": "909a490be283b048f223f4591f3d37559c7925deda05938c62908df9044d8ebc"
+    },
+    {
+      "path": "tests/u3-educator-core.test.mjs",
+      "preserved": true,
+      "before_sha256": "4c8baba9ad2435ed5c5adccee5d1c3eced24da18878008b776070a504a81b21c",
+      "after_sha256": "4c8baba9ad2435ed5c5adccee5d1c3eced24da18878008b776070a504a81b21c"
+    },
+    {
+      "path": "tests/u3-educator-e2e-server.mjs",
+      "preserved": true,
+      "before_sha256": "d522aaed7a830d2829c1feec91f85151b1430b6f7f6f36793cc75d0bd8e72be5",
+      "after_sha256": "d522aaed7a830d2829c1feec91f85151b1430b6f7f6f36793cc75d0bd8e72be5"
+    },
+    {
+      "path": "tests/u3-educator-postgres.test.mjs",
+      "preserved": true,
+      "before_sha256": "38e8fb8f3c75deccce87b680bec85e54f38cb207c3ee672b96eedc0b339798a8",
+      "after_sha256": "38e8fb8f3c75deccce87b680bec85e54f38cb207c3ee672b96eedc0b339798a8"
+    },
+    {
+      "path": "tests/u4-learning-timeline-browser.e2e.mjs",
+      "preserved": true,
+      "before_sha256": "4ca4a1cdbd79be4e9d5e93025db52b03f0b11c3a0ae28f5aaeef30deb5a0e49f",
+      "after_sha256": "4ca4a1cdbd79be4e9d5e93025db52b03f0b11c3a0ae28f5aaeef30deb5a0e49f"
+    },
+    {
+      "path": "tests/u4-learning-timeline-e2e-server.mjs",
+      "preserved": true,
+      "before_sha256": "75b8f084f66f5c09251b299fd4bbfef37c540536d6c99abf603e4c52e77656de",
+      "after_sha256": "75b8f084f66f5c09251b299fd4bbfef37c540536d6c99abf603e4c52e77656de"
+    },
+    {
+      "path": "tests/u4-learning-timeline-postgres.test.mjs",
+      "preserved": true,
+      "before_sha256": "90553f6cee8d3a972640cef1a8eef025dcde3b6f6911461a8fa6b9327b6134ac",
+      "after_sha256": "90553f6cee8d3a972640cef1a8eef025dcde3b6f6911461a8fa6b9327b6134ac"
+    },
+    {
+      "path": "tests/u4-learning-timeline.test.mjs",
+      "preserved": true,
+      "before_sha256": "f93402669d330af1a4c20c1050e47a45a1e2205ccea3bfb973bbff512d5abe83",
+      "after_sha256": "f93402669d330af1a4c20c1050e47a45a1e2205ccea3bfb973bbff512d5abe83"
+    },
+    {
+      "path": "tests/u5-assignment-browser.e2e.mjs",
+      "preserved": true,
+      "before_sha256": "b58ba5fc02907c658ddd4893fd743e078b6851adc04a09b408c3c6ad11ccbcd5",
+      "after_sha256": "b58ba5fc02907c658ddd4893fd743e078b6851adc04a09b408c3c6ad11ccbcd5"
+    },
+    {
+      "path": "tests/u5-assignment-management-postgres.test.mjs",
+      "preserved": true,
+      "before_sha256": "9bfdf5dc5a03f4fa638cc6bd03ac54e9722e914637e7774c9bb92f55a4bfa445",
+      "after_sha256": "9bfdf5dc5a03f4fa638cc6bd03ac54e9722e914637e7774c9bb92f55a4bfa445"
+    },
+    {
+      "path": "tests/u5-assignment-management.test.mjs",
+      "preserved": true,
+      "before_sha256": "6b802e1586d37ccc9b9d01e5c8f45559422356b3bf8b24d94ce754d44f57a7f6",
+      "after_sha256": "6b802e1586d37ccc9b9d01e5c8f45559422356b3bf8b24d94ce754d44f57a7f6"
+    },
+    {
+      "path": "tests/u5-assignment-replay-route.test.mjs",
+      "preserved": true,
+      "before_sha256": "060597e5c5ef4dc6e1c497de4e6b447ccc3804364fb854da0a34bc626a136aac",
+      "after_sha256": "060597e5c5ef4dc6e1c497de4e6b447ccc3804364fb854da0a34bc626a136aac"
+    },
+    {
+      "path": "tests/u5-cancel-write-barrier-postgres.test.mjs",
+      "preserved": true,
+      "before_sha256": "c61877f69d963526b601987cae92debe3da528179f5efd6424312a8258c052b3",
+      "after_sha256": "c61877f69d963526b601987cae92debe3da528179f5efd6424312a8258c052b3"
+    },
+    {
+      "path": "tests/u6-educator-analytics.test.mjs",
+      "preserved": true,
+      "before_sha256": "9fc68c8be3aa3cf035accc7630364b746e2a0e08270022a4f66f03576302fa2c",
+      "after_sha256": "9fc68c8be3aa3cf035accc7630364b746e2a0e08270022a4f66f03576302fa2c"
+    },
+    {
+      "path": "tests/u7-learning-profile-browser.e2e.mjs",
+      "preserved": true,
+      "before_sha256": "0564d7969b9d91bbe9d902f2e217dede3d2b05f53b5e8d9e518a199316519b9f",
+      "after_sha256": "0564d7969b9d91bbe9d902f2e217dede3d2b05f53b5e8d9e518a199316519b9f"
+    },
+    {
+      "path": "tests/u7-learning-profile-e2e-server.mjs",
+      "preserved": true,
+      "before_sha256": "b49b8ffd55da45cb05a1bb0113fa9151b7c2e3a8b1bee1ccc89349c2aedfb191",
+      "after_sha256": "b49b8ffd55da45cb05a1bb0113fa9151b7c2e3a8b1bee1ccc89349c2aedfb191"
+    },
+    {
+      "path": "tests/u7-learning-profile-postgres.test.mjs",
+      "preserved": true,
+      "before_sha256": "144814ce77a62884ab09590448b7c26cb71c0fd8ba33cb2c0f3efefa81f02a58",
+      "after_sha256": "144814ce77a62884ab09590448b7c26cb71c0fd8ba33cb2c0f3efefa81f02a58"
+    },
+    {
+      "path": "tests/u7-staging-route-acceptance.mjs",
+      "preserved": true,
+      "before_sha256": "b70a7046783e14b1fb2bfcb8827e717a7493d498677708e80e7d228066f43f77",
+      "after_sha256": "b70a7046783e14b1fb2bfcb8827e717a7493d498677708e80e7d228066f43f77"
+    },
+    {
+      "path": "tests/u7-student-learning-profile.test.mjs",
+      "preserved": true,
+      "before_sha256": "8b5d0b61ef1789159cae8e9a3c10e22fb095c1996a16cf07e44b0ededba15767",
+      "after_sha256": "8b5d0b61ef1789159cae8e9a3c10e22fb095c1996a16cf07e44b0ededba15767"
+    },
+    {
+      "path": "tests/u8-coaching-api-ui.test.mjs",
+      "preserved": true,
+      "before_sha256": "75dc2d8556db4473ec8e30c949c2e185ac5eac43104c1f20fe75126daacc0622",
+      "after_sha256": "75dc2d8556db4473ec8e30c949c2e185ac5eac43104c1f20fe75126daacc0622"
+    },
+    {
+      "path": "tests/u8-coaching-browser.e2e.mjs",
+      "preserved": true,
+      "before_sha256": "836caf49d9e7b4819761aa3865f12a1c9fcfad8f132099d04176c281ef4bc927",
+      "after_sha256": "836caf49d9e7b4819761aa3865f12a1c9fcfad8f132099d04176c281ef4bc927"
+    },
+    {
+      "path": "tests/u8-coaching-core-postgres.test.mjs",
+      "preserved": true,
+      "before_sha256": "dcd258327074067a9a4a6b9d10e93d55a0f7423aabbbe33698767a5ca554e672",
+      "after_sha256": "dcd258327074067a9a4a6b9d10e93d55a0f7423aabbbe33698767a5ca554e672"
+    },
+    {
+      "path": "tests/u8-staging-e2e-server.mjs",
+      "preserved": true,
+      "before_sha256": "95b8eecc2295f8f49e63ffe41a022375575f3505fbe1b1fd9d15311df2f5c332",
+      "after_sha256": "95b8eecc2295f8f49e63ffe41a022375575f3505fbe1b1fd9d15311df2f5c332"
+    },
+    {
+      "path": "tests/u8-staging-e2e.mjs",
+      "preserved": true,
+      "before_sha256": "715bd173ca3cca61d0e3aa7f42db2669520f67155470a45dc1fe26f5b54c67ca",
+      "after_sha256": "715bd173ca3cca61d0e3aa7f42db2669520f67155470a45dc1fe26f5b54c67ca"
+    },
+    {
+      "path": "tests/u9-guardian-api-ui.test.mjs",
+      "preserved": true,
+      "before_sha256": "29644172b824ef2eb8349461cf0546bd554b30dfcfa135a8bbb71ab0de54b1bf",
+      "after_sha256": "29644172b824ef2eb8349461cf0546bd554b30dfcfa135a8bbb71ab0de54b1bf"
+    },
+    {
+      "path": "tests/u9-guardian-browser.e2e.mjs",
+      "preserved": true,
+      "before_sha256": "5400982be50074e1850ff9a2a5740d43a15382e6508bfe4981bea5d9bbee3341",
+      "after_sha256": "5400982be50074e1850ff9a2a5740d43a15382e6508bfe4981bea5d9bbee3341"
+    },
+    {
+      "path": "tests/u9-guardian-core-postgres.test.mjs",
+      "preserved": true,
+      "before_sha256": "a004a0322f9860f125b7d908132a5f10c653308019c29cea974a23ffde9e0add",
+      "after_sha256": "a004a0322f9860f125b7d908132a5f10c653308019c29cea974a23ffde9e0add"
+    },
+    {
+      "path": "tests/u9-staging-e2e-server.mjs",
+      "preserved": true,
+      "before_sha256": "9d457113af3a21d21923a3b9567432ff273171caa3ef90ba1bf4882f6bc07ee0",
+      "after_sha256": "9d457113af3a21d21923a3b9567432ff273171caa3ef90ba1bf4882f6bc07ee0"
+    },
+    {
+      "path": "tests/u9-staging-e2e.mjs",
+      "preserved": true,
+      "before_sha256": "ba4a60bd1968630bfbd32c5db2adf254524d1e1c5552f4ef8992a478fe4906da",
+      "after_sha256": "ba4a60bd1968630bfbd32c5db2adf254524d1e1c5552f4ef8992a478fe4906da"
+    },
+    {
+      "path": "tests/visual-standards.test.mjs",
+      "preserved": true,
+      "before_sha256": "65b75265213ba43f3f7a63045ea00038e3451e8327ba61cac7fdf2fdebe2a1cd",
+      "after_sha256": "65b75265213ba43f3f7a63045ea00038e3451e8327ba61cac7fdf2fdebe2a1cd"
+    },
+    {
+      "path": "tests/work-student-id-integration.test.mjs",
+      "preserved": true,
+      "before_sha256": "db783946cc816a05b793440725fca30a675b6ca076031b304f9f2a4697fd11b4",
+      "after_sha256": "db783946cc816a05b793440725fca30a675b6ca076031b304f9f2a4697fd11b4"
+    },
+    {
+      "path": "tests/zihin-gelisim-browser-integration.spec.cjs",
+      "preserved": true,
+      "before_sha256": "bf72a6da60d6e88d3f77fd05246b9bed2505e015eab38d3cdc23c561f05d1d3b",
+      "after_sha256": "bf72a6da60d6e88d3f77fd05246b9bed2505e015eab38d3cdc23c561f05d1d3b"
+    },
+    {
+      "path": "tests/zihin-gelisim-integration.test.mjs",
+      "preserved": true,
+      "before_sha256": "4c067f43c2816508d3c429a4eff46a28cb705921d74ecb5aa80d144422b154aa",
+      "after_sha256": "4c067f43c2816508d3c429a4eff46a28cb705921d74ecb5aa80d144422b154aa"
+    }
+  ]
+}

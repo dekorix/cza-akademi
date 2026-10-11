@@ -1,0 +1,124 @@
+{
+  "tests": [
+    {
+      "name": "unauthenticated 401",
+      "passed": true,
+      "evidence": {
+        "status": 401
+      }
+    },
+    {
+      "name": "existing V01 answer and observation present",
+      "passed": true,
+      "evidence": {}
+    },
+    {
+      "name": "explicitly eligible existing student",
+      "passed": true,
+      "evidence": {}
+    },
+    {
+      "name": "missing confirmation",
+      "passed": true,
+      "evidence": {
+        "status": 400
+      }
+    },
+    {
+      "name": "cross tenant",
+      "passed": true,
+      "evidence": {
+        "status": 403
+      }
+    },
+    {
+      "name": "foreign origin",
+      "passed": true,
+      "evidence": {
+        "status": 403
+      }
+    },
+    {
+      "name": "forged educator",
+      "passed": true,
+      "evidence": {
+        "status": 401
+      }
+    },
+    {
+      "name": "other creator session",
+      "passed": true,
+      "evidence": {
+        "status": 403
+      }
+    },
+    {
+      "name": "concurrent same target idempotent",
+      "passed": true,
+      "evidence": {}
+    },
+    {
+      "name": "repeat retains original audit",
+      "passed": true,
+      "evidence": {}
+    },
+    {
+      "name": "same metadata and all evidence fingerprints",
+      "passed": true,
+      "evidence": {}
+    },
+    {
+      "name": "old candidate identity resumes linked session",
+      "passed": true,
+      "evidence": {}
+    },
+    {
+      "name": "same Student ID history",
+      "passed": true,
+      "evidence": {}
+    }
+  ],
+  "passed": true,
+  "sessionId": "c0ab8deb-52f4-4b36-b95d-72c392d0c2b0",
+  "studentId": "20000000-0000-4000-8000-000000000001",
+  "before": {
+    "fingerprint": "6570bdf29cdba77973e5a375e3ebfde21eabb2d504815bde6be6da556070bc30",
+    "candidateId": "6503a796-fd73-4079-af96-40cab1528cff",
+    "cycleId": "0d246b71-3a50-40bc-a1d1-c56e067fcae7",
+    "studentId": null,
+    "attempts": 1,
+    "observations": 1
+  },
+  "concurrent": [
+    {
+      "status": 200,
+      "resumed": false,
+      "link": {
+        "session_id": "c0ab8deb-52f4-4b36-b95d-72c392d0c2b0",
+        "student_id": "20000000-0000-4000-8000-000000000001",
+        "educator_id": "17114480-0fbd-4468-ab57-06d559579c07",
+        "academy_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+        "candidate_id": "6503a796-fd73-4079-af96-40cab1528cff",
+        "cycle_id": "0d246b71-3a50-40bc-a1d1-c56e067fcae7",
+        "linked_at": "2026-10-11T04:21:38.334Z"
+      }
+    },
+    {
+      "status": 200,
+      "resumed": true,
+      "link": {
+        "session_id": "c0ab8deb-52f4-4b36-b95d-72c392d0c2b0",
+        "student_id": "20000000-0000-4000-8000-000000000001",
+        "educator_id": "17114480-0fbd-4468-ab57-06d559579c07",
+        "academy_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+        "candidate_id": "6503a796-fd73-4079-af96-40cab1528cff",
+        "cycle_id": "0d246b71-3a50-40bc-a1d1-c56e067fcae7",
+        "linked_at": "2026-10-11T04:21:38.334Z"
+      }
+    }
+  ],
+  "after": {
+    "fingerprint": "6570bdf29cdba77973e5a375e3ebfde21eabb2d504815bde6be6da556070bc30",
+    "studentId": "20000000-0000-4000-8000-000000000001"
+  }
+}

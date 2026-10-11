@@ -1,0 +1,88 @@
+{
+  "identity": {
+    "sessionId": "3db6ac62-aa10-44e5-b4fa-4f99fa599e0d",
+    "candidateId": "8b38bfe7-60d3-4d42-a96c-501c489be547",
+    "cycleId": "e81d8275-9a03-4ad6-8caf-ab9cfd901fb0"
+  },
+  "studentId": "20000000-0000-4000-8000-000000000001",
+  "mobile": false,
+  "mocks": false,
+  "cookieInjection": false,
+  "errors": [],
+  "passed": false,
+  "before": {
+    "sessionId": "3db6ac62-aa10-44e5-b4fa-4f99fa599e0d",
+    "metadata": {
+      "grade": "2. sınıf",
+      "source": "EDUCATOR_PRE_ENROLLMENT",
+      "cycleId": "e81d8275-9a03-4ad6-8caf-ab9cfd901fb0",
+      "version": 1,
+      "concerns": null,
+      "academyId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+      "birthDate": null,
+      "moduleCode": "special_education_assessment",
+      "candidateId": "8b38bfe7-60d3-4d42-a96c-501c489be547",
+      "profileCode": "SP-DYS",
+      "readingStage": "Harf-ses öğreniyor",
+      "diagnosticUse": false,
+      "centralStudentId": null,
+      "campusStudentCode": null,
+      "createdByEducatorId": "99963cb7-f9e6-4c1c-9737-b9893785ba8b"
+    },
+    "attempts": [
+      {
+        "id": "0b4ca998-db78-4739-9902-104290ecdca9",
+        "task_code": "DYS-PH01",
+        "answer_text": "al",
+        "answer_payload": {
+          "area": "Fonolojik İşleme ve Ses Manipülasyonu",
+          "note": "Synthetic QA first response",
+          "flags": [],
+          "phase": "BAĞIMSIZ",
+          "title": "Sesi Çıkar",
+          "choice": null,
+          "source": "EDUCATOR",
+          "verdict": "MATCH",
+          "firstMatch": null,
+          "profileCode": "SP-DYS",
+          "supportLevel": "INDEPENDENT",
+          "schemaVersion": 1
+        },
+        "support_level": 0,
+        "self_corrected": false,
+        "response_latency_ms": 38,
+        "total_response_time_ms": 38,
+        "shown_at": "2026-10-10T20:32:18.182Z",
+        "first_action_at": null,
+        "completed_at": "2026-10-10T20:32:18.145Z",
+        "created_at": "2026-10-10T20:32:18.182Z"
+      }
+    ],
+    "observations": [
+      {
+        "id": "bcb7c5be-3979-4840-83bd-6e3d6fd24a91",
+        "task_code": "DYS-PH01",
+        "observation_codes": [],
+        "educator_note": "Synthetic QA first response",
+        "confidence": null,
+        "created_at": "2026-10-10T20:32:18.221Z"
+      }
+    ]
+  },
+  "failure": "Waiting for selector `#v02StudentSelect` failed",
+  "dom": {
+    "ids": [
+      "app",
+      "backDysOverview",
+      "dysResponse",
+      "dysNote",
+      "dysSkip",
+      "dysNext",
+      "v02StudentLink",
+      "v02Open",
+      "v02Picker",
+      "v02LinkStatus"
+    ],
+    "text": "OKUMA GÜÇLÜĞÜ · ALAN 01\nFonolojik İşleme ve Ses Manipülasyonu\nGörev 2/8\nAlan haritası\nÇOCUKLA UYGULAMA\nBAĞIMSIZ\n02\nSÖZLÜ GÖREV\n“kal” kelimesinin başındaki /k/ sesini /s/ yaparsak yeni kelime ne olur?\n\nBu görevde ekranda harf gösterilmez. Çocuk yanıtını sözlü verir.\n\nİlk yanıtı düzeltmeden kaydet. Çocuğa doğru / yanlış geri bildirimi verme.\nEĞİTİMCİ KANIT PANELİ\nSesi Değiştir\n\nÇocuğun sözcüğü zihninde tutup tek sesi değiştirmesini bekle. Görsel harf kartı kullanma.\n\nÖLÇÜLEN KANIT\nFonem değiştirme · işitsel çalışma belleği\nNötr probe: Gerekirse yönergeyi aynen bir kez daha söyle; hedef sesi uzatma.\nÇocuğun ilk yanıtı\nTEPKİ SÜRESİ\n—\nFAZ\nBAĞIMSIZ\nGÖREV\nDYS-PH02\nYanıt örüntüsü\nHedef yanıtla eşleşti\nKısmi / yaklaşan yanıt\nFarklı örüntü\nYanıt oluşmadı\nDestek düzeyi\nBağımsız\nSözel ipucu\nGörsel / jest ipucu\nModel gösterimi\nFiziksel yardım\nGözlenmedi\nDeğerlendirilemedi\nHata / öğrenme işaretleri\nSes atlama\nSes ekleme\nSes sırası değişti\nBenzer sesi kullandı\nİlk sese takıldı\nHece düzeyinde kaldı\nTahmin etti\nYönergeyi tekrar istedi\nKendini düzeltti\nKısa gözlem notu\nKayıt kuralı: Destek sonrası cevap ilk yanıtı silmez. İlk performans ve destekli performans ayrı kanıttır.\nDeğerlendirilemedi\nKaydet ve sonraki →\nMevcut öğrenciye bağla\n\nYeni öğrenci oluşturulmaz. Bu değerlendirme ve kayıtlı cevapları seçtiğiniz öğrenci dosyasına bağlanır.\n\nYetkili öğrenci listesini aç\n\nBağlama yetkiniz bulunan aktif öğrenci yok."
+  }
+}
