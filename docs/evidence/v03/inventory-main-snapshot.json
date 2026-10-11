@@ -1,0 +1,13 @@
+{
+  "pass": true,
+  "errors": [],
+  "stats": {
+    "intake": 16,
+    "special": 10,
+    "p2Sections": 23,
+    "p2Min": 226,
+    "p2Max": 239,
+    "skills": 14
+  },
+  "kind": "SOURCE_INVENTORY_ONLY_NOT_STAGING_ACCEPTANCE"
+}

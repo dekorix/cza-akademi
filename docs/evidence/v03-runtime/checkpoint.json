@@ -1,0 +1,34 @@
+{
+  "acceptance": "V03_ACCEPTED=NO",
+  "qaSourceCommit": "8abc6bb2ee36e067ef6beb5914188ef549609db0",
+  "qaSourceTree": "16db515305f48e1cfab5dbb7a66385e089321a98",
+  "qaWorkerVersion": "bd9f325d-a6c1-405d-b22e-d70c5c942e13",
+  "qaCiRun": 38132014672,
+  "qaCiConclusion": "success",
+  "followupCodeCommit": "b42b1a9855bc8c7732da42b441ac2082cf6b5cb9",
+  "followupCodeTree": "c3914135a2b72da76acf53940405465355a9f2b8",
+  "followupCiRun": 38132398926,
+  "followupCiConclusion": "success",
+  "followupMigrationApplied": false,
+  "followupSourceDeployed": false,
+  "mainStagingDeploymentsUnchanged": true,
+  "oldStudentSessions": {
+    "rows": 56,
+    "fingerprintBefore": "8b28a12481e6ecf995d9e9e1f5e2b678",
+    "fingerprintAfter": "8b28a12481e6ecf995d9e9e1f5e2b678",
+    "cutoffUtc": "2026-10-11T10:12:23Z"
+  },
+  "runtimeExecute": {
+    "cza_v03_qa_student_login": true,
+    "cza_v03_qa_student_read": true,
+    "cza_touch_authenticated_student": false,
+    "cza_revoke_student_session": false,
+    "cza_student_login": false,
+    "cza_consume_rate_limit": true
+  },
+  "realDesktop": "FAIL: login 200, dashboard 403",
+  "realMobileCompleteFlow": "BLOCKED by same session EXECUTE gap",
+  "realProfileAssignmentRefreshReloginDenialSuite": "BLOCKED pending followup approval/application",
+  "workerByteSourceReadback": "DOĞRULANAMADI: ordinary authenticated Wrangler download failed on Windows Node process; credentials were not retrieved",
+  "educatorAssignmentCreation": "approved canonical QA bootstrap, not educator UI/API create PASS"
+}

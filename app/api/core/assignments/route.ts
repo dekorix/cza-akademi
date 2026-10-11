@@ -1,5 +1,5 @@
 import { isAssignableModule, assignmentLaunchPath } from '@/lib/training-recipes';
-import { neon } from '@neondatabase/serverless';
+import { studentReadSql } from '@/lib/qa-student-read';
 import { authenticatedStudent } from '@/lib/student-session';
 import { allowRequest, rateLimited } from '@/lib/request-guard';
 import {
@@ -78,12 +78,13 @@ function assignmentResponse(row: Record<string, unknown>) {
 }
 
 export async function GET(request: Request) {
+  try {
   const student = await authenticatedStudent(request);
   if (!student) return json({ ok: false, error: 'session_required' }, 401);
   if (!process.env.DATABASE_URL)
     return json({ ok: false, error: 'database_unavailable' }, 503);
 
-  const sql = neon(process.env.DATABASE_URL);
+  const sql = await studentReadSql(request);
   const recipeId =
     new URL(request.url).searchParams.get('recipeId')?.trim() || '';
   if (recipeId && !UUID_PATTERN.test(recipeId))
@@ -209,9 +210,14 @@ export async function GET(request: Request) {
       assignmentResponse(row as Record<string, unknown>),
     ),
   });
+  } catch (error) {
+    return json({ ok: false, error: 'assignment_read_unavailable' },
+      error && typeof error === 'object' && 'code' in error && error.code === '42501' ? 403 : 503);
+  }
 }
 
 export async function POST(request: Request) {
+  try {
   const gate = await allowRequest(
     request,
     'student-assignment-launch',
@@ -239,7 +245,7 @@ export async function POST(request: Request) {
   if (!UUID_PATTERN.test(recipeId))
     return json({ ok: false, error: 'invalid_assignment_id' }, 400);
 
-  const sql = neon(process.env.DATABASE_URL);
+  const sql = await studentReadSql(request);
   const rows = await sql`
     SELECT tr.id, tr.module_code, tr.settings,
            EXISTS (
@@ -283,4 +289,8 @@ export async function POST(request: Request) {
   return json({ ok: true, assignment, launchPath }, 200, {
     'set-cookie': cookie,
   });
+  } catch (error) {
+    return json({ ok: false, error: 'assignment_read_unavailable' },
+      error && typeof error === 'object' && 'code' in error && error.code === '42501' ? 403 : 503);
+  }
 }

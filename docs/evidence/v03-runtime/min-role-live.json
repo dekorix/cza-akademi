@@ -1,0 +1,60 @@
+{
+  "checks": [
+    {
+      "name": "direct students RLS denies",
+      "passed": true
+    },
+    {
+      "name": "direct training_recipes RLS denies",
+      "passed": true
+    },
+    {
+      "name": "invalid session returns empty",
+      "passed": true
+    },
+    {
+      "name": "general cza_touch_authenticated_student EXECUTE closed",
+      "passed": true
+    },
+    {
+      "name": "general cza_revoke_student_session EXECUTE closed",
+      "passed": true
+    },
+    {
+      "name": "table write denied",
+      "passed": true
+    },
+    {
+      "name": "unknown logout idempotent",
+      "passed": true
+    },
+    {
+      "name": "static app.js",
+      "passed": true
+    },
+    {
+      "name": "static central-special-sync.js",
+      "passed": true
+    },
+    {
+      "name": "static dyslexia-advanced.js",
+      "passed": true
+    },
+    {
+      "name": "static dyslexia-letter-sound.js",
+      "passed": true
+    },
+    {
+      "name": "static special-profiles.js",
+      "passed": true
+    }
+  ],
+  "staticFiles": [
+    "app.js",
+    "central-special-sync.js",
+    "dyslexia-advanced.js",
+    "dyslexia-letter-sound.js",
+    "special-profiles.js"
+  ],
+  "passed": true
+}

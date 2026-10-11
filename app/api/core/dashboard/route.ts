@@ -1,4 +1,4 @@
-import { neon } from '@neondatabase/serverless';
+import { studentReadSql, studentReadForbiddenCode } from '@/lib/qa-student-read';
 import { allowRequest, rateLimited } from '@/lib/request-guard';
 import { authenticatedStudent } from '@/lib/student-session';
 import type {
@@ -81,7 +81,7 @@ export async function GET(request: Request) {
       return json({ ok: false, error: 'database_unavailable' }, 503);
     }
 
-    const sql = neon(process.env.DATABASE_URL);
+    const sql = await studentReadSql(request);
     const [profiles, assignments, summary, activity, skills] =
       await Promise.all([
         sql`
@@ -319,7 +319,9 @@ export async function GET(request: Request) {
     };
 
     return json({ ok: true, dashboard });
-  } catch {
+  } catch (error) {
+    if (error && typeof error === 'object' && 'code' in error && error.code === '42501')
+      return json({ ok: false, error: studentReadForbiddenCode(error) }, 403);
     return json({ ok: false, error: 'student_dashboard_unavailable' }, 503);
   }
 }

@@ -24,6 +24,7 @@ function loadRoute(source,{student=null,educator=null,authorized=[],profile={stu
   new Function('require','module','exports','process',transpile(source))(
     id=>{
       if(id.includes('student-session'))return{authenticatedStudent:async()=>student};
+      if(id.includes('qa-student-read'))return{studentReadSql:async()=>({query:async()=>[]})};
       if(id.includes('educator-auth'))return{authenticatedEducator:async()=>educator};
       if(id.includes('request-guard'))return{allowRequest:async()=>({allowed:true})};
       if(id.includes('student-learning-profile'))return{readStudentLearningProfile:async input=>{calls.push(input);return profile;}};

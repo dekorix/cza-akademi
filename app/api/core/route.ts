@@ -1,5 +1,6 @@
 import { isPackageAccessCode } from '@/lib/package-catalog';
 import { neon } from '@neondatabase/serverless';
+import { isolatedQaStudentLogin } from '@/lib/qa-student-read';
 import { allowRequest, rateLimited } from '@/lib/request-guard';
 import {
   reportGuardStage,
@@ -390,6 +391,24 @@ export async function POST(request: Request) {
         return json({ ok: false, error: 'package_schema_unavailable' }, 503);
       }
     }
+  }
+
+  // QA keeps credential verification and session creation in the canonical login.
+  if (action === 'login') {
+    try {
+      const result = await isolatedQaStudentLogin(request, String(input.username), String(input.pin));
+      if (result) {
+        if (result.ok !== true) return respond({ ok: false, error: result.error || 'invalid_credentials' }, 401);
+        const token = typeof result.sessionToken === 'string' ? result.sessionToken : '';
+        if (!token || token.length > 512) return respond({ ok: false, error: 'session_not_created' }, 502);
+        const safeResult = { ...result };
+        delete safeResult.sessionToken;
+        return respond(safeResult, 200, undefined, [
+          sessionCookie(token, 60 * 60 * 8, secureCookie),
+          assessmentSessionCookie(token, 60 * 60 * 8, secureCookie),
+        ]);
+      }
+    } catch { return respond({ ok: false, error: 'qa_login_unavailable' }, 503); }
   }
 
   let coreUrl: string;

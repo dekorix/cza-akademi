@@ -1,0 +1,30 @@
+{
+  "mode": "LOCAL_MOCK_UI_ONLY",
+  "studentId": "20000000-0000-4000-8000-000000000001",
+  "recipeId": "30000000-0000-4000-8000-000000000001",
+  "checks": [
+    {
+      "width": 1440,
+      "height": 900,
+      "routeAndProfile": true,
+      "sameRecipeAfterReload": true,
+      "mock401HidesPanel": true,
+      "sameRecipeAfterMockReentry": true,
+      "horizontalOverflow": false,
+      "pageErrors": 0
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "routeAndProfile": true,
+      "sameRecipeAfterReload": true,
+      "mock401HidesPanel": true,
+      "sameRecipeAfterMockReentry": true,
+      "horizontalOverflow": false,
+      "pageErrors": 0
+    }
+  ],
+  "runtimeAcceptance": "UNVERIFIED",
+  "browser": "Chrome/154.0.8037.57",
+  "passed": true
+}

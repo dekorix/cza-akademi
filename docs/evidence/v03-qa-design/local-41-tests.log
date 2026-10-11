@@ -1,0 +1,256 @@
+TAP version 13
+# Subtest: U1 migration is additive-only
+ok 1 - U1 migration is additive-only
+  ---
+  duration_ms: 0.848539
+  type: 'test'
+  ...
+# Subtest: U1 additive schema is idempotent and preserves cross-student isolation
+ok 2 - U1 additive schema is idempotent and preserves cross-student isolation
+  ---
+  duration_ms: 4378.047881
+  type: 'test'
+  ...
+# Subtest: U1 starts from the authenticated canonical student identity
+ok 3 - U1 starts from the authenticated canonical student identity
+  ---
+  duration_ms: 1.092919
+  type: 'test'
+  ...
+# Subtest: unauthenticated dashboard requests fail closed
+ok 4 - unauthenticated dashboard requests fail closed
+  ---
+  duration_ms: 0.153285
+  type: 'test'
+  ...
+# Subtest: student identity cannot be selected from query or request body
+ok 5 - student identity cannot be selected from query or request body
+  ---
+  duration_ms: 0.225258
+  type: 'test'
+  ...
+# Subtest: profile lookup binds all three canonical identity dimensions
+ok 6 - profile lookup binds all three canonical identity dimensions
+  ---
+  duration_ms: 0.176434
+  type: 'test'
+  ...
+# Subtest: student A cannot read student B assignment queue
+ok 7 - student A cannot read student B assignment queue
+  ---
+  duration_ms: 0.331179
+  type: 'test'
+  ...
+# Subtest: assignment launch remains server-authoritative
+ok 8 - assignment launch remains server-authoritative
+  ---
+  duration_ms: 0.125061
+  type: 'test'
+  ...
+# Subtest: attempt and result persistence bind to the authenticated student
+ok 9 - attempt and result persistence bind to the authenticated student
+  ---
+  duration_ms: 0.123659
+  type: 'test'
+  ...
+# Subtest: error and evidence fields remain part of the persisted learning chain
+ok 10 - error and evidence fields remain part of the persisted learning chain
+  ---
+  duration_ms: 0.178516
+  type: 'test'
+  ...
+# Subtest: history is student-scoped and deterministically ordered
+ok 11 - history is student-scoped and deterministically ordered
+  ---
+  duration_ms: 0.323212
+  type: 'test'
+  ...
+# Subtest: duplicate and failed writes retain atomic fail-closed behavior
+ok 12 - duplicate and failed writes retain atomic fail-closed behavior
+  ---
+  duration_ms: 0.265073
+  type: 'test'
+  ...
+# Subtest: dashboard response uses an explicit safe allowlist
+ok 13 - dashboard response uses an explicit safe allowlist
+  ---
+  duration_ms: 0.448626
+  type: 'test'
+  ...
+# Subtest: demo fixtures cannot be directed to production by U1
+ok 14 - demo fixtures cannot be directed to production by U1
+  ---
+  duration_ms: 1.261354
+  type: 'test'
+  ...
+# Subtest: student auth guard and durable logout are not regressed
+ok 15 - student auth guard and durable logout are not regressed
+  ---
+  duration_ms: 0.16033
+  type: 'test'
+  ...
+# Subtest: root route now renders the real student panel instead of an external redirect
+ok 16 - root route now renders the real student panel instead of an external redirect
+  ---
+  duration_ms: 0.089708
+  type: 'test'
+  ...
+# Subtest: responsive U1 UI exposes all required student destinations
+ok 17 - responsive U1 UI exposes all required student destinations
+  ---
+  duration_ms: 0.115377
+  type: 'test'
+  ...
+# Subtest: U2 migration is additive-only
+ok 18 - U2 migration is additive-only
+  ---
+  duration_ms: 1.087373
+  type: 'test'
+  ...
+# Subtest: U2 assigned work lifecycle is isolated, resumable, idempotent, and atomic
+ok 19 - U2 assigned work lifecycle is isolated, resumable, idempotent, and atomic
+  ---
+  duration_ms: 3394.103783
+  type: 'test'
+  ...
+# Subtest: work center and assignment APIs derive student identity from auth
+ok 20 - work center and assignment APIs derive student identity from auth
+  ---
+  duration_ms: 0.946576
+  type: 'test'
+  ...
+# Subtest: assignment module routing is allowlisted and unsupported modules fail closed
+ok 21 - assignment module routing is allowlisted and unsupported modules fail closed
+  ---
+  duration_ms: 0.244565
+  type: 'test'
+  ...
+# Subtest: assigned session start, resume, attempt, result, and evidence are server-owned
+ok 22 - assigned session start, resume, attempt, result, and evidence are server-owned
+  ---
+  duration_ms: 0.161159
+  type: 'test'
+  ...
+# Subtest: malicious client cannot mint server_verified evidence
+ok 23 - malicious client cannot mint server_verified evidence
+  ---
+  duration_ms: 0.111001
+  type: 'test'
+  ...
+# Subtest: real work center UI presents lifecycle, history, and responsive layout
+ok 24 - real work center UI presents lifecycle, history, and responsive layout
+  ---
+  duration_ms: 0.547523
+  type: 'test'
+  ...
+# Subtest: responses are allowlisted and do not expose secrets
+ok 25 - responses are allowlisted and do not expose secrets
+  ---
+  duration_ms: 1.418093
+  type: 'test'
+  ...
+# Subtest: U7 reuses one canonical read-only profile projection without a parallel store
+ok 26 - U7 reuses one canonical read-only profile projection without a parallel store
+  ---
+  duration_ms: 1.22902
+  type: 'test'
+  ...
+# Subtest: student identity is session-owned and forged student id is ignored
+ok 27 - student identity is session-owned and forged student id is ignored
+  ---
+  duration_ms: 185.00619
+  type: 'test'
+  ...
+# Subtest: educator learning profile requires canonical educator role, academy and can_view link
+ok 28 - educator learning profile requires canonical educator role, academy and can_view link
+  ---
+  duration_ms: 49.756552
+  type: 'test'
+  ...
+# Subtest: legacy and parent client provenance stay client reported while trusted fixture survives
+ok 29 - legacy and parent client provenance stay client reported while trusted fixture survives
+  ---
+  duration_ms: 45.903081
+  type: 'test'
+  ...
+# Subtest: forged correctness remains client reported and empty history is never false zero
+ok 30 - forged correctness remains client reported and empty history is never false zero
+  ---
+  duration_ms: 42.013558
+  type: 'test'
+  ...
+# Subtest: independent scalar aggregates prevent join multiplication
+ok 31 - independent scalar aggregates prevent join multiplication
+  ---
+  duration_ms: 4030.653348
+  type: 'test'
+  ...
+# Subtest: profile rendering is responsive, bounded, traceable and does not reinterpret raw verification flags
+ok 32 - profile rendering is responsive, bounded, traceable and does not reinterpret raw verification flags
+  ---
+  duration_ms: 14.595957
+  type: 'test'
+  ...
+# Subtest: generated projections match existing source and privilege surface is narrow
+ok 33 - generated projections match existing source and privilege surface is narrow
+  ---
+  duration_ms: 562.412084
+  type: 'test'
+  ...
+# Subtest: actual SQL validates canonical session, denies foreign access and does not expand runtime role
+ok 34 - actual SQL validates canonical session, denies foreign access and does not expand runtime role
+  ---
+  duration_ms: 3729.150952
+  type: 'test'
+  ...
+# Subtest: route resumes existing in-progress assignment ahead of a newer available assignment
+ok 35 - route resumes existing in-progress assignment ahead of a newer available assignment
+  ---
+  duration_ms: 10.786824
+  type: 'test'
+  ...
+# Subtest: available assignment is next and terminal/future assignments never become the route
+ok 36 - available assignment is next and terminal/future assignments never become the route
+  ---
+  duration_ms: 15.446284
+  type: 'test'
+  ...
+# Subtest: empty route, failure and loading do not claim that an assignment is ready
+ok 37 - empty route, failure and loading do not claim that an assignment is ready
+  ---
+  duration_ms: 7.928897
+  type: 'test'
+  ...
+# Subtest: same recipe survives repeated render and unsafe title/recipe text is escaped
+ok 38 - same recipe survives repeated render and unsafe title/recipe text is escaped
+  ---
+  duration_ms: 7.972966
+  type: 'test'
+  ...
+# Subtest: existing panel destinations and canonical profile remain available
+ok 39 - existing panel destinations and canonical profile remain available
+  ---
+  duration_ms: 3.225091
+  type: 'test'
+  ...
+# Subtest: dashboard ignores forged identity selectors and binds every query to the authenticated student/academy
+ok 40 - dashboard ignores forged identity selectors and binds every query to the authenticated student/academy
+  ---
+  duration_ms: 24.252655
+  type: 'test'
+  ...
+# Subtest: unauthenticated/revoked session denies before data queries; identity mismatch and DB failure fail closed
+ok 41 - unauthenticated/revoked session denies before data queries; identity mismatch and DB failure fail closed
+  ---
+  duration_ms: 40.859205
+  type: 'test'
+  ...
+1..41
+# tests 41
+# suites 0
+# pass 41
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 17918.782666

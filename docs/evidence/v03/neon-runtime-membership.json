@@ -1,0 +1,10 @@
+{
+  "projectId": "patient-firefly-51111834",
+  "branchId": "br-withered-queen-b15ltb40",
+  "database": "cza_t5_synthetic",
+  "mode": "READ_ONLY_SYNTHETIC",
+  "isError": false,
+  "result": [
+    "[\n  {\n    \"runtime_authenticated_member\": false,\n    \"students_owner\": \"cza_t5_test_owner\",\n    \"recipes_owner\": \"cza_t5_test_owner\"\n  }\n]"
+  ]
+}

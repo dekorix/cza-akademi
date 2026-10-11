@@ -1,0 +1,36 @@
+{
+  "mode": "REAL_ISOLATED_QA",
+  "mocks": false,
+  "cookieInjection": false,
+  "studentId": "20000000-0000-4000-8000-000000000001",
+  "recipeId": "361ee0f6-26e2-4484-b9f9-7a88d14fb9f4",
+  "moduleCode": "finger_read",
+  "checks": [
+    {
+      "name": "actual minimum QA role",
+      "passed": true
+    },
+    {
+      "name": "desktop unauthenticated dashboard",
+      "passed": true
+    },
+    {
+      "name": "desktop normal UI login",
+      "passed": true
+    },
+    {
+      "name": "desktop dashboard",
+      "passed": false
+    }
+  ],
+  "errors": [],
+  "passed": false,
+  "chromeVersion": "Chrome/154.0.8037.98",
+  "database": {
+    "role": "cza_v01_app_runtime_min",
+    "database": "cza_t5_synthetic",
+    "project": "patient-firefly-51111834",
+    "branch": "br-withered-queen-b15ltb40"
+  },
+  "failure": "desktop dashboard"
+}

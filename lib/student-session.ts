@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto';
 import { neon } from '@neondatabase/serverless';
+import { isolatedQaEnabled } from '@/lib/isolated-qa-auth';
 
 export const STUDENT_COOKIE = 'cza_student_session';
 
@@ -29,7 +30,10 @@ export async function authenticatedStudent(request: Request) {
   if (!token || !process.env.DATABASE_URL) return null;
   const tokenHash = createHash('sha256').update(token).digest('hex');
   const sql = neon(process.env.DATABASE_URL);
-  const rows = await sql`
+  const rows = isolatedQaEnabled() ? await sql`
+    SELECT session_id, student_id, academy_id, student_user_id
+    FROM public.cza_v03_qa_authenticated_student(${tokenHash}::text)
+  ` : await sql`
     SELECT session_id, student_id, academy_id, student_user_id
     FROM public.cza_touch_authenticated_student(${tokenHash}::text)
   `;
@@ -57,7 +61,10 @@ export async function revokeStudentSession(request: Request) {
   const tokenHash = createHash('sha256').update(token).digest('hex');
   const sql = neon(process.env.DATABASE_URL);
   try {
-    await sql`
+    if (isolatedQaEnabled()) await sql`
+      SELECT public.cza_v03_qa_revoke_student_session(${tokenHash}::text)
+    `;
+    else await sql`
       SELECT public.cza_revoke_student_session(${tokenHash}::text)
     `;
   } catch {

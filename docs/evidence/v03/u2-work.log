@@ -1,0 +1,14 @@
+✔ work center and assignment APIs derive student identity from auth (1.010914ms)
+✔ assignment module routing is allowlisted and unsupported modules fail closed (0.21051ms)
+✔ assigned session start, resume, attempt, result, and evidence are server-owned (0.189326ms)
+✔ malicious client cannot mint server_verified evidence (0.120156ms)
+✔ real work center UI presents lifecycle, history, and responsive layout (0.264632ms)
+✔ responses are allowlisted and do not expose secrets (1.546464ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 9.958006

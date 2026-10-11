@@ -1,0 +1,10 @@
+{
+  "projectId": "patient-firefly-51111834",
+  "branchId": "br-withered-queen-b15ltb40",
+  "database": "cza_t5_synthetic",
+  "mode": "READ_ONLY_SYNTHETIC",
+  "isError": false,
+  "result": [
+    "[\n  {\n    \"schemaname\": \"public\",\n    \"tablename\": \"students\",\n    \"policyname\": \"students_admin_write\",\n    \"roles\": \"{authenticated}\",\n    \"cmd\": \"ALL\",\n    \"qual\": \"(private.is_admin() AND (academy_id = private.current_academy_id()))\"\n  },\n  {\n    \"schemaname\": \"public\",\n    \"tablename\": \"students\",\n    \"policyname\": \"students_read\",\n    \"roles\": \"{authenticated}\",\n    \"cmd\": \"SELECT\",\n    \"qual\": \"((academy_id = private.current_academy_id()) AND private.can_view_student(id, NULL::text))\"\n  },\n  {\n    \"schemaname\": \"public\",\n    \"tablename\": \"training_recipes\",\n    \"policyname\": \"recipes_read\",\n    \"roles\": \"{authenticated}\",\n    \"cmd\": \"SELECT\",\n    \"qual\": \"((academy_id = private.current_academy_id()) AND private.can_view_student(student_id, module_code))\"\n  },\n  {\n    \"schemaname\": \"public\",\n    \"tablename\": \"training_recipes\",\n    \"policyname\": \"recipes_write\",\n    \"roles\": \"{authenticated}\",\n    \"cmd\": \"ALL\",\n    \"qual\": \"((academy_id = private.current_academy_id()) AND private.can_edit_student_module(student_id, module_code))\"\n  },\n  {\n    \"schemaname\": \"public\",\n    \"tablename\": \"training_sessions\",\n    \"policyname\": \"sessions_read\",\n    \"roles\": \"{authenticated}\",\n    \"cmd\": \"SELECT\",\n    \"qual\": \"((academy_id = private.current_academy_id()) AND private.can_view_student(student_id, module_code))\"\n  }\n]"
+  ]
+}
