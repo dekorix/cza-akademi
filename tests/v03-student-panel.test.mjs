@@ -99,7 +99,7 @@ function dashboardRoute({ authenticated = true, identity = true, fail = false, f
   };
   const exports = load(read('../app/api/core/dashboard/route.ts'), {
     '@neondatabase/serverless': { neon: () => sql },
-    '@/lib/qa-student-read': { studentReadSql: async () => sql },
+    '@/lib/qa-student-read': { studentReadSql: async () => sql, studentReadForbiddenCode: () => 'student_read_forbidden' },
     '@/lib/request-guard': { allowRequest: async () => ({ allowed: true }) },
     '@/lib/student-session': { authenticatedStudent: async () => authenticated ? student : null },
     '@/lib/work-center': work,

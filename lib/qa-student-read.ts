@@ -4,6 +4,13 @@ import { qaStudentReads } from '@/lib/qa-student-read-contract';
 import { isolatedQaEnabled, QA_EDUCATOR_ORIGIN } from '@/lib/isolated-qa-auth';
 import { readRequestCookie, STUDENT_COOKIE } from '@/lib/student-session';
 
+export function studentReadForbiddenCode(error: unknown) {
+  if (isolatedQaEnabled() && error && typeof error === 'object' && 'message' in error
+    && ['v03_qa_session_rejected', 'v03_qa_projection_rejected'].includes(String(error.message)))
+    return String(error.message);
+  return 'student_read_forbidden';
+}
+
 async function assertQaStudentTarget(request: Request) {
   if (new URL(request.url).origin !== QA_EDUCATOR_ORIGIN || !process.env.DATABASE_URL)
     throw new Error('v03_qa_target_rejected');
