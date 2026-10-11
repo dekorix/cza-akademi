@@ -1,9 +1,22 @@
-✔ tests/v02-p1-session-authority.test.mjs (787.078053ms)
-ℹ tests 1
-ℹ suites 0
-ℹ pass 1
-ℹ fail 0
-ℹ cancelled 0
-ℹ skipped 0
-ℹ todo 0
-ℹ duration_ms 802.86472
+TAP version 13
+# Subtest: P1 view-only peer reads get/report but attempt/finish never reach mutation
+ok 1 - P1 view-only peer reads get/report but attempt/finish never reach mutation
+  ---
+  duration_ms: 217.353284
+  type: 'test'
+  ...
+# Subtest: P1 missing view denies read; original owner retains independent write gate
+ok 2 - P1 missing view denies read; original owner retains independent write gate
+  ---
+  duration_ms: 119.938425
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 928.06808

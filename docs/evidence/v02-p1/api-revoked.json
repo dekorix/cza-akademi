@@ -1,0 +1,84 @@
+{
+  "phase": "revoked",
+  "tests": [
+    {
+      "name": "get 3db6ac62-aa10-44e5-b4fa-4f99fa599e0d",
+      "passed": true
+    },
+    {
+      "name": "report 3db6ac62-aa10-44e5-b4fa-4f99fa599e0d",
+      "passed": true
+    },
+    {
+      "name": "history 3db6ac62-aa10-44e5-b4fa-4f99fa599e0d",
+      "passed": true
+    },
+    {
+      "name": "V01 resume 3db6ac62-aa10-44e5-b4fa-4f99fa599e0d",
+      "passed": true
+    },
+    {
+      "name": "binding phase 3db6ac62-aa10-44e5-b4fa-4f99fa599e0d",
+      "passed": true
+    },
+    {
+      "name": "get c0ab8deb-52f4-4b36-b95d-72c392d0c2b0",
+      "passed": true
+    },
+    {
+      "name": "report c0ab8deb-52f4-4b36-b95d-72c392d0c2b0",
+      "passed": true
+    },
+    {
+      "name": "history c0ab8deb-52f4-4b36-b95d-72c392d0c2b0",
+      "passed": true
+    },
+    {
+      "name": "V01 resume c0ab8deb-52f4-4b36-b95d-72c392d0c2b0",
+      "passed": true
+    },
+    {
+      "name": "binding phase c0ab8deb-52f4-4b36-b95d-72c392d0c2b0",
+      "passed": true
+    },
+    {
+      "name": "get f825e4d0-c702-4a58-bb7a-7ec991940a89",
+      "passed": true
+    },
+    {
+      "name": "report f825e4d0-c702-4a58-bb7a-7ec991940a89",
+      "passed": true
+    },
+    {
+      "name": "history f825e4d0-c702-4a58-bb7a-7ec991940a89",
+      "passed": true
+    },
+    {
+      "name": "V01 resume f825e4d0-c702-4a58-bb7a-7ec991940a89",
+      "passed": true
+    },
+    {
+      "name": "binding phase f825e4d0-c702-4a58-bb7a-7ec991940a89",
+      "passed": true
+    },
+    {
+      "name": "foreign student history denied",
+      "passed": true
+    }
+  ],
+  "passed": true,
+  "sessions": [
+    {
+      "sessionId": "3db6ac62-aa10-44e5-b4fa-4f99fa599e0d",
+      "fingerprint": "e075018129221dce2bd6daf4c041549902eb4f42ae52357aa9f94a94c85c6ba8"
+    },
+    {
+      "sessionId": "c0ab8deb-52f4-4b36-b95d-72c392d0c2b0",
+      "fingerprint": "db508782a1ffabddee35c5ef7c42c1f40a74599a6f6bf92d9f41d03eeb08329a"
+    },
+    {
+      "sessionId": "f825e4d0-c702-4a58-bb7a-7ec991940a89",
+      "fingerprint": "ca446b73a3920690779d06870699e8bf1c75e1898386939f7ec7566b3d84990e"
+    }
+  ]
+}

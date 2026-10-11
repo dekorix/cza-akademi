@@ -1,0 +1,10 @@
+{
+  "passed": true,
+  "threeFullNeonRowsEqual": true,
+  "auditRowsUnchanged": true,
+  "apiRevocationRegrantFingerprintsEqual": true,
+  "students": 2,
+  "sessions": 63,
+  "audits": 3,
+  "approvedBindingRelationsRestored": 1
+}

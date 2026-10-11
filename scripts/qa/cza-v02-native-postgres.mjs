@@ -22,6 +22,8 @@ try{
  await a.query(Function('id','return `'+ddl+'`;')(id));
  await a.query(fs.readFileSync('db/migrations/20261011_v02_assessment_link_permission.sql','utf8'));
  await a.query(fs.readFileSync('db/migrations/20261011_v02_assessment_link_audit.sql','utf8'));
+ await a.query(fs.readFileSync('db/migrations/20261011_v02_p1_read_authority.sql','utf8'));
+ await a.query('GRANT SELECT ON public.users,public.students,public.teacher_student_links,public.academies,public.student_external_identifiers TO cza_t5_test_owner');
  for(const c of [a,b]){await c.query("SELECT set_config('neon.project_id','patient-firefly-51111834',false),set_config('neon.branch_id','br-withered-queen-b15ltb40',false)");}
  await a.query(`UPDATE teacher_student_links SET can_link_assessment=true WHERE id IN ('${id(20)}','${id(21)}')`);
  const create=async n=>a.query(`INSERT INTO assessment_sessions(id,student_id,template_code,status,metadata) VALUES($1,NULL,'CZA_SPECIAL_V1_DYS','active',$2::text::jsonb)`,[id(n),JSON.stringify({academyId:id(1),createdByEducatorId:'auth',source:'EDUCATOR_PRE_ENROLLMENT',candidateId:id(n+100),cycleId:id(200)})]);
@@ -50,6 +52,12 @@ try{
  await assert.rejects(a.query('UPDATE public.users SET is_active=false'),/permission denied/);
  await assert.rejects(a.query('INSERT INTO public.assessment_student_link_audit(session_id) VALUES($1)',[id(999)]),/permission denied/);
  await a.query('RESET ROLE');proof.tests.push({name:'runtime can call scoped functions but cannot update users or insert audit',passed:true});
+ await a.query('UPDATE teacher_student_links SET can_link_assessment=false WHERE student_id=$1',[id(10)]);
+ await a.query('SET ROLE cza_v01_app_runtime_min');
+ assert.ok((await a.query('SELECT * FROM public.cza_v02_readable_students($1,true)',['auth'])).rows.some(r=>r.id===id(10)));
+ assert.ok((await a.query('SELECT * FROM public.cza_v02_student_history($1,$2::uuid)',['auth',id(10)])).rows.some(r=>r.id===id(64)));
+ assert.equal((await bind(a,64,10)).rows.length,0);
+ await a.query('RESET ROLE');proof.tests.push({name:'P1 runtime view survives bind revocation while bind denies',passed:true});
  proof.version=(await a.query('SELECT version()')).rows[0].version;proof.passed=true;
 }catch(e){proof.failure=e.message;process.exitCode=1;}
-finally{await a?.end().catch(()=>{});await b?.end().catch(()=>{});await pg.stop().catch(()=>{});fs.writeFileSync('docs/evidence/v02/native-postgres-concurrency.json',JSON.stringify(proof,null,2));console.log(JSON.stringify(proof));}
+finally{await a?.end().catch(()=>{});await b?.end().catch(()=>{});await pg.stop().catch(()=>{});fs.writeFileSync((process.env.CZA_QA_EVIDENCE_DIR||'docs/evidence/v02')+'/native-postgres-concurrency.json',JSON.stringify(proof,null,2));console.log(JSON.stringify(proof));}
