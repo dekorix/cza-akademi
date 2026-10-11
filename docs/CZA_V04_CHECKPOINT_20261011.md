@@ -14,9 +14,11 @@ Mevcut Öğrenci Paneli, assignment launch, Studio, FingerHand/exercise/player, 
 
 [Chrome154 yerel akış](evidence/v04/local-browser.json): masaüstü 1440×900, mobil 390×844, 9/9 kontrol; gerçek Studio, mock API. Belirsiz acknowledgement, aynı UUID, reload ile sonraki soru, 10 cevap, kayıt hatasında başarısızlık/retry ve yatay taşma kontrolü. Canlı normal giriş/Neon yazımı PASS olarak sunulmaz.
 
+Canlı QA bind ve append_verified_evidence tanımları da yerel test fixture'ına salt okunur olarak eklenip üç V04 SQL davranış testi tekrar geçti; uygulanacak SQL SHA256 ve yetki kapsamı değişmedi.
+
 TypeScript, tam platform build ve yeni yardımcı/test lint geçer. Mevcut Studio tam lint: korunan kaynak20 hata, V04 kaynak18 hata; aynı eski hook/compiler/a11y/link/deprecation kategorileri kalır. Eski lint borcu kapatıldı iddiası yok.
 
-İlk uygulama commit'inin CI koşuları [V04 38153684275](https://github.com/dekorix/cza-akademi/actions/runs/38153684275), [V03 38153684201](https://github.com/dekorix/cza-akademi/actions/runs/38153684201); checkpoint yazım anında IN_PROGRESS. Son teslim HEAD'inin gerçek CI sonucu GitHub'dan ayrıca doğrulanır; belge içindeki snapshot CI sonucunun yerine geçmez.
+İlk uygulama commit'inin CI koşuları [V04 38153684275](https://github.com/dekorix/cza-akademi/actions/runs/38153684275), [V03 38153684201](https://github.com/dekorix/cza-akademi/actions/runs/38153684201); checkpoint yazım anında IN_PROGRESS. Bu iki koşu ve belge checkpoint commit 2cfadd2 üzerindeki V03/V04 koşuları daha sonra SUCCESS olarak doğrulandı. Son teslim HEAD'inin gerçek CI sonucu GitHub'dan ayrıca doğrulanır; belge içindeki snapshot CI sonucunun yerine geçmez.
 
 ## Canlı ortam ve korunma
 

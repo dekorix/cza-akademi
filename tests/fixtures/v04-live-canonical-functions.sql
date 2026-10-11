@@ -1,5 +1,231 @@
 -- READ-ONLY capture of canonical QA function definitions, 2026-10-11.
 -- Test fixture ONLY. Never deploy this file; V04 must not replace old functions.
+CREATE OR REPLACE FUNCTION public.cza_append_verified_evidence(p_learning_record_id uuid, p_evidence_type text, p_skill_code text, p_support_level text, p_observed_at timestamp with time zone, p_verification_authority text, p_payload jsonb)
+ RETURNS uuid
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'pg_catalog', 'public', 'pg_temp'
+AS $function$
+DECLARE
+  v_evidence_id uuid;
+  v_academy_id uuid;
+  v_student_id uuid;
+BEGIN
+  IF p_evidence_type NOT IN ('activity_result', 'skill_observation')
+     OR p_support_level NOT IN ('independent', 'prompted', 'guided', 'modeled', 'unknown')
+     OR p_verification_authority !~ '^[a-z0-9][a-z0-9_.:-]{2,79}$'
+     OR jsonb_typeof(p_payload) <> 'object'
+     OR (p_evidence_type = 'skill_observation' AND p_skill_code IS NULL)
+     OR (p_evidence_type = 'activity_result' AND p_skill_code IS NOT NULL) THEN
+    RAISE EXCEPTION 'CZA_VERIFIED_EVIDENCE_INVALID' USING ERRCODE = '22023';
+  END IF;
+
+  SELECT records.academy_id, records.student_id
+  INTO v_academy_id, v_student_id
+  FROM public.learning_records AS records
+  WHERE records.id = p_learning_record_id
+  FOR SHARE;
+
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'CZA_LEARNING_RECORD_NOT_FOUND' USING ERRCODE = 'P0002';
+  END IF;
+
+  INSERT INTO public.learning_evidence (
+    learning_record_id, academy_id, student_id, evidence_type,
+    verification_status, verification_authority, skill_code,
+    support_level, observed_at, payload
+  )
+  VALUES (
+    p_learning_record_id, v_academy_id, v_student_id, p_evidence_type,
+    'server_verified', p_verification_authority, p_skill_code,
+    p_support_level, p_observed_at, p_payload
+  )
+  RETURNING id INTO v_evidence_id;
+
+  RETURN v_evidence_id;
+END;
+$function$
+;
+
+CREATE OR REPLACE FUNCTION public.cza_bind_assigned_work_session(p_academy_id uuid, p_student_id uuid, p_recipe_id uuid, p_client_session_id uuid, p_training_session_id uuid, p_started_at timestamp with time zone)
+ RETURNS TABLE(training_session_id uuid, work_status text, resumed boolean, started_at timestamp with time zone, attempt_count integer, correct_count integer, last_activity_at timestamp with time zone)
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'pg_catalog', 'public', 'pg_temp'
+AS $function$
+DECLARE
+  v_recipe public.training_recipes%ROWTYPE;
+  v_session public.training_sessions%ROWTYPE;
+BEGIN
+  SELECT recipes.*
+  INTO v_recipe
+  FROM public.training_recipes AS recipes
+  JOIN public.modules AS modules
+    ON modules.code = recipes.module_code
+   AND modules.is_active = true
+  WHERE recipes.id = p_recipe_id
+    AND recipes.academy_id = p_academy_id
+    AND recipes.student_id = p_student_id
+    AND recipes.source = 'teacher_assignment'
+    AND recipes.is_active = true
+    AND (recipes.starts_at IS NULL OR recipes.starts_at <= clock_timestamp())
+    AND (recipes.expires_at IS NULL OR recipes.expires_at > clock_timestamp())
+  FOR UPDATE OF recipes;
+
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'CZA_WORK_ASSIGNMENT_NOT_FOUND' USING ERRCODE = 'P0002';
+  END IF;
+
+
+  -- Inspect the exact Core-created row before the existing resume search.
+  -- Lock order stays recipe -> session. No historical in_progress rows are scanned.
+  SELECT sessions.* INTO v_session
+  FROM public.training_sessions AS sessions
+  WHERE sessions.id = p_training_session_id
+  FOR UPDATE;
+
+  IF FOUND THEN
+    IF v_session.academy_id IS DISTINCT FROM p_academy_id
+       OR v_session.student_id IS DISTINCT FROM p_student_id
+       OR v_session.recipe_id IS DISTINCT FROM p_recipe_id
+       OR v_session.module_code IS DISTINCT FROM v_recipe.module_code
+       OR v_session.source::text IS DISTINCT FROM 'teacher_assignment'
+       OR (v_session.client_session_id IS NOT NULL
+           AND v_session.client_session_id IS DISTINCT FROM p_client_session_id) THEN
+      RAISE EXCEPTION 'CZA_WORK_SESSION_BIND_FAILED' USING ERRCODE = 'P0001';
+    END IF;
+
+    IF v_session.status = 'in_progress' THEN
+      UPDATE public.training_sessions AS sessions
+      SET status = 'active',
+          client_session_id = COALESCE(sessions.client_session_id, p_client_session_id),
+          last_activity_at = GREATEST(sessions.last_activity_at, p_started_at)
+      WHERE sessions.id = p_training_session_id
+        AND sessions.academy_id = p_academy_id
+        AND sessions.student_id = p_student_id
+        AND sessions.recipe_id = p_recipe_id
+        AND sessions.module_code = v_recipe.module_code
+        AND sessions.source = 'teacher_assignment'
+        AND sessions.status = 'in_progress'
+      RETURNING sessions.* INTO v_session;
+    ELSIF v_session.status NOT IN ('active', 'completed') THEN
+      RAISE EXCEPTION 'CZA_WORK_SESSION_BIND_FAILED' USING ERRCODE = 'P0001';
+    END IF;
+    RETURN QUERY
+    SELECT
+      v_session.id,
+      CASE WHEN v_session.status = 'completed' THEN 'completed' ELSE 'in_progress' END,
+      v_session.status = 'active',
+      v_session.started_at,
+      count(*) FILTER (
+        WHERE COALESCE(attempts.metadata->>'attemptType', 'PRIMARY') <> 'RETRY_AFTER_FEEDBACK'
+      )::integer,
+      count(*) FILTER (
+        WHERE attempts.is_correct
+          AND COALESCE(attempts.metadata->>'attemptType', 'PRIMARY') <> 'RETRY_AFTER_FEEDBACK'
+      )::integer,
+      v_session.last_activity_at
+    FROM public.question_attempts AS attempts
+    WHERE attempts.academy_id = p_academy_id
+      AND attempts.student_id = p_student_id
+      AND attempts.training_session_id = v_session.id;
+    RETURN;
+  END IF;
+
+  SELECT sessions.*
+  INTO v_session
+  FROM public.training_sessions AS sessions
+  WHERE sessions.recipe_id = p_recipe_id
+    AND sessions.academy_id = p_academy_id
+    AND sessions.student_id = p_student_id
+    AND sessions.module_code = v_recipe.module_code
+    AND sessions.source = 'teacher_assignment'
+    AND sessions.status IN ('active', 'completed')
+  ORDER BY
+    CASE WHEN sessions.status = 'completed' THEN 0 ELSE 1 END,
+    sessions.last_activity_at DESC,
+    sessions.id DESC
+  LIMIT 1
+  FOR UPDATE;
+
+  IF FOUND THEN
+    RETURN QUERY
+    SELECT
+      v_session.id,
+      CASE WHEN v_session.status = 'completed' THEN 'completed' ELSE 'in_progress' END,
+      v_session.status = 'active',
+      v_session.started_at,
+      count(*) FILTER (
+        WHERE COALESCE(attempts.metadata->>'attemptType', 'PRIMARY') <> 'RETRY_AFTER_FEEDBACK'
+      )::integer,
+      count(*) FILTER (
+        WHERE attempts.is_correct
+          AND COALESCE(attempts.metadata->>'attemptType', 'PRIMARY') <> 'RETRY_AFTER_FEEDBACK'
+      )::integer,
+      v_session.last_activity_at
+    FROM public.question_attempts AS attempts
+    WHERE attempts.academy_id = p_academy_id
+      AND attempts.student_id = p_student_id
+      AND attempts.training_session_id = v_session.id;
+    RETURN;
+  END IF;
+
+  BEGIN
+    INSERT INTO public.training_sessions (
+      id, academy_id, student_id, module_code, recipe_id,
+      client_session_id, source, status, started_at, last_activity_at, progress
+    ) VALUES (
+      p_training_session_id, p_academy_id, p_student_id, v_recipe.module_code,
+      p_recipe_id, p_client_session_id, v_recipe.source, 'active', p_started_at, p_started_at,
+      jsonb_build_object(
+        'attemptCount', 0,
+        'correctCount', 0,
+        'lastQuestionIndex', 0,
+        'resumeAvailable', true
+      )
+    )
+    ON CONFLICT (id) DO UPDATE
+    SET recipe_id = EXCLUDED.recipe_id,
+        client_session_id = COALESCE(public.training_sessions.client_session_id, EXCLUDED.client_session_id),
+        last_activity_at = GREATEST(public.training_sessions.last_activity_at, EXCLUDED.last_activity_at)
+    WHERE public.training_sessions.academy_id = EXCLUDED.academy_id
+      AND public.training_sessions.student_id = EXCLUDED.student_id
+      AND public.training_sessions.module_code = EXCLUDED.module_code
+      AND public.training_sessions.recipe_id = EXCLUDED.recipe_id
+      AND public.training_sessions.source = 'teacher_assignment'
+      AND public.training_sessions.status = 'active'
+    RETURNING * INTO v_session;
+  EXCEPTION WHEN unique_violation THEN
+    SELECT sessions.*
+    INTO v_session
+    FROM public.training_sessions AS sessions
+    WHERE sessions.recipe_id = p_recipe_id
+      AND sessions.academy_id = p_academy_id
+      AND sessions.student_id = p_student_id
+      AND sessions.module_code = v_recipe.module_code
+      AND sessions.source = 'teacher_assignment'
+      AND sessions.status = 'active'
+    ORDER BY sessions.last_activity_at DESC, sessions.id DESC
+    LIMIT 1
+    FOR UPDATE;
+  END;
+
+  IF v_session.id IS NULL THEN
+    RAISE EXCEPTION 'CZA_WORK_SESSION_BIND_FAILED' USING ERRCODE = 'P0001';
+  END IF;
+
+  RETURN QUERY SELECT
+    v_session.id,
+    'in_progress'::text,
+    false,
+    v_session.started_at,
+    0,
+    0,
+    v_session.last_activity_at;
+END;
+$function$
+;
+
 CREATE OR REPLACE FUNCTION public.cza_bind_assigned_work_session_k3c(p_academy_id uuid, p_student_id uuid, p_recipe_id uuid, p_client_session_id uuid, p_training_session_id uuid, p_started_at timestamp with time zone, p_engine_id text, p_engine_version text)
  RETURNS TABLE(training_session_id uuid, work_status text, resumed boolean, started_at timestamp with time zone, attempt_count integer, correct_count integer, last_activity_at timestamp with time zone)
  LANGUAGE plpgsql
