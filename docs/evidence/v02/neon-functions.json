@@ -1,0 +1,9 @@
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "[\n  {\n    \"proname\": \"cza_v02_bind_assessment\",\n    \"prosecdef\": true,\n    \"proconfig\": [\n      \"search_path=pg_catalog, public\"\n    ],\n    \"proacl\": \"{cza_t5_test_owner=X/cza_t5_test_owner,cza_v01_app_runtime_min=X/cza_t5_test_owner}\",\n    \"body_md5\": \"73efb806f35b1f1f8be9e5c2a6bace5e\"\n  },\n  {\n    \"proname\": \"cza_v02_eligible_students\",\n    \"prosecdef\": true,\n    \"proconfig\": [\n      \"search_path=pg_catalog, public\"\n    ],\n    \"proacl\": \"{cza_t5_test_owner=X/cza_t5_test_owner,cza_v01_app_runtime_min=X/cza_t5_test_owner}\",\n    \"body_md5\": \"1384234a231881197f8f06f73bfbfc61\"\n  },\n  {\n    \"proname\": \"cza_v02_student_history\",\n    \"prosecdef\": true,\n    \"proconfig\": [\n      \"search_path=pg_catalog, public\"\n    ],\n    \"proacl\": \"{cza_t5_test_owner=X/cza_t5_test_owner,cza_v01_app_runtime_min=X/cza_t5_test_owner}\",\n    \"body_md5\": \"87ed051956cd7a40808260f310524813\"\n  }\n]"
+    }
+  ],
+  "isError": false
+}

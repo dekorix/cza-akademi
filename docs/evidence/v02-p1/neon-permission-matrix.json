@@ -1,0 +1,9 @@
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "[\n  {\n    \"educator_id\": \"10000000-0000-4000-8000-000000000002\",\n    \"can_view\": true,\n    \"can_link_assessment\": false,\n    \"history_count\": \"3\"\n  },\n  {\n    \"educator_id\": \"17114480-0fbd-4468-ab57-06d559579c07\",\n    \"can_view\": true,\n    \"can_link_assessment\": true,\n    \"history_count\": \"3\"\n  },\n  {\n    \"educator_id\": \"5ff9a8b6-ddbb-4c3c-8ffd-8fddbffc243c\",\n    \"can_view\": true,\n    \"can_link_assessment\": false,\n    \"history_count\": \"3\"\n  }\n]"
+    }
+  ],
+  "isError": false
+}

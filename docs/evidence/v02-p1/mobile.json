@@ -1,0 +1,150 @@
+{
+  "identity": {
+    "sessionId": "f825e4d0-c702-4a58-bb7a-7ec991940a89",
+    "candidateId": "753e2d0a-213c-4ab7-81f1-691fa4c999ba",
+    "cycleId": "424a3f4d-57ee-42f1-acc3-7d99188501b5"
+  },
+  "studentId": "20000000-0000-4000-8000-000000000001",
+  "mobile": true,
+  "mocks": false,
+  "cookieInjection": false,
+  "errors": [],
+  "passed": true,
+  "before": {
+    "sessionId": "f825e4d0-c702-4a58-bb7a-7ec991940a89",
+    "metadata": {
+      "grade": "2. sınıf",
+      "source": "EDUCATOR_PRE_ENROLLMENT",
+      "cycleId": "424a3f4d-57ee-42f1-acc3-7d99188501b5",
+      "version": 1,
+      "concerns": null,
+      "academyId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+      "birthDate": null,
+      "moduleCode": "special_education_assessment",
+      "candidateId": "753e2d0a-213c-4ab7-81f1-691fa4c999ba",
+      "profileCode": "SP-DYS",
+      "readingStage": "Harf-ses öğreniyor",
+      "diagnosticUse": false,
+      "centralStudentId": null,
+      "campusStudentCode": null,
+      "createdByEducatorId": "99963cb7-f9e6-4c1c-9737-b9893785ba8b"
+    },
+    "attempts": [
+      {
+        "id": "3b706b38-334f-439a-bece-9e426303a3f7",
+        "task_code": "DYS-PH01",
+        "answer_text": "al",
+        "answer_payload": {
+          "area": "Fonolojik İşleme ve Ses Manipülasyonu",
+          "note": "Synthetic QA first response",
+          "flags": [],
+          "phase": "BAĞIMSIZ",
+          "title": "Sesi Çıkar",
+          "choice": null,
+          "source": "EDUCATOR",
+          "verdict": "MATCH",
+          "firstMatch": null,
+          "profileCode": "SP-DYS",
+          "supportLevel": "INDEPENDENT",
+          "schemaVersion": 1
+        },
+        "support_level": 0,
+        "self_corrected": false,
+        "response_latency_ms": 25638,
+        "total_response_time_ms": 25638,
+        "shown_at": "2026-10-10T20:33:04.873Z",
+        "first_action_at": null,
+        "completed_at": "2026-10-10T20:33:04.832Z",
+        "created_at": "2026-10-10T20:33:04.873Z"
+      }
+    ],
+    "observations": [
+      {
+        "id": "1f679706-ce57-400d-b91d-269035a5a2ca",
+        "task_code": "DYS-PH01",
+        "observation_codes": [],
+        "educator_note": "Synthetic QA first response",
+        "confidence": null,
+        "created_at": "2026-10-10T20:33:04.924Z"
+      }
+    ]
+  },
+  "revokedBind": 403,
+  "after": {
+    "sessionId": "f825e4d0-c702-4a58-bb7a-7ec991940a89",
+    "studentId": "20000000-0000-4000-8000-000000000001",
+    "metadata": {
+      "grade": "2. sınıf",
+      "source": "EDUCATOR_PRE_ENROLLMENT",
+      "cycleId": "424a3f4d-57ee-42f1-acc3-7d99188501b5",
+      "version": 1,
+      "concerns": null,
+      "academyId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+      "birthDate": null,
+      "moduleCode": "special_education_assessment",
+      "candidateId": "753e2d0a-213c-4ab7-81f1-691fa4c999ba",
+      "profileCode": "SP-DYS",
+      "readingStage": "Harf-ses öğreniyor",
+      "diagnosticUse": false,
+      "centralStudentId": null,
+      "campusStudentCode": null,
+      "createdByEducatorId": "99963cb7-f9e6-4c1c-9737-b9893785ba8b"
+    },
+    "attempts": [
+      {
+        "id": "3b706b38-334f-439a-bece-9e426303a3f7",
+        "task_code": "DYS-PH01",
+        "answer_text": "al",
+        "answer_payload": {
+          "area": "Fonolojik İşleme ve Ses Manipülasyonu",
+          "note": "Synthetic QA first response",
+          "flags": [],
+          "phase": "BAĞIMSIZ",
+          "title": "Sesi Çıkar",
+          "choice": null,
+          "source": "EDUCATOR",
+          "verdict": "MATCH",
+          "firstMatch": null,
+          "profileCode": "SP-DYS",
+          "supportLevel": "INDEPENDENT",
+          "schemaVersion": 1
+        },
+        "support_level": 0,
+        "self_corrected": false,
+        "response_latency_ms": 25638,
+        "total_response_time_ms": 25638,
+        "shown_at": "2026-10-10T20:33:04.873Z",
+        "first_action_at": null,
+        "completed_at": "2026-10-10T20:33:04.832Z",
+        "created_at": "2026-10-10T20:33:04.873Z"
+      }
+    ],
+    "observations": [
+      {
+        "id": "1f679706-ce57-400d-b91d-269035a5a2ca",
+        "task_code": "DYS-PH01",
+        "observation_codes": [],
+        "educator_note": "Synthetic QA first response",
+        "confidence": null,
+        "created_at": "2026-10-10T20:33:04.924Z"
+      }
+    ]
+  },
+  "restored": {
+    "candidateId": "753e2d0a-213c-4ab7-81f1-691fa4c999ba",
+    "cycleId": "424a3f4d-57ee-42f1-acc3-7d99188501b5",
+    "sessionId": "f825e4d0-c702-4a58-bb7a-7ec991940a89",
+    "taskIndex": 1
+  },
+  "chromeVersion": "Chrome/136.0.7103.25",
+  "negativeChecks": {
+    "missingConfirmation": 400,
+    "crossTenant": 403,
+    "forgedHeader": 401
+  },
+  "logout": {
+    "status": 200,
+    "revoked": true
+  },
+  "afterLogout": 401
+}

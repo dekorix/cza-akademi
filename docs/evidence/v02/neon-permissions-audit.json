@@ -1,0 +1,16 @@
+{
+  "target": {
+    "project_id": "patient-firefly-51111834",
+    "branch_id": "br-withered-queen-b15ltb40",
+    "database_name": "cza_t5_synthetic"
+  },
+  "result": {
+    "content": [
+      {
+        "type": "text",
+        "text": "[\n  {\n    \"proof\": {\n      \"audit\": [\n        {\n          \"cycle_id\": \"e81d8275-9a03-4ad6-8caf-ab9cfd901fb0\",\n          \"linked_at\": \"2026-10-11T04:20:27.533763+00:00\",\n          \"academy_id\": \"aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa\",\n          \"session_id\": \"3db6ac62-aa10-44e5-b4fa-4f99fa599e0d\",\n          \"student_id\": \"20000000-0000-4000-8000-000000000001\",\n          \"educator_id\": \"17114480-0fbd-4468-ab57-06d559579c07\",\n          \"candidate_id\": \"8b38bfe7-60d3-4d42-a96c-501c489be547\"\n        },\n        {\n          \"cycle_id\": \"0d246b71-3a50-40bc-a1d1-c56e067fcae7\",\n          \"linked_at\": \"2026-10-11T04:21:38.3345+00:00\",\n          \"academy_id\": \"aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa\",\n          \"session_id\": \"c0ab8deb-52f4-4b36-b95d-72c392d0c2b0\",\n          \"student_id\": \"20000000-0000-4000-8000-000000000001\",\n          \"educator_id\": \"17114480-0fbd-4468-ab57-06d559579c07\",\n          \"candidate_id\": \"6503a796-fd73-4079-af96-40cab1528cff\"\n        },\n        {\n          \"cycle_id\": \"424a3f4d-57ee-42f1-acc3-7d99188501b5\",\n          \"linked_at\": \"2026-10-11T04:21:06.241367+00:00\",\n          \"academy_id\": \"aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa\",\n          \"session_id\": \"f825e4d0-c702-4a58-bb7a-7ec991940a89\",\n          \"student_id\": \"20000000-0000-4000-8000-000000000001\",\n          \"educator_id\": \"17114480-0fbd-4468-ab57-06d559579c07\",\n          \"candidate_id\": \"753e2d0a-213c-4ab7-81f1-691fa4c999ba\"\n        }\n      ],\n      \"links\": [\n        {\n          \"id\": \"4d6814ae-5f95-4c80-ba83-83cf1b7b17e6\",\n          \"can_view\": true,\n          \"can_coach\": false,\n          \"student_id\": \"20000000-0000-4000-8000-000000000001\",\n          \"teacher_id\": \"5ff9a8b6-ddbb-4c3c-8ffd-8fddbffc243c\",\n          \"can_link_assessment\": false\n        },\n        {\n          \"id\": \"4e4fd439-dbd1-41fb-9fae-1b01a15b3154\",\n          \"can_view\": true,\n          \"can_coach\": false,\n          \"student_id\": \"20000000-0000-4000-8000-000000000001\",\n          \"teacher_id\": \"10000000-0000-4000-8000-000000000002\",\n          \"can_link_assessment\": false\n        },\n        {\n          \"id\": \"a188abe3-319d-4eb2-b103-34fa6987e092\",\n          \"can_view\": true,\n          \"can_coach\": false,\n          \"student_id\": \"a810b746-7c15-4acd-824d-932bd37acc39\",\n          \"teacher_id\": \"de5601bc-0dab-4fb0-8361-85d91b295fd8\",\n          \"can_link_assessment\": false\n        },\n        {\n          \"id\": \"f2020000-0000-4000-8000-000000000001\",\n          \"can_view\": true,\n          \"can_coach\": false,\n          \"student_id\": \"20000000-0000-4000-8000-000000000001\",\n          \"teacher_id\": \"17114480-0fbd-4468-ab57-06d559579c07\",\n          \"can_link_assessment\": true\n        }\n      ],\n      \"runtime_ddl\": false,\n      \"runtime_audit_insert\": false,\n      \"runtime_users_update\": false,\n      \"runtime_students_update\": false\n    }\n  }\n]"
+      }
+    ],
+    "isError": false
+  }
+}

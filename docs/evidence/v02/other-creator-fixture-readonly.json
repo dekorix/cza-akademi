@@ -1,0 +1,9 @@
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "[\n  {\n    \"id\": \"7fd3053d-08ba-4365-91cd-2d0e07d993f7\",\n    \"is_active\": true,\n    \"role\": \"educator\",\n    \"different_creator\": true,\n    \"same_academy\": true\n  }\n]"
+    }
+  ],
+  "isError": false
+}

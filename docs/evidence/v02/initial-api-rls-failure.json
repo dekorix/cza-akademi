@@ -1,0 +1,33 @@
+{
+  "tests": [
+    {
+      "name": "unauthenticated 401",
+      "passed": true,
+      "evidence": {
+        "status": 401
+      }
+    },
+    {
+      "name": "existing V01 answer and observation present",
+      "passed": true,
+      "evidence": {}
+    },
+    {
+      "name": "explicitly eligible existing student",
+      "passed": false,
+      "evidence": {}
+    }
+  ],
+  "passed": false,
+  "sessionId": "c0ab8deb-52f4-4b36-b95d-72c392d0c2b0",
+  "studentId": "20000000-0000-4000-8000-000000000001",
+  "before": {
+    "fingerprint": "6570bdf29cdba77973e5a375e3ebfde21eabb2d504815bde6be6da556070bc30",
+    "candidateId": "6503a796-fd73-4079-af96-40cab1528cff",
+    "cycleId": "0d246b71-3a50-40bc-a1d1-c56e067fcae7",
+    "studentId": null,
+    "attempts": 1,
+    "observations": 1
+  },
+  "failure": "explicitly eligible existing student"
+}

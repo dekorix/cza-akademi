@@ -141,6 +141,20 @@ async function educatorStudent(sql: any, educatorId: string, studentId: string) 
 }
 
 async function authorizedSession(sql: any, educatorId: string, sessionId: string) {
+  if (isolatedQaEnabled()) {
+    const rows = await sql.query(`SELECT a.id,a.student_id,a.template_code,a.student_label,a.status,
+      a.current_task_code,a.started_at,a.completed_at,a.metadata
+      FROM public.assessment_sessions a JOIN public.users t
+        ON t.auth_user_id=$1 AND t.is_active=true AND t.role::text='educator'
+      WHERE a.id=$2::uuid AND a.template_code LIKE 'CZA_SPECIAL_V1_%'
+        AND a.metadata->>'academyId'=t.academy_id::text
+        AND ((a.student_id IS NULL AND a.metadata->>'createdByEducatorId'=$1)
+          OR (a.student_id IS NOT NULL AND EXISTS (
+            SELECT 1 FROM public.cza_v02_readable_students($1,true) eligible WHERE eligible.id=a.student_id
+          ))) LIMIT 1`,[educatorId,sessionId]);
+    return rows[0] as Record<string, unknown> | undefined;
+  }
+
   const rows = await sql`
     SELECT
       a.id,
@@ -307,14 +321,15 @@ export async function POST(request: Request) {
         WHERE (
           (${student?.id || null}::uuid IS NOT NULL AND student_id = ${student?.id || null}::uuid)
           OR
-          (${student?.id || null}::uuid IS NULL AND student_id IS NULL
+          (${student?.id || null}::uuid IS NULL
             AND metadata->>'source' = 'EDUCATOR_PRE_ENROLLMENT'
             AND metadata->>'academyId' = ${academyId}
             AND metadata->>'candidateId' = ${candidateId}
             AND metadata->>'cycleId' = ${cycleId})
         )
           AND template_code = ${templateCode}
-          AND status = 'active'
+          AND (status = 'active' OR (student_id IS NOT NULL AND status = 'completed'
+            AND metadata->>'source' = 'EDUCATOR_PRE_ENROLLMENT'))
           AND metadata->>'createdByEducatorId' = ${educatorId}
         ORDER BY started_at DESC
         LIMIT 1
@@ -402,6 +417,14 @@ export async function POST(request: Request) {
 
     if (action === 'get' || action === 'report') {
       return json({ ok: true, profileCode, ...bundle });
+    }
+
+    // Reading a linked session never grants permission to alter its evidence.
+    if (isolatedQaEnabled() && (action === 'attempt' || action === 'finish')) {
+      const metadata = bundle.session.metadata as Record<string, unknown> | null;
+      if (metadata?.createdByEducatorId !== educatorId) {
+        return json({ ok: false, error: 'special_session_write_forbidden' }, 403);
+      }
     }
 
     if (action === 'attempt') {

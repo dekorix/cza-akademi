@@ -1,0 +1,35 @@
+{
+  "run": 38111538157,
+  "sourceCommit": "c4edf691bd107473177a169ff165d531c9c2ecf2",
+  "proof": {
+    "engine": "native PostgreSQL",
+    "connections": 2,
+    "tests": [
+      {
+        "name": "two independent connections and different authorized students",
+        "first": "linked",
+        "second": "conflict",
+        "loserWaited": true,
+        "audits": 1
+      },
+      {
+        "name": "concurrent same target idempotency",
+        "passed": true
+      },
+      {
+        "name": "concurrent permission revocation leaves no half-link",
+        "passed": true
+      },
+      {
+        "name": "native PostgreSQL audit failure rollback",
+        "passed": true
+      },
+      {
+        "name": "runtime can call scoped functions but cannot update users or insert audit",
+        "passed": true
+      }
+    ],
+    "passed": true,
+    "version": "PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on x86_64-pc-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit"
+  }
+}

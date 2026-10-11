@@ -1,0 +1,23 @@
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "Action completed."
+    }
+  ],
+  "structuredContent": {
+    "workflow_runs": [
+      {
+        "id": 38111538157,
+        "name": "V02 Candidate Student Link",
+        "status": "completed",
+        "conclusion": "success",
+        "run_number": 3,
+        "jobs_url": "https://api.github.com/repos/dekorix/cza-akademi/actions/runs/38111538157/jobs",
+        "logs_url": "https://api.github.com/repos/dekorix/cza-akademi/actions/runs/38111538157/logs",
+        "workflow_id": 381007668
+      }
+    ]
+  },
+  "isError": false
+}
