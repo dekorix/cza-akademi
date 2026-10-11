@@ -1,0 +1,68 @@
+{
+  "before": [
+    {
+      "table_name": "students",
+      "row_count": 2,
+      "rows_fingerprint": "3aa66f86fe61d1d71950c4a9461dcc5a"
+    },
+    {
+      "table_name": "training_recipes",
+      "row_count": 1,
+      "rows_fingerprint": "8ac11d8f7c434242a12204a47e0f7dac"
+    },
+    {
+      "table_name": "training_sessions",
+      "row_count": 9,
+      "rows_fingerprint": "976700ea643eba3d1b117e57a3300b6c"
+    },
+    {
+      "table_name": "question_attempts",
+      "row_count": 10,
+      "rows_fingerprint": "8687f85b894fb8e9114d8cc0abb6e7bc"
+    },
+    {
+      "table_name": "learning_records",
+      "row_count": 6,
+      "rows_fingerprint": "717192a7e8dd4e510881daaa64741ec7"
+    },
+    {
+      "table_name": "learning_evidence",
+      "row_count": 6,
+      "rows_fingerprint": "dd7ed91d01554f453322193fe244c0f8"
+    }
+  ],
+  "after": [
+    {
+      "table_name": "students",
+      "row_count": 2,
+      "rows_fingerprint": "3aa66f86fe61d1d71950c4a9461dcc5a"
+    },
+    {
+      "table_name": "training_recipes",
+      "row_count": 1,
+      "rows_fingerprint": "8ac11d8f7c434242a12204a47e0f7dac"
+    },
+    {
+      "table_name": "training_sessions",
+      "row_count": 9,
+      "rows_fingerprint": "976700ea643eba3d1b117e57a3300b6c"
+    },
+    {
+      "table_name": "question_attempts",
+      "row_count": 10,
+      "rows_fingerprint": "8687f85b894fb8e9114d8cc0abb6e7bc"
+    },
+    {
+      "table_name": "learning_records",
+      "row_count": 6,
+      "rows_fingerprint": "717192a7e8dd4e510881daaa64741ec7"
+    },
+    {
+      "table_name": "learning_evidence",
+      "row_count": 6,
+      "rows_fingerprint": "dd7ed91d01554f453322193fe244c0f8"
+    }
+  ],
+  "allEqual": true,
+  "initialSource": "7af599a/docs/evidence/v04-runtime/tables-after.json; same values independently read during final checks"
+}

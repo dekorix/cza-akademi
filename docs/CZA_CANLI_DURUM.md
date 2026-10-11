@@ -4,14 +4,14 @@
 
 Korunan PR73/87/89 OPEN/DRAFT. V04 tabanı PR89 HEAD5e39d3f1810f1c0a8228c651c6da5563b3a6a212/tree6a52137285cf9c03f700538b67a3256f1944e605. Main başlangıç snapshot6a2d4e197c8b39d01b8c04e30fee32230e68a3fd; PR91 açılmasıyla 10 açık PR. Mevcut V03 UI/tek öğrenci/profil ve bütün eski veriler korunur.
 
-Yalnız mevcut QA project patient-firefly-51111834/branch br-withered-queen-b15ltb40/db cza_t5_synthetic/Worker cza-v01-isolated-synthetic-20261010. Tek mevcut student20000000-0000-4000-8000-000000000001 ve finger_read recipe361ee0f6-26e2-4484-b9f9-7a88d14fb9f4; yeni öğrenci/atama/profil yok. Somut canlı engel: minimum role için bind_k3c/record_attempt/complete_work/student_record_learning EXECUTE=false. V03 SQL onayı V04'e taşınmaz; V04 SQL/privilege öncesi tam tasarım+etki+rollback ve ayrı Baş Mimar onayı zorunlu. Baş Mimar 6110936791 kararıyla dar SQL onaylandı ve tek transaction uygulandı. İzole Worker source f1b6ad4 / tree8d3267f, version a2469a65-c2df-43fe-a25f-2669d721849c. Gerçek tek çalışma tamamlandı: 10 cevap, 8 doğru; eski çalışma/ledger satırları hash eşit. Tam kesintisiz Studio sonuç-ekranı ve bütün concurrency kanıtları tamamlanmadı. Ayrıntı docs/CZA_V04_QA_RUNTIME_20261011.md.
+Yalnız mevcut QA project patient-firefly-51111834/branch br-withered-queen-b15ltb40/db cza_t5_synthetic/Worker cza-v01-isolated-synthetic-20261010. Tek mevcut student20000000-0000-4000-8000-000000000001 ve finger_read recipe361ee0f6-26e2-4484-b9f9-7a88d14fb9f4; yeni öğrenci/atama/profil yok. Somut canlı engel: minimum role için bind_k3c/record_attempt/complete_work/student_record_learning EXECUTE=false. V03 SQL onayı V04'e taşınmaz; V04 SQL/privilege öncesi tam tasarım+etki+rollback ve ayrı Baş Mimar onayı zorunlu. Baş Mimar 6110936791 kararıyla dar SQL onaylandı ve tek transaction uygulandı. İzole Worker source f1b6ad4 / tree8d3267f, version a2469a65-c2df-43fe-a25f-2669d721849c. Gerçek tek çalışma tamamlandı: 10 cevap, 8 doğru; eski çalışma/ledger satırları hash eşit. Son karar6112270644 kapsamındaki gerçek readonly desktop/mobile araştırması sonucu Studio restore yolu yok; 11 güvenli kontrol PASS, farklı cevap aynıUUID409, eski oturum404, closed-question iki tab409. Altı çalışma tablosu hash eşit; yeni kayıt yok. Native sonuç ve aktif yarış için review-only fixture paketi hazır. Ayrıntı docs/CZA_V04_QA_RUNTIME_20261011.md.
 
 GENEL PROJE İLERLEME %=ÖLÇÜLMEDİ
 MEVCUT FAZ İLERLEME %=3/7 QA scoped (%42,9); V04 açık
 TAMAMLANAN=dar SQL tek transaction, izole deploy, gerçek Chrome login/10 cevap/reload/mobile/retry/completion/profile, eski 8 session ve5 record/evidence hash eşitliği, kaynak CI PASS
-KALAN=kesintisiz Studio sonuç ekranı, tam fresh multi-tab/negative canlı kanıtı, Baş Mimar nihai kabulü
+KALAN=Studio sonuç ekranı ve aktif-soru yarış kanıtı; salt-okunur yol gerçek Chrome ile BLOCKED, ayrı tek fixture planı onay bekliyor. docs/CZA_V04_FINAL_FIXTURE_REVIEW_20261011.md
 KAPSAM SAPMASI=YOK
-SIRADAKİ TEK ADIM=Baş Mimar tamamlanmış tek atama kanıtını ve kalan dar test kapsamını incelesin
+SIRADAKİ TEK ADIM=Baş Mimar yeni ayrı tek test oturumu/SQL/temporary QA routing/rollback paketini onaylasın; uygulanmadı
 
 ---
 
