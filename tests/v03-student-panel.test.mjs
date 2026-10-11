@@ -82,12 +82,13 @@ test('existing panel destinations and canonical profile remain available', () =>
   for (const href of ['/work', '/learn', '/paritmetik', '#profile']) assert.ok(html.includes('href="' + href + '"'));
 });
 
-function dashboardRoute({ authenticated = true, identity = true, fail = false } = {}) {
+function dashboardRoute({ authenticated = true, identity = true, fail = false, forbidden = false } = {}) {
   const calls = [];
   const student = { student_id: studentId, academy_id: academyId, student_user_id: '10000000-0000-4000-8000-000000000001' };
   const sql = async (strings, ...values) => {
     const query = strings.join('?'); calls.push({ query, values });
     if (fail) throw new Error('database unavailable');
+    if (forbidden) throw Object.assign(new Error('read denied'), { code: '42501' });
     if (query.includes('JOIN public.users')) return identity ? [{ id: studentId, username: 'qa', display_name: 'Sentetik QA' }] : [];
     if (query.includes('FROM public.training_recipes tr')) return [{
       id: '30000000-0000-4000-8000-000000000001', module_code: 'soroban_read', module_name: 'Soroban',
@@ -98,6 +99,7 @@ function dashboardRoute({ authenticated = true, identity = true, fail = false } 
   };
   const exports = load(read('../app/api/core/dashboard/route.ts'), {
     '@neondatabase/serverless': { neon: () => sql },
+    '@/lib/qa-student-read': { studentReadSql: async () => sql },
     '@/lib/request-guard': { allowRequest: async () => ({ allowed: true }) },
     '@/lib/student-session': { authenticatedStudent: async () => authenticated ? student : null },
     '@/lib/work-center': work,
@@ -128,4 +130,5 @@ test('unauthenticated/revoked session denies before data queries; identity misma
   assert.equal(denied.calls.length, 0);
   assert.equal((await dashboardRoute({ identity: false }).get()).status, 404);
   assert.equal((await dashboardRoute({ fail: true }).get()).status, 503);
+  assert.equal((await dashboardRoute({ forbidden: true }).get()).status, 403);
 });

@@ -1,0 +1,21 @@
+{
+  "mode": "LIVE_QA_READ_ONLY",
+  "identity": {
+    "role": "cza_v01_app_runtime_min",
+    "database": "cza_t5_synthetic",
+    "project": "patient-firefly-51111834",
+    "branch": "br-withered-queen-b15ltb40"
+  },
+  "directReads": {
+    "students": 0,
+    "training_recipes": 0
+  },
+  "unauthorizedSpoofedHeaders": {
+    "dashboard": 401,
+    "learningProfile": 401,
+    "assignments": 401
+  },
+  "credentialTransport": "EPHEMERAL_STDIN_MEMORY_NO_REMOTE_SECRET_FILE",
+  "realStudentLogin": "NOT_RUN",
+  "migrationApplied": false
+}

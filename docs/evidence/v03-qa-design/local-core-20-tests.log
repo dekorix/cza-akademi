@@ -1,0 +1,28 @@
+✔ configured allowed core receives the server-side Vercel bypass header (27.288915ms)
+✔ missing or blank secret preserves the existing upstream headers (0.334748ms)
+✔ allowlist validation fails closed before the secret is read or fetch starts (0.23558ms)
+✔ bypass secret is absent from URL, logs, payload and responses (0.465983ms)
+✔ canonical proxy payload and lifecycle actions remain unchanged (0.31502ms)
+✔ POST-only, JSON-only, invalid action and malformed schema fail closed (35.32582ms)
+✔ bounded body rejects an oversized request before database access (2.3236ms)
+✔ invalid credentials are negative and a proven login result is preserved (3.353626ms)
+✔ me delegates the session token and preserves the dashboard RPC contract (1.564033ms)
+✔ start validates canonical input and returns a UUID sessionId (1.295048ms)
+✔ attempt contract delegates only validated canonical fields (0.558588ms)
+✔ interaction contract delegates the exact consumer envelope (0.814165ms)
+✔ finish preserves the existing RPC return contract (0.493985ms)
+✔ null RPC outcomes reject invalid sessions for every mutating action (1.614681ms)
+✔ database identity is pinned to the non-production branch and fails closed (1.005144ms)
+✔ handler and database adapter contain no credential logging or production fallback (13.879223ms)
+✔ unexpected database errors expose only a bounded generic error (0.749792ms)
+✔ account limiter uses one global normalized key without an IP dimension (3.399535ms)
+✔ account limiter fails closed in production without central storage (0.989064ms)
+✔ browser sends student session to core, assessment and history, then removes it on logout (2479.458982ms)
+ℹ tests 20
+ℹ suites 0
+ℹ pass 20
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3519.253451
