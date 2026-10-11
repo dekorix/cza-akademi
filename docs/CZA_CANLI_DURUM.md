@@ -30,6 +30,10 @@ SIRADAKİ TEK ADIM=Baş Mimar'ın onayladığı dar QA paketinin gerçek runtime
 
 Baş Mimar, `a638215595c56aa28b2b8c835b34445f6a3e598d` tasarım/etki paketine “Dar QA paketini onaylıyorum” yanıtını verdi. İki sınırlı fonksiyon yalnız kilitli Neon QA transaction'ında kuruldu. Aynı mevcut kullanıcıda NULL PIN özeti başlatıldı; 1 `finger_read` modülü ve 1 mevcut bağlı sentetik educator adına teacher_assignment bootstrap kaydı eklendi. Yeni öğrenci yok; öğrenci sayısı 2, eski training_sessions 8. RLS politika fingerprint'i değişmedi. Bunlar gerçek educator UI create PASS iddiası veya V03 kabulü değildir. Normal gerçek login/Chrome/API/DB/Worker eşleşmesi sıradaki doğrulamadır.
 
-## Gerçek oturum kontrolü checkpoint'i
+## Gerçek oturum kontrolü checkpoint'i (tarihsel, ek onay öncesi)
 
 Gerçek Chrome login HTTP 200, fakat dashboard HTTP 403: minimum runtime role eski canonical touch/revoke fonksiyonlarında EXECUTE sahibi değil. Yeni read/login fonksiyonlarının EXECUTE hakkı var. V03 gerçek test FAIL; masaüstü/mobil tam akış henüz tamamlanmadı. Ek dar iki fonksiyon tasarımı `docs/CZA_V03_QA_SESSION_FOLLOWUP_20261011.md` ve `db/qa/v03-session-lifecycle.sql` içinde; **uygulanmadı, ayrı Baş Mimar onayı bekliyor**. Genel eski fonksiyon/table/RLS yetkisi açılmayacak. QA Worker teşhis kaynağı 8abc6bb2ee36e067ef6beb5914188ef549609db0, CI38132014672 SUCCESS; version bd9f325d-a6c1-405d-b22e-d70c5c942e13. Sıradaki tek adım ek dar oturum paketinin onayı; V03_ACCEPTED=NO.
+
+## Güncel ek onay sonrası
+
+Baş Mimar b42b1a9 ek paketi için “Dar ek oturum paketini onaylıyorum” dedi. İki ek fonksiyon kilitli QA transaction'ında kuruldu; genel eski fonksiyon/RLS/rol yetkileri aynı. Gerçek Chrome masaüstü/mobil tam40/40 test geçti; minimum Neon rolü12/12 ve statik5 byte eşitliği geçti. Eski56 oturum ve40/45 tablo fingerprint'i aynı; beklenen5 değişiklik onaylı hazırlık/login/rate-limit kayıtlarıdır. Ana staging değişmedi. QA source62bc61f4e24f3d11f8c1ff514e61f105cb0a62c1/tree0e99b02f559aaff5365c26281ad37f49699b265a; CI38132583947 SUCCESS; Worker versiond439fee2-9bd9-495a-9d8a-b8338feae25f. Ayrıntı `docs/CZA_V03_QA_RUNTIME_20261011.md`. Worker module bağımsız byte readback Windows indirme hatası ve eksik güvenli runner bağlantısı nedeniyle DOĞRULANAMADI. V03_ACCEPTED=NO; Baş Mimar nihai kabulü açık.

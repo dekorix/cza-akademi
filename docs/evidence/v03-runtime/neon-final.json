@@ -1,0 +1,495 @@
+{
+  "tablesCompared": 45,
+  "unchangedTables": 40,
+  "changedTables": [
+    {
+      "table": "api_rate_limit_windows",
+      "beforeRows": 2,
+      "afterRows": 6
+    },
+    {
+      "table": "modules",
+      "beforeRows": 1,
+      "afterRows": 2
+    },
+    {
+      "table": "student_sessions",
+      "beforeRows": 56,
+      "afterRows": 63
+    },
+    {
+      "table": "training_recipes",
+      "beforeRows": 0,
+      "afterRows": 1
+    },
+    {
+      "table": "users",
+      "beforeRows": 7,
+      "afterRows": 7
+    }
+  ],
+  "before": [
+    {
+      "table_name": "academies",
+      "rows": 2,
+      "fingerprint": "f53077038c2cbfe7ceb66c1e9b1b840f"
+    },
+    {
+      "table_name": "api_rate_limit_windows",
+      "rows": 2,
+      "fingerprint": "62364ffd948e53068ed08c8b5af98735"
+    },
+    {
+      "table_name": "assessment_attempts",
+      "rows": 497,
+      "fingerprint": "e8eef50e2b09606ec5b6747e1c40b3a2"
+    },
+    {
+      "table_name": "assessment_observations",
+      "rows": 20,
+      "fingerprint": "732bf56fa32541136ad80fd690f84160"
+    },
+    {
+      "table_name": "assessment_session_outbox",
+      "rows": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table_name": "assessment_sessions",
+      "rows": 63,
+      "fingerprint": "c5dec5e5fda89ad1162ed9637a88e84a"
+    },
+    {
+      "table_name": "assessment_stations",
+      "rows": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table_name": "assessment_student_link_audit",
+      "rows": 3,
+      "fingerprint": "bd91b4ff1ba568af4170837e4d699203"
+    },
+    {
+      "table_name": "assessment_tasks",
+      "rows": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table_name": "assessment_templates",
+      "rows": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table_name": "centers",
+      "rows": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table_name": "coaching_exam_results",
+      "rows": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table_name": "coaching_exam_templates",
+      "rows": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table_name": "coaching_goals",
+      "rows": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table_name": "coaching_meetings",
+      "rows": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table_name": "coaching_mistakes",
+      "rows": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table_name": "coaching_plan_items",
+      "rows": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table_name": "coaching_plan_revisions",
+      "rows": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table_name": "coaching_plans",
+      "rows": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table_name": "coaching_programs",
+      "rows": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table_name": "coaching_study_logs",
+      "rows": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table_name": "coaching_topic_status",
+      "rows": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table_name": "educator_sessions",
+      "rows": 1,
+      "fingerprint": "fc269bd1c257d18e723cd3692a56ebab"
+    },
+    {
+      "table_name": "interaction_events",
+      "rows": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table_name": "learning_evidence",
+      "rows": 5,
+      "fingerprint": "7aba9a145ef9fea3a3e2746b5c08c051"
+    },
+    {
+      "table_name": "learning_records",
+      "rows": 5,
+      "fingerprint": "4c05fba3aceffd6efd225cc304027abd"
+    },
+    {
+      "table_name": "level_recommendations",
+      "rows": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table_name": "modules",
+      "rows": 1,
+      "fingerprint": "df0c16fac2f5e4e11b27f150ea0f9496"
+    },
+    {
+      "table_name": "p1_assessment_sessions",
+      "rows": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table_name": "p1_evidence_events",
+      "rows": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table_name": "p1_session_commands",
+      "rows": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table_name": "parent_student_links",
+      "rows": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table_name": "question_attempts",
+      "rows": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table_name": "recommendations",
+      "rows": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table_name": "student_external_identifiers",
+      "rows": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table_name": "student_mastery_profiles",
+      "rows": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table_name": "student_sessions",
+      "rows": 56,
+      "fingerprint": "8b28a12481e6ecf995d9e9e1f5e2b678"
+    },
+    {
+      "table_name": "students",
+      "rows": 2,
+      "fingerprint": "0dc13045f8bf2f44f9437954e10d607c"
+    },
+    {
+      "table_name": "teacher_notes",
+      "rows": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table_name": "teacher_student_links",
+      "rows": 4,
+      "fingerprint": "1cc2bb2221e4e5a4b8d9b8ba0587426a"
+    },
+    {
+      "table_name": "teacher_student_module_permissions",
+      "rows": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table_name": "training_recipes",
+      "rows": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table_name": "training_sessions",
+      "rows": 8,
+      "fingerprint": "113f8cdb52a4af94ed02ecace4703872"
+    },
+    {
+      "table_name": "trusted_proxy_nonces",
+      "rows": 5,
+      "fingerprint": "573e722f6dc0a04e985fef458108fb7d"
+    },
+    {
+      "table_name": "users",
+      "rows": 7,
+      "fingerprint": "0984f057d6ecf04d1d8fee7a5411cb58"
+    }
+  ],
+  "after": [
+    {
+      "table_name": "academies",
+      "rows": 2,
+      "fingerprint": "f53077038c2cbfe7ceb66c1e9b1b840f"
+    },
+    {
+      "table_name": "api_rate_limit_windows",
+      "rows": 6,
+      "fingerprint": "70537fc910b6b652e6ca20fa341440f1"
+    },
+    {
+      "table_name": "assessment_attempts",
+      "rows": 497,
+      "fingerprint": "e8eef50e2b09606ec5b6747e1c40b3a2"
+    },
+    {
+      "table_name": "assessment_observations",
+      "rows": 20,
+      "fingerprint": "732bf56fa32541136ad80fd690f84160"
+    },
+    {
+      "table_name": "assessment_session_outbox",
+      "rows": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table_name": "assessment_sessions",
+      "rows": 63,
+      "fingerprint": "c5dec5e5fda89ad1162ed9637a88e84a"
+    },
+    {
+      "table_name": "assessment_stations",
+      "rows": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table_name": "assessment_student_link_audit",
+      "rows": 3,
+      "fingerprint": "bd91b4ff1ba568af4170837e4d699203"
+    },
+    {
+      "table_name": "assessment_tasks",
+      "rows": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table_name": "assessment_templates",
+      "rows": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table_name": "centers",
+      "rows": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table_name": "coaching_exam_results",
+      "rows": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table_name": "coaching_exam_templates",
+      "rows": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table_name": "coaching_goals",
+      "rows": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table_name": "coaching_meetings",
+      "rows": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table_name": "coaching_mistakes",
+      "rows": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table_name": "coaching_plan_items",
+      "rows": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table_name": "coaching_plan_revisions",
+      "rows": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table_name": "coaching_plans",
+      "rows": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table_name": "coaching_programs",
+      "rows": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table_name": "coaching_study_logs",
+      "rows": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table_name": "coaching_topic_status",
+      "rows": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table_name": "educator_sessions",
+      "rows": 1,
+      "fingerprint": "fc269bd1c257d18e723cd3692a56ebab"
+    },
+    {
+      "table_name": "interaction_events",
+      "rows": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table_name": "learning_evidence",
+      "rows": 5,
+      "fingerprint": "7aba9a145ef9fea3a3e2746b5c08c051"
+    },
+    {
+      "table_name": "learning_records",
+      "rows": 5,
+      "fingerprint": "4c05fba3aceffd6efd225cc304027abd"
+    },
+    {
+      "table_name": "level_recommendations",
+      "rows": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table_name": "modules",
+      "rows": 2,
+      "fingerprint": "a2cc016c76016b398c38fb0007870ae8"
+    },
+    {
+      "table_name": "p1_assessment_sessions",
+      "rows": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table_name": "p1_evidence_events",
+      "rows": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table_name": "p1_session_commands",
+      "rows": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table_name": "parent_student_links",
+      "rows": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table_name": "question_attempts",
+      "rows": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table_name": "recommendations",
+      "rows": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table_name": "student_external_identifiers",
+      "rows": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table_name": "student_mastery_profiles",
+      "rows": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table_name": "student_sessions",
+      "rows": 63,
+      "fingerprint": "33a5951b7502f473096f675f6a1f73e9"
+    },
+    {
+      "table_name": "students",
+      "rows": 2,
+      "fingerprint": "0dc13045f8bf2f44f9437954e10d607c"
+    },
+    {
+      "table_name": "teacher_notes",
+      "rows": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table_name": "teacher_student_links",
+      "rows": 4,
+      "fingerprint": "1cc2bb2221e4e5a4b8d9b8ba0587426a"
+    },
+    {
+      "table_name": "teacher_student_module_permissions",
+      "rows": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table_name": "training_recipes",
+      "rows": 1,
+      "fingerprint": "b34f3f69f3512846a40fe16b7759f7d7"
+    },
+    {
+      "table_name": "training_sessions",
+      "rows": 8,
+      "fingerprint": "113f8cdb52a4af94ed02ecace4703872"
+    },
+    {
+      "table_name": "trusted_proxy_nonces",
+      "rows": 5,
+      "fingerprint": "573e722f6dc0a04e985fef458108fb7d"
+    },
+    {
+      "table_name": "users",
+      "rows": 7,
+      "fingerprint": "dfc20682ae0dec3e921bdc6fd06cd198"
+    }
+  ],
+  "oldSessions": {
+    "rows": 56,
+    "fingerprint": "8b28a12481e6ecf995d9e9e1f5e2b678",
+    "unchanged": true
+  },
+  "policies": {
+    "fingerprint": "684c16779e665bf33340fd2eee073b63",
+    "unchanged": true,
+    "algorithm": "md5(string_agg(to_jsonb(pg_policies)::text,'' ORDER BY tablename,policyname)) where schemaname=public"
+  }
+}

@@ -1,6 +1,6 @@
 # V03 QA oturum yaşam döngüsü: ek uygulama onayı paketi
 
-V03_ACCEPTED=NO. **UYGULANMADI.** PR #89 üzerinde, ilk onayın dışındaki bu iki yeni fonksiyon için Baş Mimar onayı gerekir.
+V03_ACCEPTED=NO. Bu belge b42b1a9'daki uygulama öncesi tasarım kaydıdır. **Güncel durum: Baş Mimar “Dar ek oturum paketini onaylıyorum” dedi; aynen belirtilen SQL yalnız kilitli QA transaction'ında uygulandı.** Gerçek sonuçlar `CZA_V03_QA_RUNTIME_20261011.md` içindedir. Aşağıdaki uygulama öncesi notlar tarihsel tasarım gerekçesidir.
 
 İlk onaylı paket izole QA'ya uygulandı: iki sınırlı login/read fonksiyonu, mevcut NULL PIN başlangıcı, bir finger_read ve mevcut educator adına tek kanonik bootstrap atama. Öğrenci sayısı 2, eski training_sessions 8; yeni öğrenci yok. Gerçek Chrome arayüzüyle login 200, Secure/HttpOnly/SameSite cookie başarılı; dashboard 403. Bu test FAIL'dir, gerçek V03 PASS değildir.
 

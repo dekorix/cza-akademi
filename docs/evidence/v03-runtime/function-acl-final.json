@@ -1,0 +1,42 @@
+[
+  {
+    "proname": "cza_v03_qa_authenticated_student",
+    "owner": "cza_t5_test_owner",
+    "provolatile": "s",
+    "prosecdef": true,
+    "proconfig": [
+      "search_path=pg_catalog, public, pg_temp"
+    ],
+    "proacl": "{cza_t5_test_owner=X/cza_t5_test_owner,cza_v01_app_runtime_min=X/cza_t5_test_owner}"
+  },
+  {
+    "proname": "cza_v03_qa_revoke_student_session",
+    "owner": "cza_t5_test_owner",
+    "provolatile": "v",
+    "prosecdef": true,
+    "proconfig": [
+      "search_path=pg_catalog, public, pg_temp"
+    ],
+    "proacl": "{cza_t5_test_owner=X/cza_t5_test_owner,cza_v01_app_runtime_min=X/cza_t5_test_owner}"
+  },
+  {
+    "proname": "cza_v03_qa_student_login",
+    "owner": "cza_t5_test_owner",
+    "provolatile": "v",
+    "prosecdef": true,
+    "proconfig": [
+      "search_path=pg_catalog, public, pg_temp"
+    ],
+    "proacl": "{cza_t5_test_owner=X/cza_t5_test_owner,cza_v01_app_runtime_min=X/cza_t5_test_owner}"
+  },
+  {
+    "proname": "cza_v03_qa_student_read",
+    "owner": "cza_t5_test_owner",
+    "provolatile": "s",
+    "prosecdef": true,
+    "proconfig": [
+      "search_path=pg_catalog, public, pg_temp"
+    ],
+    "proacl": "{cza_t5_test_owner=X/cza_t5_test_owner,cza_v01_app_runtime_min=X/cza_t5_test_owner}"
+  }
+]
