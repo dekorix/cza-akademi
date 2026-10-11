@@ -59,7 +59,12 @@ test('actual SQL validates canonical session, denies foreign access and does not
   await db.exec(ddl);
   // PGlite's database is postgres; only that fixture name is substituted.
   await db.exec(migration.replaceAll("'cza_t5_synthetic'","'postgres'"));
+  await db.exec(`CREATE FUNCTION public.cza_revoke_student_session(p_hash text) RETURNS void LANGUAGE sql SECURITY DEFINER SET search_path=pg_catalog,public,pg_temp AS $$ UPDATE public.student_sessions SET revoked_at=now() WHERE token_hash=p_hash $$; REVOKE ALL ON FUNCTION public.cza_revoke_student_session(text) FROM PUBLIC;`);
+  await db.exec(fs.readFileSync('db/qa/v03-session-lifecycle.sql','utf8').replaceAll("'cza_t5_synthetic'","'postgres'"));
   await db.exec('SET ROLE cza_v01_app_runtime_min');
+  assert.equal((await db.query('SELECT * FROM public.cza_v03_qa_authenticated_student($1)',[hash])).rows[0].student_id,student);
+  assert.deepEqual((await db.query('SELECT * FROM public.cza_v03_qa_authenticated_student($1)',['0'.repeat(64)])).rows,[]);
+  await assert.rejects(db.query('SELECT public.cza_revoke_student_session($1)',[hash]),/permission denied/);
   assert.deepEqual((await db.query('SELECT id FROM public.students')).rows,[]);
   assert.deepEqual((await db.query('SELECT id FROM public.training_recipes')).rows,[]);
   const read=async(id,selectedRecipe=null)=>(await db.query('SELECT public.cza_v03_qa_student_read($1,$2,$3,now()) AS rows',[hash,id,selectedRecipe])).rows[0].rows;
@@ -80,6 +85,14 @@ test('actual SQL validates canonical session, denies foreign access and does not
   }
   await db.query("SELECT set_config('neon.branch_id','wrong-branch',false)");
   await assert.rejects(read('dashboard_1'),/session_rejected/);
+  assert.deepEqual((await db.query('SELECT * FROM public.cza_v03_qa_authenticated_student($1)',[hash])).rows,[]);
+  await assert.rejects(db.query('SELECT public.cza_v03_qa_revoke_student_session($1)',[hash]),/target_rejected/);
+  await db.query("SELECT set_config('neon.branch_id','br-withered-queen-b15ltb40',false)");
+  await db.query('SELECT public.cza_v03_qa_revoke_student_session($1)',['0'.repeat(64)]);
+  assert.equal((await db.query('SELECT * FROM public.cza_v03_qa_authenticated_student($1)',[hash])).rows.length,1);
+  await db.query('SELECT public.cza_v03_qa_revoke_student_session($1)',[hash]);
+  assert.deepEqual((await db.query('SELECT * FROM public.cza_v03_qa_authenticated_student($1)',[hash])).rows,[]);
+  await db.query('SELECT public.cza_v03_qa_revoke_student_session($1)',[hash]);
   await db.exec('RESET ROLE');
   const roles=(await db.query("SELECT rolbypassrls,rolsuper FROM pg_roles WHERE rolname='cza_v01_app_runtime_min'")).rows[0];
   assert.deepEqual(roles,{rolbypassrls:false,rolsuper:false});
