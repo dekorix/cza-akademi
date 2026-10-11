@@ -2,7 +2,6 @@ import { neon } from '@neondatabase/serverless';
 import { authenticatedEducator } from '@/lib/educator-auth';
 import { isolatedQaEnabled, isolatedQaDatabaseAllowed } from '@/lib/isolated-qa-auth';
 import { allowRequest, rateLimited } from '@/lib/request-guard';
-import { eligibleStudentsSql } from '@/lib/assessment-student-link';
 
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const json=(body:unknown,status=200)=>Response.json(body,{status,headers:{'cache-control':'no-store'}});
@@ -32,21 +31,13 @@ export async function POST(request:Request){
         AND a.metadata->>'source'='EDUCATOR_PRE_ENROLLMENT'
         AND a.template_code LIKE 'CZA_SPECIAL_V1_%' AND a.status IN ('active','completed')`,[educator.id,sessionId]);
     if(!source.length)return json({ok:false,error:'candidate_not_authorized'},403);
-    if(input.action==='students')return json({ok:true,students:await sql.query(eligibleStudentsSql,[educator.id,true])});
+    if(input.action==='students')return json({ok:true,students:await sql.query('SELECT * FROM public.cza_v02_eligible_students($1,$2::boolean)',[educator.id,true])});
     if(input.action==='history'){
       const studentId=String(input.studentId||'');
       if(!UUID.test(studentId))return json({ok:false,error:'student_id_invalid'},400);
-      const eligible=await sql.query(eligibleStudentsSql,[educator.id,true]);
+      const eligible=await sql.query('SELECT * FROM public.cza_v02_eligible_students($1,$2::boolean)',[educator.id,true]);
       if(!eligible.some(s=>s.id===studentId))return json({ok:false,error:'student_not_authorized'},403);
-      const sessions=await sql.query(`SELECT a.id,a.student_id,a.template_code,a.status,a.metadata,
-        (SELECT count(*)::int FROM public.assessment_attempts WHERE session_id=a.id) AS attempt_count,
-        (SELECT count(*)::int FROM public.assessment_observations WHERE session_id=a.id) AS observation_count
-        FROM public.assessment_sessions a JOIN public.students s ON s.id=a.student_id
-        JOIN public.users u ON u.auth_user_id=$1 AND u.academy_id=s.academy_id AND u.is_active=true AND u.role::text='educator'
-        JOIN public.teacher_student_links l ON l.teacher_id=u.id AND l.student_id=s.id AND l.academy_id=s.academy_id
-        WHERE s.id=$2::uuid AND s.status='active' AND s.is_demo=true
-          AND l.can_view=true AND l.can_link_assessment=true
-          AND a.metadata->>'academyId'=s.academy_id::text ORDER BY a.started_at DESC LIMIT 100`,[educator.id,studentId]);
+      const sessions=await sql.query('SELECT * FROM public.cza_v02_student_history($1,$2::uuid)',[educator.id,studentId]);
       return json({ok:true,student:eligible.find(s=>s.id===studentId),sessions});
     }
     if(input.action!=='bind')return json({ok:false,error:'invalid_action'},400);

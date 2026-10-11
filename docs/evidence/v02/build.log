@@ -9,36 +9,28 @@
 
 
 [1/5] analyze client references...
-[2Ktransforming...✓ 384 modules transformed.
+[2Ktransforming...✓ 383 modules transformed.
 rendering chunks...
-[33m[PLUGIN_TIMINGS] [0mYour build spent significant time in plugins. Here is a breakdown:
-  - alias (25%)
-  - rsc:virtual-client-package (19%)
-  - vinext:og-inline-fetch-assets (14%)
-  - vinext:middleware-server-only (8%)
-  - vinext:css-data-url (7%)
-See https://rolldown.rs/options/checks#plugintimings for more details.
-
-✓ built in 3.09s
+✓ built in 2.92s
 [2/5] analyze server references...
 [2Ktransforming...✓ 529 modules transformed.
 rendering chunks...
-✓ built in 1.67s
+✓ built in 1.61s
 [3/5] build rsc environment...
-[2Ktransforming...✓ 381 modules transformed.
+[2Ktransforming...✓ 380 modules transformed.
 rendering chunks...
 computing gzip size...
-✓ built in 2.40s
+✓ built in 1.86s
 [4/5] build client environment...
 [2Ktransforming...✓ 2258 modules transformed.
 rendering chunks...
 computing gzip size...
-✓ built in 4.59s
+✓ built in 2.72s
 [5/5] build ssr environment...
 [2Ktransforming...✓ 537 modules transformed.
 rendering chunks...
 computing gzip size...
-✓ built in 4.53s
+✓ built in 1.76s
 [0m
   Route (app)
   ┌ ? /                                  

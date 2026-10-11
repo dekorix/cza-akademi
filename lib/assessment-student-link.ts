@@ -54,3 +54,16 @@ SELECT CASE WHEN locked.student_id=$3::uuid THEN 'already_linked' ELSE 'conflict
        locked.id,locked.student_id,audit.linked_at
 FROM locked LEFT JOIN public.assessment_student_link_audit audit ON audit.session_id=locked.id
 WHERE locked.student_id IS NOT NULL`;
+
+export const linkedHistorySql = `
+SELECT a.id,a.student_id,a.template_code,a.status,a.metadata,
+ (SELECT count(*)::int FROM public.assessment_attempts WHERE session_id=a.id) AS attempt_count,
+ (SELECT count(*)::int FROM public.assessment_observations WHERE session_id=a.id) AS observation_count
+FROM public.assessment_sessions a JOIN public.students s ON s.id=a.student_id
+JOIN public.users u ON u.auth_user_id=$1 AND u.academy_id=s.academy_id
+ AND u.is_active=true AND u.role::text='educator'
+JOIN public.teacher_student_links l ON l.teacher_id=u.id AND l.student_id=s.id AND l.academy_id=s.academy_id
+WHERE s.id=$2::uuid AND s.status='active' AND s.is_demo=true
+ AND l.can_view=true AND l.can_link_assessment=true
+ AND a.metadata->>'academyId'=s.academy_id::text
+ORDER BY a.started_at DESC LIMIT 100`;

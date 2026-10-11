@@ -16,7 +16,7 @@ test.before(async()=>{
  CREATE TABLE students(id uuid PRIMARY KEY,academy_id uuid,first_name text,last_name text,status text,is_demo boolean);
  CREATE TABLE teacher_student_links(id uuid PRIMARY KEY,academy_id uuid,teacher_id uuid,student_id uuid,can_view boolean,can_coach boolean);
  CREATE TABLE student_external_identifiers(student_id uuid,identifier_type text,identifier_value text);
- CREATE TABLE assessment_sessions(id uuid PRIMARY KEY,student_id uuid,template_code text,status text,metadata jsonb);
+ CREATE TABLE assessment_sessions(id uuid PRIMARY KEY,student_id uuid,template_code text,status text,metadata jsonb,started_at timestamptz DEFAULT now());
  CREATE TABLE assessment_attempts(id uuid PRIMARY KEY,session_id uuid,answer_text text);
  CREATE TABLE assessment_observations(id uuid PRIMARY KEY,session_id uuid,educator_note text);
  INSERT INTO academies VALUES('${id(1)}','Synthetic QA'),('${id(2)}','Other QA');
@@ -25,7 +25,7 @@ test.before(async()=>{
  INSERT INTO teacher_student_links VALUES('${id(20)}','${id(1)}','${id(3)}','${id(10)}',true,false),('${id(21)}','${id(1)}','${id(3)}','${id(11)}',true,false),('${id(22)}','${id(1)}','${id(3)}','${id(12)}',true,true);`);
  await db.exec(fs.readFileSync(new URL('../db/migrations/20261011_v02_assessment_link_permission.sql',import.meta.url),'utf8'));
  await db.exec(fs.readFileSync(new URL('../db/migrations/20261011_v02_assessment_link_audit.sql',import.meta.url),'utf8'));
- for(let n=30;n<40;n++)await db.query(`INSERT INTO assessment_sessions VALUES($1,NULL,'CZA_SPECIAL_V1_DYS','active',$2::jsonb)`,[id(n),JSON.stringify({academyId:id(1),createdByEducatorId:'auth',source:'EDUCATOR_PRE_ENROLLMENT',candidateId:id(n+100),cycleId:id(200)})]);
+ for(let n=30;n<40;n++)await db.query(`INSERT INTO assessment_sessions(id,student_id,template_code,status,metadata) VALUES($1,NULL,'CZA_SPECIAL_V1_DYS','active',$2::jsonb)`,[id(n),JSON.stringify({academyId:id(1),createdByEducatorId:'auth',source:'EDUCATOR_PRE_ENROLLMENT',candidateId:id(n+100),cycleId:id(200)})]);
  await db.exec(`INSERT INTO assessment_attempts VALUES('${id(50)}','${id(30)}','al');INSERT INTO assessment_observations VALUES('${id(51)}','${id(30)}','Synthetic observation');`);
 });
 test.after(()=>db.close());
