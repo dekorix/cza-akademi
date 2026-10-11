@@ -1,0 +1,23 @@
+✔ U1 starts from the authenticated canonical student identity (1.110852ms)
+✔ unauthenticated dashboard requests fail closed (0.148514ms)
+✔ student identity cannot be selected from query or request body (0.224372ms)
+✔ profile lookup binds all three canonical identity dimensions (0.154628ms)
+✔ student A cannot read student B assignment queue (0.160957ms)
+✔ assignment launch remains server-authoritative (0.09717ms)
+✔ attempt and result persistence bind to the authenticated student (0.125615ms)
+✔ error and evidence fields remain part of the persisted learning chain (0.151205ms)
+✔ history is student-scoped and deterministically ordered (0.332951ms)
+✔ duplicate and failed writes retain atomic fail-closed behavior (0.248644ms)
+✔ dashboard response uses an explicit safe allowlist (0.406582ms)
+✔ demo fixtures cannot be directed to production by U1 (1.111979ms)
+✔ student auth guard and durable logout are not regressed (0.15973ms)
+✔ root route now renders the real student panel instead of an external redirect (0.091065ms)
+✔ responsive U1 UI exposes all required student destinations (0.119532ms)
+ℹ tests 15
+ℹ suites 0
+ℹ pass 15
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 12.446536

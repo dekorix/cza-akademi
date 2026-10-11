@@ -1,0 +1,36 @@
+name: V03 Student Panel
+on:
+  pull_request:
+    paths:
+      - 'components/student-dashboard.tsx'
+      - 'components/student-learning-profile.tsx'
+      - 'app/page.tsx'
+      - 'app/api/core/dashboard/**'
+      - 'app/api/core/learning-profile/**'
+      - 'lib/student-session.ts'
+      - 'lib/student-dashboard-contract.ts'
+      - 'lib/work-center.ts'
+      - 'lib/persistence/student-learning-profile.ts'
+      - 'tests/v03-*'
+      - '.github/workflows/cza-v03-student-panel.yml'
+permissions:
+  contents: read
+jobs:
+  no-secrets-panel:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: '22.13.0'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Panel, canonical profile and assignment regressions
+        run: node --test tests/v03-student-panel.test.mjs tests/u1-student-panel.test.mjs tests/u2-work-center.test.mjs tests/u7-student-learning-profile.test.mjs tests/u1-student-panel-postgres.test.mjs tests/u2-work-center-postgres.test.mjs
+      - name: TypeScript
+        run: npx tsc --noEmit
+      - name: Local desktop/mobile browser rendering (mock UI only)
+        run: node tests/v03-student-panel-browser.mjs
+      - name: Full platform build without secrets
+        run: npm run build

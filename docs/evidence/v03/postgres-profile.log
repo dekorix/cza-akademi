@@ -1,0 +1,35 @@
+✔ U1 migration is additive-only (1.004806ms)
+✔ U1 additive schema is idempotent and preserves cross-student isolation (3057.893743ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3064.88778
+✔ U7 reuses one canonical read-only profile projection without a parallel store (1.419679ms)
+✔ student identity is session-owned and forged student id is ignored (155.373969ms)
+✔ educator learning profile requires canonical educator role, academy and can_view link (42.473209ms)
+✔ legacy and parent client provenance stay client reported while trusted fixture survives (59.352322ms)
+✔ forged correctness remains client reported and empty history is never false zero (20.367382ms)
+✔ independent scalar aggregates prevent join multiplication (3759.916491ms)
+✔ profile rendering is responsive, bounded, traceable and does not reinterpret raw verification flags (0.860124ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4047.23033
+✔ U2 migration is additive-only (1.581922ms)
+✔ U2 assigned work lifecycle is isolated, resumable, idempotent, and atomic (6957.753884ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 6980.951893

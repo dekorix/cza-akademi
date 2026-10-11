@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { StudentDashboardData } from '@/lib/student-dashboard-contract';
+import { workStateLabel } from '@/lib/work-center';
 import { LearningTimeline } from '@/components/learning-timeline';
 import { StudentLearningProfile } from '@/components/student-learning-profile';
 import { SpecialProgramToday } from '@/components/special-program-today';
@@ -55,6 +56,7 @@ const moduleLinks = [
 ];
 
 const dashboardLinks = [
+  { href: '#route', label: 'Benim Öğrenme Rotam', icon: Target },
   { href: '#today', label: 'Atanan Çalışmalar', icon: CalendarClock },
   { href: '#results', label: 'Sonuçlarım', icon: CheckCircle2 },
   { href: '#history', label: 'Geçmişim', icon: History },
@@ -75,6 +77,8 @@ export function StudentDashboard({
 }) {
   const displayName = dashboard?.profile.name || 'Öğrenci';
   const assignments = dashboard?.assignments ?? [];
+  const nextAssignment = assignments.find((item) => item.status === 'in_progress')
+    ?? assignments.find((item) => item.status === 'available');
   const summary = dashboard?.summary;
   const summaryCards = [
     { label: 'Aktif çalışma', value: summary?.activeAssignments ?? 0, icon: CalendarClock, color: '#315f86' },
@@ -116,7 +120,7 @@ export function StudentDashboard({
           <div className="relative grid items-end gap-7 lg:grid-cols-[1fr_auto]">
             <div>
               <p className="text-sm font-bold uppercase tracking-[.12em] text-[#d8efb5]">Bugünkü gelişim alanın</p>
-              <h1 className="mt-3 max-w-3xl text-3xl font-black leading-tight tracking-tight md:text-4xl">Merhaba {displayName}. Sıradaki adımın hazır.</h1>
+              <h1 className="mt-3 max-w-3xl text-3xl font-black leading-tight tracking-tight md:text-4xl">Merhaba {displayName}. Öğrenme rotanı keşfet.</h1>
               <p className="mt-3 max-w-2xl text-base leading-7 text-[#e2efeb]">Atanan çalışmalarını aç, kendi hızında ilerle ve sonuçlarını tek öğrenme geçmişinde gör.</p>
             </div>
             <a href="/work" className="inline-flex min-h-14 items-center justify-center gap-3 rounded-2xl bg-[#f4d66f] px-7 text-base font-black text-[#233d3c] shadow-lg transition hover:-translate-y-0.5 hover:bg-[#ffe68f]">
@@ -125,7 +129,7 @@ export function StudentDashboard({
           </div>
         </section>
 
-        <nav aria-label="Öğrenci paneli bölümleri" className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+        <nav aria-label="Öğrenci paneli bölümleri" className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
           {dashboardLinks.map(({ href, label, icon: Icon }) => (
             <a key={label} href={href} className="flex min-h-12 items-center gap-2 rounded-2xl border border-[#d9e3de] bg-white px-4 text-sm font-bold shadow-sm transition hover:border-[#77aa9b] hover:text-[#166655]">
               <Icon size={18} /> {label}
@@ -149,13 +153,28 @@ export function StudentDashboard({
           <output aria-live="polite" className="mt-6 block rounded-3xl border border-[#dce5e0] bg-white p-10 text-center text-sm font-semibold text-[#61727c]">Panel verilerin hazırlanıyor…</output>
         ) : (
           <div className="mt-6 grid gap-6 xl:grid-cols-[1.45fr_.9fr]">
+            <section id="route" className="scroll-mt-28 rounded-3xl border border-[#dce5e0] bg-white p-6 shadow-sm xl:col-span-2" aria-labelledby="route-heading">
+              <h2 id="route-heading" className="text-2xl font-black">Benim Öğrenme Rotam</h2>
+              <p className="mt-2 text-sm text-[#63747d]">Eğitmeninin atadığı çalışmalar ve aynı öğrenme geçmişindeki profilin.</p>
+              {dashboard ? nextAssignment ? (
+                <div className="mt-4 rounded-2xl bg-[#eef6f2] p-5">
+                  <p className="text-sm font-bold text-[#24705e]">{nextAssignment.status === 'in_progress' ? 'Kaldığın yerden devam et' : 'Sıradaki atanmış çalışman'}</p>
+                  <h3 className="mt-2 font-black">{nextAssignment.title}</h3>
+                  <p className="mt-1 text-sm">{nextAssignment.moduleName} · {workStateLabel(nextAssignment.status)} · %{nextAssignment.progressPercent}</p>
+                  {nextAssignment.instructions ? <p className="mt-2 text-sm">{nextAssignment.instructions}</p> : null}
+                  <a href={`/assignment?recipe=${encodeURIComponent(nextAssignment.id)}`} className="mt-3 inline-flex min-h-11 items-center gap-2 rounded-xl bg-[#1f705f] px-5 text-sm font-black text-white">Atanmış çalışmana git <ArrowRight size={17} /></a>
+                </div>
+              ) : <p className="mt-4 text-sm">Şu anda başlayabileceğin atanmış çalışma yok. Atamalarının durumunu aşağıda görebilirsin.</p>
+                : <output className="mt-4 block text-sm">Öğrenme rotan şu anda yüklenemedi.</output>}
+              <a href="#profile" className="mt-4 inline-flex min-h-11 items-center gap-2 text-sm font-bold text-[#246755]">Öğrenme profilimi gör <ChevronRight size={17} /></a>
+            </section>
             <section id="today" className="scroll-mt-28 rounded-3xl border border-[#dce5e0] bg-white p-6 shadow-sm md:p-7" aria-labelledby="today-heading">
               <div className="flex flex-wrap items-end justify-between gap-3">
                 <div>
                   <p className="text-sm font-bold uppercase tracking-[.1em] text-[#24705e]">Bugün / sıradaki</p>
                   <h2 id="today-heading" className="mt-2 text-2xl font-black">Atanan çalışmaların</h2>
                 </div>
-                <span className="rounded-full bg-[#eef6f2] px-3 py-1.5 text-sm font-bold text-[#2a6859]">{assignments.length} etkin</span>
+                <span className="rounded-full bg-[#eef6f2] px-3 py-1.5 text-sm font-bold text-[#2a6859]">{assignments.length} atama</span>
               </div>
 
               {assignments.length ? (
@@ -166,12 +185,13 @@ export function StudentDashboard({
                         <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-[#e5f2ec] text-[#1b705e]"><BookOpenCheck size={21} /></span>
                         <div className="min-w-0">
                           <h3 className="font-black">{assignment.title}</h3>
+                          <p className="mt-1 text-sm font-bold text-[#24705e]">{workStateLabel(assignment.status)}</p>
                           <p className="mt-1 text-sm text-[#63747d]">{assignment.moduleName} · {assignment.completedCount}/{Math.max(assignment.sessionCount, 1)} tamamlandı</p>
                           {assignment.instructions ? <p className="mt-2 text-sm text-[#405a53]"><b>Eğitmen notu:</b> {assignment.instructions}</p> : null}
                         </div>
                       </div>
                       <a href={`/assignment?recipe=${encodeURIComponent(assignment.id)}`} className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-xl bg-[#1f705f] px-5 text-sm font-black text-white hover:bg-[#175748]">
-                        Çalışmayı aç <ChevronRight size={17} />
+                        {assignment.status === 'available' || assignment.status === 'in_progress' ? 'Çalışmayı aç' : 'Atama ayrıntıları'} <ChevronRight size={17} />
                       </a>
                     </article>
                   ))}

@@ -1,0 +1,33 @@
+✔ complete new PR passes required acceptance sections (2.189122ms)
+✔ new PR missing evidence or content fails closed (0.446251ms)
+✔ template checkbox/comment only is not accepted as evidence (0.725217ms)
+✔ unknown production impact blocks merge gate (0.329299ms)
+✔ scope drift halts even when rest of PR is complete (0.478161ms)
+✔ pre-existing PR is not retroactively blocked (0.184614ms)
+✔ invalid creation timestamp fails closed on new check (0.185216ms)
+✔ unrelated text cannot satisfy named sections (0.157641ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 15.450834
+✔ canonical source contract has 16+10 profile IDs, P2 23 sections and 14 skills (4.423834ms)
+✔ missing intake code fails (0.888937ms)
+✔ missing special profile fails (0.639181ms)
+✔ missing P2 block fails (1.683835ms)
+✔ P2 bounds changed require explicit before/after decision (0.616611ms)
+✔ missing canonical 14 skill fails (0.459686ms)
+✔ P2 cannot be marked central ready without updating guard and evidence (0.509808ms)
+✔ forgotten governance decision ledger fails (0.387658ms)
+✔ invented new profile requires explicit inventory revision (0.841868ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 17.457064

@@ -1,0 +1,10 @@
+{
+  "projectId": "patient-firefly-51111834",
+  "branchId": "br-withered-queen-b15ltb40",
+  "database": "cza_t5_synthetic",
+  "mode": "READ_ONLY_SYNTHETIC",
+  "isError": true,
+  "result": [
+    "NeonDbError: permission denied to set role \"cza_v01_app_runtime_min\""
+  ]
+}

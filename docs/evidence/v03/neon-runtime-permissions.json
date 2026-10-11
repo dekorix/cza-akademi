@@ -1,0 +1,10 @@
+{
+  "projectId": "patient-firefly-51111834",
+  "branchId": "br-withered-queen-b15ltb40",
+  "database": "cza_t5_synthetic",
+  "mode": "READ_ONLY_SYNTHETIC",
+  "isError": false,
+  "result": [
+    "[\n  {\n    \"v03_runtime_readonly\": {\n      \"linkedCount\": 3,\n      \"runtimeRole\": {\n        \"name\": \"cza_v01_app_runtime_min\",\n        \"bypassRls\": false,\n        \"superuser\": false\n      },\n      \"studentUser\": {\n        \"role\": \"student\",\n        \"active\": true\n      },\n      \"studentCount\": 2,\n      \"runtimeTableSelect\": [\n        {\n          \"table\": \"learning_evidence\",\n          \"canSelect\": true\n        },\n        {\n          \"table\": \"learning_records\",\n          \"canSelect\": true\n        },\n        {\n          \"table\": \"question_attempts\",\n          \"canSelect\": true\n        },\n        {\n          \"table\": \"students\",\n          \"canSelect\": true\n        },\n        {\n          \"table\": \"training_recipes\",\n          \"canSelect\": true\n        },\n        {\n          \"table\": \"training_sessions\",\n          \"canSelect\": true\n        },\n        {\n          \"table\": \"users\",\n          \"canSelect\": true\n        }\n      ]\n    }\n  }\n]"
+  ]
+}

@@ -1,0 +1,9 @@
+ GET / 200 in 6.2s (compile: 3.8s, render: 2.4s)
+ GET / 200 in 52ms (compile: 14ms, render: 30ms)
+ GET / 200 in 32ms (compile: 7ms, render: 22ms)
+ GET / 200 in 22ms (compile: 5ms, render: 16ms)
+ GET / 200 in 21ms (compile: 5ms, render: 15ms)
+ GET / 200 in 19ms (compile: 4ms, render: 15ms)
+ GET / 200 in 18ms (compile: 4ms, render: 13ms)
+ GET / 200 in 19ms (compile: 3ms, render: 14ms)
+{"mode":"LOCAL_MOCK_UI_ONLY","studentId":"20000000-0000-4000-8000-000000000001","recipeId":"30000000-0000-4000-8000-000000000001","checks":[{"width":1440,"height":900,"routeAndProfile":true,"sameRecipeAfterReload":true,"mock401HidesPanel":true,"sameRecipeAfterMockReentry":true,"horizontalOverflow":false,"pageErrors":0},{"width":390,"height":844,"routeAndProfile":true,"sameRecipeAfterReload":true,"mock401HidesPanel":true,"sameRecipeAfterMockReentry":true,"horizontalOverflow":false,"pageErrors":0}],"runtimeAcceptance":"UNVERIFIED","browser":"Chrome/154.0.8037.57","passed":true}

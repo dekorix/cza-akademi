@@ -1,0 +1,15 @@
+✔ route resumes existing in-progress assignment ahead of a newer available assignment (10.970141ms)
+✔ available assignment is next and terminal/future assignments never become the route (14.312951ms)
+✔ empty route, failure and loading do not claim that an assignment is ready (10.299174ms)
+✔ same recipe survives repeated render and unsafe title/recipe text is escaped (5.23643ms)
+✔ existing panel destinations and canonical profile remain available (2.578508ms)
+✔ dashboard ignores forged identity selectors and binds every query to the authenticated student/academy (26.050563ms)
+✔ unauthenticated/revoked session denies before data queries; identity mismatch and DB failure fail closed (50.913003ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 130.289622

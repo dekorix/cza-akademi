@@ -1,0 +1,18 @@
+{
+  "base": "bb2ef9657e88a1de5343d38984502fdc3e5d8f13",
+  "baseTree": "26b03af0069ac1d20ddb84dfbcb39a021bae90cd",
+  "changedTrackedFiles": [
+    "components/student-dashboard.tsx"
+  ],
+  "preservedV01V02": true,
+  "runtimeChangedFiles": [
+    "components/student-dashboard.tsx"
+  ],
+  "noDatabaseWrites": true,
+  "noMigration": true,
+  "noDeployment": true,
+  "noStudentCreated": true,
+  "localBrowserMode": "LOCAL_MOCK_UI_ONLY",
+  "fixtureStudentId": "20000000-0000-4000-8000-000000000001",
+  "fixtureRecipeIsNotLiveAssignment": true
+}
