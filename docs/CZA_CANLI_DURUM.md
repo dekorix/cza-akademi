@@ -1,8 +1,8 @@
 # CZA CANLI DURUM — V04 çalışma checkpoint'i
 
-2026-10-11 TRT. **Güncel aktif zincir: Issue #81 → resmi Issue #90 → feat/v04-assigned-work-evidence → ayrı DRAFT PR hazırlanıyor.** V01–V03 PASS_SCOPED, 3/7 (%42,9). V03 mimari kabul https://github.com/dekorix/cza-akademi/pull/89#issuecomment-6109292240 . V04_ACCEPTED=NO; nihai kabul Baş Mimar'a ait.
+2026-10-11 TRT. **Güncel aktif zincir: Issue #81 → resmi Issue #90 → feat/v04-assigned-work-evidence → [DRAFT PR #91](https://github.com/dekorix/cza-akademi/pull/91).** V01–V03 PASS_SCOPED, 3/7 (%42,9). V03 mimari kabul https://github.com/dekorix/cza-akademi/pull/89#issuecomment-6109292240 . V04_ACCEPTED=NO; nihai kabul Baş Mimar'a ait.
 
-Korunan PR73/87/89 OPEN/DRAFT. V04 tabanı PR89 HEAD5e39d3f1810f1c0a8228c651c6da5563b3a6a212/tree6a52137285cf9c03f700538b67a3256f1944e605. Main snapshot6a2d4e197c8b39d01b8c04e30fee32230e68a3fd;9 açık PR. Mevcut V03 UI/tek öğrenci/profil ve bütün eski veriler korunur.
+Korunan PR73/87/89 OPEN/DRAFT. V04 tabanı PR89 HEAD5e39d3f1810f1c0a8228c651c6da5563b3a6a212/tree6a52137285cf9c03f700538b67a3256f1944e605. Main başlangıç snapshot6a2d4e197c8b39d01b8c04e30fee32230e68a3fd; PR91 açılmasıyla 10 açık PR. Mevcut V03 UI/tek öğrenci/profil ve bütün eski veriler korunur.
 
 Yalnız mevcut QA project patient-firefly-51111834/branch br-withered-queen-b15ltb40/db cza_t5_synthetic/Worker cza-v01-isolated-synthetic-20261010. Tek mevcut student20000000-0000-4000-8000-000000000001 ve finger_read recipe361ee0f6-26e2-4484-b9f9-7a88d14fb9f4; yeni öğrenci/atama/profil yok. Somut canlı engel: minimum role için bind_k3c/record_attempt/complete_work/student_record_learning EXECUTE=false. V03 SQL onayı V04'e taşınmaz; V04 SQL/privilege öncesi tam tasarım+etki+rollback ve ayrı Baş Mimar onayı zorunlu. Henüz V04 yazımı/deploy yok.
 
