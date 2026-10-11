@@ -4,13 +4,14 @@ import fs from 'node:fs';
 import ts from 'typescript';
 import { PGlite } from '@electric-sql/pglite';
 const source=fs.readFileSync(new URL('../lib/assessment-student-link.ts',import.meta.url),'utf8');
-const {bindAssessmentSql,eligibleStudentsSql}=await import('data:text/javascript;base64,'+Buffer.from(ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.ESNext}}).outputText).toString('base64'));
+const {bindAssessmentSql,eligibleStudentsSql,linkedHistorySql,readableStudentsSql}=await import('data:text/javascript;base64,'+Buffer.from(ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.ESNext}}).outputText).toString('base64'));
 const id=n=>'00000000-0000-4000-8000-'+String(n).padStart(12,'0');
 let db;
 const bind=(session,student,actor='auth')=>db.query(bindAssessmentSql,[actor,id(session),id(student),true]);
 test.before(async()=>{
  db=new PGlite();
  await db.exec(`CREATE ROLE cza_v01_app_runtime_min;
+ CREATE ROLE cza_t5_test_owner;
  CREATE TABLE academies(id uuid PRIMARY KEY,name text);
  CREATE TABLE users(id uuid PRIMARY KEY,academy_id uuid,auth_user_id text,role text,is_active boolean);
  CREATE TABLE students(id uuid PRIMARY KEY,academy_id uuid,first_name text,last_name text,status text,is_demo boolean);
@@ -25,6 +26,7 @@ test.before(async()=>{
  INSERT INTO teacher_student_links VALUES('${id(20)}','${id(1)}','${id(3)}','${id(10)}',true,false),('${id(21)}','${id(1)}','${id(3)}','${id(11)}',true,false),('${id(22)}','${id(1)}','${id(3)}','${id(12)}',true,true);`);
  await db.exec(fs.readFileSync(new URL('../db/migrations/20261011_v02_assessment_link_permission.sql',import.meta.url),'utf8'));
  await db.exec(fs.readFileSync(new URL('../db/migrations/20261011_v02_assessment_link_audit.sql',import.meta.url),'utf8'));
+ await db.exec(fs.readFileSync(new URL('../db/migrations/20261011_v02_p1_read_authority.sql',import.meta.url),'utf8'));
  for(let n=30;n<40;n++)await db.query(`INSERT INTO assessment_sessions(id,student_id,template_code,status,metadata) VALUES($1,NULL,'CZA_SPECIAL_V1_DYS','active',$2::jsonb)`,[id(n),JSON.stringify({academyId:id(1),createdByEducatorId:'auth',source:'EDUCATOR_PRE_ENROLLMENT',candidateId:id(n+100),cycleId:id(200)})]);
  await db.exec(`INSERT INTO assessment_attempts VALUES('${id(50)}','${id(30)}','al');INSERT INTO assessment_observations VALUES('${id(51)}','${id(30)}','Synthetic observation');`);
 });
@@ -80,4 +82,25 @@ test('two competing requests produce one target and one audit',async()=>{
 test('deployed fixed function uses the tested atomic SQL and denies PUBLIC execute',()=>{
  const migration=fs.readFileSync(new URL('../db/migrations/20261011_v02_assessment_link_audit.sql',import.meta.url),'utf8');
  assert.ok(migration.includes(bindAssessmentSql));assert.match(migration,/SECURITY DEFINER SET search_path=pg_catalog,public/);assert.match(migration,/REVOKE ALL ON FUNCTION[\s\S]*FROM PUBLIC/);assert.doesNotMatch(migration,/GRANT.*(?:UPDATE|DDL|ALL).*TO cza_v01_app_runtime_min/i);
+});
+
+test('P1 view survives bind revocation; peer read cannot bind; view revocation denies read',async()=>{
+ await db.exec('BEGIN');
+ try {
+  await db.exec(`UPDATE teacher_student_links SET can_link_assessment=false WHERE student_id='${id(10)}'`);
+  for(const actor of ['auth','peer']){
+   assert.ok((await db.query(readableStudentsSql,[actor,true])).rows.some(s=>s.id===id(10)));
+   assert.ok((await db.query(linkedHistorySql,[actor,id(10)])).rows.some(s=>s.id===id(30)));
+   assert.equal((await bind(30,10,actor)).rows.length,0);
+  }
+  await db.exec(`UPDATE teacher_student_links SET can_view=false WHERE student_id='${id(10)}'`);
+  assert.equal((await db.query(linkedHistorySql,['auth',id(10)])).rows.length,0);
+  assert.equal((await db.query(readableStudentsSql,['auth',true])).rows.some(s=>s.id===id(10)),false);
+ } finally {await db.exec('ROLLBACK');}
+});
+
+test('P1 migration read bodies match tested SQL and exclude binding permission',()=>{
+ const migration=fs.readFileSync(new URL('../db/migrations/20261011_v02_p1_read_authority.sql',import.meta.url),'utf8');
+ assert.ok(migration.includes(linkedHistorySql));assert.ok(migration.includes(readableStudentsSql));
+ assert.doesNotMatch(migration,/can_link_assessment|UPDATE public|INSERT INTO/);
 });

@@ -1,0 +1,172 @@
+TAP version 13
+# Subtest: same candidate, educator, academy and cycle resumes and reload reads central evidence
+ok 1 - same candidate, educator, academy and cycle resumes and reload reads central evidence
+  ---
+  duration_ms: 212.488307
+  type: 'test'
+  ...
+# Subtest: same display name never merges two candidate UUIDs or two cycles
+ok 2 - same display name never merges two candidate UUIDs or two cycles
+  ---
+  duration_ms: 64.104001
+  type: 'test'
+  ...
+# Subtest: concurrent create has one active session and loser resumes winner
+ok 3 - concurrent create has one active session and loser resumes winner
+  ---
+  duration_ms: 61.700054
+  type: 'test'
+  ...
+# Subtest: unauthenticated, other educator and other academy cannot read candidate session
+ok 4 - unauthenticated, other educator and other academy cannot read candidate session
+  ---
+  duration_ms: 43.107287
+  type: 'test'
+  ...
+# Subtest: missing unique index fails closed; invalid candidate identity is rejected
+ok 5 - missing unique index fails closed; invalid candidate identity is rejected
+  ---
+  duration_ms: 49.862956
+  type: 'test'
+  ...
+# Subtest: same named index with reordered keys, broader predicate or invalid definition fails closed
+ok 6 - same named index with reordered keys, broader predicate or invalid definition fails closed
+  ---
+  duration_ms: 381.047055
+  type: 'test'
+  ...
+# Subtest: corrected display name resumes same candidate and central evidence
+ok 7 - corrected display name resumes same candidate and central evidence
+  ---
+  duration_ms: 43.953224
+  type: 'test'
+  ...
+# Subtest: pilot guards production and wrong DB before writes
+ok 8 - pilot guards production and wrong DB before writes
+  ---
+  duration_ms: 164.922829
+  type: 'test'
+  ...
+# Subtest: real-session requirement, origin and ownership gates
+ok 9 - real-session requirement, origin and ownership gates
+  ---
+  duration_ms: 54.112759
+  type: 'test'
+  ...
+# Subtest: binding requires matching explicit target confirmation
+ok 10 - binding requires matching explicit target confirmation
+  ---
+  duration_ms: 14.108986
+  type: 'test'
+  ...
+# Subtest: successful atomic function result returns audit
+ok 11 - successful atomic function result returns audit
+  ---
+  duration_ms: 13.841404
+  type: 'test'
+  ...
+# Subtest: conflict returns 409, permission loss returns 403
+ok 12 - conflict returns 409, permission loss returns 403
+  ---
+  duration_ms: 30.297173
+  type: 'test'
+  ...
+# Subtest: invalid JSON shape returns 400 without function invocation
+ok 13 - invalid JSON shape returns 400 without function invocation
+  ---
+  duration_ms: 14.509978
+  type: 'test'
+  ...
+# Subtest: P1 peer history uses view authority without source ownership or bind permission
+ok 14 - P1 peer history uses view authority without source ownership or bind permission
+  ---
+  duration_ms: 27.17808
+  type: 'test'
+  ...
+# Subtest: permission is default-deny; coaching never grants binding
+ok 15 - permission is default-deny; coaching never grants binding
+  ---
+  duration_ms: 4727.523035
+  type: 'test'
+  ...
+# Subtest: first link, repeat and conflict preserve original evidence and identity
+ok 16 - first link, repeat and conflict preserve original evidence and identity
+  ---
+  duration_ms: 25.071154
+  type: 'test'
+  ...
+# Subtest: peer creator and cross-academy target denied
+ok 17 - peer creator and cross-academy target denied
+  ---
+  duration_ms: 11.945503
+  type: 'test'
+  ...
+# Subtest: revocation, inactive student, inactive educator and can_view denial
+ok 18 - revocation, inactive student, inactive educator and can_view denial
+  ---
+  duration_ms: 20.959717
+  type: 'test'
+  ...
+# Subtest: cancelled candidate and wrong source denied; completed candidate permitted
+ok 19 - cancelled candidate and wrong source denied; completed candidate permitted
+  ---
+  duration_ms: 13.913947
+  type: 'test'
+  ...
+# Subtest: audit failure rolls back student_id without half-link
+ok 20 - audit failure rolls back student_id without half-link
+  ---
+  duration_ms: 13.441952
+  type: 'test'
+  ...
+# Subtest: audit is immutable against update, delete and truncate
+ok 21 - audit is immutable against update, delete and truncate
+  ---
+  duration_ms: 5.414925
+  type: 'test'
+  ...
+# Subtest: two competing requests produce one target and one audit
+ok 22 - two competing requests produce one target and one audit
+  ---
+  duration_ms: 10.073321
+  type: 'test'
+  ...
+# Subtest: deployed fixed function uses the tested atomic SQL and denies PUBLIC execute
+ok 23 - deployed fixed function uses the tested atomic SQL and denies PUBLIC execute
+  ---
+  duration_ms: 1.544508
+  type: 'test'
+  ...
+# Subtest: P1 view survives bind revocation; peer read cannot bind; view revocation denies read
+ok 24 - P1 view survives bind revocation; peer read cannot bind; view revocation denies read
+  ---
+  duration_ms: 34.118462
+  type: 'test'
+  ...
+# Subtest: P1 migration read bodies match tested SQL and exclude binding permission
+ok 25 - P1 migration read bodies match tested SQL and exclude binding permission
+  ---
+  duration_ms: 0.791087
+  type: 'test'
+  ...
+# Subtest: P1 view-only peer reads get/report but attempt/finish never reach mutation
+ok 26 - P1 view-only peer reads get/report but attempt/finish never reach mutation
+  ---
+  duration_ms: 202.3294
+  type: 'test'
+  ...
+# Subtest: P1 missing view denies read; original owner retains independent write gate
+ok 27 - P1 missing view denies read; original owner retains independent write gate
+  ---
+  duration_ms: 99.114757
+  type: 'test'
+  ...
+1..27
+# tests 27
+# suites 0
+# pass 27
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 8293.77325

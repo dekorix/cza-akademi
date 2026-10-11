@@ -150,7 +150,7 @@ async function authorizedSession(sql: any, educatorId: string, sessionId: string
         AND a.metadata->>'academyId'=t.academy_id::text
         AND ((a.student_id IS NULL AND a.metadata->>'createdByEducatorId'=$1)
           OR (a.student_id IS NOT NULL AND EXISTS (
-            SELECT 1 FROM public.cza_v02_eligible_students($1,true) eligible WHERE eligible.id=a.student_id
+            SELECT 1 FROM public.cza_v02_readable_students($1,true) eligible WHERE eligible.id=a.student_id
           ))) LIMIT 1`,[educatorId,sessionId]);
     return rows[0] as Record<string, unknown> | undefined;
   }
@@ -417,6 +417,14 @@ export async function POST(request: Request) {
 
     if (action === 'get' || action === 'report') {
       return json({ ok: true, profileCode, ...bundle });
+    }
+
+    // Reading a linked session never grants permission to alter its evidence.
+    if (isolatedQaEnabled() && (action === 'attempt' || action === 'finish')) {
+      const metadata = bundle.session.metadata as Record<string, unknown> | null;
+      if (metadata?.createdByEducatorId !== educatorId) {
+        return json({ ok: false, error: 'special_session_write_forbidden' }, 403);
+      }
     }
 
     if (action === 'attempt') {

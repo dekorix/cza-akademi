@@ -64,6 +64,9 @@ JOIN public.users u ON u.auth_user_id=$1 AND u.academy_id=s.academy_id
  AND u.is_active=true AND u.role::text='educator'
 JOIN public.teacher_student_links l ON l.teacher_id=u.id AND l.student_id=s.id AND l.academy_id=s.academy_id
 WHERE s.id=$2::uuid AND s.status='active' AND s.is_demo=true
- AND l.can_view=true AND l.can_link_assessment=true
+ AND l.can_view=true
  AND a.metadata->>'academyId'=s.academy_id::text
 ORDER BY a.started_at DESC LIMIT 100`;
+
+// Read authority is independent of permission to mutate the student binding.
+export const readableStudentsSql = eligibleStudentsSql.replace(" AND l.can_link_assessment=true", "");

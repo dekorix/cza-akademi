@@ -23,6 +23,15 @@ export async function POST(request:Request){
     const sessionId=String(input.sessionId||'');
     if(!UUID.test(sessionId))return json({ok:false,error:'session_id_invalid'},400);
     const sql=neon(process.env.DATABASE_URL!);
+    if(input.action==='history'){
+      const studentId=String(input.studentId||'');
+      if(!UUID.test(studentId))return json({ok:false,error:'student_id_invalid'},400);
+      const eligible=await sql.query('SELECT * FROM public.cza_v02_readable_students($1,$2::boolean)',[educator.id,true]);
+      if(!eligible.some(s=>s.id===studentId))return json({ok:false,error:'student_not_authorized'},403);
+      const sessions=await sql.query('SELECT * FROM public.cza_v02_student_history($1,$2::uuid)',[educator.id,studentId]);
+      if(!sessions.some(s=>s.id===sessionId))return json({ok:false,error:'candidate_not_authorized'},403);
+      return json({ok:true,student:eligible.find(s=>s.id===studentId),sessions});
+    }
     // Opening a picker also requires ownership of the exact candidate session.
     const source=await sql.query(`SELECT a.id FROM public.assessment_sessions a
       JOIN public.users u ON u.auth_user_id=$1 AND u.is_active=true AND u.role::text='educator'
@@ -32,14 +41,6 @@ export async function POST(request:Request){
         AND a.template_code LIKE 'CZA_SPECIAL_V1_%' AND a.status IN ('active','completed')`,[educator.id,sessionId]);
     if(!source.length)return json({ok:false,error:'candidate_not_authorized'},403);
     if(input.action==='students')return json({ok:true,students:await sql.query('SELECT * FROM public.cza_v02_eligible_students($1,$2::boolean)',[educator.id,true])});
-    if(input.action==='history'){
-      const studentId=String(input.studentId||'');
-      if(!UUID.test(studentId))return json({ok:false,error:'student_id_invalid'},400);
-      const eligible=await sql.query('SELECT * FROM public.cza_v02_eligible_students($1,$2::boolean)',[educator.id,true]);
-      if(!eligible.some(s=>s.id===studentId))return json({ok:false,error:'student_not_authorized'},403);
-      const sessions=await sql.query('SELECT * FROM public.cza_v02_student_history($1,$2::uuid)',[educator.id,studentId]);
-      return json({ok:true,student:eligible.find(s=>s.id===studentId),sessions});
-    }
     if(input.action!=='bind')return json({ok:false,error:'invalid_action'},400);
     const studentId=String(input.studentId||'');
     if(!UUID.test(studentId))return json({ok:false,error:'student_id_invalid'},400);

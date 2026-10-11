@@ -2,7 +2,7 @@ import test from 'node:test';import assert from 'node:assert/strict';import fs f
 const source=fs.readFileSync(new URL('../app/api/assessment-student-link/route.ts',import.meta.url),'utf8');
 const sessionId='30000000-0000-4000-8000-000000000001',studentId='20000000-0000-4000-8000-000000000001';
 function route(options={}){
- let calls=[];const sql={query:async(q,p)=>{calls.push(q);if(q.includes('cza_v02_bind_assessment'))return options.result||[{outcome:'linked'}];if(q.includes('FROM public.assessment_student_link_audit'))return[{session_id:sessionId,student_id:studentId,linked_at:'2026-10-11'}];if(q.includes('cza_v02_eligible_students'))return[{id:studentId}];return options.owner===false?[]:[{id:sessionId}];}};
+ let calls=[];const sql={query:async(q,p)=>{calls.push(q);if(q.includes('cza_v02_bind_assessment'))return options.result||[{outcome:'linked'}];if(q.includes('FROM public.assessment_student_link_audit'))return[{session_id:sessionId,student_id:studentId,linked_at:'2026-10-11'}];if(q.includes('cza_v02_eligible_students'))return options.bindAllowed===false?[]:[{id:studentId}];if(q.includes('cza_v02_readable_students'))return options.view===false?[]:[{id:studentId}];if(q.includes('cza_v02_student_history'))return[{id:sessionId}];return options.owner===false?[]:[{id:sessionId}];}};
  const exports={};vm.runInNewContext(ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,{exports,require(name){if(name==='@neondatabase/serverless')return{neon:()=>sql};if(name==='@/lib/educator-auth')return{authenticatedEducator:async()=>options.auth===false?null:{id:'auth'}};if(name==='@/lib/isolated-qa-auth')return{isolatedQaEnabled:()=>options.qa!==false,isolatedQaDatabaseAllowed:async()=>options.target!==false};if(name==='@/lib/request-guard')return{allowRequest:async()=>({allowed:true}),rateLimited:()=>Response.json({}, {status:429})};if(name==='@/lib/assessment-student-link')return{eligibleStudentsSql:'students'};throw Error(name);},Response,Request,TextEncoder,URL,process:{env:{DATABASE_URL:'private-test-fixture'}}});
  return {calls,post:(body,origin='https://qa.invalid')=>exports.POST(new Request('https://qa.invalid/api/assessment-student-link',{method:'POST',headers:{origin},body:JSON.stringify({sessionId,...body})}))};
 }
@@ -12,3 +12,11 @@ test('binding requires matching explicit target confirmation',async()=>{const r=
 test('successful atomic function result returns audit',async()=>{const r=await route().post({action:'bind',studentId,confirmStudentId:studentId});assert.equal(r.status,200);assert.equal((await r.json()).link.session_id,sessionId);});
 test('conflict returns 409, permission loss returns 403',async()=>{assert.equal((await route({result:[{outcome:'conflict'}]}).post({action:'bind',studentId,confirmStudentId:studentId})).status,409);assert.equal((await route({result:[]}).post({action:'bind',studentId,confirmStudentId:studentId})).status,403);});
 test('invalid JSON shape returns 400 without function invocation',async()=>{assert.equal((await route().post({action:'bind',sessionId:'invalid'})).status,400);});
+
+test('P1 peer history uses view authority without source ownership or bind permission',async()=>{
+ const r=route({owner:false,bindAllowed:false});
+ assert.equal((await r.post({action:'history',studentId})).status,200);
+ assert.ok(!r.calls.some(q=>q.includes('cza_v02_eligible_students')));
+ assert.equal((await route({view:false}).post({action:'history',studentId})).status,403);
+ assert.equal((await r.post({action:'history',studentId,sessionId:'30000000-0000-4000-8000-000000000002'})).status,403);
+});
