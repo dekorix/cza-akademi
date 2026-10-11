@@ -154,7 +154,7 @@ export function ExercisePlayer({
                 disabled={saving}
                 onClick={onFinish}
               >
-                {assignmentId ? 'Ara ver' : 'Bitir ve kaydet'}
+                {assignmentId && completedAnswers < runConfig.rounds ? 'Ara ver' : 'Bitir ve kaydet'}
               </Button>
             </div>
           </div>

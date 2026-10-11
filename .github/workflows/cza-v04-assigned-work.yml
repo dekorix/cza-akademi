@@ -1,0 +1,41 @@
+name: V04 Assigned Work
+on:
+  pull_request:
+    paths:
+      - 'app/studio/**'
+      - 'app/api/core/route.ts'
+      - 'components/exercise-player.tsx'
+      - 'lib/assigned-*'
+      - 'lib/qa-assigned-work.ts'
+      - 'lib/core-records.ts'
+      - 'lib/core-client.ts'
+      - 'db/qa/v04-*'
+      - 'tests/v04-*'
+      - 'tests/fixtures/v04-*'
+      - 'tests/k3e-assigned-lifecycle.test.mjs'
+      - '.github/workflows/cza-v04-assigned-work.yml'
+permissions:
+  contents: read
+jobs:
+  no-secrets-work:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: '22.13.0'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: V04, protected panel/assignment and canonical security regressions
+        run: node --test tests/v04-assigned-work.test.mjs tests/v04-assigned-work-postgres.test.mjs tests/v03-qa-target.test.mjs tests/v03-qa-read-postgres.test.mjs tests/v03-student-panel.test.mjs tests/u1-student-panel.test.mjs tests/u2-work-center.test.mjs tests/u7-student-learning-profile.test.mjs tests/u1-student-panel-postgres.test.mjs tests/u2-work-center-postgres.test.mjs tests/k3e-assigned-lifecycle.test.mjs tests/canonical-learning-persistence.test.mjs tests/canonical-security-hardening.test.mjs tests/canonical-postgres-behavior.test.mjs tests/security-ci-hardening.test.mjs
+      - name: TypeScript
+        run: npx tsc --noEmit
+      - name: New helper/contract lint
+        run: npx oxlint lib/qa-assigned-work.ts lib/assigned-attempt-retry.ts lib/assigned-question-plan.ts tests/v04-assigned-work.test.mjs tests/v04-assigned-work-postgres.test.mjs
+      - name: Local desktop/mobile Chrome (mock transport only)
+        run: node tests/v04-assigned-work-browser.mjs
+      - name: Full platform build without secrets
+        run: npm run build

@@ -111,6 +111,8 @@ test('actual route and repository: assigned finish has one SQL owner', async (t)
           )
         ).rows;
     const overrides = {
+      '@/lib/qa-student-read': { isolatedQaStudentLogin: async () => null },
+      '@/lib/qa-assigned-work': { isolatedQaAssignedAction: async () => null },
       '@neondatabase/serverless': { neon },
       '@/lib/request-guard': { allowRequest: async () => ({ allowed: true }) },
       '@/lib/k3e-staging-diagnostics': {
@@ -385,6 +387,14 @@ test('real Studio start handler enters one-question sequence after successful as
   const no = () => {};
   const context = {
     student: {},
+    sync: 'ready',
+    assignmentLoading:false,
+    fetch: async () => ({ok:true}),
+    pendingAttempt: {current:null},
+    assignedQuestionPlan: () => null,
+    readPendingAssignedAttempt: () => null,
+    setCompletedProgress: () => {},
+    setAnswerPending: () => {},
     assignmentId: 'recipe',
     config,
     crypto: { randomUUID },

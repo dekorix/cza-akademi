@@ -1,0 +1,17 @@
+{
+  "scope": "LOCAL_ONLY_NOT_RUNTIME_ACCEPTANCE",
+  "tests": 91,
+  "passed": 91,
+  "failed": 0,
+  "typescript": "PASS",
+  "fullBuild": "PASS",
+  "newHelpersAndTestsLint": "PASS",
+  "studioLint": { "baseErrors": 20, "v04Errors": 18, "newRuleCategories": 0, "status": "PRE_EXISTING_ERRORS_REMAIN" },
+  "chrome": "154.0.8037.57",
+  "browserTransport": "MOCK_ONLY",
+  "browserChecks": 9,
+  "browserChecksPassed": 9,
+  "liveNeonWrites": "NOT_RUN_PENDING_ARCHITECT_SQL_APPROVAL",
+  "v04Deployment": "NOT_RUN",
+  "V04_ACCEPTED": "NO"
+}

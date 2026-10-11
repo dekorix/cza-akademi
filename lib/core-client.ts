@@ -61,6 +61,10 @@ export function friendlyCoreError(error: unknown) {
     return 'Çalışma henüz tamamlanmadı; ilerlemen kaydedildi.';
   if (code === 'work_not_found' || code === 'work_session_closed')
     return 'Bu çalışma oturumu artık kullanılamıyor.';
+  if (code === 'work_question_conflict')
+    return 'Bu soru başka sekmede kaydedildi. Sayfayı yenileyip kaydedilmiş ilerlemenden devam et.';
+  if (code === 'work_assignment_closed' || code === 'assignment_not_found')
+    return 'Bu atama artık çalışmaya açık değil. Çalışma merkezine dön.';
   if (code === 'IDEMPOTENCY_KEY_REUSED')
     return 'Aynı kayıt kimliği farklı bir yanıt için yeniden kullanılamaz.';
   return 'Merkezi kayıt sistemine şu anda ulaşılamıyor. Bağlantını kontrol edip tekrar dene.';

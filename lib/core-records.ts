@@ -79,6 +79,7 @@ export function attemptPayload(attempt: Attempt, config: ExerciseConfig, questio
       answerStartedAt: attempt.answerStartedAt,
       answeredAt: attempt.answeredAt,
       attemptType: attempt.attemptType ?? 'PRIMARY',
+      timeout: attempt.timeout,
       targetSorobanState: attempt.targetSorobanState,
       studentSorobanState: attempt.studentSorobanState,
       differingRods: attempt.differingRods,

@@ -1,0 +1,45 @@
+{
+  "mode": "LOCAL_MOCK_TRANSPORT_ONLY",
+  "runtimeAcceptance": "UNVERIFIED",
+  "checks": [
+    {
+      "name": "desktop actual finger stimulus",
+      "passed": true
+    },
+    {
+      "name": "uncertain answer remains frozen",
+      "passed": true
+    },
+    {
+      "name": "same request UUID after uncertain acknowledgement",
+      "passed": true
+    },
+    {
+      "name": "reload resumes original session and question two",
+      "passed": true
+    },
+    {
+      "name": "mobile no horizontal overflow",
+      "passed": true
+    },
+    {
+      "name": "failed completion has no success UI",
+      "passed": true
+    },
+    {
+      "name": "10 canonical answers only",
+      "passed": true
+    },
+    {
+      "name": "reported durations and stable question IDs sent",
+      "passed": true
+    },
+    {
+      "name": "zero page errors",
+      "passed": true
+    }
+  ],
+  "errors": [],
+  "browser": "Chrome/154.0.8037.57",
+  "passed": true
+}
