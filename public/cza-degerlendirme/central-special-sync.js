@@ -157,6 +157,7 @@
       fresh.className = 'secondary-btn';
       fresh.textContent = 'Yeni aday / yeni değerlendirme çevrimi';
       fresh.onclick = function () {
+        state.centralLinkedStudentId = '';
         state.centralCandidateId = '';
         state.centralCycleId = '';
         state.centralCandidateLabel = '';
@@ -241,6 +242,7 @@
     }
 
     state.centralSessionId = String(body.session.id || '');
+    state.centralLinkedStudentId = String(body.session.student_id || '');
     state.centralProfileCode = profileCode;
     state.centralSyncStatus = body.resumed ? 'resumed' : 'connected';
     state.centralLastSyncAt = new Date().toISOString();
@@ -631,6 +633,76 @@
     }
   }
 
+  function enhanceStudentLink() {
+    if (centralMode !== 'connected' || !state.centralSessionId || !state.centralCandidateId) return;
+    const host = document.querySelector('.hero') || document.querySelector('main');
+    if (!host || document.getElementById('v02StudentLink')) return;
+    const panel = document.createElement('section');
+    panel.id = 'v02StudentLink';
+    panel.className = 'central-finish-panel';
+    panel.innerHTML = '<div><b>Mevcut öğrenciye bağla</b><p>Yeni öğrenci oluşturulmaz. Bu değerlendirme ve kayıtlı cevapları seçtiğiniz öğrenci dosyasına bağlanır.</p>' +
+      '<button type="button" id="v02Open">Yetkili öğrenci listesini aç</button><div id="v02Picker"></div>' +
+      '<p id="v02LinkStatus" role="status" aria-live="polite"></p></div>';
+    host.appendChild(panel);
+    const status = panel.querySelector('#v02LinkStatus');
+    async function call(payload) {
+      const response = await fetch('/api/assessment-student-link', {method:'POST',credentials:'same-origin',
+        headers:{'content-type':'application/json'},body:JSON.stringify(Object.assign({sessionId:state.centralSessionId},payload))});
+      const body = await response.json();
+      if (!response.ok || !body.ok) throw Error(body.error || 'student_link_unavailable');
+      return body;
+    }
+    panel.querySelector('#v02Open').onclick = async function () {
+      this.disabled = true;
+      try {
+        const body = await call({action:'students'});
+        const picker = panel.querySelector('#v02Picker');
+        picker.replaceChildren();
+        if (!body.students.length) { status.textContent='Bağlama yetkiniz bulunan aktif öğrenci yok.'; return; }
+        const label=document.createElement('label'); label.textContent='Mevcut öğrenci';
+        const select=document.createElement('select'); select.id='v02StudentSelect';
+        select.style.maxWidth='100%';
+        body.students.forEach(function(student) {
+          const option=document.createElement('option'); option.value=student.id;
+          option.textContent=student.name+' | '+student.academy_name+(student.code?' | '+student.code:'')+' | '+student.id;
+          select.appendChild(option);
+        });
+        label.appendChild(select); picker.appendChild(label);
+        const confirmation=document.createElement('label');
+        const check=document.createElement('input'); check.type='checkbox';check.id='v02Confirm';
+        confirmation.appendChild(check);
+        confirmation.appendChild(document.createTextNode(' Seçtiğim mevcut öğrenci kimliğine bu değerlendirmeyi bağlamayı açıkça onaylıyorum.'));
+        picker.appendChild(confirmation);
+        const button=document.createElement('button');button.type='button';button.id='v02Bind';
+        button.textContent='Onayla ve mevcut öğrenciye bağla';button.disabled=true;
+        select.onchange=function(){check.checked=false;button.disabled=true;};
+        check.onchange=function(){button.disabled=!check.checked;};
+        picker.appendChild(button);
+        button.onclick=async function(){
+          if(!check.checked)return;
+          const target=select.value;button.disabled=true;select.disabled=true;check.disabled=true;
+          try {
+            const linked=await call({action:'bind',studentId:target,confirmStudentId:target});
+            state.centralLinkedStudentId=linked.link.student_id;saveState();
+            const history=await call({action:'history',studentId:target});
+            status.textContent='Bağlantı başarılı: '+history.student.name+' | '+history.student.academy_name+
+              ' | Student ID: '+target+' | Öğrenci dosyası: '+history.sessions.length+' değerlendirme.';
+          } catch(error) {
+            status.textContent='Bağlantı tamamlanamadı. Yetkinizi ve mevcut bağlantıyı kontrol edin. ('+error.message+')';
+            select.disabled=false;check.disabled=false;check.checked=false;
+          }
+        };
+      } catch(error) {status.textContent='Öğrenci listesi alınamadı. ('+error.message+')';}
+      finally {this.disabled=false;}
+    };
+    if(state.centralLinkedStudentId) {
+      call({action:'history',studentId:state.centralLinkedStudentId}).then(function(history){
+        status.textContent='Bağlı öğrenci dosyası: '+history.student.name+' | '+history.student.academy_name+
+          ' | Student ID: '+state.centralLinkedStudentId+' | '+history.sessions.length+' değerlendirme.';
+      }).catch(function(){status.textContent='Öğrenci dosyası erişimi doğrulanamadı; yetkinizi kontrol edin.';});
+    }
+  }
+
   function applyBootstrapProfile() {
     if (bootstrapProfileConsumed || !bootstrapProfile || state.screen !== 'home') return;
     const button = document.querySelector('.special-card[data-code="' + bootstrapProfile + '"]');
@@ -660,6 +732,7 @@
       enhanceConnectionBadge();
       enhanceIntake();
       enhanceSummary();
+      enhanceStudentLink();
     });
     return result;
   };
@@ -670,5 +743,6 @@
     enhanceConnectionBadge();
     enhanceIntake();
     enhanceSummary();
+    enhanceStudentLink();
   });
 })();

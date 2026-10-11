@@ -1,0 +1,41 @@
+canonical learning persistence: 20 assertions passed
+✔ tests/canonical-learning-persistence.test.mjs (534.143995ms)
+✔ real PostgreSQL engine upgrades populated PR31 schema without data loss (4157.072404ms)
+✔ database roles enforce telemetry/evidence separation and immutability (2492.403902ms)
+✔ legacy hash replay remains valid and tampered replay returns conflict (2632.586376ms)
+✔ distributed limiter counts atomically and globally prunes expired subjects (2497.271501ms)
+✔ trusted proxy nonces are globally single-use and inaccessible to runtime SQL (2875.060732ms)
+✔ authentication touch and revocation are atomic database operations (2324.572258ms)
+✔ strict action schemas reject unknown, missing and cross-action root fields (4.259164ms)
+✔ valid state-changing action is normalized and bounded (0.672312ms)
+✔ stream reader stops oversized chunked bodies before JSON parsing (39.551144ms)
+✔ stream reader enforces media type, declared size and valid JSON (9.115884ms)
+✔ Core upstream configuration fails closed and requires HTTPS allowlisting (0.683317ms)
+✔ canonical telemetry rejects header omission, identity injection and time tampering (2.041465ms)
+✔ production client IP requires an unforgeable Cloudflare runtime boundary (2.200829ms)
+✔ distributed limiter delegates atomic storage and global retention to PostgreSQL (0.243285ms)
+✔ logout and record ingestion serialize on the server session row (0.441097ms)
+✔ logout cookies clear only after durable revocation succeeds (0.513561ms)
+✔ client telemetry cannot create server-verified pedagogical evidence (0.326647ms)
+✔ ledger parent deletion, mutation and truncation are all blocked (0.312972ms)
+✔ idempotency conflict path locks and compares the server canonical hash (0.213352ms)
+✔ V01 untrusted pull request builds never receive staging secrets or publish a Worker (2.136192ms)
+✔ V01 and T5 former privileged PR workflows are disabled (0.633647ms)
+✔ P1 QA-secret isolation: the T5 pre-enrollment manual path is a secrets-free secure hold (1.656683ms)
+✔ P1 QA-secret isolation: unrelated legacy special education staging jobs are preserved (0.437536ms)
+✔ P1 QA-secret isolation: the isolation gate trigger scope cannot be reduced (0.552126ms)
+✔ Neon recovery evidence retains only a project ID, expiry and cleanup state (4.943756ms)
+✔ runtime socket guard allows only the temporary hostname fingerprint (121.81084ms)
+✔ guarded orchestrator blocks an immediate top-level PostgreSQL admin connection (91.864885ms)
+✔ encrypted cleanup artifact restores authority and deletes through the pinned CLI contract (358.861294ms)
+✔ productionAccessed is derived from single-host runtime evidence (1.194769ms)
+✔ recovery officer public key is immutable and has no private counterpart (0.7426ms)
+✔ security workflows use immutable action and local Neon CLI references (844.605174ms)
+ℹ tests 32
+ℹ suites 0
+ℹ pass 32
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 19915.644712

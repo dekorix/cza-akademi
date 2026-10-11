@@ -1,0 +1,16 @@
+✔ permission is default-deny; coaching never grants binding (4172.40053ms)
+✔ first link, repeat and conflict preserve original evidence and identity (24.617086ms)
+✔ peer creator and cross-academy target denied (5.538436ms)
+✔ revocation, inactive student, inactive educator and can_view denial (14.828202ms)
+✔ cancelled candidate and wrong source denied; completed candidate permitted (14.2884ms)
+✔ audit failure rolls back student_id without half-link (15.467237ms)
+✔ audit is immutable against update, delete and truncate (5.70457ms)
+✔ two competing requests produce one target and one audit (10.568745ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4750.535584

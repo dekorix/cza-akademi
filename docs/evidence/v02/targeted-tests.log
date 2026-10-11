@@ -1,0 +1,37 @@
+✔ QA auth accepts only explicit QA origin and fixed synthetic provider (171.474403ms)
+✔ forged trusted headers and cross-site ingress fail closed (50.469747ms)
+✔ wrong DB target rejected before rate-limit writes or provider authentication (43.093035ms)
+✔ QA password reset disabled without changing existing credentials (39.16517ms)
+✔ ordinary Neon staging ingress remains restricted to existing provider (41.36371ms)
+✔ same project with a different branch is rejected before writes (27.927838ms)
+✔ failed canonical mapping never hides failed provider revocation (34.627973ms)
+✔ same candidate, educator, academy and cycle resumes and reload reads central evidence (150.366701ms)
+✔ same display name never merges two candidate UUIDs or two cycles (41.2833ms)
+✔ concurrent create has one active session and loser resumes winner (38.604727ms)
+✔ unauthenticated, other educator and other academy cannot read candidate session (28.174862ms)
+✔ missing unique index fails closed; invalid candidate identity is rejected (51.931034ms)
+✔ same named index with reordered keys, broader predicate or invalid definition fails closed (230.644904ms)
+✔ corrected display name resumes same candidate and central evidence (42.18102ms)
+✔ pilot guards production and wrong DB before writes (169.683781ms)
+✔ real-session requirement, origin and ownership gates (55.255706ms)
+✔ binding requires matching explicit target confirmation (15.490529ms)
+✔ successful atomic function result returns audit (16.431319ms)
+✔ conflict returns 409, permission loss returns 403 (32.670544ms)
+✔ invalid JSON shape returns 400 without function invocation (16.951315ms)
+✔ permission is default-deny; coaching never grants binding (3451.722379ms)
+✔ first link, repeat and conflict preserve original evidence and identity (15.423335ms)
+✔ peer creator and cross-academy target denied (4.335429ms)
+✔ revocation, inactive student, inactive educator and can_view denial (13.259876ms)
+✔ cancelled candidate and wrong source denied; completed candidate permitted (9.049792ms)
+✔ audit failure rolls back student_id without half-link (8.883733ms)
+✔ audit is immutable against update, delete and truncate (3.351935ms)
+✔ two competing requests produce one target and one audit (6.073611ms)
+✔ deployed fixed function uses the tested atomic SQL and denies PUBLIC execute (0.745625ms)
+ℹ tests 29
+ℹ suites 0
+ℹ pass 29
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 6460.190325

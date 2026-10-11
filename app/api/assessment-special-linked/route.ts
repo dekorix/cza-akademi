@@ -307,14 +307,15 @@ export async function POST(request: Request) {
         WHERE (
           (${student?.id || null}::uuid IS NOT NULL AND student_id = ${student?.id || null}::uuid)
           OR
-          (${student?.id || null}::uuid IS NULL AND student_id IS NULL
+          (${student?.id || null}::uuid IS NULL
             AND metadata->>'source' = 'EDUCATOR_PRE_ENROLLMENT'
             AND metadata->>'academyId' = ${academyId}
             AND metadata->>'candidateId' = ${candidateId}
             AND metadata->>'cycleId' = ${cycleId})
         )
           AND template_code = ${templateCode}
-          AND status = 'active'
+          AND (status = 'active' OR (student_id IS NOT NULL AND status = 'completed'
+            AND metadata->>'source' = 'EDUCATOR_PRE_ENROLLMENT'))
           AND metadata->>'createdByEducatorId' = ${educatorId}
         ORDER BY started_at DESC
         LIMIT 1

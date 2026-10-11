@@ -1,0 +1,23 @@
+name: V02 Candidate Student Link
+on:
+  pull_request:
+    paths:
+      - 'app/api/assessment-student-link/**'
+      - 'lib/assessment-student-link.ts'
+      - 'db/migrations/20261011_v02*'
+      - 'tests/v02-*.test.mjs'
+      - '.github/workflows/cza-v02-link.yml'
+permissions:
+  contents: read
+jobs:
+  no-secrets-postgres:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.13.0'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: node --test tests/v02-*.test.mjs tests/t5-pre-enroll-resume.test.mjs tests/t5-pre-enroll-resume-client.test.mjs
+      - run: npx tsc --noEmit

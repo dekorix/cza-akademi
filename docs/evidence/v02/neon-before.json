@@ -1,0 +1,20 @@
+{
+  "target": {
+    "project_id": "patient-firefly-51111834",
+    "branch_id": "br-withered-queen-b15ltb40",
+    "database_name": "cza_t5_synthetic"
+  },
+  "checkpoint": {
+    "branch": "br-frosty-cell-b1rbruz7",
+    "parent_lsn": "0/2E7A730"
+  },
+  "result": {
+    "content": [
+      {
+        "type": "text",
+        "text": "[\n  {\n    \"id\": \"3db6ac62-aa10-44e5-b4fa-4f99fa599e0d\",\n    \"student_id\": null,\n    \"metadata\": {\n      \"grade\": \"2. sınıf\",\n      \"source\": \"EDUCATOR_PRE_ENROLLMENT\",\n      \"cycleId\": \"e81d8275-9a03-4ad6-8caf-ab9cfd901fb0\",\n      \"version\": 1,\n      \"concerns\": null,\n      \"academyId\": \"aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa\",\n      \"birthDate\": null,\n      \"moduleCode\": \"special_education_assessment\",\n      \"candidateId\": \"8b38bfe7-60d3-4d42-a96c-501c489be547\",\n      \"profileCode\": \"SP-DYS\",\n      \"readingStage\": \"Harf-ses öğreniyor\",\n      \"diagnosticUse\": false,\n      \"centralStudentId\": null,\n      \"campusStudentCode\": null,\n      \"createdByEducatorId\": \"99963cb7-f9e6-4c1c-9737-b9893785ba8b\"\n    },\n    \"student_count\": \"2\",\n    \"session_count\": \"63\",\n    \"attempt_fingerprint\": \"e04bb7896c8c28b83cfbb2caf7166cc2\",\n    \"observation_fingerprint\": \"0ae1600638d0ec3a82f17f3a777f6894\"\n  },\n  {\n    \"id\": \"c0ab8deb-52f4-4b36-b95d-72c392d0c2b0\",\n    \"student_id\": null,\n    \"metadata\": {\n      \"grade\": null,\n      \"source\": \"EDUCATOR_PRE_ENROLLMENT\",\n      \"cycleId\": \"0d246b71-3a50-40bc-a1d1-c56e067fcae7\",\n      \"version\": 1,\n      \"concerns\": null,\n      \"academyId\": \"aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa\",\n      \"birthDate\": null,\n      \"moduleCode\": \"special_education_assessment\",\n      \"candidateId\": \"6503a796-fd73-4079-af96-40cab1528cff\",\n      \"profileCode\": \"SP-DYS\",\n      \"readingStage\": null,\n      \"diagnosticUse\": false,\n      \"centralStudentId\": null,\n      \"campusStudentCode\": null,\n      \"createdByEducatorId\": \"99963cb7-f9e6-4c1c-9737-b9893785ba8b\"\n    },\n    \"student_count\": \"2\",\n    \"session_count\": \"63\",\n    \"attempt_fingerprint\": \"3b271b51f5d2511bf1d4c3a6a7d32825\",\n    \"observation_fingerprint\": \"0825411589ab8d97cf97cdf48d98681f\"\n  },\n  {\n    \"id\": \"f825e4d0-c702-4a58-bb7a-7ec991940a89\",\n    \"student_id\": null,\n    \"metadata\": {\n      \"grade\": \"2. sınıf\",\n      \"source\": \"EDUCATOR_PRE_ENROLLMENT\",\n      \"cycleId\": \"424a3f4d-57ee-42f1-acc3-7d99188501b5\",\n      \"version\": 1,\n      \"concerns\": null,\n      \"academyId\": \"aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa\",\n      \"birthDate\": null,\n      \"moduleCode\": \"special_education_assessment\",\n      \"candidateId\": \"753e2d0a-213c-4ab7-81f1-691fa4c999ba\",\n      \"profileCode\": \"SP-DYS\",\n      \"readingStage\": \"Harf-ses öğreniyor\",\n      \"diagnosticUse\": false,\n      \"centralStudentId\": null,\n      \"campusStudentCode\": null,\n      \"createdByEducatorId\": \"99963cb7-f9e6-4c1c-9737-b9893785ba8b\"\n    },\n    \"student_count\": \"2\",\n    \"session_count\": \"63\",\n    \"attempt_fingerprint\": \"81be853380aba0cf7140a76c61ff29ef\",\n    \"observation_fingerprint\": \"917d6d93034c3ad6261d0daee648246b\"\n  }\n]"
+      }
+    ],
+    "isError": false
+  }
+}
