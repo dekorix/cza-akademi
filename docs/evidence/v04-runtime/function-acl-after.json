@@ -1,0 +1,262 @@
+[
+  {
+    "signature": "cza_append_verified_evidence(uuid,text,text,text,timestamp with time zone,text,jsonb)",
+    "acl": "{cza_t5_test_owner=X/cza_t5_test_owner}",
+    "definition_hash": "048e03ee45b00282f44be3a006e429f4"
+  },
+  {
+    "signature": "cza_attach_initial_assessment_account(uuid,uuid,uuid)",
+    "acl": "{cza_t5_test_owner=X/cza_t5_test_owner}",
+    "definition_hash": "0b575daf793d1f8ba04d88baffdb0569"
+  },
+  {
+    "signature": "cza_bind_assigned_work_session(uuid,uuid,uuid,uuid,uuid,timestamp with time zone)",
+    "acl": "{cza_t5_test_owner=X/cza_t5_test_owner}",
+    "definition_hash": "e353e4e73317226e4e2565796dedef1f"
+  },
+  {
+    "signature": "cza_bind_assigned_work_session_k3c(uuid,uuid,uuid,uuid,uuid,timestamp with time zone,text,text)",
+    "acl": "{cza_t5_test_owner=X/cza_t5_test_owner}",
+    "definition_hash": "e8d5c2837e23aa0f4670a08ca948e40e"
+  },
+  {
+    "signature": "cza_bootstrap_first_admin(text,text,text,text)",
+    "acl": "{cza_t5_test_owner=X/cza_t5_test_owner}",
+    "definition_hash": "2349578d2bcbfc457004fa7366108102"
+  },
+  {
+    "signature": "cza_complete_assigned_work(uuid,uuid,uuid,uuid,boolean)",
+    "acl": "{cza_t5_test_owner=X/cza_t5_test_owner}",
+    "definition_hash": "a33b1938866db1b48716dd1531470fb5"
+  },
+  {
+    "signature": "cza_complete_initial_handoff(text,text,uuid,text,text,jsonb)",
+    "acl": "{cza_t5_test_owner=X/cza_t5_test_owner,cza_t5_initial_adapter=X/cza_t5_test_owner}",
+    "definition_hash": "ae8ab5fc747fcbe26a3947b6eab49823"
+  },
+  {
+    "signature": "cza_consume_rate_limit(text,text,integer,integer)",
+    "acl": "{cza_t5_test_owner=X/cza_t5_test_owner,cza_v01_app_runtime_min=X/cza_t5_test_owner}",
+    "definition_hash": "cdd847893ecbfbe8e491cb608265217e"
+  },
+  {
+    "signature": "cza_consume_trusted_proxy_nonce(text,timestamp with time zone)",
+    "acl": "{cza_t5_test_owner=X/cza_t5_test_owner}",
+    "definition_hash": "c53586bdbd52117e6eeb22dd250b5c98"
+  },
+  {
+    "signature": "cza_create_initial_handoff(text,text,uuid)",
+    "acl": "{cza_t5_test_owner=X/cza_t5_test_owner,cza_t5_initial_runtime=X/cza_t5_test_owner}",
+    "definition_hash": "6ceefd3e81b6a40393aecd9f24c751e3"
+  },
+  {
+    "signature": "cza_get_initial_handoff(text,text,uuid,text)",
+    "acl": "{cza_t5_test_owner=X/cza_t5_test_owner,cza_t5_initial_runtime=X/cza_t5_test_owner}",
+    "definition_hash": "157bb5dd00d738c2be5fbeb928c0ca68"
+  },
+  {
+    "signature": "cza_import_initial_assessment(text,uuid)",
+    "acl": "{cza_t5_test_owner=X/cza_t5_test_owner,cza_t5_initial_runtime=X/cza_t5_test_owner}",
+    "definition_hash": "efd3f6ca8f2b7e196eb8b60ec6e32f52"
+  },
+  {
+    "signature": "cza_k3c_stamp_learning_evidence()",
+    "acl": null,
+    "definition_hash": "8b0289b290a9d7044dfd819be3f4e9f4"
+  },
+  {
+    "signature": "cza_k3c_stamp_learning_record()",
+    "acl": null,
+    "definition_hash": "5cad2ba4a9deb0d2bab398c50907e3e7"
+  },
+  {
+    "signature": "cza_k3c_stamp_question_attempt()",
+    "acl": null,
+    "definition_hash": "e786ee28835c88c6781242da914498c6"
+  },
+  {
+    "signature": "cza_k3e_attempt_session_identity()",
+    "acl": null,
+    "definition_hash": "30410eee8183ea32f5b80be832c0cc9d"
+  },
+  {
+    "signature": "cza_k3e_module_category()",
+    "acl": null,
+    "definition_hash": "32b2b4630e212720a4f46684130090c9"
+  },
+  {
+    "signature": "cza_p1_apply_educator_observation(uuid,uuid,text,uuid,text,integer,text,jsonb)",
+    "acl": "{cza_t5_test_owner=X/cza_t5_test_owner}",
+    "definition_hash": "5a150a068f5d5dc410bec46d89f7ac45"
+  },
+  {
+    "signature": "cza_p1_apply_educator_observation(uuid,uuid,uuid,uuid,text,integer,text,jsonb)",
+    "acl": "{cza_t5_test_owner=X/cza_t5_test_owner}",
+    "definition_hash": "3b77f4d2436db0ed7465cfd0e231a286"
+  },
+  {
+    "signature": "cza_p1_apply_student_intent(uuid,uuid,uuid,uuid,text,integer,jsonb,text,jsonb,jsonb)",
+    "acl": "{cza_t5_test_owner=X/cza_t5_test_owner}",
+    "definition_hash": "98be6019b8f87bdd756e8fa24a626c60"
+  },
+  {
+    "signature": "cza_p1_reject_event_mutation()",
+    "acl": null,
+    "definition_hash": "7191452fda4acd2c588e75b5e4fc976b"
+  },
+  {
+    "signature": "cza_prune_rate_limit_windows(integer)",
+    "acl": "{cza_t5_test_owner=X/cza_t5_test_owner}",
+    "definition_hash": "9ec0e85fe05723175a3f05188db140c3"
+  },
+  {
+    "signature": "cza_read_initial_assessment(text,uuid)",
+    "acl": "{cza_t5_test_owner=X/cza_t5_test_owner,cza_t5_initial_runtime=X/cza_t5_test_owner}",
+    "definition_hash": "33388d0bce6b6d871b7c0e77165caf4f"
+  },
+  {
+    "signature": "cza_record_assigned_work_attempt(uuid,uuid,uuid,jsonb)",
+    "acl": "{cza_t5_test_owner=X/cza_t5_test_owner}",
+    "definition_hash": "8fcc6b8cc4f666a2742de9e2d5dc046f"
+  },
+  {
+    "signature": "cza_reject_demo_student_outside_nonproduction()",
+    "acl": null,
+    "definition_hash": "b626d6c6b54774d974113387cfa82079"
+  },
+  {
+    "signature": "cza_reject_ledger_mutation()",
+    "acl": null,
+    "definition_hash": "6d3ab4426f73cc8b8c25b36048130fe9"
+  },
+  {
+    "signature": "cza_revoke_student_session(text)",
+    "acl": "{cza_t5_test_owner=X/cza_t5_test_owner}",
+    "definition_hash": "7621192307132a1a24e7b57118922698"
+  },
+  {
+    "signature": "cza_staff_create_student(text,text,text,text,text,uuid,text[])",
+    "acl": "{cza_t5_test_owner=X/cza_t5_test_owner}",
+    "definition_hash": "e0781ac25f7b3ca6f8e04c09ab462ea6"
+  },
+  {
+    "signature": "cza_student_dashboard(text)",
+    "acl": "{cza_t5_test_owner=X/cza_t5_test_owner,cza_t5_student_core_login=X/cza_t5_test_owner}",
+    "definition_hash": "4832228a152879d5912155f2c79a414c"
+  },
+  {
+    "signature": "cza_student_finish_training(text,uuid)",
+    "acl": "{cza_t5_test_owner=X/cza_t5_test_owner,cza_t5_student_core_login=X/cza_t5_test_owner}",
+    "definition_hash": "ffdfd75fe05edfe7383ed0517efab2b9"
+  },
+  {
+    "signature": "cza_student_login(text,text,text)",
+    "acl": "{cza_t5_test_owner=X/cza_t5_test_owner,cza_t5_student_core_login=X/cza_t5_test_owner}",
+    "definition_hash": "55d1a6b184ebd477041483deccfceebd"
+  },
+  {
+    "signature": "cza_student_logout(text)",
+    "acl": "{cza_t5_test_owner=X/cza_t5_test_owner}",
+    "definition_hash": "485e57000d2525019953ed2b2009de2a"
+  },
+  {
+    "signature": "cza_student_record_attempt(text,uuid,jsonb)",
+    "acl": "{cza_t5_test_owner=X/cza_t5_test_owner,cza_t5_student_core_login=X/cza_t5_test_owner}",
+    "definition_hash": "efba09f9a3e28717a02693054992a1c2"
+  },
+  {
+    "signature": "cza_student_record_interaction(text,uuid,uuid,integer,integer,text,text,text,boolean,boolean,integer,jsonb)",
+    "acl": "{cza_t5_test_owner=X/cza_t5_test_owner,cza_t5_student_core_login=X/cza_t5_test_owner}",
+    "definition_hash": "a814dea651181816141725e9ddee9f72"
+  },
+  {
+    "signature": "cza_student_record_learning(uuid,uuid,uuid,uuid,uuid,text,text,text,text,text,text,timestamp with time zone,timestamp with time zone,text,jsonb,jsonb,jsonb)",
+    "acl": "{cza_t5_test_owner=X/cza_t5_test_owner}",
+    "definition_hash": "a28afb5fc450855e848e023ad5ab0f20"
+  },
+  {
+    "signature": "cza_student_start_training(text,text,work_source,uuid,uuid,jsonb)",
+    "acl": "{cza_t5_test_owner=X/cza_t5_test_owner,cza_t5_student_core_login=X/cza_t5_test_owner}",
+    "definition_hash": "baa2042eefa34e67f5755058ff41c06b"
+  },
+  {
+    "signature": "cza_t2_keep_assessment_definition()",
+    "acl": null,
+    "definition_hash": "5722d31c7b3f0797e305e80435478a4a"
+  },
+  {
+    "signature": "cza_t4_keep_assessment_evaluation()",
+    "acl": null,
+    "definition_hash": "a373a30959758e97ebc961f58e30aa1f"
+  },
+  {
+    "signature": "cza_t4_record_assessment_attempt(uuid,uuid,uuid,text,uuid,text,text,jsonb,jsonb,text)",
+    "acl": null,
+    "definition_hash": "96c2d4a424cbc5e15ed2680aa474e480"
+  },
+  {
+    "signature": "cza_t4_review_assessment_attempt(uuid,uuid,text,text,text,text)",
+    "acl": null,
+    "definition_hash": "2a0b88d428f8d54f5cad817138e6421b"
+  },
+  {
+    "signature": "cza_touch_authenticated_student(text)",
+    "acl": "{cza_t5_test_owner=X/cza_t5_test_owner}",
+    "definition_hash": "9f718ebb48b916223ba42b510b19650a"
+  },
+  {
+    "signature": "cza_u8_require_atomic(boolean,text)",
+    "acl": null,
+    "definition_hash": "4fa838083cd673bc1a8d11e4fd868b0c"
+  },
+  {
+    "signature": "cza_v02_audit_immutable()",
+    "acl": null,
+    "definition_hash": "86fddffdfee27ba740bccbb5c2979280"
+  },
+  {
+    "signature": "cza_v02_bind_assessment(text,uuid,uuid,boolean)",
+    "acl": "{cza_t5_test_owner=X/cza_t5_test_owner,cza_v01_app_runtime_min=X/cza_t5_test_owner}",
+    "definition_hash": "ba4bb3c8b3973ce1cc263d75c99db897"
+  },
+  {
+    "signature": "cza_v02_eligible_students(text,boolean)",
+    "acl": "{cza_t5_test_owner=X/cza_t5_test_owner,cza_v01_app_runtime_min=X/cza_t5_test_owner}",
+    "definition_hash": "642cc60f593e9a3d4957c529a3017e87"
+  },
+  {
+    "signature": "cza_v02_readable_students(text,boolean)",
+    "acl": "{cza_t5_test_owner=X/cza_t5_test_owner,cza_v01_app_runtime_min=X/cza_t5_test_owner}",
+    "definition_hash": "cf41e39afb41f3e0df1c07828a2b0e5e"
+  },
+  {
+    "signature": "cza_v02_student_history(text,uuid)",
+    "acl": "{cza_t5_test_owner=X/cza_t5_test_owner,cza_v01_app_runtime_min=X/cza_t5_test_owner}",
+    "definition_hash": "ba58648348fc912611f88e5f85e9927e"
+  },
+  {
+    "signature": "cza_v03_qa_authenticated_student(text)",
+    "acl": "{cza_t5_test_owner=X/cza_t5_test_owner,cza_v01_app_runtime_min=X/cza_t5_test_owner}",
+    "definition_hash": "7073d524a7455661865bee8968230fcf"
+  },
+  {
+    "signature": "cza_v03_qa_revoke_student_session(text)",
+    "acl": "{cza_t5_test_owner=X/cza_t5_test_owner,cza_v01_app_runtime_min=X/cza_t5_test_owner}",
+    "definition_hash": "5acadd8cd218fd8407ee46b6e30c7826"
+  },
+  {
+    "signature": "cza_v03_qa_student_login(text,text,text)",
+    "acl": "{cza_t5_test_owner=X/cza_t5_test_owner,cza_v01_app_runtime_min=X/cza_t5_test_owner}",
+    "definition_hash": "1b8eaff01c5dd8612ff71f0af69f92e2"
+  },
+  {
+    "signature": "cza_v03_qa_student_read(text,text,uuid,timestamp with time zone)",
+    "acl": "{cza_t5_test_owner=X/cza_t5_test_owner,cza_v01_app_runtime_min=X/cza_t5_test_owner}",
+    "definition_hash": "12e234b99c06cf10d7ea38a5bb7377e8"
+  },
+  {
+    "signature": "cza_v04_qa_assigned_work(text,text,uuid,uuid,jsonb)",
+    "acl": "{cza_t5_test_owner=X/cza_t5_test_owner,cza_v01_app_runtime_min=X/cza_t5_test_owner}",
+    "definition_hash": "14f5ef3951602fac460661c93d0a02dd"
+  }
+]

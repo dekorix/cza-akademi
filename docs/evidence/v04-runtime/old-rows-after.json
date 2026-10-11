@@ -1,0 +1,17 @@
+[
+  {
+    "table_name": "training_sessions",
+    "row_count": 8,
+    "rows_fingerprint": "565dfe23da6d023e080da37ce1e8b8ff"
+  },
+  {
+    "table_name": "learning_records",
+    "row_count": 5,
+    "rows_fingerprint": "379700ecfb2a33fda0b39ff620991919"
+  },
+  {
+    "table_name": "learning_evidence",
+    "row_count": 5,
+    "rows_fingerprint": "7f8c60f2da6f5cb72ae1c5e845e56510"
+  }
+]

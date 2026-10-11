@@ -463,8 +463,10 @@ try {
   await tab.waitForSelector('[data-player-phase=feedback]');
   await tab.waitForSelector('#answer');
   for (let i = 6; i <= 10; i++) await solve(tab, i);
-  await tab.waitForFunction(() =>
-    document.body.textContent.includes('Çalışma performansın hazır.'),
+  await tab.waitForFunction(
+    () =>
+      document.body.textContent.includes('Çalışma performansın hazır.') ||
+      document.body.textContent.includes('Harika, 10 soru çalıştın.'),
   );
   const finishes = await tab.evaluate(
     async (session) =>
