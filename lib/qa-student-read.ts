@@ -1,15 +1,23 @@
 import { createHash } from 'node:crypto';
 import { neon } from '@neondatabase/serverless';
 import { qaStudentReads } from '@/lib/qa-student-read-contract';
-import { isolatedQaDatabaseAllowed, isolatedQaEnabled, QA_EDUCATOR_ORIGIN } from '@/lib/isolated-qa-auth';
+import { isolatedQaEnabled, QA_EDUCATOR_ORIGIN } from '@/lib/isolated-qa-auth';
 import { readRequestCookie, STUDENT_COOKIE } from '@/lib/student-session';
+
+async function assertQaStudentTarget(request: Request) {
+  if (new URL(request.url).origin !== QA_EDUCATOR_ORIGIN || !process.env.DATABASE_URL)
+    throw new Error('v03_qa_target_rejected');
+  const [target] = await neon(process.env.DATABASE_URL)`SELECT current_user AS role,current_database() AS database,
+    current_setting('neon.project_id',true) AS project,current_setting('neon.branch_id',true) AS branch`;
+  if (target?.role !== 'cza_v01_app_runtime_min' || target?.database !== 'cza_t5_synthetic'
+    || target?.project !== 'patient-firefly-51111834' || target?.branch !== 'br-withered-queen-b15ltb40')
+    throw new Error('v03_qa_target_rejected');
+}
 
 export async function studentReadSql(request: Request) {
   const sql = neon(process.env.DATABASE_URL!);
   if (!isolatedQaEnabled()) return sql;
-  if (new URL(request.url).origin !== QA_EDUCATOR_ORIGIN || !await isolatedQaDatabaseAllowed()) {
-    throw new Error('v03_qa_target_rejected');
-  }
+  await assertQaStudentTarget(request);
   const token = readRequestCookie(request, STUDENT_COOKIE);
   if (!token) throw new Error('v03_qa_session_required');
   const hash = createHash('sha256').update(token).digest('hex');
@@ -35,9 +43,7 @@ export async function studentReadSql(request: Request) {
 
 export async function isolatedQaStudentLogin(request: Request, username: string, pin: string) {
   if (!isolatedQaEnabled()) return null;
-  if (new URL(request.url).origin !== QA_EDUCATOR_ORIGIN || !await isolatedQaDatabaseAllowed()) {
-    throw new Error('v03_qa_target_rejected');
-  }
+  await assertQaStudentTarget(request);
   const sql = neon(process.env.DATABASE_URL!);
   const rows = await sql`SELECT public.cza_v03_qa_student_login(${username}::text,${pin}::text,${request.headers.get('user-agent')}::text) AS result`;
   return rows[0]?.result as Record<string, unknown>;

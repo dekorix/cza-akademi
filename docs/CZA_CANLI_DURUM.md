@@ -22,6 +22,10 @@ Yalnız mevcut öğrenci panelinin rota ve atama görünümü incelenir/düzelti
 GENEL PROJE İLERLEME %=ÖLÇÜLMEDİ
 MEVCUT FAZ İLERLEME %=2/7 QA scoped; V03 açık
 TAMAMLANAN=GitHub başlangıç envanteri ve #87 ata zinciri
-KALAN=V03 kod/test/gerçek sentetik runtime kanıtı
+KALAN=V03 gerçek sentetik login/Chrome/API/Neon/Worker kanıtı
 KAPSAM SAPMASI=YOK
-SIRADAKİ TEK ADIM=Issue #88 kapsamında mevcut panelin dar uygulama ve testleri
+SIRADAKİ TEK ADIM=Baş Mimar'ın onayladığı dar QA paketinin gerçek runtime testleri
+
+## 2026-10-11 TRT uygulama onayı
+
+Baş Mimar, `a638215595c56aa28b2b8c835b34445f6a3e598d` tasarım/etki paketine “Dar QA paketini onaylıyorum” yanıtını verdi. İki sınırlı fonksiyon yalnız kilitli Neon QA transaction'ında kuruldu. Aynı mevcut kullanıcıda NULL PIN özeti başlatıldı; 1 `finger_read` modülü ve 1 mevcut bağlı sentetik educator adına teacher_assignment bootstrap kaydı eklendi. Yeni öğrenci yok; öğrenci sayısı 2, eski training_sessions 8. RLS politika fingerprint'i değişmedi. Bunlar gerçek educator UI create PASS iddiası veya V03 kabulü değildir. Normal gerçek login/Chrome/API/DB/Worker eşleşmesi sıradaki doğrulamadır.
