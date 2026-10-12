@@ -11,7 +11,7 @@ export function studentReadForbiddenCode(error: unknown) {
   return 'student_read_forbidden';
 }
 
-async function assertQaStudentTarget(request: Request) {
+export async function assertQaStudentTarget(request: Request) {
   if (new URL(request.url).origin !== QA_EDUCATOR_ORIGIN || !process.env.DATABASE_URL)
     throw new Error('v03_qa_target_rejected');
   const [target] = await neon(process.env.DATABASE_URL)`SELECT current_user AS role,current_database() AS database,

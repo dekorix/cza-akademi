@@ -2,6 +2,7 @@ import { isAssignableModule, assignmentLaunchPath } from '@/lib/training-recipes
 import { studentReadSql } from '@/lib/qa-student-read';
 import { authenticatedStudent } from '@/lib/student-session';
 import { allowRequest, rateLimited } from '@/lib/request-guard';
+import { isolatedQaFinalFixtureLaunch } from '@/lib/qa-assigned-work';
 import {
   assignedEnginePath,
   type WorkAssignmentState,
@@ -245,6 +246,7 @@ export async function POST(request: Request) {
   if (!UUID_PATTERN.test(recipeId))
     return json({ ok: false, error: 'invalid_assignment_id' }, 400);
 
+  const fixtureLaunch = await isolatedQaFinalFixtureLaunch(request, student, recipeId);
   const sql = await studentReadSql(request);
   const rows = await sql`
     SELECT tr.id, tr.module_code, tr.settings,
@@ -268,7 +270,7 @@ export async function POST(request: Request) {
   if (!rows.length)
     return json({ ok: false, error: 'assignment_not_found' }, 404);
   const assignment = rows[0] as Record<string, unknown>;
-  if (assignment.completed === true) {
+  if (assignment.completed === true && !fixtureLaunch) {
     return json({ ok: false, error: 'assignment_completed' }, 409);
   }
   const moduleCode = String(assignment.module_code);
@@ -290,6 +292,8 @@ export async function POST(request: Request) {
     'set-cookie': cookie,
   });
   } catch (error) {
+    if (error instanceof Error && error.message === 'CZA_WORK_SESSION_CLOSED')
+      return json({ ok: false, error: 'assignment_completed' }, 409);
     return json({ ok: false, error: 'assignment_read_unavailable' },
       error && typeof error === 'object' && 'code' in error && error.code === '42501' ? 403 : 503);
   }

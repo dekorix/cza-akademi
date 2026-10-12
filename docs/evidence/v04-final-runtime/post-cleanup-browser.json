@@ -1,0 +1,16 @@
+{
+  "scope": "POST_CLEANUP_FLAG_OFF",
+  "passed": true,
+  "tls": {
+    "protocol": "QUIC",
+    "issuer": "YE2"
+  },
+  "results": {
+    "me": 200,
+    "studentId": "20000000-0000-4000-8000-000000000001",
+    "launch": 409,
+    "error": "assignment_completed",
+    "logout": 200
+  },
+  "chrome": "Chrome/154.0.8037.98"
+}

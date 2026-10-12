@@ -1,0 +1,478 @@
+{
+  "scope": "EXISTING_COMPLETED_RECORD_ONLY",
+  "mocks": false,
+  "stateInjection": false,
+  "checks": [
+    {
+      "name": "existing assignment completed",
+      "passed": true
+    },
+    {
+      "name": "desktop completed navigation stays ready without a result route",
+      "passed": true
+    },
+    {
+      "name": "mobile completed navigation stays ready without a result route",
+      "passed": true
+    },
+    {
+      "name": "same committed UUID with different answer rejected as key reuse",
+      "passed": true
+    },
+    {
+      "name": "two tabs both denied on completed same question; not an active-question race",
+      "passed": true
+    },
+    {
+      "name": "existing unrelated work session rejected",
+      "passed": true
+    },
+    {
+      "name": "foreign student/academy selectors cannot change identity",
+      "passed": true
+    },
+    {
+      "name": "no start or finish calls issued",
+      "passed": true
+    },
+    {
+      "name": "cleanup logout",
+      "passed": true
+    },
+    {
+      "name": "revoked answer denied",
+      "passed": true
+    },
+    {
+      "name": "no page errors",
+      "passed": true
+    }
+  ],
+  "resultScreen": "BLOCKED_NO_READ_ONLY_STUDIO_RESTORE_PATH",
+  "requests": [
+    {
+      "path": "/api/core/dashboard",
+      "method": "GET"
+    },
+    {
+      "path": "/api/core",
+      "method": "POST",
+      "action": "login"
+    },
+    {
+      "path": "/api/core/dashboard",
+      "method": "GET"
+    },
+    {
+      "path": "/api/core/special-program",
+      "method": "GET"
+    },
+    {
+      "path": "/api/core/history",
+      "method": "GET"
+    },
+    {
+      "path": "/api/core/learning-profile",
+      "method": "GET"
+    },
+    {
+      "path": "/api/core/coaching",
+      "method": "GET"
+    },
+    {
+      "path": "/api/core/assignments",
+      "method": "GET"
+    },
+    {
+      "path": "/api/core/dashboard",
+      "method": "GET"
+    },
+    {
+      "path": "/api/student-history",
+      "method": "GET"
+    },
+    {
+      "path": "/api/core",
+      "method": "POST",
+      "action": "me"
+    },
+    {
+      "path": "/api/core/assignments",
+      "method": "GET"
+    },
+    {
+      "path": "/api/core/dashboard",
+      "method": "GET"
+    },
+    {
+      "path": "/api/student-history",
+      "method": "GET"
+    },
+    {
+      "path": "/api/core",
+      "method": "POST",
+      "action": "me"
+    },
+    {
+      "path": "/api/core/assignments",
+      "method": "GET"
+    },
+    {
+      "path": "/api/core",
+      "method": "POST",
+      "action": "attempt"
+    },
+    {
+      "path": "/api/core",
+      "method": "POST",
+      "action": "attempt"
+    },
+    {
+      "path": "/api/core",
+      "method": "POST",
+      "action": "attempt"
+    },
+    {
+      "path": "/api/core/dashboard",
+      "method": "GET"
+    },
+    {
+      "path": "/api/core",
+      "method": "POST",
+      "action": "logout"
+    },
+    {
+      "path": "/api/core",
+      "method": "POST",
+      "action": "attempt"
+    }
+  ],
+  "errors": [],
+  "chrome": "Chrome/154.0.8037.98",
+  "assignment": {
+    "status": 200,
+    "body": {
+      "ok": true,
+      "assignment": {
+        "id": "361ee0f6-26e2-4484-b9f9-7a88d14fb9f4",
+        "name": "V03 QA · Parmak Okuma",
+        "settings": {
+          "mode": "finger-read",
+          "pool": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          "rods": 5,
+          "terms": 4,
+          "digits": 1,
+          "rounds": 10,
+          "fontSize": 95,
+          "interval": 1.5,
+          "language": "tr-TR",
+          "maxValue": 900,
+          "minValue": 1,
+          "maxDigits": 1,
+          "minDigits": 1,
+          "operation": "mixed",
+          "textColor": "#111827",
+          "speechRate": 1,
+          "showNumbers": true,
+          "feedbackMode": "immediate",
+          "freePractice": false,
+          "practiceMode": "guided_practice",
+          "voiceProfile": "CZA_STANDARD",
+          "firstWithinMax": true,
+          "backgroundColor": "#ffffff",
+          "backgroundToken": "PAPER_BLACK",
+          "answerDurationMs": 0,
+          "countdownEnabled": false,
+          "numberColorToken": "PAPER_BLACK",
+          "transitionEffect": "FADE",
+          "stimulusVisibleMs": 1000,
+          "interStimulusGapMs": 120,
+          "presentationDurationMs": 1400,
+          "showNumbersDuringAudio": false,
+          "transitionSoundEnabled": false
+        },
+        "is_active": true,
+        "starts_at": "2026-10-11T10:03:04.920322+00:00",
+        "expires_at": null,
+        "module_code": "finger_read",
+        "module_name": "Parmak Okuma",
+        "cancelled_at": null,
+        "instructions": "Sentetik QA ataması: kendi öğrenme rotandaki çalışmayı görüntüle.",
+        "attempt_count": 10,
+        "last_activity_at": null,
+        "active_session_id": null,
+        "completed_session_id": "bdb87fbc-0938-4eb1-82e5-0a2cb362d30f",
+        "latest_learning_record_id": "a1d057e4-cb08-46be-94c8-e2b6a4fa8c79",
+        "status": "completed",
+        "launchPath": null,
+        "progress": {
+          "attemptCount": 10,
+          "expectedCount": 10,
+          "percent": 100
+        }
+      }
+    }
+  },
+  "navigation": [
+    {
+      "label": "desktop",
+      "links": []
+    },
+    {
+      "label": "desktop",
+      "studio": {
+        "headings": [
+          "Kendi ritminde, doğru teknikle.",
+          "Çalışma reçetesi",
+          "Zihnine çalışma alanı aç."
+        ],
+        "phase": "ready",
+        "hasGuidedResult": false,
+        "hasPerformanceResult": false,
+        "hasStart": true,
+        "overflow": false
+      }
+    },
+    {
+      "label": "mobile",
+      "links": [
+        {
+          "label": "SorobanAç",
+          "href": "/studio?mode=soroban-read"
+        },
+        {
+          "label": "Flash AnzanAç",
+          "href": "/studio?mode=flash"
+        }
+      ]
+    },
+    {
+      "label": "mobile",
+      "studio": {
+        "headings": [
+          "Kendi ritminde, doğru teknikle.",
+          "Çalışma reçetesi",
+          "Zihnine çalışma alanı aç."
+        ],
+        "phase": "ready",
+        "hasGuidedResult": false,
+        "hasPerformanceResult": false,
+        "hasStart": true,
+        "overflow": false
+      }
+    }
+  ],
+  "changedAnswer": {
+    "status": 409,
+    "body": {
+      "ok": false,
+      "error": "IDEMPOTENCY_KEY_REUSED"
+    }
+  },
+  "closedTwoTab": [
+    {
+      "status": 409,
+      "body": {
+        "ok": false,
+        "error": "work_session_closed"
+      }
+    },
+    {
+      "status": 409,
+      "body": {
+        "ok": false,
+        "error": "work_session_closed"
+      }
+    }
+  ],
+  "foreignSession": {
+    "status": 404,
+    "body": {
+      "ok": false,
+      "error": "work_not_found"
+    }
+  },
+  "foreignSelectors": {
+    "status": 200,
+    "body": {
+      "ok": true,
+      "dashboard": {
+        "profile": {
+          "id": "20000000-0000-4000-8000-000000000001",
+          "name": "Synthetic Student"
+        },
+        "summary": {
+          "activeAssignments": 0,
+          "completedSessions": 6,
+          "totalAttempts": 10,
+          "correctAttempts": 8,
+          "accuracy": 80,
+          "availableAssignments": 0,
+          "inProgressAssignments": 0,
+          "completedAssignments": 1
+        },
+        "assignments": [
+          {
+            "id": "361ee0f6-26e2-4484-b9f9-7a88d14fb9f4",
+            "moduleCode": "finger_read",
+            "moduleName": "Parmak Okuma",
+            "title": "V03 QA · Parmak Okuma",
+            "instructions": "Sentetik QA ataması: kendi öğrenme rotandaki çalışmayı görüntüle.",
+            "startsAt": "2026-10-11T10:03:04.920322+00:00",
+            "expiresAt": null,
+            "sessionCount": 1,
+            "completedCount": 1,
+            "status": "completed",
+            "launchPath": null,
+            "freePracticePath": "/paritmetik",
+            "activeSessionId": null,
+            "lastActivityAt": "2026-10-11T16:27:16.063752+00:00",
+            "attemptCount": 10,
+            "correctCount": 8,
+            "expectedCount": 10,
+            "progressPercent": 100
+          }
+        ],
+        "recentActivity": [
+          {
+            "id": "bdb87fbc-0938-4eb1-82e5-0a2cb362d30f",
+            "moduleCode": "finger_read",
+            "moduleName": "Parmak Okuma",
+            "status": "completed",
+            "startedAt": "2026-10-11T16:22:53.9931+00:00",
+            "completedAt": "2026-10-11T16:27:16.063752+00:00",
+            "assignmentId": "361ee0f6-26e2-4484-b9f9-7a88d14fb9f4",
+            "assignmentTitle": "V03 QA · Parmak Okuma",
+            "attemptCount": 10,
+            "correctCount": 8,
+            "accuracy": 80
+          },
+          {
+            "id": "1519f3ad-cbad-4f1b-b69a-7d8132f82e5a",
+            "moduleCode": "development_assessment",
+            "moduleName": "Başlangıç değerlendirmesi",
+            "status": "in_progress",
+            "startedAt": "2026-10-10T08:42:00.948242+00:00",
+            "completedAt": null,
+            "assignmentId": null,
+            "assignmentTitle": null,
+            "attemptCount": 0,
+            "correctCount": 0,
+            "accuracy": 0
+          },
+          {
+            "id": "8940aef7-2cdf-45ee-a75b-f0bc6c410b0c",
+            "moduleCode": "development_assessment",
+            "moduleName": "Başlangıç değerlendirmesi",
+            "status": "completed",
+            "startedAt": "2026-10-10T08:34:14.05038+00:00",
+            "completedAt": "2026-10-10T08:35:46.407014+00:00",
+            "assignmentId": null,
+            "assignmentTitle": null,
+            "attemptCount": 0,
+            "correctCount": 0,
+            "accuracy": 0
+          },
+          {
+            "id": "6e864789-5c0e-4f3f-97c2-d2ccf25061c7",
+            "moduleCode": "development_assessment",
+            "moduleName": "Başlangıç değerlendirmesi",
+            "status": "in_progress",
+            "startedAt": "2026-10-05T14:31:09.384327+00:00",
+            "completedAt": null,
+            "assignmentId": null,
+            "assignmentTitle": null,
+            "attemptCount": 0,
+            "correctCount": 0,
+            "accuracy": 0
+          },
+          {
+            "id": "42868b52-5503-4e5f-bd21-be6f8ed41c33",
+            "moduleCode": "development_assessment",
+            "moduleName": "Başlangıç değerlendirmesi",
+            "status": "completed",
+            "startedAt": "2026-10-05T14:26:09.208761+00:00",
+            "completedAt": "2026-10-05T14:27:19.563857+00:00",
+            "assignmentId": null,
+            "assignmentTitle": null,
+            "attemptCount": 0,
+            "correctCount": 0,
+            "accuracy": 0
+          },
+          {
+            "id": "f45b2385-eb90-4ee1-8f90-408b86b3b0c2",
+            "moduleCode": "development_assessment",
+            "moduleName": "Başlangıç değerlendirmesi",
+            "status": "completed",
+            "startedAt": "2026-10-05T14:21:35.176608+00:00",
+            "completedAt": "2026-10-05T14:22:49.616239+00:00",
+            "assignmentId": null,
+            "assignmentTitle": null,
+            "attemptCount": 0,
+            "correctCount": 0,
+            "accuracy": 0
+          },
+          {
+            "id": "883f5ea5-ae02-4be6-9779-ba3459bce487",
+            "moduleCode": "development_assessment",
+            "moduleName": "Başlangıç değerlendirmesi",
+            "status": "completed",
+            "startedAt": "2026-10-05T11:37:34.38251+00:00",
+            "completedAt": "2026-10-05T14:19:04.644938+00:00",
+            "assignmentId": null,
+            "assignmentTitle": null,
+            "attemptCount": 0,
+            "correctCount": 0,
+            "accuracy": 0
+          },
+          {
+            "id": "f5c2f5dd-2e4a-4a9a-ac53-ead1fd6fb3c0",
+            "moduleCode": "development_assessment",
+            "moduleName": "Başlangıç değerlendirmesi",
+            "status": "in_progress",
+            "startedAt": "2026-10-05T09:59:21.592509+00:00",
+            "completedAt": null,
+            "assignmentId": null,
+            "assignmentTitle": null,
+            "attemptCount": 0,
+            "correctCount": 0,
+            "accuracy": 0
+          },
+          {
+            "id": "0f255515-8035-49c5-a2e1-e240c4dbbc9d",
+            "moduleCode": "development_assessment",
+            "moduleName": "Başlangıç değerlendirmesi",
+            "status": "completed",
+            "startedAt": "2026-10-05T09:45:04.435296+00:00",
+            "completedAt": "2026-10-05T09:54:05.032487+00:00",
+            "assignmentId": null,
+            "assignmentTitle": null,
+            "attemptCount": 0,
+            "correctCount": 0,
+            "accuracy": 0
+          }
+        ],
+        "skillProfile": [
+          {
+            "moduleCode": "finger_read",
+            "moduleName": "Parmak Okuma",
+            "total": 10,
+            "correct": 8,
+            "accuracy": 80
+          }
+        ]
+      }
+    }
+  },
+  "safeChecksPassed": true
+}

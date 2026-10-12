@@ -1,0 +1,90 @@
+{
+  "scope": "READ_ONLY_ISOLATED_QA_BEFORE_V04",
+  "date": "2026-10-11",
+  "project": "patient-firefly-51111834",
+  "branch": "br-withered-queen-b15ltb40",
+  "database": "cza_t5_synthetic",
+  "publicTableCount": 45,
+  "protectedTables": [
+    {
+      "table_name": "students",
+      "row_count": 2,
+      "rows_fingerprint": "3aa66f86fe61d1d71950c4a9461dcc5a",
+      "ids": [
+        "20000000-0000-4000-8000-000000000001",
+        "a810b746-7c15-4acd-824d-932bd37acc39"
+      ]
+    },
+    {
+      "table_name": "users",
+      "row_count": 7,
+      "rows_fingerprint": "3f9423f070c0ceb53289b27ed6b22b1c",
+      "ids": [
+        "10000000-0000-4000-8000-000000000001",
+        "10000000-0000-4000-8000-000000000002",
+        "17114480-0fbd-4468-ab57-06d559579c07",
+        "2eded1dc-1599-4126-8aaa-8344e6da5685",
+        "40000000-0000-4000-8000-000000000004",
+        "5ff9a8b6-ddbb-4c3c-8ffd-8fddbffc243c",
+        "de5601bc-0dab-4fb0-8361-85d91b295fd8"
+      ]
+    },
+    {
+      "table_name": "training_sessions",
+      "row_count": 8,
+      "rows_fingerprint": "565dfe23da6d023e080da37ce1e8b8ff",
+      "ids": [
+        "0f255515-8035-49c5-a2e1-e240c4dbbc9d",
+        "1519f3ad-cbad-4f1b-b69a-7d8132f82e5a",
+        "42868b52-5503-4e5f-bd21-be6f8ed41c33",
+        "6e864789-5c0e-4f3f-97c2-d2ccf25061c7",
+        "883f5ea5-ae02-4be6-9779-ba3459bce487",
+        "8940aef7-2cdf-45ee-a75b-f0bc6c410b0c",
+        "f45b2385-eb90-4ee1-8f90-408b86b3b0c2",
+        "f5c2f5dd-2e4a-4a9a-ac53-ead1fd6fb3c0"
+      ]
+    },
+    {
+      "table_name": "question_attempts",
+      "row_count": 0,
+      "rows_fingerprint": "d41d8cd98f00b204e9800998ecf8427e",
+      "ids": null
+    },
+    {
+      "table_name": "learning_records",
+      "row_count": 5,
+      "rows_fingerprint": "379700ecfb2a33fda0b39ff620991919",
+      "ids": [
+        "0f255515-8035-49c5-a2e1-e240c4dbbc9d",
+        "42868b52-5503-4e5f-bd21-be6f8ed41c33",
+        "883f5ea5-ae02-4be6-9779-ba3459bce487",
+        "8940aef7-2cdf-45ee-a75b-f0bc6c410b0c",
+        "f45b2385-eb90-4ee1-8f90-408b86b3b0c2"
+      ]
+    },
+    {
+      "table_name": "learning_evidence",
+      "row_count": 5,
+      "rows_fingerprint": "7f8c60f2da6f5cb72ae1c5e845e56510",
+      "ids": [
+        "0f255515-8035-49c5-a2e1-e240c4dbbc9d",
+        "42868b52-5503-4e5f-bd21-be6f8ed41c33",
+        "883f5ea5-ae02-4be6-9779-ba3459bce487",
+        "8940aef7-2cdf-45ee-a75b-f0bc6c410b0c",
+        "f45b2385-eb90-4ee1-8f90-408b86b3b0c2"
+      ]
+    },
+    {
+      "table_name": "training_recipes",
+      "row_count": 1,
+      "rows_fingerprint": "8ac11d8f7c434242a12204a47e0f7dac",
+      "ids": [
+        "361ee0f6-26e2-4484-b9f9-7a88d14fb9f4"
+      ]
+    }
+  ],
+  "workerVersion": "d439fee2-9bd9-495a-9d8a-b8338feae25f",
+  "v04FunctionApplied": false,
+  "v04Deployment": false,
+  "v04Accepted": false
+}

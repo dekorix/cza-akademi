@@ -1,0 +1,376 @@
+{
+  "checks": [
+    {
+      "name": "real normal login after completion",
+      "passed": true
+    },
+    {
+      "name": "parallel finish same record/evidence, ten answers eight correct",
+      "passed": true
+    },
+    {
+      "name": "profile same canonical student",
+      "passed": true
+    },
+    {
+      "name": "foreign session denied",
+      "passed": true
+    },
+    {
+      "name": "completed assignment rejects start",
+      "passed": true
+    },
+    {
+      "name": "completed panel survives reload",
+      "passed": true
+    },
+    {
+      "name": "mobile completed panel no overflow",
+      "passed": true
+    },
+    {
+      "name": "cleanup logout",
+      "passed": true
+    },
+    {
+      "name": "revoked session finish denied",
+      "passed": true
+    },
+    {
+      "name": "no page errors",
+      "passed": true
+    }
+  ],
+  "passed": true,
+  "errors": [],
+  "chromeVersion": "Chrome/154.0.8037.98",
+  "completion": [
+    {
+      "status": 200,
+      "body": {
+        "ok": true,
+        "workCompletion": {
+          "status": "completed",
+          "replayed": true,
+          "sessionId": "bdb87fbc-0938-4eb1-82e5-0a2cb362d30f",
+          "evidenceId": "1cd5e31b-d1fc-408d-9847-b0b3b06597a8",
+          "attemptCount": 10,
+          "correctCount": 8,
+          "timeoutCount": 0,
+          "resumeAvailable": false,
+          "fastestCorrectMs": 93,
+          "learningRecordId": "a1d057e4-cb08-46be-94c8-e2b6a4fa8c79",
+          "timingProvenance": "CLIENT_REPORTED",
+          "averageResponseMs": 254,
+          "lastQuestionIndex": 10
+        }
+      }
+    },
+    {
+      "status": 200,
+      "body": {
+        "ok": true,
+        "workCompletion": {
+          "status": "completed",
+          "replayed": true,
+          "sessionId": "bdb87fbc-0938-4eb1-82e5-0a2cb362d30f",
+          "evidenceId": "1cd5e31b-d1fc-408d-9847-b0b3b06597a8",
+          "attemptCount": 10,
+          "correctCount": 8,
+          "timeoutCount": 0,
+          "resumeAvailable": false,
+          "fastestCorrectMs": 93,
+          "learningRecordId": "a1d057e4-cb08-46be-94c8-e2b6a4fa8c79",
+          "timingProvenance": "CLIENT_REPORTED",
+          "averageResponseMs": 254,
+          "lastQuestionIndex": 10
+        }
+      }
+    },
+    {
+      "status": 200,
+      "body": {
+        "ok": true,
+        "workCompletion": {
+          "status": "completed",
+          "replayed": true,
+          "sessionId": "bdb87fbc-0938-4eb1-82e5-0a2cb362d30f",
+          "evidenceId": "1cd5e31b-d1fc-408d-9847-b0b3b06597a8",
+          "attemptCount": 10,
+          "correctCount": 8,
+          "timeoutCount": 0,
+          "resumeAvailable": false,
+          "fastestCorrectMs": 93,
+          "learningRecordId": "a1d057e4-cb08-46be-94c8-e2b6a4fa8c79",
+          "timingProvenance": "CLIENT_REPORTED",
+          "averageResponseMs": 254,
+          "lastQuestionIndex": 10
+        }
+      }
+    },
+    {
+      "status": 200,
+      "body": {
+        "ok": true,
+        "workCompletion": {
+          "status": "completed",
+          "replayed": true,
+          "sessionId": "bdb87fbc-0938-4eb1-82e5-0a2cb362d30f",
+          "evidenceId": "1cd5e31b-d1fc-408d-9847-b0b3b06597a8",
+          "attemptCount": 10,
+          "correctCount": 8,
+          "timeoutCount": 0,
+          "resumeAvailable": false,
+          "fastestCorrectMs": 93,
+          "learningRecordId": "a1d057e4-cb08-46be-94c8-e2b6a4fa8c79",
+          "timingProvenance": "CLIENT_REPORTED",
+          "averageResponseMs": 254,
+          "lastQuestionIndex": 10
+        }
+      }
+    },
+    {
+      "status": 200,
+      "body": {
+        "ok": true,
+        "workCompletion": {
+          "status": "completed",
+          "replayed": true,
+          "sessionId": "bdb87fbc-0938-4eb1-82e5-0a2cb362d30f",
+          "evidenceId": "1cd5e31b-d1fc-408d-9847-b0b3b06597a8",
+          "attemptCount": 10,
+          "correctCount": 8,
+          "timeoutCount": 0,
+          "resumeAvailable": false,
+          "fastestCorrectMs": 93,
+          "learningRecordId": "a1d057e4-cb08-46be-94c8-e2b6a4fa8c79",
+          "timingProvenance": "CLIENT_REPORTED",
+          "averageResponseMs": 254,
+          "lastQuestionIndex": 10
+        }
+      }
+    },
+    {
+      "status": 200,
+      "body": {
+        "ok": true,
+        "workCompletion": {
+          "status": "completed",
+          "replayed": true,
+          "sessionId": "bdb87fbc-0938-4eb1-82e5-0a2cb362d30f",
+          "evidenceId": "1cd5e31b-d1fc-408d-9847-b0b3b06597a8",
+          "attemptCount": 10,
+          "correctCount": 8,
+          "timeoutCount": 0,
+          "resumeAvailable": false,
+          "fastestCorrectMs": 93,
+          "learningRecordId": "a1d057e4-cb08-46be-94c8-e2b6a4fa8c79",
+          "timingProvenance": "CLIENT_REPORTED",
+          "averageResponseMs": 254,
+          "lastQuestionIndex": 10
+        }
+      }
+    }
+  ],
+  "profile": {
+    "status": 200,
+    "body": {
+      "ok": true,
+      "profile": {
+        "student": {
+          "id": "20000000-0000-4000-8000-000000000001",
+          "name": "Synthetic Student",
+          "recordedFrom": "2026-10-05T09:45:04.435Z"
+        },
+        "calculatedAt": "2026-10-11T16:29:53.398Z",
+        "dataThrough": "2026-10-11T16:27:16.063Z",
+        "coverage": {
+          "assignments": 1,
+          "sessions": 9,
+          "attempts": 10,
+          "records": 6,
+          "evidence": 6
+        },
+        "studyPattern": {
+          "assignments": {
+            "active": 0,
+            "completed": 1,
+            "cancelled": 0
+          },
+          "sessions": {
+            "total": 9,
+            "completed": 6,
+            "activeDaysLast30": 3,
+            "lastStudyAt": "2026-10-11T16:27:16.063Z"
+          },
+          "provenance": "SERVER_AUTHORITATIVE"
+        },
+        "modules": [
+          {
+            "moduleCode": "development_assessment",
+            "moduleName": "Başlangıç değerlendirmesi",
+            "assignments": 0,
+            "sessions": 8,
+            "records": 5,
+            "attempts": 0,
+            "clientReportedAccuracy": null,
+            "provenance": "MIXED",
+            "sourceReferences": [
+              "training_sessions",
+              "learning_records"
+            ]
+          },
+          {
+            "moduleCode": "finger_read",
+            "moduleName": "Parmak Okuma",
+            "assignments": 1,
+            "sessions": 1,
+            "records": 1,
+            "attempts": 10,
+            "clientReportedAccuracy": 80,
+            "provenance": "MIXED",
+            "sourceReferences": [
+              "training_recipes",
+              "training_sessions",
+              "question_attempts",
+              "learning_records"
+            ]
+          }
+        ],
+        "skills": [],
+        "recentRecords": [
+          {
+            "recordId": "a1d057e4-cb08-46be-94c8-e2b6a4fa8c79",
+            "sessionId": "bdb87fbc-0938-4eb1-82e5-0a2cb362d30f",
+            "moduleCode": "finger_read",
+            "recordOrigin": "client_reported",
+            "recordVerification": "client_reported",
+            "evidenceId": "1cd5e31b-d1fc-408d-9847-b0b3b06597a8",
+            "evidenceVerification": "server_verified",
+            "evidenceAuthority": "v04_qa_server_answer_evaluator:v1",
+            "provenance": "CLIENT_REPORTED"
+          },
+          {
+            "recordId": "8940aef7-2cdf-45ee-a75b-f0bc6c410b0c",
+            "sessionId": "8940aef7-2cdf-45ee-a75b-f0bc6c410b0c",
+            "moduleCode": "development_assessment",
+            "recordOrigin": "client_reported",
+            "recordVerification": "client_reported",
+            "evidenceId": "8940aef7-2cdf-45ee-a75b-f0bc6c410b0c",
+            "evidenceVerification": "server_verified",
+            "evidenceAuthority": "CZA_ORIGINAL_RECORD_IDENTITY",
+            "provenance": "CLIENT_REPORTED"
+          },
+          {
+            "recordId": "42868b52-5503-4e5f-bd21-be6f8ed41c33",
+            "sessionId": "42868b52-5503-4e5f-bd21-be6f8ed41c33",
+            "moduleCode": "development_assessment",
+            "recordOrigin": "client_reported",
+            "recordVerification": "client_reported",
+            "evidenceId": "42868b52-5503-4e5f-bd21-be6f8ed41c33",
+            "evidenceVerification": "server_verified",
+            "evidenceAuthority": "CZA_ORIGINAL_RECORD_IDENTITY",
+            "provenance": "CLIENT_REPORTED"
+          },
+          {
+            "recordId": "f45b2385-eb90-4ee1-8f90-408b86b3b0c2",
+            "sessionId": "f45b2385-eb90-4ee1-8f90-408b86b3b0c2",
+            "moduleCode": "development_assessment",
+            "recordOrigin": "client_reported",
+            "recordVerification": "client_reported",
+            "evidenceId": "f45b2385-eb90-4ee1-8f90-408b86b3b0c2",
+            "evidenceVerification": "server_verified",
+            "evidenceAuthority": "CZA_T4_P2_SERVER_EVALUATOR",
+            "provenance": "CLIENT_REPORTED"
+          },
+          {
+            "recordId": "883f5ea5-ae02-4be6-9779-ba3459bce487",
+            "sessionId": "883f5ea5-ae02-4be6-9779-ba3459bce487",
+            "moduleCode": "development_assessment",
+            "recordOrigin": "client_reported",
+            "recordVerification": "client_reported",
+            "evidenceId": "883f5ea5-ae02-4be6-9779-ba3459bce487",
+            "evidenceVerification": "server_verified",
+            "evidenceAuthority": "CZA_T4_P2_SERVER_EVALUATOR",
+            "provenance": "CLIENT_REPORTED"
+          },
+          {
+            "recordId": "0f255515-8035-49c5-a2e1-e240c4dbbc9d",
+            "sessionId": "0f255515-8035-49c5-a2e1-e240c4dbbc9d",
+            "moduleCode": "development_assessment",
+            "recordOrigin": "client_reported",
+            "recordVerification": "client_reported",
+            "evidenceId": "0f255515-8035-49c5-a2e1-e240c4dbbc9d",
+            "evidenceVerification": "server_verified",
+            "evidenceAuthority": "CZA_T4_P2_SERVER_EVALUATOR",
+            "provenance": "CLIENT_REPORTED"
+          }
+        ],
+        "errors": [
+          {
+            "errorType": "RESPONSE_ERROR",
+            "count": 2,
+            "provenance": "CLIENT_REPORTED",
+            "sourceReference": "question_attempts"
+          }
+        ],
+        "process": {
+          "supportLevels": [
+            {
+              "supportLevel": "unknown",
+              "count": 6,
+              "provenance": "CLIENT_REPORTED"
+            }
+          ],
+          "strategy": null,
+          "selfCorrection": null,
+          "repetition": null,
+          "transfer": null,
+          "insufficiencyReason": null
+        },
+        "periods": [
+          {
+            "label": "LAST_30_DAYS",
+            "from": "2026-09-11T16:29:53.398Z",
+            "to": "2026-10-11T16:29:53.398Z",
+            "sessions": 9,
+            "records": 6,
+            "attempts": 10,
+            "clientReportedAccuracy": 80,
+            "provenance": "MIXED"
+          },
+          {
+            "label": "PREVIOUS_30_DAYS",
+            "from": "2026-08-12T16:29:53.398Z",
+            "to": "2026-09-11T16:29:53.398Z",
+            "sessions": 0,
+            "records": 0,
+            "attempts": 0,
+            "clientReportedAccuracy": null,
+            "provenance": "SERVER_AUTHORITATIVE"
+          }
+        ],
+        "coaching": {
+          "activePrograms": 0,
+          "publishedPlans": 0,
+          "studyLogs": 0,
+          "examResults": 0,
+          "meetings": 0,
+          "latestGoal": null,
+          "latestPlan": null,
+          "latestExam": null,
+          "latestTask": null,
+          "performanceProvenance": "CLIENT_REPORTED",
+          "sourceReference": "coaching-center"
+        }
+      }
+    }
+  },
+  "closedStart": {
+    "status": 403,
+    "body": {
+      "ok": false,
+      "error": "assignment_launch_required"
+    }
+  }
+}

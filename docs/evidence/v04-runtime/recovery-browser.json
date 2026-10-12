@@ -1,0 +1,213 @@
+{
+  "mode": "REAL_ISOLATED_QA",
+  "mocks": false,
+  "cookieInjection": false,
+  "studentId": "20000000-0000-4000-8000-000000000001",
+  "recipeId": "361ee0f6-26e2-4484-b9f9-7a88d14fb9f4",
+  "checks": [
+    {
+      "name": "normal login same existing student",
+      "passed": true
+    },
+    {
+      "name": "server secure HttpOnly cookie",
+      "passed": true
+    },
+    {
+      "name": "assigned studio real start",
+      "passed": true
+    },
+    {
+      "name": "concurrent initial start insert yields one training session",
+      "passed": true
+    },
+    {
+      "name": "parallel starts same canonical session",
+      "passed": true
+    },
+    {
+      "name": "resume actual existing three answers",
+      "passed": true
+    },
+    {
+      "name": "assigned studio real start",
+      "passed": true
+    },
+    {
+      "name": "same canonical training session",
+      "passed": true
+    },
+    {
+      "name": "hard reload preserves session and three answers",
+      "passed": true
+    },
+    {
+      "name": "actual UI answer 4",
+      "passed": true
+    },
+    {
+      "name": "desktop no horizontal overflow",
+      "passed": true
+    },
+    {
+      "name": "assigned studio real start",
+      "passed": true
+    },
+    {
+      "name": "same canonical training session",
+      "passed": true
+    },
+    {
+      "name": "new mobile tab same session/next question",
+      "passed": true
+    },
+    {
+      "name": "mobile no horizontal overflow",
+      "passed": true
+    },
+    {
+      "name": "logout succeeds",
+      "passed": true
+    },
+    {
+      "name": "old session denied",
+      "passed": true
+    },
+    {
+      "name": "normal login same existing student",
+      "passed": true
+    },
+    {
+      "name": "assigned studio real start",
+      "passed": true
+    },
+    {
+      "name": "same canonical training session",
+      "passed": true
+    },
+    {
+      "name": "relogin same work session/progress",
+      "passed": true
+    },
+    {
+      "name": "foreign student/academy selectors cannot switch identity",
+      "passed": true
+    },
+    {
+      "name": "foreign recipe denied",
+      "passed": true
+    },
+    {
+      "name": "real uncertain acknowledgement keeps submitted answer",
+      "passed": true
+    },
+    {
+      "name": "real network retry exact UUID/answer/timings and no duplicate",
+      "passed": true
+    },
+    {
+      "name": "actual UI answer 6",
+      "passed": true
+    },
+    {
+      "name": "actual UI answer 7",
+      "passed": true
+    },
+    {
+      "name": "actual UI answer 8",
+      "passed": true
+    },
+    {
+      "name": "actual UI answer 9",
+      "passed": true
+    },
+    {
+      "name": "actual UI answer 10",
+      "passed": true
+    }
+  ],
+  "errors": [],
+  "attempts": [
+    {
+      "questionIndex": 4,
+      "clientAttemptId": "24c25a1d-f068-4695-a6d4-bb759572441e",
+      "questionId": "v04:bdb87fbc-0938-4eb1-82e5-0a2cb362d30f:4",
+      "target": 1,
+      "answer": 1,
+      "responseLatencyMs": 124,
+      "stimulusDurationMs": 124,
+      "totalResponseTimeMs": 124
+    },
+    {
+      "questionIndex": 5,
+      "clientAttemptId": "59b2712a-05a8-4711-83b9-b5c383e1a168",
+      "questionId": "v04:bdb87fbc-0938-4eb1-82e5-0a2cb362d30f:5",
+      "target": 3,
+      "answer": 3,
+      "responseLatencyMs": 579,
+      "stimulusDurationMs": 579,
+      "totalResponseTimeMs": 579
+    },
+    {
+      "questionIndex": 6,
+      "clientAttemptId": "0cf352e5-d642-4132-875a-0874ba657816",
+      "questionId": "v04:bdb87fbc-0938-4eb1-82e5-0a2cb362d30f:6",
+      "target": 9,
+      "answer": 9,
+      "responseLatencyMs": 93,
+      "stimulusDurationMs": 93,
+      "totalResponseTimeMs": 93
+    },
+    {
+      "questionIndex": 7,
+      "clientAttemptId": "07f2994c-030e-4083-a2d1-4b3812bd1537",
+      "questionId": "v04:bdb87fbc-0938-4eb1-82e5-0a2cb362d30f:7",
+      "target": 7,
+      "answer": 7,
+      "responseLatencyMs": 120,
+      "stimulusDurationMs": 120,
+      "totalResponseTimeMs": 120
+    },
+    {
+      "questionIndex": 8,
+      "clientAttemptId": "a5c0a25b-d067-4498-8ad7-4cf7f8f449c4",
+      "questionId": "v04:bdb87fbc-0938-4eb1-82e5-0a2cb362d30f:8",
+      "target": 1,
+      "answer": 1,
+      "responseLatencyMs": 132,
+      "stimulusDurationMs": 132,
+      "totalResponseTimeMs": 132
+    },
+    {
+      "questionIndex": 9,
+      "clientAttemptId": "ae0c53b9-0faa-42af-9c89-6fe8a20a1024",
+      "questionId": "v04:bdb87fbc-0938-4eb1-82e5-0a2cb362d30f:9",
+      "target": 3,
+      "answer": 3,
+      "responseLatencyMs": 96,
+      "stimulusDurationMs": 96,
+      "totalResponseTimeMs": 96
+    },
+    {
+      "questionIndex": 10,
+      "clientAttemptId": "90bba76a-3dc2-4c71-bdf3-71ec24d0bf26",
+      "questionId": "v04:bdb87fbc-0938-4eb1-82e5-0a2cb362d30f:10",
+      "target": 2,
+      "answer": 2,
+      "responseLatencyMs": 112,
+      "stimulusDurationMs": 112,
+      "totalResponseTimeMs": 112
+    }
+  ],
+  "passed": false,
+  "chromeVersion": "Chrome/154.0.8037.98",
+  "database": {
+    "verification": "SEPARATE_NEON_CONNECTOR_READBACK_REQUIRED"
+  },
+  "recovery": {
+    "existingAttempts": 3,
+    "reason": "Preserve prior actual partial run; no reset/new session"
+  },
+  "networkFault": "DROPPED_REAL_RESPONSE_AFTER_COMMIT",
+  "failure": "Waiting failed: 30000ms exceeded"
+}

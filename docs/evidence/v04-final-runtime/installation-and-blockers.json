@@ -1,0 +1,31 @@
+{
+  "approval": "https://github.com/dekorix/cza-akademi/pull/91#issuecomment-6124819469",
+  "target": {
+    "project_id": "patient-firefly-51111834",
+    "branch_id": "br-withered-queen-b15ltb40",
+    "database_name": "cza_t5_synthetic"
+  },
+  "sqlSHA256": "d2b21d44c1f4a2f58117bc5ee1c725b61bcd2f7f4ccf9ed4e0ca6d9b979b8109",
+  "runner": "neon_run_sql_transaction: all five approved statements and final ACL assertion as one transaction",
+  "applied": true,
+  "publicExecute": false,
+  "minimumRoleExecute": true,
+  "oldFunctionsUnchanged": 52,
+  "all45TableFingerprintsUnchanged": true,
+  "roleTableRlsMatrixUnchanged": true,
+  "newFixtureRows": 0,
+  "newFunctionOnly": "cza_v04_qa_final_fixture(text,text,uuid,uuid,jsonb)",
+  "workerDeploy": "NOT_RUN_DEVICE_OFFLINE",
+  "realChromeFinalRace": "NOT_RUN_DEVICE_OFFLINE",
+  "realStudioResult": "NOT_RUN_DEVICE_OFFLINE",
+  "cloudQaHttpProbe": {
+    "result": "BLOCKED_CONNECT_PROXY_403",
+    "tlsHandshakeVerified": false
+  },
+  "windowsDevice": {
+    "id": "df0be264-bef8-4c4e-97bb-8c933b8f0017",
+    "status": "OFFLINE",
+    "lastSeen": "21h ago per connector"
+  },
+  "V04_ACCEPTED": "NO"
+}

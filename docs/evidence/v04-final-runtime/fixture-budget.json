@@ -1,0 +1,11 @@
+[
+  {
+    "fixture_sessions": "1",
+    "primary_attempts": "10",
+    "distinct_questions": "10",
+    "distinct_attempt_ids": "10",
+    "fixture_records": "1",
+    "fixture_evidence": "1",
+    "old_status": "completed"
+  }
+]

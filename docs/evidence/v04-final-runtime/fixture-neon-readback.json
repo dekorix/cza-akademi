@@ -1,0 +1,819 @@
+[
+  {
+    "result": {
+      "record": {
+        "id": "f43257d1-6609-4f6f-99a6-bc5025879240",
+        "skills": [],
+        "metadata": {
+          "recipeId": "361ee0f6-26e2-4484-b9f9-7a88d14fb9f4",
+          "strategy": null,
+          "evidenceClass": "server_evaluated_answers",
+          "assignmentSource": "teacher_assignment",
+          "timingProvenance": "CLIENT_REPORTED",
+          "workCenterVersion": "v04-qa-v1",
+          "supportObservation": "unknown"
+        },
+        "engine_id": null,
+        "academy_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+        "created_at": "2026-10-12T18:39:21.038941+00:00",
+        "started_at": "2026-10-12T18:38:45.610812+00:00",
+        "student_id": "20000000-0000-4000-8000-000000000001",
+        "module_code": "finger_read",
+        "performance": {
+          "total": 10,
+          "wrong": 2,
+          "correct": 8,
+          "accuracy": 80
+        },
+        "record_type": "module_record",
+        "completed_at": "2026-10-12T18:39:21.039595+00:00",
+        "payload_hash": "089a11408f3dbd343427e9ff3b34d599994f65e9ca10c59e032575b7ad58b8da",
+        "activity_type": "assigned_work",
+        "record_origin": "client_reported",
+        "support_level": "unknown",
+        "engine_version": null,
+        "module_version": "1.0.0",
+        "schema_version": "CZA_MODULE_RECORD_V1",
+        "client_record_id": "185a4c3f-b03b-43c0-8942-8c7d2d5acdfe",
+        "contract_version": "1.1.0",
+        "student_session_id": "08b99f39-8916-4eee-b500-3ce545414fe0",
+        "training_session_id": "40000004-0000-4000-8000-000000000091",
+        "verification_status": "client_reported"
+      },
+      "session": {
+        "id": "40000004-0000-4000-8000-000000000091",
+        "source": "teacher_assignment",
+        "status": "completed",
+        "accuracy": 80,
+        "progress": {
+          "evidenceId": "b95c3b27-9e10-4a64-9bf2-6e4174fbedc1",
+          "attemptCount": 10,
+          "correctCount": 8,
+          "timeoutCount": 0,
+          "resumeAvailable": false,
+          "fastestCorrectMs": 43,
+          "learningRecordId": "f43257d1-6609-4f6f-99a6-bc5025879240",
+          "timingProvenance": "CLIENT_REPORTED",
+          "averageResponseMs": 149,
+          "lastQuestionIndex": 10
+        },
+        "center_id": null,
+        "engine_id": null,
+        "hand_mode": null,
+        "recipe_id": "361ee0f6-26e2-4484-b9f9-7a88d14fb9f4",
+        "academy_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+        "created_at": "2026-10-12T18:38:45.610602+00:00",
+        "press_mode": null,
+        "started_at": "2026-10-12T18:38:45.610812+00:00",
+        "student_id": "20000000-0000-4000-8000-000000000001",
+        "teacher_id": null,
+        "module_code": "finger_read",
+        "wrong_count": 2,
+        "completed_at": "2026-10-12T18:39:21.039595+00:00",
+        "correct_count": 8,
+        "answered_count": 10,
+        "engine_version": null,
+        "question_count": 10,
+        "difficulty_level": null,
+        "last_activity_at": "2026-10-12T18:39:21.039595+00:00",
+        "client_session_id": "84f61e3f-be04-46ba-bea0-ecd2dc9e3d5c",
+        "settings_snapshot": {
+          "mode": "finger-read",
+          "pool": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          "rods": 5,
+          "terms": 4,
+          "digits": 1,
+          "rounds": 10,
+          "fontSize": 95,
+          "interval": 1.5,
+          "language": "tr-TR",
+          "maxValue": 900,
+          "minValue": 1,
+          "maxDigits": 1,
+          "minDigits": 1,
+          "operation": "mixed",
+          "textColor": "#111827",
+          "speechRate": 1,
+          "v04Version": 1,
+          "showNumbers": true,
+          "feedbackMode": "immediate",
+          "freePractice": false,
+          "practiceMode": "guided_practice",
+          "v04QaFixture": "final-acceptance-pr91",
+          "voiceProfile": "CZA_STANDARD",
+          "firstWithinMax": true,
+          "backgroundColor": "#ffffff",
+          "backgroundToken": "PAPER_BLACK",
+          "v04QuestionPlan": [
+            {
+              "answer": 9,
+              "sequence": [
+                9
+              ],
+              "questionId": "v04:40000004-0000-4000-8000-000000000091:1"
+            },
+            {
+              "answer": 3,
+              "sequence": [
+                3
+              ],
+              "questionId": "v04:40000004-0000-4000-8000-000000000091:2"
+            },
+            {
+              "answer": 6,
+              "sequence": [
+                6
+              ],
+              "questionId": "v04:40000004-0000-4000-8000-000000000091:3"
+            },
+            {
+              "answer": 2,
+              "sequence": [
+                2
+              ],
+              "questionId": "v04:40000004-0000-4000-8000-000000000091:4"
+            },
+            {
+              "answer": 1,
+              "sequence": [
+                1
+              ],
+              "questionId": "v04:40000004-0000-4000-8000-000000000091:5"
+            },
+            {
+              "answer": 9,
+              "sequence": [
+                9
+              ],
+              "questionId": "v04:40000004-0000-4000-8000-000000000091:6"
+            },
+            {
+              "answer": 6,
+              "sequence": [
+                6
+              ],
+              "questionId": "v04:40000004-0000-4000-8000-000000000091:7"
+            },
+            {
+              "answer": 2,
+              "sequence": [
+                2
+              ],
+              "questionId": "v04:40000004-0000-4000-8000-000000000091:8"
+            },
+            {
+              "answer": 6,
+              "sequence": [
+                6
+              ],
+              "questionId": "v04:40000004-0000-4000-8000-000000000091:9"
+            },
+            {
+              "answer": 3,
+              "sequence": [
+                3
+              ],
+              "questionId": "v04:40000004-0000-4000-8000-000000000091:10"
+            }
+          ],
+          "answerDurationMs": 0,
+          "countdownEnabled": false,
+          "numberColorToken": "PAPER_BLACK",
+          "transitionEffect": "FADE",
+          "stimulusVisibleMs": 1000,
+          "interStimulusGapMs": 120,
+          "presentationDurationMs": 1400,
+          "showNumbersDuringAudio": false,
+          "transitionSoundEnabled": false
+        },
+        "stimulus_duration_ms": null,
+        "average_total_response_ms": null,
+        "average_response_latency_ms": null,
+        "completion_client_record_id": "185a4c3f-b03b-43c0-8942-8c7d2d5acdfe"
+      },
+      "attempts": [
+        {
+          "id": "6fe8219f-5473-466b-94d6-456047a52690",
+          "metadata": {
+            "skills": [],
+            "timeout": false,
+            "sequence": [
+              9
+            ],
+            "strategy": null,
+            "answeredAt": "2026-10-12T18:38:50.548Z",
+            "attemptType": "PRIMARY",
+            "responseType": "numeric",
+            "supportLevel": "unknown",
+            "v04PayloadHash": "7f30775ac684fbe20c471bc8c6b44aed500bd1059c87a23b0935599ba7518581",
+            "answerStartedAt": "2026-10-12T18:38:50.442Z",
+            "responsePayload": {
+              "value": 9
+            },
+            "timingProvenance": "CLIENT_REPORTED",
+            "questionAuthority": "v04_qa_server_plan",
+            "presentationEndedAt": null,
+            "presentationStartedAt": null
+          },
+          "engine_id": null,
+          "hand_mode": null,
+          "academy_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "created_at": "2026-10-12T18:38:48.332602+00:00",
+          "error_type": "OK",
+          "is_correct": true,
+          "ones_digit": null,
+          "press_mode": null,
+          "session_id": "40000004-0000-4000-8000-000000000091",
+          "student_id": "20000000-0000-4000-8000-000000000001",
+          "tens_digit": null,
+          "module_code": "finger_read",
+          "question_id": "v04:40000004-0000-4000-8000-000000000091:1",
+          "error_detail": "Doğru cevap",
+          "learning_mode": "guided_practice",
+          "pattern_valid": true,
+          "response_type": "numeric",
+          "target_number": 9,
+          "attempt_number": 1,
+          "engine_version": null,
+          "question_index": 1,
+          "difficulty_level": 1,
+          "response_payload": {
+            "value": 9
+          },
+          "client_attempt_id": "4f47c803-0425-4f68-8726-034a5191915f",
+          "response_latency_ms": 106,
+          "training_session_id": "40000004-0000-4000-8000-000000000091",
+          "stimulus_duration_ms": 106,
+          "student_numeric_answer": 9,
+          "total_response_time_ms": 106,
+          "screen_left_target_pattern": null,
+          "screen_left_student_pattern": null,
+          "screen_right_target_pattern": null,
+          "screen_right_student_pattern": null
+        },
+        {
+          "id": "ac44c7ab-bf76-4ea3-8ca4-e2cbdaa47454",
+          "metadata": {
+            "skills": [],
+            "timeout": false,
+            "sequence": [
+              3
+            ],
+            "strategy": null,
+            "answeredAt": "2026-10-12T18:38:55.224Z",
+            "attemptType": "PRIMARY",
+            "responseType": "numeric",
+            "supportLevel": "unknown",
+            "v04PayloadHash": "6cbf97657e4c05eea66bb0488af8f9be846b14f929cbefaa9dcf2e0960c2b884",
+            "answerStartedAt": "2026-10-12T18:38:55.145Z",
+            "responsePayload": {
+              "value": 4
+            },
+            "timingProvenance": "CLIENT_REPORTED",
+            "questionAuthority": "v04_qa_server_plan",
+            "presentationEndedAt": null,
+            "presentationStartedAt": null
+          },
+          "engine_id": null,
+          "hand_mode": null,
+          "academy_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "created_at": "2026-10-12T18:38:53.159847+00:00",
+          "error_type": "RESPONSE_ERROR",
+          "is_correct": false,
+          "ones_digit": null,
+          "press_mode": null,
+          "session_id": "40000004-0000-4000-8000-000000000091",
+          "student_id": "20000000-0000-4000-8000-000000000001",
+          "tens_digit": null,
+          "module_code": "finger_read",
+          "question_id": "v04:40000004-0000-4000-8000-000000000091:2",
+          "error_detail": "Girilen cevap beklenen sonuçla eşleşmedi.",
+          "learning_mode": "guided_practice",
+          "pattern_valid": true,
+          "response_type": "numeric",
+          "target_number": 3,
+          "attempt_number": 1,
+          "engine_version": null,
+          "question_index": 2,
+          "difficulty_level": 1,
+          "response_payload": {
+            "value": 4
+          },
+          "client_attempt_id": "3ce87891-56ec-41ce-944a-c9394197fce6",
+          "response_latency_ms": 80,
+          "training_session_id": "40000004-0000-4000-8000-000000000091",
+          "stimulus_duration_ms": 80,
+          "student_numeric_answer": 4,
+          "total_response_time_ms": 80,
+          "screen_left_target_pattern": null,
+          "screen_left_student_pattern": null,
+          "screen_right_target_pattern": null,
+          "screen_right_student_pattern": null
+        },
+        {
+          "id": "fd6f3eba-d08e-41a1-8c3f-34c0aca74e5f",
+          "metadata": {
+            "skills": [],
+            "timeout": false,
+            "sequence": [
+              6
+            ],
+            "strategy": null,
+            "answeredAt": "2026-10-12T18:38:58.183Z",
+            "attemptType": "PRIMARY",
+            "responseType": "numeric",
+            "supportLevel": "unknown",
+            "v04PayloadHash": "190fd1010d0c752e17b322caf6702d2f1a95cffb7618a3c0e4e0faec24fb3614",
+            "answerStartedAt": "2026-10-12T18:38:58.130Z",
+            "responsePayload": {
+              "value": 7
+            },
+            "timingProvenance": "CLIENT_REPORTED",
+            "questionAuthority": "v04_qa_server_plan",
+            "presentationEndedAt": null,
+            "presentationStartedAt": null
+          },
+          "engine_id": null,
+          "hand_mode": null,
+          "academy_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "created_at": "2026-10-12T18:38:56.007204+00:00",
+          "error_type": "RESPONSE_ERROR",
+          "is_correct": false,
+          "ones_digit": null,
+          "press_mode": null,
+          "session_id": "40000004-0000-4000-8000-000000000091",
+          "student_id": "20000000-0000-4000-8000-000000000001",
+          "tens_digit": null,
+          "module_code": "finger_read",
+          "question_id": "v04:40000004-0000-4000-8000-000000000091:3",
+          "error_detail": "Girilen cevap beklenen sonuçla eşleşmedi.",
+          "learning_mode": "guided_practice",
+          "pattern_valid": true,
+          "response_type": "numeric",
+          "target_number": 6,
+          "attempt_number": 1,
+          "engine_version": null,
+          "question_index": 3,
+          "difficulty_level": 1,
+          "response_payload": {
+            "value": 7
+          },
+          "client_attempt_id": "f9fd119a-1f41-4b9d-a227-527a5bcfa03e",
+          "response_latency_ms": 53,
+          "training_session_id": "40000004-0000-4000-8000-000000000091",
+          "stimulus_duration_ms": 53,
+          "student_numeric_answer": 7,
+          "total_response_time_ms": 53,
+          "screen_left_target_pattern": null,
+          "screen_left_student_pattern": null,
+          "screen_right_target_pattern": null,
+          "screen_right_student_pattern": null
+        },
+        {
+          "id": "4d437233-7ceb-4594-b415-7c8bf10e9bbf",
+          "metadata": {
+            "skills": [],
+            "timeout": false,
+            "sequence": [
+              2
+            ],
+            "strategy": null,
+            "answeredAt": "2026-10-12T18:39:01.043Z",
+            "attemptType": "PRIMARY",
+            "responseType": "numeric",
+            "supportLevel": "unknown",
+            "v04PayloadHash": "85c45395287d2df68f5043b64f5c2f505a3cd408d97197973028aeba6e12e25a",
+            "answerStartedAt": "2026-10-12T18:39:00.994Z",
+            "responsePayload": {
+              "value": 2
+            },
+            "timingProvenance": "CLIENT_REPORTED",
+            "questionAuthority": "v04_qa_server_plan",
+            "presentationEndedAt": null,
+            "presentationStartedAt": null
+          },
+          "engine_id": null,
+          "hand_mode": null,
+          "academy_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "created_at": "2026-10-12T18:38:58.846671+00:00",
+          "error_type": "OK",
+          "is_correct": true,
+          "ones_digit": null,
+          "press_mode": null,
+          "session_id": "40000004-0000-4000-8000-000000000091",
+          "student_id": "20000000-0000-4000-8000-000000000001",
+          "tens_digit": null,
+          "module_code": "finger_read",
+          "question_id": "v04:40000004-0000-4000-8000-000000000091:4",
+          "error_detail": "Doğru cevap",
+          "learning_mode": "guided_practice",
+          "pattern_valid": true,
+          "response_type": "numeric",
+          "target_number": 2,
+          "attempt_number": 1,
+          "engine_version": null,
+          "question_index": 4,
+          "difficulty_level": 1,
+          "response_payload": {
+            "value": 2
+          },
+          "client_attempt_id": "4a9d6ff8-582e-4ac0-a4f2-28b7ff48a6f0",
+          "response_latency_ms": 49,
+          "training_session_id": "40000004-0000-4000-8000-000000000091",
+          "stimulus_duration_ms": 49,
+          "student_numeric_answer": 2,
+          "total_response_time_ms": 49,
+          "screen_left_target_pattern": null,
+          "screen_left_student_pattern": null,
+          "screen_right_target_pattern": null,
+          "screen_right_student_pattern": null
+        },
+        {
+          "id": "7cb1cc49-e864-4f6d-8dcd-e41b56f98313",
+          "metadata": {
+            "skills": [],
+            "timeout": false,
+            "sequence": [
+              1
+            ],
+            "strategy": null,
+            "answeredAt": "2026-10-12T18:39:07.791Z",
+            "attemptType": "PRIMARY",
+            "responseType": "numeric",
+            "supportLevel": "unknown",
+            "v04PayloadHash": "c51b942015d48a9dbb45822cda0d053058401f67fa67716b344ae8425ceafae9",
+            "answerStartedAt": "2026-10-12T18:39:06.823Z",
+            "responsePayload": {
+              "value": 1
+            },
+            "timingProvenance": "CLIENT_REPORTED",
+            "questionAuthority": "v04_qa_server_plan",
+            "presentationEndedAt": null,
+            "presentationStartedAt": null
+          },
+          "engine_id": null,
+          "hand_mode": null,
+          "academy_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "created_at": "2026-10-12T18:39:05.626129+00:00",
+          "error_type": "OK",
+          "is_correct": true,
+          "ones_digit": null,
+          "press_mode": null,
+          "session_id": "40000004-0000-4000-8000-000000000091",
+          "student_id": "20000000-0000-4000-8000-000000000001",
+          "tens_digit": null,
+          "module_code": "finger_read",
+          "question_id": "v04:40000004-0000-4000-8000-000000000091:5",
+          "error_detail": "Doğru cevap",
+          "learning_mode": "guided_practice",
+          "pattern_valid": true,
+          "response_type": "numeric",
+          "target_number": 1,
+          "attempt_number": 1,
+          "engine_version": null,
+          "question_index": 5,
+          "difficulty_level": 1,
+          "response_payload": {
+            "value": 1
+          },
+          "client_attempt_id": "52cacf07-22aa-4bac-adb9-b0145b3ace80",
+          "response_latency_ms": 968,
+          "training_session_id": "40000004-0000-4000-8000-000000000091",
+          "stimulus_duration_ms": 968,
+          "student_numeric_answer": 1,
+          "total_response_time_ms": 968,
+          "screen_left_target_pattern": null,
+          "screen_left_student_pattern": null,
+          "screen_right_target_pattern": null,
+          "screen_right_student_pattern": null
+        },
+        {
+          "id": "e4675158-a34b-4467-8138-91514c14403c",
+          "metadata": {
+            "skills": [],
+            "timeout": false,
+            "sequence": [
+              9
+            ],
+            "strategy": null,
+            "answeredAt": "2026-10-12T18:39:10.461Z",
+            "attemptType": "PRIMARY",
+            "responseType": "numeric",
+            "supportLevel": "unknown",
+            "v04PayloadHash": "8c4b4e005e98c8f050d04ddf572dd9c5e216bd7aa419085b4319c7f65bc6ff78",
+            "answerStartedAt": "2026-10-12T18:39:10.412Z",
+            "responsePayload": {
+              "value": 9
+            },
+            "timingProvenance": "CLIENT_REPORTED",
+            "questionAuthority": "v04_qa_server_plan",
+            "presentationEndedAt": null,
+            "presentationStartedAt": null
+          },
+          "engine_id": null,
+          "hand_mode": null,
+          "academy_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "created_at": "2026-10-12T18:39:08.294206+00:00",
+          "error_type": "OK",
+          "is_correct": true,
+          "ones_digit": null,
+          "press_mode": null,
+          "session_id": "40000004-0000-4000-8000-000000000091",
+          "student_id": "20000000-0000-4000-8000-000000000001",
+          "tens_digit": null,
+          "module_code": "finger_read",
+          "question_id": "v04:40000004-0000-4000-8000-000000000091:6",
+          "error_detail": "Doğru cevap",
+          "learning_mode": "guided_practice",
+          "pattern_valid": true,
+          "response_type": "numeric",
+          "target_number": 9,
+          "attempt_number": 1,
+          "engine_version": null,
+          "question_index": 6,
+          "difficulty_level": 1,
+          "response_payload": {
+            "value": 9
+          },
+          "client_attempt_id": "c19980e5-0bba-4758-847f-47b31f16384a",
+          "response_latency_ms": 50,
+          "training_session_id": "40000004-0000-4000-8000-000000000091",
+          "stimulus_duration_ms": 50,
+          "student_numeric_answer": 9,
+          "total_response_time_ms": 50,
+          "screen_left_target_pattern": null,
+          "screen_left_student_pattern": null,
+          "screen_right_target_pattern": null,
+          "screen_right_student_pattern": null
+        },
+        {
+          "id": "6a2cfb78-5a89-4426-87a1-bd4658c45018",
+          "metadata": {
+            "skills": [],
+            "timeout": false,
+            "sequence": [
+              6
+            ],
+            "strategy": null,
+            "answeredAt": "2026-10-12T18:39:13.219Z",
+            "attemptType": "PRIMARY",
+            "responseType": "numeric",
+            "supportLevel": "unknown",
+            "v04PayloadHash": "34d6367bca9a83da01f0a81158b4420c5bc11543f0986f16f595b3bcea484994",
+            "answerStartedAt": "2026-10-12T18:39:13.177Z",
+            "responsePayload": {
+              "value": 6
+            },
+            "timingProvenance": "CLIENT_REPORTED",
+            "questionAuthority": "v04_qa_server_plan",
+            "presentationEndedAt": null,
+            "presentationStartedAt": null
+          },
+          "engine_id": null,
+          "hand_mode": null,
+          "academy_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "created_at": "2026-10-12T18:39:11.029905+00:00",
+          "error_type": "OK",
+          "is_correct": true,
+          "ones_digit": null,
+          "press_mode": null,
+          "session_id": "40000004-0000-4000-8000-000000000091",
+          "student_id": "20000000-0000-4000-8000-000000000001",
+          "tens_digit": null,
+          "module_code": "finger_read",
+          "question_id": "v04:40000004-0000-4000-8000-000000000091:7",
+          "error_detail": "Doğru cevap",
+          "learning_mode": "guided_practice",
+          "pattern_valid": true,
+          "response_type": "numeric",
+          "target_number": 6,
+          "attempt_number": 1,
+          "engine_version": null,
+          "question_index": 7,
+          "difficulty_level": 1,
+          "response_payload": {
+            "value": 6
+          },
+          "client_attempt_id": "52a90c0b-6591-455b-ad8e-a5df661ccdce",
+          "response_latency_ms": 43,
+          "training_session_id": "40000004-0000-4000-8000-000000000091",
+          "stimulus_duration_ms": 43,
+          "student_numeric_answer": 6,
+          "total_response_time_ms": 43,
+          "screen_left_target_pattern": null,
+          "screen_left_student_pattern": null,
+          "screen_right_target_pattern": null,
+          "screen_right_student_pattern": null
+        },
+        {
+          "id": "955a7598-b5f9-4ed5-ba1f-c06ad27d3697",
+          "metadata": {
+            "skills": [],
+            "timeout": false,
+            "sequence": [
+              2
+            ],
+            "strategy": null,
+            "answeredAt": "2026-10-12T18:39:15.836Z",
+            "attemptType": "PRIMARY",
+            "responseType": "numeric",
+            "supportLevel": "unknown",
+            "v04PayloadHash": "b8ea904bedc444d8166fad4f565c25821c048261dbb936c1084944baee190c6e",
+            "answerStartedAt": "2026-10-12T18:39:15.792Z",
+            "responsePayload": {
+              "value": 2
+            },
+            "timingProvenance": "CLIENT_REPORTED",
+            "questionAuthority": "v04_qa_server_plan",
+            "presentationEndedAt": null,
+            "presentationStartedAt": null
+          },
+          "engine_id": null,
+          "hand_mode": null,
+          "academy_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "created_at": "2026-10-12T18:39:13.646172+00:00",
+          "error_type": "OK",
+          "is_correct": true,
+          "ones_digit": null,
+          "press_mode": null,
+          "session_id": "40000004-0000-4000-8000-000000000091",
+          "student_id": "20000000-0000-4000-8000-000000000001",
+          "tens_digit": null,
+          "module_code": "finger_read",
+          "question_id": "v04:40000004-0000-4000-8000-000000000091:8",
+          "error_detail": "Doğru cevap",
+          "learning_mode": "guided_practice",
+          "pattern_valid": true,
+          "response_type": "numeric",
+          "target_number": 2,
+          "attempt_number": 1,
+          "engine_version": null,
+          "question_index": 8,
+          "difficulty_level": 1,
+          "response_payload": {
+            "value": 2
+          },
+          "client_attempt_id": "e8a7977d-e134-460a-87ae-be0affd5bd1e",
+          "response_latency_ms": 44,
+          "training_session_id": "40000004-0000-4000-8000-000000000091",
+          "stimulus_duration_ms": 44,
+          "student_numeric_answer": 2,
+          "total_response_time_ms": 44,
+          "screen_left_target_pattern": null,
+          "screen_left_student_pattern": null,
+          "screen_right_target_pattern": null,
+          "screen_right_student_pattern": null
+        },
+        {
+          "id": "3dbbbde1-996c-46c4-b095-49bba3805fed",
+          "metadata": {
+            "skills": [],
+            "timeout": false,
+            "sequence": [
+              6
+            ],
+            "strategy": null,
+            "answeredAt": "2026-10-12T18:39:18.391Z",
+            "attemptType": "PRIMARY",
+            "responseType": "numeric",
+            "supportLevel": "unknown",
+            "v04PayloadHash": "ff760ed4b6588148abbbd9cce9b155c69dbbb2ca461c32ee1bee8bf5f0483d4f",
+            "answerStartedAt": "2026-10-12T18:39:18.344Z",
+            "responsePayload": {
+              "value": 6
+            },
+            "timingProvenance": "CLIENT_REPORTED",
+            "questionAuthority": "v04_qa_server_plan",
+            "presentationEndedAt": null,
+            "presentationStartedAt": null
+          },
+          "engine_id": null,
+          "hand_mode": null,
+          "academy_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "created_at": "2026-10-12T18:39:16.170137+00:00",
+          "error_type": "OK",
+          "is_correct": true,
+          "ones_digit": null,
+          "press_mode": null,
+          "session_id": "40000004-0000-4000-8000-000000000091",
+          "student_id": "20000000-0000-4000-8000-000000000001",
+          "tens_digit": null,
+          "module_code": "finger_read",
+          "question_id": "v04:40000004-0000-4000-8000-000000000091:9",
+          "error_detail": "Doğru cevap",
+          "learning_mode": "guided_practice",
+          "pattern_valid": true,
+          "response_type": "numeric",
+          "target_number": 6,
+          "attempt_number": 1,
+          "engine_version": null,
+          "question_index": 9,
+          "difficulty_level": 1,
+          "response_payload": {
+            "value": 6
+          },
+          "client_attempt_id": "42d290bb-cfad-4c1a-9eae-2df52a2a3f01",
+          "response_latency_ms": 47,
+          "training_session_id": "40000004-0000-4000-8000-000000000091",
+          "stimulus_duration_ms": 47,
+          "student_numeric_answer": 6,
+          "total_response_time_ms": 47,
+          "screen_left_target_pattern": null,
+          "screen_left_student_pattern": null,
+          "screen_right_target_pattern": null,
+          "screen_right_student_pattern": null
+        },
+        {
+          "id": "3e19d328-72af-4729-9945-36aa88e0a19e",
+          "metadata": {
+            "skills": [],
+            "timeout": false,
+            "sequence": [
+              3
+            ],
+            "strategy": null,
+            "answeredAt": "2026-10-12T18:39:21.025Z",
+            "attemptType": "PRIMARY",
+            "responseType": "numeric",
+            "supportLevel": "unknown",
+            "v04PayloadHash": "dbac806c05c052bed9822c7df19ba1e67c4c7db176111a10b9463e4f369013ef",
+            "answerStartedAt": "2026-10-12T18:39:20.980Z",
+            "responsePayload": {
+              "value": 3
+            },
+            "timingProvenance": "CLIENT_REPORTED",
+            "questionAuthority": "v04_qa_server_plan",
+            "presentationEndedAt": null,
+            "presentationStartedAt": null
+          },
+          "engine_id": null,
+          "hand_mode": null,
+          "academy_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "created_at": "2026-10-12T18:39:18.820863+00:00",
+          "error_type": "OK",
+          "is_correct": true,
+          "ones_digit": null,
+          "press_mode": null,
+          "session_id": "40000004-0000-4000-8000-000000000091",
+          "student_id": "20000000-0000-4000-8000-000000000001",
+          "tens_digit": null,
+          "module_code": "finger_read",
+          "question_id": "v04:40000004-0000-4000-8000-000000000091:10",
+          "error_detail": "Doğru cevap",
+          "learning_mode": "guided_practice",
+          "pattern_valid": true,
+          "response_type": "numeric",
+          "target_number": 3,
+          "attempt_number": 1,
+          "engine_version": null,
+          "question_index": 10,
+          "difficulty_level": 1,
+          "response_payload": {
+            "value": 3
+          },
+          "client_attempt_id": "ed1eb0c3-ffa8-4509-a0f8-7a30a95bb7ea",
+          "response_latency_ms": 45,
+          "training_session_id": "40000004-0000-4000-8000-000000000091",
+          "stimulus_duration_ms": 45,
+          "student_numeric_answer": 3,
+          "total_response_time_ms": 45,
+          "screen_left_target_pattern": null,
+          "screen_left_student_pattern": null,
+          "screen_right_target_pattern": null,
+          "screen_right_student_pattern": null
+        }
+      ],
+      "evidence": {
+        "id": "b95c3b27-9e10-4a64-9bf2-6e4174fbedc1",
+        "payload": {
+          "total": 10,
+          "wrong": 2,
+          "correct": 8,
+          "accuracy": 80
+        },
+        "engine_id": null,
+        "academy_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+        "created_at": "2026-10-12T18:39:21.038941+00:00",
+        "skill_code": null,
+        "student_id": "20000000-0000-4000-8000-000000000001",
+        "observed_at": "2026-10-12T18:39:21.039595+00:00",
+        "evidence_type": "activity_result",
+        "support_level": "unknown",
+        "engine_version": null,
+        "learning_record_id": "f43257d1-6609-4f6f-99a6-bc5025879240",
+        "verification_status": "server_verified",
+        "verification_authority": "v04_qa_server_answer_evaluator:v1"
+      }
+    }
+  }
+]

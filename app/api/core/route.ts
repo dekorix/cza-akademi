@@ -1,6 +1,7 @@
 import { isPackageAccessCode } from '@/lib/package-catalog';
 import { neon } from '@neondatabase/serverless';
 import { isolatedQaStudentLogin } from '@/lib/qa-student-read';
+import { isolatedQaAssignedAction } from '@/lib/qa-assigned-work';
 import { allowRequest, rateLimited } from '@/lib/request-guard';
 import {
   reportGuardStage,
@@ -185,6 +186,9 @@ export async function POST(request: Request) {
       return json({ ok: false, error: code }, 503);
     }
   }
+
+  const qaWork = await isolatedQaAssignedAction(request, input);
+  if (qaWork) return qaWork;
 
   if (action === 'module_record') {
     if (!process.env.DATABASE_URL) {

@@ -1,4 +1,54 @@
-# CZA CANLI DURUM — V03 çalışma checkpoint'i
+# V04 son canlı kanıt checkpoint'i — 2026-10-12
+
+Aktif Issue90/DRAFT PR91. Resmi koşullu onay6124819469 ile tek yeni fixture40000004-0000-4000-8000-000000000091 tamamlandı. Gerçek Chrome38/38: aktif ilk-soru200/409 yarış, exact replay200/changed answer409, native guided desktop/mobile10/8 sonuç. Yeni recordf43257d1-6609-4f6f-99a6-bc5025879240 / evidenceb95c3b27-9e10-4a64-9bf2-6e4174fbedc1. Eski completed10/8 ve bütün eski çalışma satırları hash eşit; 52 eski fonksiyon ve yetki matrisi aynı. Toplam2 students/1 recipe/10 sessions/20 attempts/7 records/7 evidence.
+
+Build/deployed source8e2d40b/treef8ebce2, CI38280610931/38280610927 SUCCESS. Test Worker7c7a3d4b-a503-425e-8bc5-245f174ca502; cleanup/current Worker d8c2ba48-f686-4f8e-912e-8709f3522cbd, fixture flag OFF, yeni fonksiyon minimum EXECUTE REVOKE/PUBLIC=false. Tamamlanmış yeni/eskilerde UPDATE/DELETE/reset yok. Ana staging/main/production ve PR73/87/89 korunur. docs/CZA_V04_FINAL_RUNTIME_20261012.md.
+
+V04_ACCEPTED=NO; nihai kabul Baş Mimar'a ait. WORKER_MODULE_BYTE_READBACK=UNVERIFIED production şartı açık.
+GENEL PROJE İLERLEME %=ÖLÇÜLMEDİ
+MEVCUT FAZ İLERLEME %=3/7 QA kabul (%42,9)
+TAMAMLANAN=tek fixture gerçek Chrome yarış/native sonuç/Neon kanıtı ve cleanup
+KALAN=Baş Mimar nihai kabulü
+KAPSAM SAPMASI=YOK
+SIRADAKİ TEK ADIM=Baş Mimar DRAFT PR91 son canlı kanıt paketini incelesin
+
+---
+
+# Tarihsel checkpoint'ler — aşağıdaki aktif/onay/BLOCKED bilgileri eskidir
+
+# V04 son test uygulama checkpoint'i — 2026-10-12
+
+Resmi karar6124819469: V04_FINAL_FIXTURE_APPROVED=YES_CONDITIONAL, V04_ACCEPTED=NO. Aktif Issue90/DRAFT PR91; onaylı source1904793/tree2e9ffbd. Tek sabit yeni QA oturumu40000004-0000-4000-8000-000000000091; mevcut öğrenci/recipe ve eski10/8 completed değişmez. Onaylı dar fonksiyon tek transaction uygulandı; PUBLIC=false/minrole=true. Yalnız iki dosyalık geçici QA yönlendirmesi ve testler hazır, exact-source CI/build/deploy sonrası gerçek Chrome aktif yarış/native guided sonuç koşusu yapılacak. Ana staging/main/production yok. docs/CZA_V04_FINAL_RUNTIME_20261012.md.
+
+GENEL PROJE İLERLEME %=ÖLÇÜLMEDİ
+MEVCUT FAZ İLERLEME %=3/7 QA (%42,9), V04_ACCEPTED=NO
+TAMAMLANAN=onay/hedef/before/atomik SQL ve iki dosyalık dar QA yönlendirmesi
+KALAN=izole deploy/tek fixture Chrome/cleanup BLOCKED: Desktop Commander yetkili Windows offline; cloud QA HTTP CONNECT403. Yeni fixture satırı0, Worker deploy yapılmadı. Source39cec4e V03/V04 CI SUCCESS; 45 tablo/52 eski fonksiyon hash eşit.
+KAPSAM SAPMASI=YOK
+SIRADAKİ TEK ADIM=mevcut Windows QA Desktop Commander bağlantısını yeniden aç, onay kapsamında source39cec4e exact build/deploy ve tek fixture testine devam et
+
+---
+
+# Tarihsel checkpoint'ler — aşağıdaki onay/kabul/aktif bilgiler eskidir
+
+# CZA CANLI DURUM — V04 çalışma checkpoint'i
+
+2026-10-11 TRT. **Güncel aktif zincir: Issue #81 → resmi Issue #90 → feat/v04-assigned-work-evidence → [DRAFT PR #91](https://github.com/dekorix/cza-akademi/pull/91).** V01–V03 PASS_SCOPED, 3/7 (%42,9). V03 mimari kabul https://github.com/dekorix/cza-akademi/pull/89#issuecomment-6109292240 . V04_ACCEPTED=NO; nihai kabul Baş Mimar'a ait.
+
+Korunan PR73/87/89 OPEN/DRAFT. V04 tabanı PR89 HEAD5e39d3f1810f1c0a8228c651c6da5563b3a6a212/tree6a52137285cf9c03f700538b67a3256f1944e605. Main başlangıç snapshot6a2d4e197c8b39d01b8c04e30fee32230e68a3fd; PR91 açılmasıyla 10 açık PR. Mevcut V03 UI/tek öğrenci/profil ve bütün eski veriler korunur.
+
+Yalnız mevcut QA project patient-firefly-51111834/branch br-withered-queen-b15ltb40/db cza_t5_synthetic/Worker cza-v01-isolated-synthetic-20261010. Tek mevcut student20000000-0000-4000-8000-000000000001 ve finger_read recipe361ee0f6-26e2-4484-b9f9-7a88d14fb9f4; yeni öğrenci/atama/profil yok. Somut canlı engel: minimum role için bind_k3c/record_attempt/complete_work/student_record_learning EXECUTE=false. V03 SQL onayı V04'e taşınmaz; V04 SQL/privilege öncesi tam tasarım+etki+rollback ve ayrı Baş Mimar onayı zorunlu. Baş Mimar 6110936791 kararıyla dar SQL onaylandı ve tek transaction uygulandı. İzole Worker source f1b6ad4 / tree8d3267f, version a2469a65-c2df-43fe-a25f-2669d721849c. Gerçek tek çalışma tamamlandı: 10 cevap, 8 doğru; eski çalışma/ledger satırları hash eşit. Son karar6112270644 kapsamındaki gerçek readonly desktop/mobile araştırması sonucu Studio restore yolu yok; 11 güvenli kontrol PASS, farklı cevap aynıUUID409, eski oturum404, closed-question iki tab409. Altı çalışma tablosu hash eşit; yeni kayıt yok. Native sonuç ve aktif yarış için review-only fixture paketi hazır. Ayrıntı docs/CZA_V04_QA_RUNTIME_20261011.md.
+
+GENEL PROJE İLERLEME %=ÖLÇÜLMEDİ
+MEVCUT FAZ İLERLEME %=3/7 QA scoped (%42,9); V04 açık
+TAMAMLANAN=dar SQL tek transaction, izole deploy, gerçek Chrome login/10 cevap/reload/mobile/retry/completion/profile, eski 8 session ve5 record/evidence hash eşitliği, kaynak CI PASS
+KALAN=Studio sonuç ekranı ve aktif-soru yarış kanıtı; salt-okunur yol gerçek Chrome ile BLOCKED, ayrı tek fixture planı onay bekliyor. docs/CZA_V04_FINAL_FIXTURE_REVIEW_20261011.md
+KAPSAM SAPMASI=YOK
+SIRADAKİ TEK ADIM=Baş Mimar yeni ayrı tek test oturumu/SQL/temporary QA routing/rollback paketini onaylasın; uygulanmadı
+
+---
+
+# Tarihsel V03 checkpoint'i — aşağıdaki eski aktif/kabul alanları güncel değildir
 
 2026-10-11 TRT. Bu branch'in koordinasyon kaydıdır; main merge veya ürün kabulü değildir.
 

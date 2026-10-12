@@ -1,0 +1,71 @@
+{
+  "algorithm": "md5(coalesce(string_agg(to_jsonb(row)::text, newline ORDER BY row::text),''))",
+  "publicTables": 45,
+  "changedFullTables": [
+    {
+      "table_name": "api_rate_limit_windows",
+      "row_count": 6,
+      "rows_fingerprint": "ee668a4ed6e45b38448e3c9b5a7842de"
+    },
+    {
+      "table_name": "learning_evidence",
+      "row_count": 7,
+      "rows_fingerprint": "3206549c5305be3d63984dce9b158593"
+    },
+    {
+      "table_name": "learning_records",
+      "row_count": 7,
+      "rows_fingerprint": "cd7fdd93dd880376bb1cab74588c2e88"
+    },
+    {
+      "table_name": "question_attempts",
+      "row_count": 20,
+      "rows_fingerprint": "c1e3f344295d3903c8c35914b603d7b5"
+    },
+    {
+      "table_name": "student_sessions",
+      "row_count": 77,
+      "rows_fingerprint": "5d3c516bcfb860fa5ecd41ea33acadb1"
+    },
+    {
+      "table_name": "training_sessions",
+      "row_count": 10,
+      "rows_fingerprint": "4f1b91e34b744a9071575daff37979ea"
+    },
+    {
+      "table_name": "users",
+      "row_count": 7,
+      "rows_fingerprint": "e0a19a63e946c8f3dd14c7754ae8f454"
+    }
+  ],
+  "oldHashesEqual": 42,
+  "changedOldTables": [
+    {
+      "table_name": "api_rate_limit_windows",
+      "row_count": 6,
+      "rows_fingerprint": "ee668a4ed6e45b38448e3c9b5a7842de"
+    },
+    {
+      "table_name": "student_sessions",
+      "row_count": 77,
+      "rows_fingerprint": "5d3c516bcfb860fa5ecd41ea33acadb1"
+    },
+    {
+      "table_name": "users",
+      "row_count": 7,
+      "rows_fingerprint": "e0a19a63e946c8f3dd14c7754ae8f454"
+    }
+  ],
+  "workExclusions": {
+    "training_sessions": "40000004-0000-4000-8000-000000000091",
+    "question_attempts": "training_session_id=40000004-0000-4000-8000-000000000091",
+    "learning_records": "f43257d1-6609-4f6f-99a6-bc5025879240",
+    "learning_evidence": "b95c3b27-9e10-4a64-9bf2-6e4174fbedc1"
+  },
+  "expectedAuthDeltas": [
+    "api_rate_limit_windows",
+    "student_sessions",
+    "users"
+  ],
+  "oldWorkRowsPreserved": true
+}
