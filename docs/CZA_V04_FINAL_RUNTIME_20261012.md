@@ -9,3 +9,18 @@ Only lib/qa-assigned-work.ts and app/api/core/assignments/route.ts product files
 Local changed-gate regressions18/18 and TypeScript/lint PASS. Final live Chrome/API/Neon still pending; one fixed fixture ID40000004-0000-4000-8000-000000000091 only, no reset/new fixture if failure.
 Module byte readback remains UNVERIFIED. Main/staging/production, PR73/87/89 unchanged.
 
+
+## Source CI and concrete environment blockers
+
+Product/test source39cec4ee874eeee7d3cdd6d823f0d0b4a50444eb / tree028ad51b631698795c1262014d691975b47a6b40. V03 CI38280073653 SUCCESS; V04 CI38280073845 SUCCESS (96 tests, TypeScript/lint/local MOCK Chrome/full build). These do not establish real QA race or native result PASS.
+Authorized Windows Desktop Commander device df0be264-bef8-4c4e-97bb-8c933b8f0017 reports OFFLINE, last seen21h ago. Worktree/build/deploy command never started. Existing private student fixture and Wrangler authorized connection are on that device; not fetched/probed/extracted. Asked user only to reconnect the existing device, not for secrets or repeat authorization.
+Direct cloud curl to the QA HTTPS origin failed CONNECT proxy403 (HTTP000); no TLS handshake or live Worker readback can be claimed. No attempt to bypass proxy policy.
+Actual final fixture Chrome race/native guided result NOT_RUN. No fixture row or new answer/ledger/evidence was created. No second fixture/reset. Current Worker was NOT deployed or modified in this continuation; last independently observed versiona2469a65-c2df-43fe-a25f-2669d721849c at sourcef1b6ad4/tree8d3267f; fresh deployment metadata remains UNVERIFIED until reconnect.
+All45 full-table fingerprints equal before/after installation; all52 old function hashes/ACL equal. Role/table/RLS/policy fingerprints equal. Only the approved new function exists with minimum EXECUTE=true/PUBLIC=false. New approved function kept for authorized continuation; quarantine not needed because no test started/no partial fixture exists.
+BLOCKER: existing Windows QA connection offline (normal private student login + Wrangler + real Chrome); cloud proxy403 separately blocks direct cloud QA HTTP. No new security HIGH demonstrated.
+GENEL PROJE İLERLEME %=ÖLÇÜLMEDİ
+MEVCUT FAZ İLERLEME %=3/7 QA (%42,9), V04_ACCEPTED=NO
+TAMAMLANAN=approved atomic SQL, two-file QA routing,96 CI tests/build, before/after unchanged52 old functions/45 tables/security matrix
+KALAN=isolated Worker deploy + single fixture real race/native result/negative readback/cleanup; no new authorization needed within6124819469 scope
+KAPSAM SAPMASI=YOK
+SIRADAKİ TEK ADIM=existing authorized Desktop Commander Windows QA device reconnect, then exact approved source build/deploy/test.

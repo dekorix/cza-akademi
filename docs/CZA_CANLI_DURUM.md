@@ -5,9 +5,9 @@ Resmi karar6124819469: V04_FINAL_FIXTURE_APPROVED=YES_CONDITIONAL, V04_ACCEPTED=
 GENEL PROJE İLERLEME %=ÖLÇÜLMEDİ
 MEVCUT FAZ İLERLEME %=3/7 QA (%42,9), V04_ACCEPTED=NO
 TAMAMLANAN=onay/hedef/before/atomik SQL ve iki dosyalık dar QA yönlendirmesi
-KALAN=exact-source CI, izole deploy, tek fixture gerçek Chrome/Neon ve cleanup
+KALAN=izole deploy/tek fixture Chrome/cleanup BLOCKED: Desktop Commander yetkili Windows offline; cloud QA HTTP CONNECT403. Yeni fixture satırı0, Worker deploy yapılmadı. Source39cec4e V03/V04 CI SUCCESS; 45 tablo/52 eski fonksiyon hash eşit.
 KAPSAM SAPMASI=YOK
-SIRADAKİ TEK ADIM=onaylı iki dosyalık kaynak CI/build ve izole deploy
+SIRADAKİ TEK ADIM=mevcut Windows QA Desktop Commander bağlantısını yeniden aç, onay kapsamında source39cec4e exact build/deploy ve tek fixture testine devam et
 
 ---
 
