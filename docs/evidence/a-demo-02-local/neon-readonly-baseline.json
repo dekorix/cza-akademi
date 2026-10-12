@@ -1,0 +1,103 @@
+{
+  "tables": [
+    {
+      "table_name": "students",
+      "n": "2",
+      "fingerprint": "3aa66f86fe61d1d71950c4a9461dcc5a"
+    },
+    {
+      "table_name": "training_recipes",
+      "n": "1",
+      "fingerprint": "8ac11d8f7c434242a12204a47e0f7dac"
+    },
+    {
+      "table_name": "training_sessions",
+      "n": "10",
+      "fingerprint": "4f1b91e34b744a9071575daff37979ea"
+    },
+    {
+      "table_name": "question_attempts",
+      "n": "20",
+      "fingerprint": "c1e3f344295d3903c8c35914b603d7b5"
+    },
+    {
+      "table_name": "learning_records",
+      "n": "7",
+      "fingerprint": "cd7fdd93dd880376bb1cab74588c2e88"
+    },
+    {
+      "table_name": "learning_evidence",
+      "n": "7",
+      "fingerprint": "3206549c5305be3d63984dce9b158593"
+    }
+  ],
+  "ownerTimeline": [
+    {
+      "event_type": "ASSIGNMENT_AVAILABLE",
+      "n": 1
+    },
+    {
+      "event_type": "ERROR_OBSERVED",
+      "n": 4
+    },
+    {
+      "event_type": "LEARNING_RESULT",
+      "n": 7
+    },
+    {
+      "event_type": "SKILL_EVIDENCE",
+      "n": 7
+    },
+    {
+      "event_type": "WORK_COMPLETED",
+      "n": 7
+    },
+    {
+      "event_type": "WORK_RESUMED",
+      "n": 2
+    },
+    {
+      "event_type": "WORK_STARTED",
+      "n": 1
+    }
+  ],
+  "oldFunctions": {
+    "count": 52,
+    "matching": 52,
+    "mismatches": [],
+    "extra": [
+      {
+        "signature": "cza_v04_qa_final_fixture(text,text,uuid,uuid,jsonb)",
+        "owner": "cza_t5_test_owner",
+        "acl": "{cza_t5_test_owner=X/cza_t5_test_owner}",
+        "definition_hash": "6b76e93d9e6862e3334f1149aac92c9d"
+      }
+    ]
+  },
+  "observedRuntime": {
+    "source": "A-DEMO-01 real normal session",
+    "history": {
+      "status": 200,
+      "events": 0
+    },
+    "profile": {
+      "status": 200,
+      "recentRecords": 7
+    }
+  },
+  "rls": {
+    "runtimeRole": "cza_v01_app_runtime_min",
+    "authenticatedMember": false,
+    "select": true,
+    "tablesWithRls": [
+      "training_recipes",
+      "training_sessions",
+      "question_attempts"
+    ],
+    "selectPolicyRole": "authenticated",
+    "liveSetRole": "DENIED_NO_ROLE_CHANGE",
+    "localRlsReproduction": "PASS"
+  },
+  "sqlApplied": false,
+  "workerDeployed": false
+}
