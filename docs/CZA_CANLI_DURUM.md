@@ -1,3 +1,18 @@
+# V04 son test uygulama checkpoint'i — 2026-10-12
+
+Resmi karar6124819469: V04_FINAL_FIXTURE_APPROVED=YES_CONDITIONAL, V04_ACCEPTED=NO. Aktif Issue90/DRAFT PR91; onaylı source1904793/tree2e9ffbd. Tek sabit yeni QA oturumu40000004-0000-4000-8000-000000000091; mevcut öğrenci/recipe ve eski10/8 completed değişmez. Onaylı dar fonksiyon tek transaction uygulandı; PUBLIC=false/minrole=true. Yalnız iki dosyalık geçici QA yönlendirmesi ve testler hazır, exact-source CI/build/deploy sonrası gerçek Chrome aktif yarış/native guided sonuç koşusu yapılacak. Ana staging/main/production yok. docs/CZA_V04_FINAL_RUNTIME_20261012.md.
+
+GENEL PROJE İLERLEME %=ÖLÇÜLMEDİ
+MEVCUT FAZ İLERLEME %=3/7 QA (%42,9), V04_ACCEPTED=NO
+TAMAMLANAN=onay/hedef/before/atomik SQL ve iki dosyalık dar QA yönlendirmesi
+KALAN=exact-source CI, izole deploy, tek fixture gerçek Chrome/Neon ve cleanup
+KAPSAM SAPMASI=YOK
+SIRADAKİ TEK ADIM=onaylı iki dosyalık kaynak CI/build ve izole deploy
+
+---
+
+# Tarihsel checkpoint'ler — aşağıdaki onay/kabul/aktif bilgiler eskidir
+
 # CZA CANLI DURUM — V04 çalışma checkpoint'i
 
 2026-10-11 TRT. **Güncel aktif zincir: Issue #81 → resmi Issue #90 → feat/v04-assigned-work-evidence → [DRAFT PR #91](https://github.com/dekorix/cza-akademi/pull/91).** V01–V03 PASS_SCOPED, 3/7 (%42,9). V03 mimari kabul https://github.com/dekorix/cza-akademi/pull/89#issuecomment-6109292240 . V04_ACCEPTED=NO; nihai kabul Baş Mimar'a ait.

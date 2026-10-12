@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 import { neon } from '@neondatabase/serverless';
-import { isolatedQaEnabled } from '@/lib/isolated-qa-auth';
+import { isolatedQaEnabled, QA_EDUCATOR_ORIGIN } from '@/lib/isolated-qa-auth';
 import { assertQaStudentTarget, studentReadSql } from '@/lib/qa-student-read';
 import {
   authenticatedStudent,
@@ -10,6 +10,53 @@ import {
 import { allowRequest, rateLimited } from '@/lib/request-guard';
 
 const recipe = '361ee0f6-26e2-4484-b9f9-7a88d14fb9f4';
+const finalFixture = '40000004-0000-4000-8000-000000000091';
+
+type FixtureStudent = { student_id: string; academy_id: string };
+
+async function finalFixtureEnabled(request: Request, student: FixtureStudent) {
+  const flag = process.env.CZA_V04_QA_FINAL_FIXTURE;
+  if (!flag || flag === 'OFF') return false;
+  if (
+    flag !== finalFixture ||
+    !isolatedQaEnabled() ||
+    new URL(request.url).origin !== QA_EDUCATOR_ORIGIN ||
+    student.student_id !== '20000000-0000-4000-8000-000000000001' ||
+    student.academy_id !== 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
+  )
+    throw Object.assign(new Error('v04_qa_fixture_target_rejected'), {
+      code: '42501',
+    });
+  await assertQaStudentTarget(request);
+  return true;
+}
+
+/** Temporary, separately approved QA launch; never reopens the accepted session. */
+export async function isolatedQaFinalFixtureLaunch(
+  request: Request,
+  student: FixtureStudent,
+  recipeId: string,
+) {
+  if (!(await finalFixtureEnabled(request, student))) return false;
+  if (recipeId !== recipe)
+    throw Object.assign(new Error('v04_qa_fixture_target_rejected'), {
+      code: '42501',
+    });
+  const hash = createHash('sha256')
+    .update(readRequestCookie(request, STUDENT_COOKIE))
+    .digest('hex');
+  const [row] = await neon(process.env.DATABASE_URL!)`
+    SELECT public.cza_v04_qa_final_fixture(${hash}::text,'launch'::text,
+      ${recipe}::uuid,NULL::uuid,'{}'::jsonb) AS result`;
+  if (
+    row?.result?.fixtureSessionId !== finalFixture ||
+    row?.result?.moduleCode !== 'finger_read'
+  )
+    throw Object.assign(new Error('v04_qa_fixture_target_rejected'), {
+      code: '42501',
+    });
+  return true;
+}
 
 /** QA-only bounded entry into existing assigned work/ledger functions. */
 export async function isolatedQaAssignedAction(
@@ -27,6 +74,7 @@ export async function isolatedQaAssignedAction(
     await assertQaStudentTarget(request);
     const student = await authenticatedStudent(request);
     if (!student) return reply({ ok: false, error: 'session_required' }, 401);
+    const useFinalFixture = await finalFixtureEnabled(request, student);
     if (input.action === 'me') {
       const sql = await studentReadSql(request);
       // Reuse the approved V03 profile projection rather than a new generic read.
@@ -72,7 +120,12 @@ export async function isolatedQaAssignedAction(
       .digest('hex');
     const payload = input.action === 'attempt' ? input.payload : input;
     const session = input.action === 'start' ? null : input.sessionId;
-    const [row] = await neon(process.env.DATABASE_URL!)`
+    const sql = neon(process.env.DATABASE_URL!);
+    const [row] = useFinalFixture
+      ? await sql`
+      SELECT public.cza_v04_qa_final_fixture(${hash}::text,${input.action}::text,
+        ${recipe}::uuid,${session}::uuid,${JSON.stringify(payload)}::jsonb) AS result`
+      : await sql`
       SELECT public.cza_v04_qa_assigned_work(${hash}::text,${input.action}::text,
         ${recipe}::uuid,${session}::uuid,${JSON.stringify(payload)}::jsonb) AS result`;
     if (!row?.result || typeof row.result !== 'object')
@@ -88,6 +141,7 @@ export async function isolatedQaAssignedAction(
     const message = error instanceof Error ? error.message : '';
     const known: Record<string, [string, number]> = {
       v04_qa_session_rejected: ['session_required', 401],
+      v04_qa_fixture_target_rejected: ['work_assignment_closed', 403],
       CZA_WORK_ASSIGNMENT_NOT_FOUND: ['assignment_not_found', 404],
       CZA_WORK_SESSION_NOT_FOUND: ['work_not_found', 404],
       CZA_WORK_SESSION_CLOSED: ['work_session_closed', 409],

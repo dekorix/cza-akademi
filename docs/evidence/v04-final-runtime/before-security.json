@@ -1,0 +1,14 @@
+[
+  {
+    "kind": "tables",
+    "fingerprint": "f4945cdb23adee2fcf257a09f6d5e202"
+  },
+  {
+    "kind": "roles",
+    "fingerprint": "331445c715a4cbeda00d65b1aa466717"
+  },
+  {
+    "kind": "policies",
+    "fingerprint": "7411d79293759fd20dcca4ddd9f76251"
+  }
+]

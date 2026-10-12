@@ -116,7 +116,14 @@ function adapter(options = {}) {
     queries.push({ sql: strings.join('?'), values });
     if (options.failure) throw new Error(options.failure);
     return [
-      { result: { sessionId: session, status: 'completed', attemptCount: 10 } },
+      {
+        result: strings.join('').includes("'launch'")
+          ? {
+              fixtureSessionId: '40000004-0000-4000-8000-000000000091',
+              moduleCode: 'finger_read',
+            }
+          : { sessionId: session, status: 'completed', attemptCount: 10 },
+      },
     ];
   };
   const readRequestCookie = (r, n) => {
@@ -125,41 +132,61 @@ function adapter(options = {}) {
     );
     return cookies[n] || '';
   };
-  const subject = load('lib/qa-assigned-work.ts', {
-    'node:crypto': crypto,
-    '@neondatabase/serverless': { neon: () => sql },
-    '@/lib/isolated-qa-auth': { isolatedQaEnabled: () => options.qa !== false },
-    '@/lib/qa-student-read': {
-      assertQaStudentTarget: async () => {
-        if (options.target === false) throw new Error('target_rejected');
+  const subject = load(
+    'lib/qa-assigned-work.ts',
+    {
+      'node:crypto': crypto,
+      '@neondatabase/serverless': { neon: () => sql },
+      '@/lib/isolated-qa-auth': {
+        isolatedQaEnabled: () => options.qa !== false,
+        QA_EDUCATOR_ORIGIN:
+          'https://cza-v01-isolated-synthetic-20261010.cza-staging-habip.workers.dev',
       },
-      studentReadSql: async () => async () => [
-        { id: 'canonical-student', username: 'qa', display_name: 'Local QA' },
-      ],
+      '@/lib/qa-student-read': {
+        assertQaStudentTarget: async () => {
+          if (options.target === false) throw new Error('target_rejected');
+        },
+        studentReadSql: async () => async () => [
+          { id: 'canonical-student', username: 'qa', display_name: 'Local QA' },
+        ],
+      },
+      '@/lib/student-session': {
+        authenticatedStudent: async () =>
+          options.auth === false
+            ? null
+            : options.student || {
+                student_id: 'canonical-student',
+                academy_id: 'canonical-academy',
+                student_user_id: 'canonical-user',
+              },
+        readRequestCookie,
+        STUDENT_COOKIE: 'cza_student_session',
+      },
+      '@/lib/request-guard': {
+        allowRequest: async () => ({ allowed: options.rate !== false }),
+        rateLimited: () => Response.json({}, { status: 429 }),
+      },
     },
-    '@/lib/student-session': {
-      authenticatedStudent: async () =>
-        options.auth === false
-          ? null
-          : {
-              student_id: 'canonical-student',
-              academy_id: 'canonical-academy',
-              student_user_id: 'canonical-user',
-            },
-      readRequestCookie,
-      STUDENT_COOKIE: 'cza_student_session',
+    {
+      process: {
+        env: {
+          DATABASE_URL: 'LOCAL_ONLY',
+          NODE_ENV: 'production',
+          CZA_V04_QA_FINAL_FIXTURE: options.flag,
+        },
+      },
     },
-    '@/lib/request-guard': {
-      allowRequest: async () => ({ allowed: options.rate !== false }),
-      rateLimited: () => Response.json({}, { status: 429 }),
+  );
+  const request = new Request(
+    (options.origin || 'https://qa.test') + '/api/core',
+    {
+      headers: {
+        cookie:
+          'cza_student_session=LOCAL-UNIT-TOKEN; cza_assignment_recipe=' +
+          recipe,
+      },
     },
-  });
-  const request = new Request('https://qa.test/api/core', {
-    headers: {
-      cookie:
-        'cza_student_session=LOCAL-UNIT-TOKEN; cza_assignment_recipe=' + recipe,
-    },
-  });
+  );
   return {
     invoke: (input) => subject.isolatedQaAssignedAction(request, input),
     subject,
@@ -328,4 +355,154 @@ test('Studio me reuses the actual approved V03 dashboard_1 SQL hash without expa
     calls.filter((c) => c.query.includes('cza_v03_qa_student_read')).length,
     1,
   );
+});
+
+const finalFixtureId = '40000004-0000-4000-8000-000000000091';
+const finalOrigin =
+  'https://cza-v01-isolated-synthetic-20261010.cza-staging-habip.workers.dev';
+const finalStudent = {
+  student_id: '20000000-0000-4000-8000-000000000001',
+  academy_id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+  student_user_id: '10000000-0000-4000-8000-000000000001',
+};
+test('temporary final fixture routing defaults OFF and invalid flag/origin/identity fails closed before function calls', async () => {
+  for (const options of [
+    { flag: 'WRONG' },
+    { flag: finalFixtureId },
+    { flag: finalFixtureId, origin: finalOrigin },
+    {
+      flag: finalFixtureId,
+      origin: finalOrigin,
+      student: { ...finalStudent, academy_id: 'foreign' },
+    },
+  ]) {
+    const h = adapter(options);
+    const r = await h.invoke({ action: 'finish', sessionId: finalFixtureId });
+    assert.equal(r.status, 403);
+    assert.equal(h.queries.length, 0);
+  }
+  const off = adapter({ flag: 'OFF' });
+  await off.invoke({ action: 'finish', sessionId: session });
+  assert.match(off.queries[0].sql, /cza_v04_qa_assigned_work/);
+  const nonQA = adapter({
+    qa: false,
+    flag: finalFixtureId,
+    origin: finalOrigin,
+    student: finalStudent,
+  });
+  await assert.rejects(
+    nonQA.subject.isolatedQaFinalFixtureLaunch(
+      nonQA.request,
+      finalStudent,
+      recipe,
+    ),
+    /target_rejected/,
+  );
+  assert.equal(nonQA.queries.length, 0);
+});
+test('exact final fixture gate uses approved parameterized function and read-only launch only for fixed recipe', async () => {
+  const h = adapter({
+    flag: finalFixtureId,
+    origin: finalOrigin,
+    student: finalStudent,
+  });
+  assert.equal(
+    await h.subject.isolatedQaFinalFixtureLaunch(
+      h.request,
+      finalStudent,
+      recipe,
+    ),
+    true,
+  );
+  const r = await h.invoke({
+    action: 'finish',
+    sessionId: finalFixtureId,
+    studentId: 'caller-spoof',
+  });
+  assert.equal(r.status, 200);
+  assert.ok(h.queries.every((q) => q.sql.includes('cza_v04_qa_final_fixture')));
+  await assert.rejects(
+    h.subject.isolatedQaFinalFixtureLaunch(
+      h.request,
+      finalStudent,
+      'foreign-recipe',
+    ),
+    /target_rejected/,
+  );
+  assert.equal(h.queries.length, 2);
+  const badTarget = adapter({
+    flag: finalFixtureId,
+    origin: finalOrigin,
+    student: finalStudent,
+    target: false,
+  });
+  assert.equal(
+    (await badTarget.invoke({ action: 'finish', sessionId: finalFixtureId }))
+      .status,
+    503,
+  );
+  assert.equal(badTarget.queries.length, 0);
+});
+test('assignment launch keeps completed409 when flag OFF; only authenticated approved fixture launch keeps existing secure cookie contract', async () => {
+  for (const enabled of [false, true]) {
+    const h = adapter({
+      flag: enabled ? finalFixtureId : 'OFF',
+      origin: finalOrigin,
+      student: finalStudent,
+    });
+    const route = load('app/api/core/assignments/route.ts', {
+      '@/lib/training-recipes': {
+        isAssignableModule: () => true,
+        assignmentLaunchPath: () => '/studio',
+      },
+      '@/lib/qa-student-read': {
+        studentReadSql: async () => async () => [
+          {
+            id: recipe,
+            module_code: 'finger_read',
+            settings: config,
+            completed: true,
+          },
+        ],
+      },
+      '@/lib/student-session': {
+        authenticatedStudent: async () => finalStudent,
+      },
+      '@/lib/request-guard': {
+        allowRequest: async () => ({ allowed: true }),
+        rateLimited: () => Response.json({}, { status: 429 }),
+      },
+      '@/lib/work-center': {
+        assignedEnginePath: () => '/studio?program=assigned&recipe=' + recipe,
+      },
+      '@/lib/qa-assigned-work': h.subject,
+    });
+    const request = new Request(finalOrigin + '/api/core/assignments', {
+      method: 'POST',
+      headers: {
+        origin: finalOrigin,
+        'content-type': 'application/json',
+        cookie: 'cza_student_session=LOCAL-UNIT-TOKEN',
+      },
+      body: JSON.stringify({ recipeId: recipe }),
+    });
+    const r = await route.POST(request);
+    assert.equal(r.status, enabled ? 200 : 409);
+    if (enabled) {
+      assert.match(
+        r.headers.get('set-cookie'),
+        /HttpOnly; Secure; SameSite=Lax/,
+      );
+      assert.equal(h.queries.length, 1);
+    } else assert.equal(h.queries.length, 0);
+    const foreign = new Request(finalOrigin + '/api/core/assignments', {
+      method: 'POST',
+      headers: {
+        origin: 'https://foreign.test',
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({ recipeId: recipe }),
+    });
+    assert.equal((await route.POST(foreign)).status, 403);
+  }
 });
