@@ -1,0 +1,42 @@
+name: A-DEMO-02 Readonly History and Results
+on:
+  pull_request:
+    paths:
+      - 'app/api/core/history/**'
+      - 'app/api/core/work-results/**'
+      - 'app/work/result/**'
+      - 'components/completed-work-results.tsx'
+      - 'components/work-center.tsx'
+      - 'components/learning-timeline.tsx'
+      - 'lib/qa-demo-read.ts'
+      - 'lib/student-work-result.ts'
+      - 'lib/persistence/learning-timeline.ts'
+      - 'db/qa/a-demo-02-*'
+      - 'tests/a-demo-02-*'
+      - 'tests/u4-learning-timeline*'
+      - '.github/workflows/cza-a-demo-02.yml'
+permissions:
+  contents: read
+jobs:
+  readonly-local:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: '22.13.0'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: V03-V04 protected regressions and readonly security
+        run: node --test tests/v04-assigned-work.test.mjs tests/v04-assigned-work-postgres.test.mjs tests/v04-final-fixture-review.test.mjs tests/v03-qa-target.test.mjs tests/v03-qa-read-postgres.test.mjs tests/v03-student-panel.test.mjs tests/u1-student-panel.test.mjs tests/u2-work-center.test.mjs tests/u7-student-learning-profile.test.mjs tests/u1-student-panel-postgres.test.mjs tests/u2-work-center-postgres.test.mjs tests/k3e-assigned-lifecycle.test.mjs tests/canonical-learning-persistence.test.mjs tests/canonical-security-hardening.test.mjs tests/canonical-postgres-behavior.test.mjs tests/security-ci-hardening.test.mjs tests/u4-learning-timeline.test.mjs tests/u4-learning-timeline-postgres.test.mjs tests/a-demo-02-api.test.mjs tests/a-demo-02-read-postgres.test.mjs
+      - name: TypeScript
+        run: npx tsc --noEmit
+      - name: Narrow lint
+        run: npx oxlint components/completed-work-results.tsx app/work/result/page.tsx app/api/core/work-results/route.ts lib/qa-demo-read.ts lib/student-work-result.ts
+      - name: Local desktop/mobile browser (mock transport only)
+        run: node tests/a-demo-02-browser.mjs
+      - name: Full platform build without secrets
+        run: npm run build

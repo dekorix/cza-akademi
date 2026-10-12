@@ -19,6 +19,7 @@ import {
   Target,
   type LucideIcon,
 } from 'lucide-react';
+import { CompletedWorkResults } from '@/components/completed-work-results';
 import { StudentLearningHistory } from '@/components/student-learning-history';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -454,6 +455,7 @@ export function WorkCenter({
                   görünecek.
                 </p>
               )}
+              {completed.length ? <CompletedWorkResults /> : null}
             </section>
 
             <section

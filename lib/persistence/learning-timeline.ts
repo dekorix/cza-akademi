@@ -159,7 +159,7 @@ function asTimestamp(value: unknown) {
 }
 
 export async function readLearningTimeline({
-  sql, academyId, studentId, limit, cursor, filters,
+  sql, academyId, studentId, limit, cursor, filters, readRows,
 }: {
   sql: TimelineQueryClient;
   academyId: string;
@@ -167,6 +167,7 @@ export async function readLearningTimeline({
   limit: number;
   cursor: string | null;
   filters: TimelineFilters;
+  readRows?: (input: { filters: TimelineFilters; cursor: { occurredAt: string; eventId: string } | null; limit: number }) => Promise<Record<string, unknown>[]>;
 }) {
   const decoded = cursor ? decodeTimelineCursor(cursor, studentId, filters) : null;
   const params: unknown[] = [academyId, studentId];
@@ -184,7 +185,7 @@ export async function readLearningTimeline({
   }
   const fetchLimit = bind(limit + 1);
   const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
-  const rows = await sql.query(`
+  const rows = readRows ? await readRows({ filters, cursor: decoded, limit }) : await sql.query(`
     WITH timeline AS (
       SELECT 'assignment:' || recipe.id::text AS event_id, recipe.student_id,
              COALESCE(recipe.cancelled_at, recipe.created_at) AS occurred_at, 'ASSIGNMENT_AVAILABLE'::text AS event_type,

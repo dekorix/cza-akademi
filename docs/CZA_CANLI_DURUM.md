@@ -1,3 +1,26 @@
+# A-DEMO-02 aktif dar düzeltme — 2026-10-12
+
+Resmî görev Issue #98. Tek kod dalı `fix/a-demo-02-history-session-results`, base `feat/v04-assigned-work-evidence`.
+Korunan PR91 HEAD `8ef388f9c7fbcb2392805150a32273707d547f7a`, tree `f304d581348b5439e2eb76a66d442c411566a926`; V03 ata `5e39d3f1810f1c0a8228c651c6da5563b3a6a212`.
+V01–V04 PASS_SCOPED 4/7 (%57,1) izole QA korunur; A_DEMO_FULL_PASS=NO; V05_DEV=NOT_STARTED.
+A-DEMO-01 kanıtı: https://github.com/dekorix/cza-akademi/issues/81#issuecomment-6131378974
+V04 kabulü: https://github.com/dekorix/cza-akademi/pull/91#issuecomment-6130801440
+
+Kapsam: yanlış boş timeline okuması ve tamamlanan iki çalışma için salt-okunur kalıcı oturum sonucu. Başlatma/finish/replay/mutation, yeni öğrenci/fixture yok.
+SQL ve Worker dağıtımı henüz ONAYLANMADI; exact tasarım Issue98'de ayrı onaya sunulacak. Mevcut Worker `d8c2ba48-f686-4f8e-912e-8709f3522cbd`, fixture OFF, final fixture minimum EXECUTE=false korunur.
+Kaynak metadata snapshot'tır; güncel GitHub ve resmî kararlar esas alınır. PR73/87/89/91, main/ana staging/production değişmez.
+
+GENEL PROJE İLERLEME %=ÖLÇÜLMEDİ
+MEVCUT FAZ İLERLEME %=4/7 (%57,1) izole QA scoped
+TAMAMLANAN=A-DEMO-01 teşhis; yeni dar düzeltme dalı
+KALAN=Kod/test/SQL tasarım incelemesi, ayrı SQL/deploy onayı ve izinli canlı QA
+KAPSAM SAPMASI=YOK
+SIRADAKİ TEK ADIM=Issue98'e kök neden ve exact düzeltme/onay paketi
+
+---
+
+# Tarihsel checkpoint'ler (aşağıdaki aktif/onay bilgileri eski snapshot'tır)
+
 # V04 son canlı kanıt checkpoint'i — 2026-10-12
 
 Aktif Issue90/DRAFT PR91. Resmi koşullu onay6124819469 ile tek yeni fixture40000004-0000-4000-8000-000000000091 tamamlandı. Gerçek Chrome38/38: aktif ilk-soru200/409 yarış, exact replay200/changed answer409, native guided desktop/mobile10/8 sonuç. Yeni recordf43257d1-6609-4f6f-99a6-bc5025879240 / evidenceb95c3b27-9e10-4a64-9bf2-6e4174fbedc1. Eski completed10/8 ve bütün eski çalışma satırları hash eşit; 52 eski fonksiyon ve yetki matrisi aynı. Toplam2 students/1 recipe/10 sessions/20 attempts/7 records/7 evidence.

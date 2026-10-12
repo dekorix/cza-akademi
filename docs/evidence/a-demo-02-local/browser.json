@@ -1,0 +1,539 @@
+{
+  "mode": "LOCAL_MOCK_TRANSPORT_ONLY",
+  "liveAcceptance": "UNVERIFIED",
+  "checks": [
+    {
+      "name": "1440: seven canonical history rows",
+      "passed": true
+    },
+    {
+      "name": "1440: history not false empty",
+      "passed": true
+    },
+    {
+      "name": "1440: two separate sessions",
+      "passed": true
+    },
+    {
+      "name": "1440: aggregate preserved",
+      "passed": true
+    },
+    {
+      "name": "1440: 10/8/2 bdb87fbc-0938-4eb1-82e5-0a2cb362d30f",
+      "passed": true
+    },
+    {
+      "name": "1440: hard reload bdb87fbc-0938-4eb1-82e5-0a2cb362d30f",
+      "passed": true
+    },
+    {
+      "name": "1440: 401 hides data",
+      "passed": true
+    },
+    {
+      "name": "1440: mock reentry bdb87fbc-0938-4eb1-82e5-0a2cb362d30f",
+      "passed": true
+    },
+    {
+      "name": "1440: no overflow",
+      "passed": true
+    },
+    {
+      "name": "1440: 10/8/2 40000004-0000-4000-8000-000000000091",
+      "passed": true
+    },
+    {
+      "name": "1440: hard reload 40000004-0000-4000-8000-000000000091",
+      "passed": true
+    },
+    {
+      "name": "1440: 401 hides data",
+      "passed": true
+    },
+    {
+      "name": "1440: mock reentry 40000004-0000-4000-8000-000000000091",
+      "passed": true
+    },
+    {
+      "name": "1440: no overflow",
+      "passed": true
+    },
+    {
+      "name": "1440: 404 missing state",
+      "passed": true
+    },
+    {
+      "name": "1440: result read error",
+      "passed": true
+    },
+    {
+      "name": "1440: result retry succeeds",
+      "passed": true
+    },
+    {
+      "name": "1440: RLS/error no fake empty",
+      "passed": true
+    },
+    {
+      "name": "1440: history retry succeeds",
+      "passed": true
+    },
+    {
+      "name": "1440: genuine empty message",
+      "passed": true
+    },
+    {
+      "name": "390: seven canonical history rows",
+      "passed": true
+    },
+    {
+      "name": "390: history not false empty",
+      "passed": true
+    },
+    {
+      "name": "390: two separate sessions",
+      "passed": true
+    },
+    {
+      "name": "390: aggregate preserved",
+      "passed": true
+    },
+    {
+      "name": "390: 10/8/2 bdb87fbc-0938-4eb1-82e5-0a2cb362d30f",
+      "passed": true
+    },
+    {
+      "name": "390: hard reload bdb87fbc-0938-4eb1-82e5-0a2cb362d30f",
+      "passed": true
+    },
+    {
+      "name": "390: 401 hides data",
+      "passed": true
+    },
+    {
+      "name": "390: mock reentry bdb87fbc-0938-4eb1-82e5-0a2cb362d30f",
+      "passed": true
+    },
+    {
+      "name": "390: no overflow",
+      "passed": true
+    },
+    {
+      "name": "390: 10/8/2 40000004-0000-4000-8000-000000000091",
+      "passed": true
+    },
+    {
+      "name": "390: hard reload 40000004-0000-4000-8000-000000000091",
+      "passed": true
+    },
+    {
+      "name": "390: 401 hides data",
+      "passed": true
+    },
+    {
+      "name": "390: mock reentry 40000004-0000-4000-8000-000000000091",
+      "passed": true
+    },
+    {
+      "name": "390: no overflow",
+      "passed": true
+    },
+    {
+      "name": "390: 404 missing state",
+      "passed": true
+    },
+    {
+      "name": "390: result read error",
+      "passed": true
+    },
+    {
+      "name": "390: result retry succeeds",
+      "passed": true
+    },
+    {
+      "name": "390: RLS/error no fake empty",
+      "passed": true
+    },
+    {
+      "name": "390: history retry succeeds",
+      "passed": true
+    },
+    {
+      "name": "390: genuine empty message",
+      "passed": true
+    },
+    {
+      "name": "no work mutation requests",
+      "passed": true
+    },
+    {
+      "name": "no page errors",
+      "passed": true
+    }
+  ],
+  "errors": [],
+  "requests": [
+    {
+      "width": 1440,
+      "method": "GET",
+      "path": "/api/core/dashboard"
+    },
+    {
+      "width": 1440,
+      "method": "GET",
+      "path": "/api/core/special-program"
+    },
+    {
+      "width": 1440,
+      "method": "GET",
+      "path": "/api/core/learning-profile"
+    },
+    {
+      "width": 1440,
+      "method": "GET",
+      "path": "/api/core/coaching"
+    },
+    {
+      "width": 1440,
+      "method": "GET",
+      "path": "/api/core/history"
+    },
+    {
+      "width": 1440,
+      "method": "GET",
+      "path": "/api/core/dashboard"
+    },
+    {
+      "width": 1440,
+      "method": "GET",
+      "path": "/api/core/work-results"
+    },
+    {
+      "width": 1440,
+      "method": "GET",
+      "path": "/api/student-history"
+    },
+    {
+      "width": 1440,
+      "method": "GET",
+      "path": "/api/core/dashboard"
+    },
+    {
+      "width": 1440,
+      "method": "GET",
+      "path": "/api/core/work-results"
+    },
+    {
+      "width": 1440,
+      "method": "GET",
+      "path": "/api/student-history"
+    },
+    {
+      "width": 1440,
+      "method": "GET",
+      "path": "/api/core/work-results"
+    },
+    {
+      "width": 1440,
+      "method": "GET",
+      "path": "/api/core/work-results"
+    },
+    {
+      "width": 1440,
+      "method": "GET",
+      "path": "/api/core/work-results"
+    },
+    {
+      "width": 1440,
+      "method": "GET",
+      "path": "/api/core/work-results"
+    },
+    {
+      "width": 1440,
+      "method": "GET",
+      "path": "/api/core/dashboard"
+    },
+    {
+      "width": 1440,
+      "method": "GET",
+      "path": "/api/core/work-results"
+    },
+    {
+      "width": 1440,
+      "method": "GET",
+      "path": "/api/student-history"
+    },
+    {
+      "width": 1440,
+      "method": "GET",
+      "path": "/api/core/work-results"
+    },
+    {
+      "width": 1440,
+      "method": "GET",
+      "path": "/api/core/work-results"
+    },
+    {
+      "width": 1440,
+      "method": "GET",
+      "path": "/api/core/work-results"
+    },
+    {
+      "width": 1440,
+      "method": "GET",
+      "path": "/api/core/work-results"
+    },
+    {
+      "width": 1440,
+      "method": "GET",
+      "path": "/api/core/work-results"
+    },
+    {
+      "width": 1440,
+      "method": "GET",
+      "path": "/api/core/work-results"
+    },
+    {
+      "width": 1440,
+      "method": "GET",
+      "path": "/api/core/work-results"
+    },
+    {
+      "width": 1440,
+      "method": "GET",
+      "path": "/api/core/dashboard"
+    },
+    {
+      "width": 1440,
+      "method": "GET",
+      "path": "/api/core/special-program"
+    },
+    {
+      "width": 1440,
+      "method": "GET",
+      "path": "/api/core/learning-profile"
+    },
+    {
+      "width": 1440,
+      "method": "GET",
+      "path": "/api/core/coaching"
+    },
+    {
+      "width": 1440,
+      "method": "GET",
+      "path": "/api/core/history"
+    },
+    {
+      "width": 1440,
+      "method": "GET",
+      "path": "/api/core/history"
+    },
+    {
+      "width": 1440,
+      "method": "GET",
+      "path": "/api/core/dashboard"
+    },
+    {
+      "width": 1440,
+      "method": "GET",
+      "path": "/api/core/special-program"
+    },
+    {
+      "width": 1440,
+      "method": "GET",
+      "path": "/api/core/learning-profile"
+    },
+    {
+      "width": 1440,
+      "method": "GET",
+      "path": "/api/core/coaching"
+    },
+    {
+      "width": 1440,
+      "method": "GET",
+      "path": "/api/core/history"
+    },
+    {
+      "width": 390,
+      "method": "GET",
+      "path": "/api/core/dashboard"
+    },
+    {
+      "width": 390,
+      "method": "GET",
+      "path": "/api/core/special-program"
+    },
+    {
+      "width": 390,
+      "method": "GET",
+      "path": "/api/core/learning-profile"
+    },
+    {
+      "width": 390,
+      "method": "GET",
+      "path": "/api/core/coaching"
+    },
+    {
+      "width": 390,
+      "method": "GET",
+      "path": "/api/core/history"
+    },
+    {
+      "width": 390,
+      "method": "GET",
+      "path": "/api/core/dashboard"
+    },
+    {
+      "width": 390,
+      "method": "GET",
+      "path": "/api/core/work-results"
+    },
+    {
+      "width": 390,
+      "method": "GET",
+      "path": "/api/student-history"
+    },
+    {
+      "width": 390,
+      "method": "GET",
+      "path": "/api/core/dashboard"
+    },
+    {
+      "width": 390,
+      "method": "GET",
+      "path": "/api/core/work-results"
+    },
+    {
+      "width": 390,
+      "method": "GET",
+      "path": "/api/student-history"
+    },
+    {
+      "width": 390,
+      "method": "GET",
+      "path": "/api/core/work-results"
+    },
+    {
+      "width": 390,
+      "method": "GET",
+      "path": "/api/core/work-results"
+    },
+    {
+      "width": 390,
+      "method": "GET",
+      "path": "/api/core/work-results"
+    },
+    {
+      "width": 390,
+      "method": "GET",
+      "path": "/api/core/work-results"
+    },
+    {
+      "width": 390,
+      "method": "GET",
+      "path": "/api/core/dashboard"
+    },
+    {
+      "width": 390,
+      "method": "GET",
+      "path": "/api/core/work-results"
+    },
+    {
+      "width": 390,
+      "method": "GET",
+      "path": "/api/student-history"
+    },
+    {
+      "width": 390,
+      "method": "GET",
+      "path": "/api/core/work-results"
+    },
+    {
+      "width": 390,
+      "method": "GET",
+      "path": "/api/core/work-results"
+    },
+    {
+      "width": 390,
+      "method": "GET",
+      "path": "/api/core/work-results"
+    },
+    {
+      "width": 390,
+      "method": "GET",
+      "path": "/api/core/work-results"
+    },
+    {
+      "width": 390,
+      "method": "GET",
+      "path": "/api/core/work-results"
+    },
+    {
+      "width": 390,
+      "method": "GET",
+      "path": "/api/core/work-results"
+    },
+    {
+      "width": 390,
+      "method": "GET",
+      "path": "/api/core/work-results"
+    },
+    {
+      "width": 390,
+      "method": "GET",
+      "path": "/api/core/dashboard"
+    },
+    {
+      "width": 390,
+      "method": "GET",
+      "path": "/api/core/special-program"
+    },
+    {
+      "width": 390,
+      "method": "GET",
+      "path": "/api/core/learning-profile"
+    },
+    {
+      "width": 390,
+      "method": "GET",
+      "path": "/api/core/coaching"
+    },
+    {
+      "width": 390,
+      "method": "GET",
+      "path": "/api/core/history"
+    },
+    {
+      "width": 390,
+      "method": "GET",
+      "path": "/api/core/history"
+    },
+    {
+      "width": 390,
+      "method": "GET",
+      "path": "/api/core/dashboard"
+    },
+    {
+      "width": 390,
+      "method": "GET",
+      "path": "/api/core/special-program"
+    },
+    {
+      "width": 390,
+      "method": "GET",
+      "path": "/api/core/learning-profile"
+    },
+    {
+      "width": 390,
+      "method": "GET",
+      "path": "/api/core/coaching"
+    },
+    {
+      "width": 390,
+      "method": "GET",
+      "path": "/api/core/history"
+    }
+  ],
+  "chrome": "HeadlessChrome/153.0.8010.0",
+  "passed": true
+}
