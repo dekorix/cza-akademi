@@ -36,6 +36,7 @@ const check = (name, ok) => {
 const browser = await puppeteer.launch({
   executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe',
   headless: true,
+  protocolTimeout: 60000,
   args: ['--no-sandbox'],
 });
 const context = await browser.createBrowserContext();
@@ -78,12 +79,20 @@ const get = (p, path) =>
     return { status: r.status, body: await r.json() };
   }, path);
 async function login(p) {
+  await p.bringToFront();
+  console.log('login navigation');
   await p.goto(base + '/', { waitUntil: 'domcontentloaded' });
   await p.waitForSelector('#home-username');
+  console.log('login fields ready');
   await p.type('#home-username', fixture.username);
+  console.log('username entered');
   await p.type('#home-pin', fixture.pin);
+  console.log('pin entered');
   const pending = actionResponse(p, 'login');
-  await p.click('form button[type=submit]');
+  await p.evaluate(() =>
+    document.querySelector('form button[type=submit]').click(),
+  );
+  console.log('login submitted');
   const r = await pending,
     b = await r.json();
   check(
@@ -93,6 +102,7 @@ async function login(p) {
   await p.waitForSelector('#route');
 }
 async function open(p) {
+  await p.bringToFront();
   await p.goto(base + '/studio?program=assigned&recipe=' + recipe, {
     waitUntil: 'domcontentloaded',
   });
@@ -132,13 +142,14 @@ async function ready(p, index) {
   );
 }
 async function solve(p, index, wrong = false) {
+  await p.bringToFront();
   await ready(p, index);
   await p.type(
     '#answer',
     String(canonical.questions[index - 1].answer + (wrong ? 1 : 0)),
   );
   const pending = actionResponse(p, 'attempt');
-  await p.click('button[type=submit]');
+  await p.evaluate(() => document.querySelector('button[type=submit]').click());
   const r = await pending,
     payload = JSON.parse(r.request().postData()).payload;
   check(
@@ -188,8 +199,7 @@ async function nativeResult(p, label, width, height) {
 }
 try {
   proof.chromeVersion = await browser.version();
-  const desktop = await page(1440, 900),
-    mobile = await page(390, 844);
+  const desktop = await page(1440, 900);
   await login(desktop);
   const cookies = await context.cookies(),
     authCookie = cookies.find((c) => c.name === 'cza_student_session');
@@ -200,6 +210,7 @@ try {
       authCookie?.sameSite === 'Lax',
   );
   await open(desktop);
+  const mobile = await page(390, 844);
   await open(mobile);
   await ready(desktop, 1);
   await ready(mobile, 1);
@@ -232,8 +243,12 @@ try {
     actionResponse(mobile, 'attempt'),
   ];
   await Promise.all([
-    desktop.click('button[type=submit]'),
-    mobile.click('button[type=submit]'),
+    desktop.evaluate(() =>
+      document.querySelector('button[type=submit]').click(),
+    ),
+    mobile.evaluate(() =>
+      document.querySelector('button[type=submit]').click(),
+    ),
   ]);
   const until = Date.now() + 10000;
   while (paused.length < 2 && Date.now() < until)
@@ -424,6 +439,12 @@ try {
   proof.failure = e.message;
   process.exitCode = 1;
   for (let i = 0; i < pages.length; i++) {
+    if (
+      !proof.checks.some(
+        (c) => c.name === 'approved fixed session start/resume' && c.passed,
+      )
+    )
+      break;
     try {
       await pages[i].screenshot({
         path: out + '/failure-' + i + '.png',

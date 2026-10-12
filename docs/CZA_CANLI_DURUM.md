@@ -1,3 +1,21 @@
+# V04 son canlı kanıt checkpoint'i — 2026-10-12
+
+Aktif Issue90/DRAFT PR91. Resmi koşullu onay6124819469 ile tek yeni fixture40000004-0000-4000-8000-000000000091 tamamlandı. Gerçek Chrome38/38: aktif ilk-soru200/409 yarış, exact replay200/changed answer409, native guided desktop/mobile10/8 sonuç. Yeni recordf43257d1-6609-4f6f-99a6-bc5025879240 / evidenceb95c3b27-9e10-4a64-9bf2-6e4174fbedc1. Eski completed10/8 ve bütün eski çalışma satırları hash eşit; 52 eski fonksiyon ve yetki matrisi aynı. Toplam2 students/1 recipe/10 sessions/20 attempts/7 records/7 evidence.
+
+Build/deployed source8e2d40b/treef8ebce2, CI38280610931/38280610927 SUCCESS. Test Worker7c7a3d4b-a503-425e-8bc5-245f174ca502; cleanup/current Worker d8c2ba48-f686-4f8e-912e-8709f3522cbd, fixture flag OFF, yeni fonksiyon minimum EXECUTE REVOKE/PUBLIC=false. Tamamlanmış yeni/eskilerde UPDATE/DELETE/reset yok. Ana staging/main/production ve PR73/87/89 korunur. docs/CZA_V04_FINAL_RUNTIME_20261012.md.
+
+V04_ACCEPTED=NO; nihai kabul Baş Mimar'a ait. WORKER_MODULE_BYTE_READBACK=UNVERIFIED production şartı açık.
+GENEL PROJE İLERLEME %=ÖLÇÜLMEDİ
+MEVCUT FAZ İLERLEME %=3/7 QA kabul (%42,9)
+TAMAMLANAN=tek fixture gerçek Chrome yarış/native sonuç/Neon kanıtı ve cleanup
+KALAN=Baş Mimar nihai kabulü
+KAPSAM SAPMASI=YOK
+SIRADAKİ TEK ADIM=Baş Mimar DRAFT PR91 son canlı kanıt paketini incelesin
+
+---
+
+# Tarihsel checkpoint'ler — aşağıdaki aktif/onay/BLOCKED bilgileri eskidir
+
 # V04 son test uygulama checkpoint'i — 2026-10-12
 
 Resmi karar6124819469: V04_FINAL_FIXTURE_APPROVED=YES_CONDITIONAL, V04_ACCEPTED=NO. Aktif Issue90/DRAFT PR91; onaylı source1904793/tree2e9ffbd. Tek sabit yeni QA oturumu40000004-0000-4000-8000-000000000091; mevcut öğrenci/recipe ve eski10/8 completed değişmez. Onaylı dar fonksiyon tek transaction uygulandı; PUBLIC=false/minrole=true. Yalnız iki dosyalık geçici QA yönlendirmesi ve testler hazır, exact-source CI/build/deploy sonrası gerçek Chrome aktif yarış/native guided sonuç koşusu yapılacak. Ana staging/main/production yok. docs/CZA_V04_FINAL_RUNTIME_20261012.md.

@@ -1,0 +1,32 @@
+{
+  "worker": "cza-v01-isolated-synthetic-20261010",
+  "buildSource": "8e2d40b90f9639052b92b437e952240365934e49",
+  "buildTree": "f8ebce226a080566346db449bdb134981dbac783",
+  "runtimeDiff": "",
+  "localBuildMainSHA256": "9de737f66d46e393a3088cdf7e6d2993798268d0e474d57d15251898e0269599",
+  "deployments": [
+    {
+      "id": "a83d4e99-446d-4396-98af-f149f352390b",
+      "message": "V04 final source8e2d40b treef8ebce2 CI38280610927 approval6124819469",
+      "versions": [
+        {
+          "version_id": "7c7a3d4b-a503-425e-8bc5-245f174ca502",
+          "percentage": 100
+        }
+      ],
+      "createdOn": "2026-10-12T18:30:30.837903Z"
+    },
+    {
+      "id": "e9524a31-7d07-4a71-b807-c0bfbb9ecc62",
+      "message": "V04 fixtureOFF source8e2d40b treef8ebce2 CI38280610927 realChrome38PASS",
+      "versions": [
+        {
+          "version_id": "d8c2ba48-f686-4f8e-912e-8709f3522cbd",
+          "percentage": 100
+        }
+      ],
+      "createdOn": "2026-10-12T18:42:11.25006Z"
+    }
+  ],
+  "moduleByteReadback": "UNVERIFIED"
+}

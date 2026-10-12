@@ -1,0 +1,627 @@
+{
+  "scope": "REAL_FINAL_FIXED_QA_FIXTURE",
+  "studentId": "20000000-0000-4000-8000-000000000001",
+  "recipeId": "361ee0f6-26e2-4484-b9f9-7a88d14fb9f4",
+  "sessionId": "40000004-0000-4000-8000-000000000091",
+  "mocks": false,
+  "cookieInjection": false,
+  "stateInjection": false,
+  "checks": [
+    {
+      "name": "normal student login same canonical ID",
+      "passed": true
+    },
+    {
+      "name": "secure HttpOnly login cookie",
+      "passed": true
+    },
+    {
+      "name": "approved fixed session start/resume",
+      "passed": true
+    },
+    {
+      "name": "approved fixed session start/resume",
+      "passed": true
+    },
+    {
+      "name": "same server question plan",
+      "passed": true
+    },
+    {
+      "name": "two actual UI POSTs paused before real concurrent release",
+      "passed": true
+    },
+    {
+      "name": "active question race exactly one200 and one409",
+      "passed": true
+    },
+    {
+      "name": "winning UUID exact payload replay200 and count1",
+      "passed": true
+    },
+    {
+      "name": "same UUID different answer denied409",
+      "passed": true
+    },
+    {
+      "name": "old accepted session cannot be addressed by fixture",
+      "passed": true
+    },
+    {
+      "name": "approved fixed session start/resume",
+      "passed": true
+    },
+    {
+      "name": "same server question plan",
+      "passed": true
+    },
+    {
+      "name": "race recovery retains one answer same session",
+      "passed": true
+    },
+    {
+      "name": "native UI answer 2",
+      "passed": true
+    },
+    {
+      "name": "native UI answer 3",
+      "passed": true
+    },
+    {
+      "name": "native UI answer 4",
+      "passed": true
+    },
+    {
+      "name": "normal logout succeeds",
+      "passed": true
+    },
+    {
+      "name": "actual revoked token denied401",
+      "passed": true
+    },
+    {
+      "name": "normal student login same canonical ID",
+      "passed": true
+    },
+    {
+      "name": "approved fixed session start/resume",
+      "passed": true
+    },
+    {
+      "name": "same server question plan",
+      "passed": true
+    },
+    {
+      "name": "real mobile relogin resumes fixed session with4 answers",
+      "passed": true
+    },
+    {
+      "name": "foreign student/academy selectors preserve authenticated ID",
+      "passed": true
+    },
+    {
+      "name": "foreign session finish rejected404",
+      "passed": true
+    },
+    {
+      "name": "native UI answer 5",
+      "passed": true
+    },
+    {
+      "name": "native UI answer 6",
+      "passed": true
+    },
+    {
+      "name": "native UI answer 7",
+      "passed": true
+    },
+    {
+      "name": "native UI answer 8",
+      "passed": true
+    },
+    {
+      "name": "native UI answer 9",
+      "passed": true
+    },
+    {
+      "name": "native UI answer 10",
+      "passed": true
+    },
+    {
+      "name": "native completion response10/8",
+      "passed": true
+    },
+    {
+      "name": "mobile native guided result heading / 10 questions / 8 correct / 2 wrong",
+      "passed": true
+    },
+    {
+      "name": "desktop native guided result heading / 10 questions / 8 correct / 2 wrong",
+      "passed": true
+    },
+    {
+      "name": "six finish replays same one record/evidence",
+      "passed": true
+    },
+    {
+      "name": "same Student Learning Profile includes both accepted and fixture records",
+      "passed": true
+    },
+    {
+      "name": "cleanup logout",
+      "passed": true
+    },
+    {
+      "name": "post-logout finish401",
+      "passed": true
+    },
+    {
+      "name": "zero page errors",
+      "passed": true
+    }
+  ],
+  "errors": [],
+  "answers": [
+    {
+      "clientAttemptId": "4f47c803-0425-4f68-8726-034a5191915f",
+      "questionIndex": 1,
+      "questionId": "v04:40000004-0000-4000-8000-000000000091:1",
+      "targetNumber": 9,
+      "studentNumericAnswer": 9,
+      "responseLatencyMs": 106,
+      "totalResponseTimeMs": 106,
+      "stimulusDurationMs": 106
+    },
+    {
+      "clientAttemptId": "3ce87891-56ec-41ce-944a-c9394197fce6",
+      "questionIndex": 2,
+      "questionId": "v04:40000004-0000-4000-8000-000000000091:2",
+      "targetNumber": 3,
+      "studentNumericAnswer": 4,
+      "responseLatencyMs": 80,
+      "totalResponseTimeMs": 80,
+      "stimulusDurationMs": 80
+    },
+    {
+      "clientAttemptId": "f9fd119a-1f41-4b9d-a227-527a5bcfa03e",
+      "questionIndex": 3,
+      "questionId": "v04:40000004-0000-4000-8000-000000000091:3",
+      "targetNumber": 6,
+      "studentNumericAnswer": 7,
+      "responseLatencyMs": 53,
+      "totalResponseTimeMs": 53,
+      "stimulusDurationMs": 53
+    },
+    {
+      "clientAttemptId": "4a9d6ff8-582e-4ac0-a4f2-28b7ff48a6f0",
+      "questionIndex": 4,
+      "questionId": "v04:40000004-0000-4000-8000-000000000091:4",
+      "targetNumber": 2,
+      "studentNumericAnswer": 2,
+      "responseLatencyMs": 49,
+      "totalResponseTimeMs": 49,
+      "stimulusDurationMs": 49
+    },
+    {
+      "clientAttemptId": "52cacf07-22aa-4bac-adb9-b0145b3ace80",
+      "questionIndex": 5,
+      "questionId": "v04:40000004-0000-4000-8000-000000000091:5",
+      "targetNumber": 1,
+      "studentNumericAnswer": 1,
+      "responseLatencyMs": 968,
+      "totalResponseTimeMs": 968,
+      "stimulusDurationMs": 968
+    },
+    {
+      "clientAttemptId": "c19980e5-0bba-4758-847f-47b31f16384a",
+      "questionIndex": 6,
+      "questionId": "v04:40000004-0000-4000-8000-000000000091:6",
+      "targetNumber": 9,
+      "studentNumericAnswer": 9,
+      "responseLatencyMs": 50,
+      "totalResponseTimeMs": 50,
+      "stimulusDurationMs": 50
+    },
+    {
+      "clientAttemptId": "52a90c0b-6591-455b-ad8e-a5df661ccdce",
+      "questionIndex": 7,
+      "questionId": "v04:40000004-0000-4000-8000-000000000091:7",
+      "targetNumber": 6,
+      "studentNumericAnswer": 6,
+      "responseLatencyMs": 43,
+      "totalResponseTimeMs": 43,
+      "stimulusDurationMs": 43
+    },
+    {
+      "clientAttemptId": "e8a7977d-e134-460a-87ae-be0affd5bd1e",
+      "questionIndex": 8,
+      "questionId": "v04:40000004-0000-4000-8000-000000000091:8",
+      "targetNumber": 2,
+      "studentNumericAnswer": 2,
+      "responseLatencyMs": 44,
+      "totalResponseTimeMs": 44,
+      "stimulusDurationMs": 44
+    },
+    {
+      "clientAttemptId": "42d290bb-cfad-4c1a-9eae-2df52a2a3f01",
+      "questionIndex": 9,
+      "questionId": "v04:40000004-0000-4000-8000-000000000091:9",
+      "targetNumber": 6,
+      "studentNumericAnswer": 6,
+      "responseLatencyMs": 47,
+      "totalResponseTimeMs": 47,
+      "stimulusDurationMs": 47
+    },
+    {
+      "clientAttemptId": "ed1eb0c3-ffa8-4509-a0f8-7a30a95bb7ea",
+      "questionIndex": 10,
+      "questionId": "v04:40000004-0000-4000-8000-000000000091:10",
+      "targetNumber": 3,
+      "studentNumericAnswer": 3,
+      "responseLatencyMs": 45,
+      "totalResponseTimeMs": 45,
+      "stimulusDurationMs": 45
+    }
+  ],
+  "passed": true,
+  "chromeVersion": "Chrome/154.0.8037.98",
+  "raceRelease": {
+    "requests": 2,
+    "differentUUIDs": true,
+    "responseMocks": false,
+    "barrier": "REQUEST_CONTINUE_UNMODIFIED"
+  },
+  "race": [
+    {
+      "status": 409,
+      "body": {
+        "ok": false,
+        "error": "work_question_conflict"
+      },
+      "payload": {
+        "clientAttemptId": "c772bd61-298b-445a-98d8-a1e644c3ed27",
+        "questionIndex": 1,
+        "questionId": "v04:40000004-0000-4000-8000-000000000091:1",
+        "targetNumber": 9,
+        "studentNumericAnswer": 9,
+        "responseLatencyMs": 2356,
+        "totalResponseTimeMs": 2356,
+        "stimulusDurationMs": 2356
+      }
+    },
+    {
+      "status": 200,
+      "body": {
+        "ok": true,
+        "workProgress": {
+          "replayed": false,
+          "attemptId": "6fe8219f-5473-466b-94d6-456047a52690",
+          "attemptCount": 1,
+          "correctCount": 1,
+          "lastQuestionIndex": 1
+        }
+      },
+      "payload": {
+        "clientAttemptId": "4f47c803-0425-4f68-8726-034a5191915f",
+        "questionIndex": 1,
+        "questionId": "v04:40000004-0000-4000-8000-000000000091:1",
+        "targetNumber": 9,
+        "studentNumericAnswer": 9,
+        "responseLatencyMs": 106,
+        "totalResponseTimeMs": 106,
+        "stimulusDurationMs": 106
+      }
+    }
+  ],
+  "exactReplay": {
+    "status": 200,
+    "body": {
+      "ok": true,
+      "workProgress": {
+        "replayed": true,
+        "attemptId": "6fe8219f-5473-466b-94d6-456047a52690",
+        "attemptCount": 1,
+        "correctCount": 1,
+        "lastQuestionIndex": 1
+      }
+    }
+  },
+  "changedReplay": {
+    "status": 409,
+    "body": {
+      "ok": false,
+      "error": "IDEMPOTENCY_KEY_REUSED"
+    }
+  },
+  "oldSessionDenied": {
+    "status": 404,
+    "body": {
+      "ok": false,
+      "error": "work_not_found"
+    }
+  },
+  "foreignSelectors": {
+    "status": 200,
+    "studentId": "20000000-0000-4000-8000-000000000001"
+  },
+  "foreignSession": {
+    "status": 404,
+    "body": {
+      "ok": false,
+      "error": "work_not_found"
+    }
+  },
+  "completion": {
+    "status": 200,
+    "body": {
+      "ok": true,
+      "workCompletion": {
+        "status": "completed",
+        "replayed": false,
+        "sessionId": "40000004-0000-4000-8000-000000000091",
+        "evidenceId": "b95c3b27-9e10-4a64-9bf2-6e4174fbedc1",
+        "attemptCount": 10,
+        "correctCount": 8,
+        "timeoutCount": 0,
+        "fastestCorrectMs": 43,
+        "learningRecordId": "f43257d1-6609-4f6f-99a6-bc5025879240",
+        "timingProvenance": "CLIENT_REPORTED",
+        "averageResponseMs": 149
+      }
+    }
+  },
+  "mobileResult": {
+    "heading": "Harika, 10 soru çalıştın.",
+    "counters": [
+      {
+        "value": "10",
+        "label": "Soru"
+      },
+      {
+        "value": "8",
+        "label": "Doğru"
+      },
+      {
+        "value": "2",
+        "label": "Birlikte bakalım"
+      }
+    ],
+    "overflow": false
+  },
+  "desktopResult": {
+    "heading": "Harika, 10 soru çalıştın.",
+    "counters": [
+      {
+        "value": "10",
+        "label": "Soru"
+      },
+      {
+        "value": "8",
+        "label": "Doğru"
+      },
+      {
+        "value": "2",
+        "label": "Birlikte bakalım"
+      }
+    ],
+    "overflow": false
+  },
+  "finishReplay": [
+    {
+      "status": 200,
+      "body": {
+        "ok": true,
+        "workCompletion": {
+          "status": "completed",
+          "replayed": true,
+          "sessionId": "40000004-0000-4000-8000-000000000091",
+          "evidenceId": "b95c3b27-9e10-4a64-9bf2-6e4174fbedc1",
+          "attemptCount": 10,
+          "correctCount": 8,
+          "timeoutCount": 0,
+          "resumeAvailable": false,
+          "fastestCorrectMs": 43,
+          "learningRecordId": "f43257d1-6609-4f6f-99a6-bc5025879240",
+          "timingProvenance": "CLIENT_REPORTED",
+          "averageResponseMs": 149,
+          "lastQuestionIndex": 10
+        }
+      }
+    },
+    {
+      "status": 200,
+      "body": {
+        "ok": true,
+        "workCompletion": {
+          "status": "completed",
+          "replayed": true,
+          "sessionId": "40000004-0000-4000-8000-000000000091",
+          "evidenceId": "b95c3b27-9e10-4a64-9bf2-6e4174fbedc1",
+          "attemptCount": 10,
+          "correctCount": 8,
+          "timeoutCount": 0,
+          "resumeAvailable": false,
+          "fastestCorrectMs": 43,
+          "learningRecordId": "f43257d1-6609-4f6f-99a6-bc5025879240",
+          "timingProvenance": "CLIENT_REPORTED",
+          "averageResponseMs": 149,
+          "lastQuestionIndex": 10
+        }
+      }
+    },
+    {
+      "status": 200,
+      "body": {
+        "ok": true,
+        "workCompletion": {
+          "status": "completed",
+          "replayed": true,
+          "sessionId": "40000004-0000-4000-8000-000000000091",
+          "evidenceId": "b95c3b27-9e10-4a64-9bf2-6e4174fbedc1",
+          "attemptCount": 10,
+          "correctCount": 8,
+          "timeoutCount": 0,
+          "resumeAvailable": false,
+          "fastestCorrectMs": 43,
+          "learningRecordId": "f43257d1-6609-4f6f-99a6-bc5025879240",
+          "timingProvenance": "CLIENT_REPORTED",
+          "averageResponseMs": 149,
+          "lastQuestionIndex": 10
+        }
+      }
+    },
+    {
+      "status": 200,
+      "body": {
+        "ok": true,
+        "workCompletion": {
+          "status": "completed",
+          "replayed": true,
+          "sessionId": "40000004-0000-4000-8000-000000000091",
+          "evidenceId": "b95c3b27-9e10-4a64-9bf2-6e4174fbedc1",
+          "attemptCount": 10,
+          "correctCount": 8,
+          "timeoutCount": 0,
+          "resumeAvailable": false,
+          "fastestCorrectMs": 43,
+          "learningRecordId": "f43257d1-6609-4f6f-99a6-bc5025879240",
+          "timingProvenance": "CLIENT_REPORTED",
+          "averageResponseMs": 149,
+          "lastQuestionIndex": 10
+        }
+      }
+    },
+    {
+      "status": 200,
+      "body": {
+        "ok": true,
+        "workCompletion": {
+          "status": "completed",
+          "replayed": true,
+          "sessionId": "40000004-0000-4000-8000-000000000091",
+          "evidenceId": "b95c3b27-9e10-4a64-9bf2-6e4174fbedc1",
+          "attemptCount": 10,
+          "correctCount": 8,
+          "timeoutCount": 0,
+          "resumeAvailable": false,
+          "fastestCorrectMs": 43,
+          "learningRecordId": "f43257d1-6609-4f6f-99a6-bc5025879240",
+          "timingProvenance": "CLIENT_REPORTED",
+          "averageResponseMs": 149,
+          "lastQuestionIndex": 10
+        }
+      }
+    },
+    {
+      "status": 200,
+      "body": {
+        "ok": true,
+        "workCompletion": {
+          "status": "completed",
+          "replayed": true,
+          "sessionId": "40000004-0000-4000-8000-000000000091",
+          "evidenceId": "b95c3b27-9e10-4a64-9bf2-6e4174fbedc1",
+          "attemptCount": 10,
+          "correctCount": 8,
+          "timeoutCount": 0,
+          "resumeAvailable": false,
+          "fastestCorrectMs": 43,
+          "learningRecordId": "f43257d1-6609-4f6f-99a6-bc5025879240",
+          "timingProvenance": "CLIENT_REPORTED",
+          "averageResponseMs": 149,
+          "lastQuestionIndex": 10
+        }
+      }
+    }
+  ],
+  "profile": {
+    "status": 200,
+    "studentId": "20000000-0000-4000-8000-000000000001",
+    "coverage": {
+      "assignments": 1,
+      "sessions": 10,
+      "attempts": 20,
+      "records": 7,
+      "evidence": 7
+    },
+    "recentRecords": [
+      {
+        "recordId": "f43257d1-6609-4f6f-99a6-bc5025879240",
+        "sessionId": "40000004-0000-4000-8000-000000000091",
+        "moduleCode": "finger_read",
+        "recordOrigin": "client_reported",
+        "recordVerification": "client_reported",
+        "evidenceId": "b95c3b27-9e10-4a64-9bf2-6e4174fbedc1",
+        "evidenceVerification": "server_verified",
+        "evidenceAuthority": "v04_qa_server_answer_evaluator:v1",
+        "provenance": "CLIENT_REPORTED"
+      },
+      {
+        "recordId": "a1d057e4-cb08-46be-94c8-e2b6a4fa8c79",
+        "sessionId": "bdb87fbc-0938-4eb1-82e5-0a2cb362d30f",
+        "moduleCode": "finger_read",
+        "recordOrigin": "client_reported",
+        "recordVerification": "client_reported",
+        "evidenceId": "1cd5e31b-d1fc-408d-9847-b0b3b06597a8",
+        "evidenceVerification": "server_verified",
+        "evidenceAuthority": "v04_qa_server_answer_evaluator:v1",
+        "provenance": "CLIENT_REPORTED"
+      },
+      {
+        "recordId": "8940aef7-2cdf-45ee-a75b-f0bc6c410b0c",
+        "sessionId": "8940aef7-2cdf-45ee-a75b-f0bc6c410b0c",
+        "moduleCode": "development_assessment",
+        "recordOrigin": "client_reported",
+        "recordVerification": "client_reported",
+        "evidenceId": "8940aef7-2cdf-45ee-a75b-f0bc6c410b0c",
+        "evidenceVerification": "server_verified",
+        "evidenceAuthority": "CZA_ORIGINAL_RECORD_IDENTITY",
+        "provenance": "CLIENT_REPORTED"
+      },
+      {
+        "recordId": "42868b52-5503-4e5f-bd21-be6f8ed41c33",
+        "sessionId": "42868b52-5503-4e5f-bd21-be6f8ed41c33",
+        "moduleCode": "development_assessment",
+        "recordOrigin": "client_reported",
+        "recordVerification": "client_reported",
+        "evidenceId": "42868b52-5503-4e5f-bd21-be6f8ed41c33",
+        "evidenceVerification": "server_verified",
+        "evidenceAuthority": "CZA_ORIGINAL_RECORD_IDENTITY",
+        "provenance": "CLIENT_REPORTED"
+      },
+      {
+        "recordId": "f45b2385-eb90-4ee1-8f90-408b86b3b0c2",
+        "sessionId": "f45b2385-eb90-4ee1-8f90-408b86b3b0c2",
+        "moduleCode": "development_assessment",
+        "recordOrigin": "client_reported",
+        "recordVerification": "client_reported",
+        "evidenceId": "f45b2385-eb90-4ee1-8f90-408b86b3b0c2",
+        "evidenceVerification": "server_verified",
+        "evidenceAuthority": "CZA_T4_P2_SERVER_EVALUATOR",
+        "provenance": "CLIENT_REPORTED"
+      },
+      {
+        "recordId": "883f5ea5-ae02-4be6-9779-ba3459bce487",
+        "sessionId": "883f5ea5-ae02-4be6-9779-ba3459bce487",
+        "moduleCode": "development_assessment",
+        "recordOrigin": "client_reported",
+        "recordVerification": "client_reported",
+        "evidenceId": "883f5ea5-ae02-4be6-9779-ba3459bce487",
+        "evidenceVerification": "server_verified",
+        "evidenceAuthority": "CZA_T4_P2_SERVER_EVALUATOR",
+        "provenance": "CLIENT_REPORTED"
+      },
+      {
+        "recordId": "0f255515-8035-49c5-a2e1-e240c4dbbc9d",
+        "sessionId": "0f255515-8035-49c5-a2e1-e240c4dbbc9d",
+        "moduleCode": "development_assessment",
+        "recordOrigin": "client_reported",
+        "recordVerification": "client_reported",
+        "evidenceId": "0f255515-8035-49c5-a2e1-e240c4dbbc9d",
+        "evidenceVerification": "server_verified",
+        "evidenceAuthority": "CZA_T4_P2_SERVER_EVALUATOR",
+        "provenance": "CLIENT_REPORTED"
+      }
+    ]
+  }
+}
