@@ -1,0 +1,19 @@
+{
+  // NON-DEPLOYED REVIEW TEMPLATE. Replace placeholders only after separate approval.
+  "name": "private-educator-broker-placeholder",
+  "main": "index.ts",
+  "compatibility_date": "2026-05-15",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": false,
+  "preview_urls": false,
+  "routes": [],
+  "vars": {
+    "QA_BROKER_STUDENT_ID": "REVIEW_PLACEHOLDER",
+    "QA_BROKER_ACADEMY_ID": "REVIEW_PLACEHOLDER",
+    "QA_BROKER_PROJECT_ID": "REVIEW_PLACEHOLDER",
+    "QA_BROKER_BRANCH_ID": "REVIEW_PLACEHOLDER",
+    "QA_BROKER_DATABASE": "REVIEW_PLACEHOLDER",
+    "QA_BROKER_ROLE": "REVIEW_PLACEHOLDER"
+  }
+  // BROKER_DATABASE_URL must be broker-only secret storage, never this file.
+}

@@ -1,0 +1,10 @@
+{
+  // Fragment only; NEVER deploy this as a complete ingress configuration.
+  "services": [
+    { "binding": "QA_EDUCATOR_HISTORY_BROKER", "service": "private-educator-broker-placeholder" }
+  ],
+  "vars": {
+    "QA_BROKER_STUDENT_ID": "REVIEW_PLACEHOLDER",
+    "QA_BROKER_ACADEMY_ID": "REVIEW_PLACEHOLDER"
+  }
+}

@@ -1,3 +1,6 @@
+import { isolatedQaEnabled } from '@/lib/isolated-qa-auth';
+import { readQaEducatorTimeline } from '@/lib/qa-educator-broker-client';
+import { BrokerError } from '@/lib/qa-educator-broker-protocol';
 import { neon } from '@neondatabase/serverless';
 import { authenticatedEducator } from '@/lib/educator-auth';
 import { allowRequest, rateLimited } from '@/lib/request-guard';
@@ -10,6 +13,7 @@ function json(body: unknown, status = 200) {
 
 export async function GET(request: Request) {
   try {
+    const verifiedAt = Date.now();
     const educator = await authenticatedEducator(request);
     if (!educator) return json({ ok: false, error: 'educator_session_required' }, 401);
     const gate = await allowRequest(request, 'educator-learning-timeline', 60, 60_000, educator.id);
@@ -17,6 +21,10 @@ export async function GET(request: Request) {
     const url = new URL(request.url);
     const studentId = url.searchParams.get('studentId')?.trim() || '';
     if (!UUID_PATTERN.test(studentId)) return json({ ok: false, error: 'invalid_student_id' }, 400);
+    if (isolatedQaEnabled()) {
+      const timeline = await readQaEducatorTimeline(request, { subject: educator.id, studentId, verifiedAt });
+      return json({ ok: true, timeline });
+    }
     if (!process.env.DATABASE_URL) return json({ ok: false, error: 'database_unavailable' }, 503);
     const sql = neon(process.env.DATABASE_URL);
     const authorized = await sql`
@@ -40,6 +48,7 @@ export async function GET(request: Request) {
     });
     return json({ ok: true, timeline });
   } catch (error) {
+    if (error instanceof BrokerError) return json({ ok: false, error: 'educator_read_unavailable' }, error.status);
     if (error instanceof TimelineInputError) return json({ ok: false, error: error.code }, 400);
     return json({ ok: false, error: 'timeline_unavailable' }, 503);
   }
