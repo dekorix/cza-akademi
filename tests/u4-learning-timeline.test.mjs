@@ -1,5 +1,6 @@
 /* oxlint-disable typescript/no-floating-promises -- node:test registrations are intentionally top-level. */
 import test from 'node:test';
+import './u4-learning-timeline-precision.test.mjs';
 import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
@@ -72,7 +73,7 @@ test('cursor is scope-bound, tamper-evident, and page size is bounded', () => {
   process.env.CZA_TIMELINE_CURSOR_SECRET = 'u4-test-cursor-secret-at-least-32-bytes';
   try {
     const filters = { from: null, to: null, moduleCode: null, eventType: null, verificationStatus: null };
-    const event = { eventId: 'record:10000000-0000-4000-8000-000000000001', occurredAt: '2026-09-17T12:00:00.000Z' };
+    const event = { eventId: 'record:10000000-0000-4000-8000-000000000001', occurredAt: '2026-09-17T12:00:00.000000Z' };
     const cursor = timeline.encodeTimelineCursor(event, 'student-a', filters);
     assert.deepEqual(timeline.decodeTimelineCursor(cursor, 'student-a', filters), {
       eventId: event.eventId, occurredAt: event.occurredAt,

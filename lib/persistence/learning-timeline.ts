@@ -79,7 +79,7 @@ function stableFilterScope(studentId: string, filters: TimelineFilters) {
 export function encodeTimelineCursor(event: LearningTimelineEvent, studentId: string, filters: TimelineFilters) {
   const payload: TimelineCursor = {
     v: 1,
-    occurredAt: event.occurredAt,
+    occurredAt: asTimestamp(event.occurredAt),
     eventId: event.eventId,
     scope: stableFilterScope(studentId, filters),
   };
@@ -107,7 +107,7 @@ export function decodeTimelineCursor(value: string, studentId: string, filters: 
   const cursor = parsed as Partial<TimelineCursor>;
   if (
     cursor.v !== 1 || typeof cursor.occurredAt !== 'string' ||
-    Number.isNaN(Date.parse(cursor.occurredAt)) || typeof cursor.eventId !== 'string' ||
+    !EXACT_CURSOR_TIMESTAMP.test(cursor.occurredAt) || Number.isNaN(Date.parse(cursor.occurredAt)) || typeof cursor.eventId !== 'string' ||
     !EVENT_ID_PATTERN.test(cursor.eventId) || cursor.scope !== stableFilterScope(studentId, filters)
   ) throw new TimelineInputError('invalid_cursor');
   return { occurredAt: cursor.occurredAt, eventId: cursor.eventId };
@@ -152,9 +152,17 @@ function asObject(value: unknown) {
     : null;
 }
 
+// PostgreSQL text/JSON is the precision authority; Date has already lost microseconds.
+const EXACT_CURSOR_TIMESTAMP = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{6}(?:Z|[+-]\d{2}:\d{2})$/;
+const DATABASE_TIMESTAMP = /^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})(?:\.(\d{1,6}))?(Z|[+-]\d{2}:\d{2})$/;
+
 function asTimestamp(value: unknown) {
-  if (value instanceof Date) return value.toISOString();
-  if (typeof value === 'string' && !Number.isNaN(Date.parse(value))) return new Date(value).toISOString();
+  if (typeof value === 'string') {
+    const match = DATABASE_TIMESTAMP.exec(value);
+    if (match && !Number.isNaN(Date.parse(value))) {
+      return `${match[1]}.${(match[2] || '').padEnd(6, '0')}${match[3]}`;
+    }
+  }
   throw new Error('timeline_corrupt_timestamp');
 }
 
@@ -261,13 +269,14 @@ export async function readLearningTimeline({
       JOIN public.modules module ON module.code=record.module_code
       WHERE evidence.academy_id=$1::uuid AND evidence.student_id=$2::uuid
     )
-    SELECT * FROM timeline ${where}
+    SELECT *, to_char(occurred_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"') AS occurred_at_exact
+    FROM timeline ${where}
     ORDER BY occurred_at DESC, event_id DESC
     LIMIT ${fetchLimit}::int
   `, params);
 
   const events = rows.slice(0, limit).map((row): LearningTimelineEvent => ({
-    eventId: String(row.event_id), studentId: String(row.student_id), occurredAt: asTimestamp(row.occurred_at),
+    eventId: String(row.event_id), studentId: String(row.student_id), occurredAt: asTimestamp(row.occurred_at_exact ?? row.occurred_at),
     eventType: String(row.event_type) as TimelineEventType, moduleCode: String(row.module_code),
     assignmentLifecycle: typeof row.assignment_lifecycle === 'string' ? row.assignment_lifecycle as LearningTimelineEvent['assignmentLifecycle'] : null,
     assignmentId: typeof row.assignment_id === 'string' ? row.assignment_id : null,
