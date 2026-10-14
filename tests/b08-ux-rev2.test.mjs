@@ -1,0 +1,27 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import ts from 'typescript';
+import vm from 'node:vm';
+import {newSession,start,record,observe,assess,options,TASKS} from '../preview/b08-ux-rev2/model.mjs';
+const contract=fs.readFileSync(new URL('../preview/b08-ux-rev2/vendor/accepted-contract.ts',import.meta.url),'utf8');
+const source=ts.transpileModule(contract,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ES2022}}).outputText.replace(/^export /gm,'');
+const classify=vm.runInNewContext(source+';classifyMat01A');
+const init=()=>start(newSession(),{method:'production',access:'VALID'});
+const data=(raw,extra={})=>({raw,kind:'production',help:'NONE',...extra});
+for(const t of ['S','B','T'])await test(`first gate ${t}`,()=>assert.throws(()=>record(init(),'SYNTHETIC-ATTEMPT-1',t,data('x')),/FIRST_RESPONSE/));
+await test('no overwrite/delete API and deep immutable',()=>{const s=record(init(),'SYNTHETIC-ATTEMPT-1','A',data('4,7'));assert.throws(()=>record(s,s.attempts[0].id,'A',data('47')),/IMMUTABLE/);assert.throws(()=>s.attempts[0].responses.pop(),TypeError);assert.throws(()=>{s.attempts[0].responses[0].raw='changed';},TypeError);});
+await test('new attempt retains original and archived write rejected',()=>{const s=record(init(),'SYNTHETIC-ATTEMPT-1','A',data('4,7'));const n=start(s,{});assert.equal(n.attempts[0].responses[0].raw,'4,7');assert.notEqual(n.attempts[0].id,n.attempts[1].id);assert.throws(()=>record(n,n.attempts[0].id,'S',data('47')),/ARCHIVED/);});
+for(const [raw,status] of [['4 onluk 7 birlik','RELATION_OBSERVED'],['7 onluk 4 birlik','INCORRECT_RELATION'],['40+7','PARTIAL_EVIDENCE'],['4,7','AMBIGUOUS_REVIEW'],['3 onluk 17 birlik','EQUIVALENT_NONCANONICAL'],['0 onluk 47 birlik','EQUIVALENT_NONCANONICAL']])await test(raw,()=>{const r=assess({...data(raw),task:'A'},null,classify);assert.equal(r.status,status);});
+await test('unavailable not zero',()=>assert.equal(assess({...data(''),task:'A',unavailable:true},null,classify).status,'NOT_ASSESSED'));
+for(const t of TASKS)await test(`balanced position ${t}`,()=>{assert.deepEqual([1,2,3,4].map(n=>options(t,n).findIndex(o=>o.id==='canonical')).sort((a,b)=>a-b),[0,1,2,3]);});
+await test('recognition is not production',()=>{const r=assess({...data('47'),task:'A',kind:'recognition',option:'canonical'},null,classify);assert.equal(r.status,'RECOGNITION_CORRECT');});
+await test('support preserves original',()=>{let s=record(init(),'SYNTHETIC-ATTEMPT-1','A',data('74'));s=record(s,s.attempts[0].id,'S',data('47',{help:'MODEL'}));assert.equal(s.attempts[0].responses[0].raw,'74');assert.equal(s.attempts[0].responses[1].phase,'supported');assert.equal(s.attempts[0].responses[1].help,'MODEL');});
+for(const o of [undefined,{novelty:'UNKNOWN',help:'NONE',history:'h'},{novelty:'UNSEEN',help:'PROMPT',history:'h'},{novelty:'UNSEEN',help:'NONE',history:''}])await test('unverified transfer',()=>assert.equal(assess({...data('52'),task:'T'},o,classify).status,'NOT_ASSESSED'));
+await test('declared transfer production distinct recognition',()=>{const o={novelty:'UNSEEN',help:'NONE',history:'synthetic-log',judgment:'RELATION_OBSERVED',criteria:{T1:'OBSERVED',T2:'OBSERVED',T3:'OBSERVED',T4:'OBSERVED',T5:'OBSERVED'}};assert.equal(assess({...data('two representations'),task:'T'},o,classify).status,'RELATION_OBSERVED');assert.equal(assess({...data('selected'),task:'T',kind:'recognition',option:'canonical'},o,classify).status,'RECOGNITION_CORRECT');});
+await test('observations separate immutable',()=>{let s=record(init(),'SYNTHETIC-ATTEMPT-1','A',data('x'));s=observe(s,s.attempts[0].id,'A',{note:'synthetic',judgment:'NOT_ASSESSED'});assert.equal(s.attempts[0].responses[0].provenance,'synthetic_student_direct');assert.equal(s.attempts[0].observations[0].authenticated,false);assert.throws(()=>observe(s,s.attempts[0].id,'A',{note:'new'}),/IMMUTABLE/);});
+await test('offline html no network/example/placeholder and embedded parity',()=>{const html=fs.readFileSync(new URL('../preview/b08-ux-rev2/CZA_B08_MAT01_REV2.html',import.meta.url),'utf8');assert.ok(html.includes("connect-src 'none'"));assert.ok(html.includes(source));assert.ok(!html.includes('placeholder='));assert.ok(!html.includes('52=50+2'));assert.ok(!html.includes('5 onluk 2 birlik'));assert.ok(!/\b(fetch|XMLHttpRequest|WebSocket)\s*\(/.test(html));});
+
+await test('general teacher judgment cannot fill absent criteria',()=>assert.equal(assess({...data('own explanation'),task:'B'},{judgment:'RELATION_OBSERVED'},classify).status,'NOT_ASSESSED'));
+await test('incomplete transfer criteria cannot claim relation',()=>assert.equal(assess({...data('own representations'),task:'T'},{judgment:'RELATION_OBSERVED',novelty:'UNSEEN',help:'NONE',history:'synthetic',criteria:{T5:'OBSERVED',T1:'OBSERVED'}},classify).status,'PARTIAL_EVIDENCE'));
+await test('T5 absent unassessed despite history declaration',()=>assert.equal(assess({...data('own representations'),task:'T'},{judgment:'RELATION_OBSERVED',novelty:'UNSEEN',help:'NONE',history:'synthetic',criteria:{T1:'OBSERVED'}},classify).status,'NOT_ASSESSED'));

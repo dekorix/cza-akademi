@@ -1,0 +1,10 @@
+import fs from 'node:fs';
+import {createRequire} from 'node:module';
+const require=createRequire(import.meta.url);
+const ts=require('typescript');
+const here=new URL('./',import.meta.url);
+const read=p=>fs.readFileSync(new URL(p,here),'utf8');
+const contract=ts.transpileModule(read('vendor/accepted-contract.ts'),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ES2022}}).outputText.replace(/^export /gm,'');
+const code=contract+'\n'+read('model.mjs').replace(/^export /gm,'')+'\n'+read('ui.js');
+const html=`<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; connect-src 'none'; form-action 'none'; base-uri 'none'"><title>CZA · MAT-01 sentetik önizleme</title><style>${read('style.css')}</style></head><body><header><div class="brand">CZA<small>MATEMATİĞİ ANLAMAK</small></div><nav aria-label="Görünüm"><button id="setup">Hazırlık</button> <button id="student" disabled>Öğrenci</button> <button id="teacher" aria-pressed="false">Eğitmen kanıtları</button></nav></header><div class="banner">SENTETİK ÖNİZLEME · Gerçek öğrenci kullanımı kapalı · CZA ürününe ve SLP’ye bağlı değil</div><div id="notice" role="alert"></div><main id="app"></main><dialog id="observation" aria-label="Sentetik eğitmen gözlemi"></dialog><footer>MAT-01 · B08-UX-REV2 · Yalnız bu sekmenin belleğinde çalışır. Yenileme kayıtları kaybettirir; sentetik JSON’u önce indirebilirsin. <br>REAL_STUDENT_USE=BLOCKED · AUTO_ASSIGNMENT=BLOCKED · RUNTIME_NOT_WIRED=YES · USER_VISUAL_ACCEPTANCE=PENDING</footer><script>${code}</script></body></html>`;
+fs.writeFileSync(new URL('CZA_B08_MAT01_REV2.html',here),html);

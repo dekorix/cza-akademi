@@ -1,0 +1,36 @@
+✔ first gate S (0.972595ms)
+✔ first gate B (0.1329ms)
+✔ first gate T (0.120151ms)
+✔ no overwrite/delete API and deep immutable (0.616388ms)
+✔ new attempt retains original and archived write rejected (0.368015ms)
+✔ 4 onluk 7 birlik (1.42051ms)
+✔ 7 onluk 4 birlik (0.537089ms)
+✔ 40+7 (0.294965ms)
+✔ 4,7 (0.248094ms)
+✔ 3 onluk 17 birlik (0.25895ms)
+✔ 0 onluk 47 birlik (0.123647ms)
+✔ unavailable not zero (0.090897ms)
+✔ balanced position A (0.684431ms)
+✔ balanced position S (0.072099ms)
+✔ balanced position B (0.132269ms)
+✔ balanced position T (0.105569ms)
+✔ recognition is not production (0.193662ms)
+✔ support preserves original (0.163367ms)
+✔ unverified transfer (0.075474ms)
+✔ unverified transfer (0.042474ms)
+✔ unverified transfer (0.087341ms)
+✔ unverified transfer (0.09926ms)
+✔ declared transfer production distinct recognition (0.120161ms)
+✔ observations separate immutable (0.347774ms)
+✔ offline html no network/example/placeholder and embedded parity (0.506533ms)
+✔ general teacher judgment cannot fill absent criteria (0.271278ms)
+✔ incomplete transfer criteria cannot claim relation (0.117256ms)
+✔ T5 absent unassessed despite history declaration (0.180722ms)
+ℹ tests 28
+ℹ suites 0
+ℹ pass 28
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 19.289626
