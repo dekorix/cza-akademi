@@ -1,0 +1,87 @@
+{
+  "sha256": "bbd78fb8aa074eb10d1608acede13f4a797a5f67a1e0ebaab8bdcc6a01c17473",
+  "checks": 97,
+  "negativeUI": [
+    {
+      "case": "INCORRECT_RELATION",
+      "status": "PASS"
+    },
+    {
+      "case": "PARTIAL_EVIDENCE",
+      "status": "PASS"
+    },
+    {
+      "case": "NOT_ASSESSED",
+      "status": "PASS"
+    },
+    {
+      "case": "missing T1",
+      "status": "PASS"
+    },
+    {
+      "case": "missing T2",
+      "status": "PASS"
+    },
+    {
+      "case": "missing T3",
+      "status": "PASS"
+    },
+    {
+      "case": "missing T4",
+      "status": "PASS"
+    },
+    {
+      "case": "missing T5",
+      "status": "PASS"
+    },
+    {
+      "case": "unknown history ref",
+      "status": "PASS"
+    },
+    {
+      "case": "missing history",
+      "status": "PASS"
+    },
+    {
+      "case": "unverified history",
+      "status": "PASS"
+    },
+    {
+      "case": "seen",
+      "status": "PASS"
+    },
+    {
+      "case": "PROMPT",
+      "status": "PASS"
+    },
+    {
+      "case": "MODEL",
+      "status": "PASS"
+    },
+    {
+      "case": "wrong number",
+      "status": "PASS"
+    },
+    {
+      "case": "same representations",
+      "status": "PASS"
+    },
+    {
+      "case": "no teacher",
+      "status": "PASS"
+    },
+    {
+      "case": "no grouping representation",
+      "status": "PASS"
+    }
+  ],
+  "positive": "PROVISIONAL_EVIDENCE_ONLY",
+  "jsErrors": [],
+  "networkRequests": [],
+  "desktop": "1440x900",
+  "mobile": "390x844",
+  "keyboard": "PASS",
+  "print": "PASS",
+  "fileOpen": "NOT_RUN_POLICY_BLOCKED_setContent_USED",
+  "screenReader": "NOT_RUN"
+}
