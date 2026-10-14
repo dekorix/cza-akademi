@@ -1,0 +1,12 @@
+---
+description: Büyük CZA / ÇELİK ANZAN 2 tek öğrenci ve tek kaynak mimari kilidi. Cloud ve lokal Cursor her görev önce bu kuralı okumalı.
+alwaysApply: true
+---
+# CZA Cursor Cloud Başlangıç Kilidi
+- Repo SADECE dekorix/cza-akademi. Sites tanıtımı ayrı; package.json içindeki sites-project adını platform kimliği sanma.
+- İlk iş: docs/CZA_CURSOR_KANONIK_OGRENME_REHBERI_20261015.md; docs/CZA_CURSOR_KOD_HARITASI_20261015.md; docs/CZA_CURSOR_12_MADDE_DEVIR_KABULU_20261015.md; main/AGENTS.md ve main/docs/CZA_CANLI_DURUM.md; ardından canlı issue/PR.
+- Aynı anda yalnız #98 / PR #101 bir teknik kod işi; #107 QA yardımcısı. #73/#87/#89/#91 zincirine dokunma. Hızlı Okuma X11 smoke testi olup merkez değildir.
+- Tek student_id / tek Student Learning Profile / Neon Learning Core; mevcut 10 faz, 15 aile, 14 beceri, 26 profil, P2 23 bölüm eksiltilmez. Ana çekirdek 5–YKS, tarihsel 0–YKS kaynağı korunur.
+- git remote, branch, HEAD, tree, dirty raporu ve hedef doğrulama olmadan değişiklik yapma. Main ile PR #101 aynı değildir; eksik governance kaynaklarını main'den salt okunur al.
+- Baş Mimar onayı olmadan kod veya ikinci feature görevi yok. Kullanıcı açık onayı olmadan merge, production, staging, SQL/DB/ACL/RLS, Worker, secret, yeni gerçek öğrenci/fixture, force reset/rebase/push yok.
+- İlk Cursor işi yalnız 12 maddelik salt okunur CZA HAZIRLIK RAPORU. No code changes, no browser QA, no Cloud deploy. Bir dosyanın varlığı veya CI PASS gerçek staging kabulü değildir.
