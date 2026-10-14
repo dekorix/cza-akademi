@@ -19,6 +19,16 @@
     'Kendini düzeltti','Yönergeyi tekrar istedi'
   ];
 
+  // Completion is based on saved verdict + support, including NOT_ASSESSED.
+  // Low evidence quality is not the same as an unfinished task.
+  window.czaFirstIncompleteDyslexiaLsTaskIndex = function () {
+    ensureLsState();
+    return letterSoundTasks.findIndex(function (task) {
+      var row = state.dysLsEvidence[task.id];
+      return !row || !row.verdict || !row.support;
+    });
+  };
+
   function ensureLsState() {
     if (!state.dysLsEvidence) state.dysLsEvidence = {};
     if (!Number.isInteger(state.dysLsTaskIndex)) state.dysLsTaskIndex = 0;

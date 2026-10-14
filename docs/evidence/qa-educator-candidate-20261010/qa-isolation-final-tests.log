@@ -1,0 +1,15 @@
+✔ QA auth accepts only explicit QA origin and fixed synthetic provider (85.215492ms)
+✔ forged trusted headers and cross-site ingress fail closed (20.228078ms)
+✔ wrong DB target rejected before rate-limit writes or provider authentication (16.548844ms)
+✔ QA password reset disabled without changing existing credentials (14.989909ms)
+✔ ordinary Neon staging ingress remains restricted to existing provider (13.118185ms)
+✔ same project with a different branch is rejected before writes (14.432078ms)
+✔ failed canonical mapping never hides failed provider revocation (11.209645ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 425.193444

@@ -1,0 +1,85 @@
+{
+  "profile": "SP-DYS",
+  "networkMocks": false,
+  "cookieInjection": false,
+  "steps": [
+    {
+      "action": "create",
+      "status": 201,
+      "candidateId": "753e2d0a-213c-4ab7-81f1-691fa4c999ba",
+      "cycleId": "424a3f4d-57ee-42f1-acc3-7d99188501b5",
+      "sessionId": "f825e4d0-c702-4a58-bb7a-7ec991940a89"
+    },
+    {
+      "action": "attempt",
+      "status": 200
+    },
+    {
+      "action": "get",
+      "status": 200,
+      "sessionId": "f825e4d0-c702-4a58-bb7a-7ec991940a89"
+    },
+    {
+      "action": "create",
+      "status": 200,
+      "candidateId": "753e2d0a-213c-4ab7-81f1-691fa4c999ba",
+      "cycleId": "424a3f4d-57ee-42f1-acc3-7d99188501b5",
+      "sessionId": "f825e4d0-c702-4a58-bb7a-7ec991940a89"
+    }
+  ],
+  "errors": [],
+  "viewport": 390,
+  "before": {
+    "candidateId": "753e2d0a-213c-4ab7-81f1-691fa4c999ba",
+    "cycleId": "424a3f4d-57ee-42f1-acc3-7d99188501b5",
+    "sessionId": "f825e4d0-c702-4a58-bb7a-7ec991940a89",
+    "screen": "dyslexia-task",
+    "taskIndex": 0
+  },
+  "afterAnswer": {
+    "candidateId": "753e2d0a-213c-4ab7-81f1-691fa4c999ba",
+    "cycleId": "424a3f4d-57ee-42f1-acc3-7d99188501b5",
+    "sessionId": "f825e4d0-c702-4a58-bb7a-7ec991940a89",
+    "screen": "dyslexia-task",
+    "taskIndex": 1
+  },
+  "afterReload": {
+    "candidateId": "753e2d0a-213c-4ab7-81f1-691fa4c999ba",
+    "cycleId": "424a3f4d-57ee-42f1-acc3-7d99188501b5",
+    "sessionId": "f825e4d0-c702-4a58-bb7a-7ec991940a89",
+    "screen": "dyslexia-task",
+    "taskIndex": 1
+  },
+  "centralReadback": {
+    "status": 200,
+    "sessionId": "f825e4d0-c702-4a58-bb7a-7ec991940a89",
+    "candidateId": "753e2d0a-213c-4ab7-81f1-691fa4c999ba",
+    "cycleId": "424a3f4d-57ee-42f1-acc3-7d99188501b5",
+    "attemptCount": 1,
+    "taskCode": "DYS-PH01",
+    "answer": "al"
+  },
+  "afterNameCorrection": {
+    "candidateId": "753e2d0a-213c-4ab7-81f1-691fa4c999ba",
+    "cycleId": "424a3f4d-57ee-42f1-acc3-7d99188501b5",
+    "sessionId": "f825e4d0-c702-4a58-bb7a-7ec991940a89",
+    "screen": "dyslexia-task",
+    "taskIndex": 1
+  },
+  "chromeVersion": "Chrome/136.0.7103.25",
+  "cookieAttributes": [
+    {
+      "name": "__Host-cza_neon_educator",
+      "secure": true,
+      "httpOnly": true,
+      "sameSite": "Strict",
+      "expires": 1791693157.804992
+    }
+  ],
+  "logout": {
+    "status": 200,
+    "revoked": true
+  },
+  "afterLogoutMe": 401,
+  "passed": true
+}

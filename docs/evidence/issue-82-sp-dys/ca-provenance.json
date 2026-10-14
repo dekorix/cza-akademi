@@ -1,0 +1,19 @@
+{
+  "source": "/usr/local/share/ca-certificates/environment-proxy-ca.crt",
+  "derSha256": "c71b4d1e9d7775c538c688ab10cea9ce417d7312e89838f9d15ff73256cd7fc3",
+  "sourceEvidence": [
+    "same certificate in managed /etc/ssl/certs/ca-certificates.crt",
+    "same certificate in pre-existing OpenAI-nebula-dns NSS entry",
+    "curl using only this CA: QA HTTP200 TLS_VERIFY=0"
+  ],
+  "userAuthorization": "Explicit permission after provenance verification; Chromium user NSS only",
+  "modifiedStores": [
+    "/home/agent/.pki/nssdb",
+    "/home/agent/.local/share/pki/nssdb"
+  ],
+  "importedCertificateCount": 1,
+  "systemTrustChanged": false,
+  "tlsVerificationDisabled": false,
+  "homeEnvironmentOverridden": false,
+  "browserRuntimePermission": "Existing Chromium NSS database must be writable by the browser process; otherwise NSS opens pkcs11.txt but cannot read certificate database through its SQL store."
+}

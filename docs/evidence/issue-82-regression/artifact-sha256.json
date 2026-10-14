@@ -1,0 +1,211 @@
+{
+  "sourceCommit": "2e7996d199144419712c9b4082429cf77a5ec523",
+  "sourceTree": "e01c9a011221ed1c6f471ec7a53bdd6fec99d23c",
+  "artifacts": [
+    {
+      "path": "docs/evidence/issue-82-regression/assessment-ci-targeted.log",
+      "sha256": "a52b54bb21a3c4e5ec464e6bd6f5a01949a39433bde76f7c99ecc6356c049842",
+      "bytes": 14374
+    },
+    {
+      "path": "docs/evidence/issue-82-regression/browser-acceptance-retry.log",
+      "sha256": "fc7b6af74b32ece99af83f9df99cfd44a6f12a78340d8c9c954d26136c41b198",
+      "bytes": 587
+    },
+    {
+      "path": "docs/evidence/issue-82-regression/browser-acceptance.log",
+      "sha256": "5dbb22248470de61523d020fdae52348a14fbc4917a56cd26c3252f225de8408",
+      "bytes": 4338
+    },
+    {
+      "path": "docs/evidence/issue-82-regression/browser-results/.last-run.json",
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "bytes": 45
+    },
+    {
+      "path": "docs/evidence/issue-82-regression/github-source-ci.json",
+      "sha256": "f9f5954b0d655d777b73fde276869903b78817236b73b559ad81d60a09df84c3",
+      "bytes": 3651
+    },
+    {
+      "path": "docs/evidence/issue-82-regression/lint-baseline.log",
+      "sha256": "9ca1376b9ca17170453c7fc6f2b6e0abb2332d27e8ce7b5ea1df0447783d3243",
+      "bytes": 1356
+    },
+    {
+      "path": "docs/evidence/issue-82-regression/lint.log",
+      "sha256": "bcc6560468f83ee2ade6ed2c7495c97b00ac89c7c6130801013cce2d5f0280fd",
+      "bytes": 1416
+    },
+    {
+      "path": "docs/evidence/issue-82-regression/no-secrets-build.log",
+      "sha256": "e12668a0fd7dd37f72959f371d7bde6c43e28dd330d3a8d0aca7c3b66b34f603",
+      "bytes": 5301
+    },
+    {
+      "path": "docs/evidence/issue-82-regression/security-network-enabled.log",
+      "sha256": "132d210f4e79d6bea4062636ca273813f44d7b470e3b73c3a45b73dd4ea77857",
+      "bytes": 2546
+    },
+    {
+      "path": "docs/evidence/issue-82-regression/source-mapping.json",
+      "sha256": "a8f69b0c41dea64cfa71f3c694739d360a663f0ef9d5236381b2c73f6da8a769",
+      "bytes": 5270
+    },
+    {
+      "path": "docs/evidence/issue-82-regression/targeted-regression.log",
+      "sha256": "6c02e7b8fa19b7bcda511e71e61b165588914bae9ad8e3be489d925ce59e68d3",
+      "bytes": 5897
+    },
+    {
+      "path": "docs/evidence/issue-82-regression/typecheck.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "docs/evidence/issue-82-sp-dys/api-neon.json",
+      "sha256": "5cd5931851a0e91eca366b4049be75322d846f1f297b4c4bf5817671e123c5c1",
+      "bytes": 3129
+    },
+    {
+      "path": "docs/evidence/issue-82-sp-dys/browser-mobile.json",
+      "sha256": "4cf10514ac6f355d7cc6795c4e710946f28e631123c008f073d91de95c912c23",
+      "bytes": 2383
+    },
+    {
+      "path": "docs/evidence/issue-82-sp-dys/browser.json",
+      "sha256": "4d0d30d7247c25b81a224507d5a3898cbf195c002fb0b6f75246c4e44a7ab0c3",
+      "bytes": 2384
+    },
+    {
+      "path": "docs/evidence/issue-82-sp-dys/ca-provenance.json",
+      "sha256": "2b4ac2c276ceddd0c124c65fcd90d93b4601a7bdd5f1ae0debf1b3e38da3284e",
+      "bytes": 910
+    },
+    {
+      "path": "docs/evidence/issue-82-sp-dys/desktop-restored.png",
+      "sha256": "8b4346309c51a21d894d1a8f7b1d18354268923a592419d9e746f325c36e36ec",
+      "bytes": 239439
+    },
+    {
+      "path": "docs/evidence/issue-82-sp-dys/mobile-before-sql.json",
+      "sha256": "ac7f9ca43c34e23e69008d4ddf15d17c1942c67c35a7c70323d41b1043cce9c0",
+      "bytes": 290
+    },
+    {
+      "path": "docs/evidence/issue-82-sp-dys/mobile-independent-restored.png",
+      "sha256": "88a96062d4c974f33c3c08a0cee80c884b69a40bbc5e7e49176fee94fe1bcb9f",
+      "bytes": 164902
+    },
+    {
+      "path": "docs/evidence/issue-82-sp-dys/mobile-restored.png",
+      "sha256": "88a96062d4c974f33c3c08a0cee80c884b69a40bbc5e7e49176fee94fe1bcb9f",
+      "bytes": 164902
+    },
+    {
+      "path": "docs/evidence/issue-82-sp-dys/neon-readback.json",
+      "sha256": "2bfa493a6e87d1e269fd25e7f16240a4f17d8d96f4c2f7450283d56bc544de29",
+      "bytes": 2134
+    },
+    {
+      "path": "docs/evidence/issue-82-sp-dys/qa-deploy.log",
+      "sha256": "5b9cdfee2935e7cf4be78d828bea2dfe1a098718223ccd29ff713b853a5b85a1",
+      "bytes": 147776
+    },
+    {
+      "path": "docs/evidence/issue-82-sp-dys/served-static-provenance.json",
+      "sha256": "4866ee67653d9cb5263008060018fb55fa31829af4b66104cdd4449cee2ec3b0",
+      "bytes": 759
+    },
+    {
+      "path": "docs/evidence/issue-82-sp-dys/worker-readonly.json",
+      "sha256": "f7bfabb441b330086da663b71011a0eb2f3b2e0a918559a842fd40ca6652f848",
+      "bytes": 53131
+    },
+    {
+      "path": "docs/evidence/qa-educator-candidate-20261010/api-neon-acceptance.json",
+      "sha256": "230f64c4734d3e6a8310e1c066a38b532a7327831f17fee788b9e0335bf57b3c",
+      "bytes": 5444
+    },
+    {
+      "path": "docs/evidence/qa-educator-candidate-20261010/auth-api.json",
+      "sha256": "cbc6790f4ae6f48d5393c67b34f9c195acb8c0e6b3195d54a333cd3fbc166d6d",
+      "bytes": 869
+    },
+    {
+      "path": "docs/evidence/qa-educator-candidate-20261010/chrome-acceptance.json",
+      "sha256": "2ef91dd581f7b34e6bddd22c236d1e63531b1e51d8080c1dd918f103bc961a1b",
+      "bytes": 1194
+    },
+    {
+      "path": "docs/evidence/qa-educator-candidate-20261010/chrome-authenticated-intake.png",
+      "sha256": "b1c713dfc2619436df0c5b95e7600825f0f0ccd1404172b07427b97cc0b528a7",
+      "bytes": 295423
+    },
+    {
+      "path": "docs/evidence/qa-educator-candidate-20261010/chrome-mobile-task.png",
+      "sha256": "c49a99e03750fa80860176aa69214372f0fc0bf09e9fb340243ed805012df0b9",
+      "bytes": 136764
+    },
+    {
+      "path": "docs/evidence/qa-educator-candidate-20261010/chrome-restored-task.png",
+      "sha256": "1e2a5de8646e64c98c12ca04264329ede2e413c0d7535942253b1c985ec67c37",
+      "bytes": 183220
+    },
+    {
+      "path": "docs/evidence/qa-educator-candidate-20261010/deployment-receipt.json",
+      "sha256": "c172f69fb13df4c94c4bd83630bb88d16aabad57779d60ade35d4df22f262048",
+      "bytes": 1224
+    },
+    {
+      "path": "docs/evidence/qa-educator-candidate-20261010/final-auth-tests.log",
+      "sha256": "bcfabca6dac1b212c02f7b1a6da4a9047dbfcf2247a047a54f6b4fcf8eff73af",
+      "bytes": 4141
+    },
+    {
+      "path": "docs/evidence/qa-educator-candidate-20261010/fixture-identity.json",
+      "sha256": "51a4897efd03942d7e6a09b8aa8e4e9f4248f45eedfac420be276adabd847768",
+      "bytes": 275
+    },
+    {
+      "path": "docs/evidence/qa-educator-candidate-20261010/qa-isolation-final-tests.log",
+      "sha256": "1bf5b8b6d766d4d6d01c2715c8e2fb65741d6131ab4ca7c7626a0a9aba1036da",
+      "bytes": 707
+    },
+    {
+      "path": "docs/evidence/qa-educator-candidate-20261010/qa-mapping-proof.json",
+      "sha256": "05cc6d2007390bf8b7a39769a9a8cd0c152e79e0fe3ab4481f3be3ca7b6e7411",
+      "bytes": 460
+    },
+    {
+      "path": "docs/evidence/qa-educator-candidate-20261010/runtime-permissions-readonly.json",
+      "sha256": "65b2c844a62d64fa525d15d6ef84cd6a4c9319b6d5e759bdd8e5b1112ec40f44",
+      "bytes": 275
+    },
+    {
+      "path": "docs/evidence/qa-educator-candidate-20261010/worker-content-comparison.json",
+      "sha256": "6c61f0356339c83e4310092c18c835c5ba688825bede7ac9c54577e8ff076779",
+      "bytes": 96314
+    },
+    {
+      "path": "docs/evidence/qa-educator-candidate-20261010/worker-scope-readonly.json",
+      "sha256": "ff217cab76b0996bc702599df3169d3a900fabbe9af3bdfb24efff76da30a224",
+      "bytes": 287
+    },
+    {
+      "path": "scripts/qa/cza-issue82-synthetic-api.mjs",
+      "sha256": "e957c8ec5703029af69e6839d6b0e554d1433f9d652971f1c798e062ee44ddbb",
+      "bytes": 6845
+    },
+    {
+      "path": "scripts/qa/cza-issue82-synthetic-browser.mjs",
+      "sha256": "bfe07c17de95bb8a1fa1528f0804fb959fdc18497bdf1690eea3158faabd66eb",
+      "bytes": 7362
+    }
+  ],
+  "secretScan": "PASS; known credential/password/cookie values absent",
+  "liveDesktop": "PASS",
+  "liveMobile": "PASS",
+  "apiChecks": 14,
+  "workerModuleMatches": 232
+}

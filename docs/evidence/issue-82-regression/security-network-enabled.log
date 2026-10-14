@@ -1,0 +1,36 @@
+canonical learning persistence: 20 assertions passed
+✔ tests/canonical-learning-persistence.test.mjs (461.892592ms)
+✔ real PostgreSQL engine upgrades populated PR31 schema without data loss (4233.804305ms)
+✔ database roles enforce telemetry/evidence separation and immutability (2025.275202ms)
+✔ legacy hash replay remains valid and tampered replay returns conflict (1967.850666ms)
+✔ distributed limiter counts atomically and globally prunes expired subjects (1967.555778ms)
+✔ trusted proxy nonces are globally single-use and inaccessible to runtime SQL (2027.128577ms)
+✔ authentication touch and revocation are atomic database operations (2027.139883ms)
+✔ strict action schemas reject unknown, missing and cross-action root fields (2.850137ms)
+✔ valid state-changing action is normalized and bounded (0.398754ms)
+✔ stream reader stops oversized chunked bodies before JSON parsing (27.197206ms)
+✔ stream reader enforces media type, declared size and valid JSON (11.531678ms)
+✔ Core upstream configuration fails closed and requires HTTPS allowlisting (0.409674ms)
+✔ canonical telemetry rejects header omission, identity injection and time tampering (1.20654ms)
+✔ production client IP requires an unforgeable Cloudflare runtime boundary (2.026113ms)
+✔ distributed limiter delegates atomic storage and global retention to PostgreSQL (0.237687ms)
+✔ logout and record ingestion serialize on the server session row (0.390717ms)
+✔ logout cookies clear only after durable revocation succeeds (0.375909ms)
+✔ client telemetry cannot create server-verified pedagogical evidence (0.289909ms)
+✔ ledger parent deletion, mutation and truncation are all blocked (0.148355ms)
+✔ idempotency conflict path locks and compares the server canonical hash (0.213489ms)
+✔ Neon recovery evidence retains only a project ID, expiry and cleanup state (2.446849ms)
+✔ runtime socket guard allows only the temporary hostname fingerprint (87.468639ms)
+✔ guarded orchestrator blocks an immediate top-level PostgreSQL admin connection (66.807912ms)
+✔ encrypted cleanup artifact restores authority and deletes through the pinned CLI contract (209.252787ms)
+✔ productionAccessed is derived from single-host runtime evidence (0.577202ms)
+✔ recovery officer public key is immutable and has no private counterpart (0.480894ms)
+✔ security workflows use immutable action and local Neon CLI references (671.543084ms)
+ℹ tests 27
+ℹ suites 0
+ℹ pass 27
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 16447.37338

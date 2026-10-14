@@ -1,0 +1,41 @@
+{
+  "commit": "96790b27feb9d2f2e42e5ec65a2a2ecd11aa093e",
+  "tree": "d814e11eccf5def3d18195d37d02426255932cd7",
+  "worker": "cza-v01-isolated-synthetic-20261010",
+  "deploymentId": "b18f3352-60f5-4d8f-8f63-5601009620f1",
+  "versionId": "f9dd4266-84f4-423b-978b-7a869c2b3b1f",
+  "sourceAnnotation": "96790b27feb9d2f2e42e5ec65a2a2ecd11aa093e/d814e11eccf5def3d18195d37d02426255932cd7",
+  "bindings": [
+    {
+      "name": "CZA_EDUCATOR_AUTH_MODE",
+      "type": "plain_text"
+    },
+    {
+      "name": "CZA_NEON_AUTH_BASE_URL",
+      "type": "plain_text"
+    },
+    {
+      "name": "CZA_TRUSTED_EDGE",
+      "type": "secret_text"
+    },
+    {
+      "name": "DATABASE_URL",
+      "type": "secret_text"
+    }
+  ],
+  "serverEntrySha256": "ad9ab7e0733e1b152170c3166ac3c492a4690e426b10ad0b709bcaba17a1ef40",
+  "verification": [
+    {
+      "path": "/api/educator-auth",
+      "status": 200
+    },
+    {
+      "path": "/api/assessment-special-linked",
+      "status": 200,
+      "sessionId": "190f03b9-7e94-4167-8958-fb0ac25673af",
+      "candidateId": "795c3171-876d-475d-a85b-7183f3ed593a",
+      "cycleId": "13b484fd-56a0-461b-821c-f305b775da4b"
+    }
+  ],
+  "scope": "Only isolated QA deployment; no staging/production changes"
+}

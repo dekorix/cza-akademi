@@ -7,7 +7,16 @@ function json(body: unknown, status = 200) {
 }
 
 export async function GET(request: Request) {
-  const gate = await allowRequest(request, 'educator-students', 30, 60000);
+  // Only the separate synthetic QA Worker emits categorical guard-stage evidence.
+  // No connection string, user identity, request headers, or IP is logged.
+  const qaDiagnostic =
+    new URL(request.url).hostname ===
+    'cza-v01-isolated-synthetic-20261010.cza-staging-habip.workers.dev'
+      ? (stage: string) => console.info('cza_v01_qa_rate_limit_stage', { stage })
+      : undefined;
+  const gate = await allowRequest(
+    request, 'educator-students', 30, 60000, undefined, qaDiagnostic,
+  );
   if (!gate.allowed) return rateLimited(gate);
   try {
     const educator = await authenticatedEducator(request);

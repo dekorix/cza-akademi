@@ -1,0 +1,17 @@
+name: CZA SECURE HOLD - V01 active version database owner-secret readback
+# Disabled 2026-10-10 following independent Codex P1 review.
+# PR-controlled scripts must not access owner DB credentials or Cloudflare tokens.
+# Re-enable only through trusted immutable code and isolated, least-privilege credentials.
+# This workflow NEVER runs DB SQL, deploys, uploads, or reads any secrets.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  review-required:
+    if: false
+    runs-on: ubuntu-24.04
+    steps:
+      - run: echo "BLOCKED_PENDING_TRUSTED_ISOLATED_ACCEPTANCE"

@@ -18,6 +18,9 @@
     if (!('centralProfileCode' in state)) state.centralProfileCode = '';
     if (!('centralSyncStatus' in state)) state.centralSyncStatus = 'local-preview';
     if (!('centralLastSyncAt' in state)) state.centralLastSyncAt = '';
+    if (!('centralCandidateId' in state)) state.centralCandidateId = '';
+    if (!('centralCycleId' in state)) state.centralCycleId = '';
+    if (!('centralCandidateLabel' in state)) state.centralCandidateLabel = '';
   }
 
   async function loadStudents(force) {
@@ -148,6 +151,28 @@
     wrapper.innerHTML = connectionMarkup();
     formPanel.insertBefore(wrapper.firstElementChild, formPanel.firstChild);
     bindInlineLogin();
+    if (centralMode === 'connected' && !bootstrapStudentId) {
+      const fresh = document.createElement('button');
+      fresh.type = 'button';
+      fresh.className = 'secondary-btn';
+      fresh.textContent = 'Yeni aday / yeni değerlendirme çevrimi';
+      fresh.onclick = function () {
+        state.centralCandidateId = '';
+        state.centralCycleId = '';
+        state.centralCandidateLabel = '';
+        state.centralSessionId = '';
+        state.centralProfileCode = '';
+        state.name = '';
+        state.birth = '';
+        state.grade = '';
+        state.readingStage = '';
+        state.concerns = '';
+        clearLocalSpecialEvidence();
+        saveState();
+        render();
+      };
+      formPanel.insertBefore(fresh, formPanel.firstChild);
+    }
 
     wrapStartButton(isDyslexia);
   }
@@ -161,6 +186,13 @@
     return isDyslexia ? 'SP-DYS' : String(state.specialGenericCode || '');
   }
 
+  function clearLocalSpecialEvidence() {
+    state.dysEvidence = {};
+    state.dysLsEvidence = {};
+    state.dysAdvancedEvidence = {};
+    state.specialGenericEvidence = {};
+  }
+
   async function createCentralSession(isDyslexia) {
     const profileCode = currentProfileCode(isDyslexia);
     if (centralMode !== 'connected') {
@@ -168,10 +200,20 @@
       return { localPreview: true };
     }
     const studentLabel = String(document.getElementById(isDyslexia ? 'name' : 'sgName')?.value || '').trim();
+    if (!bootstrapStudentId) {
+      // The displayed name may be corrected. Only the explicit new-candidate
+      // control rotates the stable candidate and cycle identity.
+      state.centralCandidateId = state.centralCandidateId || crypto.randomUUID();
+      state.centralCycleId = state.centralCycleId || crypto.randomUUID();
+      state.centralCandidateLabel = studentLabel;
+      saveState();
+    }
     const payload = {
       action: 'create',
       studentId: bootstrapStudentId || undefined,
       studentLabel,
+      candidateId: bootstrapStudentId ? undefined : state.centralCandidateId,
+      cycleId: bootstrapStudentId ? undefined : state.centralCycleId,
       profileCode,
       grade: isDyslexia
         ? String(document.getElementById('grade')?.value || '')
@@ -205,9 +247,66 @@
     if (body.student && body.student.name) {
       state.centralStudentName = String(body.student.name);
     }
+    clearLocalSpecialEvidence();
     hydrateFromCentral(profileCode, body.attempts || [], body.observations || []);
     saveState();
     return body;
+  }
+
+  function firstIncompleteTaskIndex(taskIds, evidence) {
+    return taskIds.findIndex(function (id) {
+      const row = evidence[id];
+      return !row || !row.verdict || !row.support;
+    });
+  }
+
+  function resumeCentralTask(isDyslexia) {
+    if (isDyslexia) {
+      const index = firstIncompleteTaskIndex(dyslexiaTasks.map(function (task) {
+        return task.id;
+      }), state.dysEvidence || {});
+      if (index >= 0) {
+        state.dysTaskIndex = index;
+        state.screen = 'dyslexia-task';
+      } else {
+        // All PH tasks are done. Inspect the LS route and every advanced domain
+        // from central evidence, not their score/INSUFFICIENT status badges.
+        if (typeof window.czaFirstIncompleteDyslexiaLsTaskIndex !== 'function' ||
+            typeof window.czaFirstIncompleteDyslexiaAdvancedTask !== 'function') {
+          state.screen = 'dyslexia-overview'; // fail safely if a script is absent
+        } else {
+          const lsIndex = window.czaFirstIncompleteDyslexiaLsTaskIndex();
+          if (lsIndex >= 0) {
+            state.dysLsTaskIndex = lsIndex;
+            state.dysLsDelayRevealed = false;
+            state.screen = 'dyslexia-ls-task';
+          } else {
+            const nextAdvanced = window.czaFirstIncompleteDyslexiaAdvancedTask();
+            if (nextAdvanced) {
+              state.dysAdvancedDomainId = nextAdvanced.domainId;
+              state.dysAdvancedTaskIndex = nextAdvanced.taskIndex;
+              state.screen = 'dyslexia-advanced-task';
+            } else {
+              state.screen = 'dyslexia-final-summary';
+            }
+          }
+        }
+      }
+    } else {
+      const index = window.czaFirstIncompleteGenericTaskIndex?.(state.specialGenericCode,
+        state.specialGenericEvidence || {});
+      if (!Number.isInteger(index)) {
+        state.screen = 'special-generic-intake'; // missing route helper; no false completion
+      } else if (index < 0) {
+        state.screen = 'special-generic-summary';
+      } else {
+        state.specialGenericTaskIndex = index;
+        state.screen = 'special-generic-task';
+      }
+    }
+    state.taskStartedAt = Date.now();
+    saveState();
+    render();
   }
 
   function wrapStartButton(isDyslexia) {
@@ -218,8 +317,14 @@
     button.dataset.centralWrapped = '1';
     button.onclick = async function (event) {
       const result = await loadStudents(false);
-      if (result.mode === 'auth-required') {
-        intakeError(isDyslexia, 'Merkezi kayıt için önce eğitimci oturumu açılmalı.');
+      // Local static previews have no central API; keep that explicit demo route.
+      // Online Workers must never treat a failed central API as a saved session.
+      const staticLocalPreview = ['localhost', '127.0.0.1'].includes(window.location.hostname);
+      if (result.mode === 'auth-required' ||
+          (result.mode === 'unavailable' && !staticLocalPreview)) {
+        intakeError(isDyslexia, result.mode === 'auth-required'
+          ? 'Merkezi kayıt için önce eğitimci oturumu açılmalı.'
+          : 'Merkezi kayıt hizmetine ulaşılamıyor. Kayıt güvenliği doğrulanmadan değerlendirme başlatılamaz.');
         return;
       }
       if (result.mode === 'connected' && !String(document.getElementById(isDyslexia ? 'name' : 'sgName')?.value || '').trim()) {
@@ -236,8 +341,9 @@
       }
       button.disabled = true;
       try {
-        await createCentralSession(isDyslexia);
+        const central = await createCentralSession(isDyslexia);
         if (typeof original === 'function') original.call(button, event);
+        if (central.resumed) resumeCentralTask(isDyslexia);
       } catch (error) {
         const code = error instanceof Error ? error.message : 'central_connection_failed';
         intakeError(isDyslexia,

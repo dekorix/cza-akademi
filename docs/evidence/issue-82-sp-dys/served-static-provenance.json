@@ -1,0 +1,27 @@
+[
+  {
+    "path": "app.js",
+    "sha256": "f13ae9edde01ae235e18e5edf3f693655f9010bcb6fc613a48b848c02d275a3c",
+    "sourceMatches": true
+  },
+  {
+    "path": "central-special-sync.js",
+    "sha256": "5affe5919f34b00621ff2a34400a17fd10178315171864b190805601ab1d8c54",
+    "sourceMatches": true
+  },
+  {
+    "path": "dyslexia-advanced.js",
+    "sha256": "457f7fd5d92ad749b1a7bacbe29c09e6c16e52681fe6b284e52a3bd79024eecd",
+    "sourceMatches": true
+  },
+  {
+    "path": "dyslexia-letter-sound.js",
+    "sha256": "84c4d8e055e033961b64c96558a87f75dc0279a4d7ed3e257d0966ee6229f4e4",
+    "sourceMatches": true
+  },
+  {
+    "path": "special-profiles.js",
+    "sha256": "9ae01db90e6844ba3951d42c0fa211e2eeaa20425f0939910f5ec567220c4724",
+    "sourceMatches": true
+  }
+]

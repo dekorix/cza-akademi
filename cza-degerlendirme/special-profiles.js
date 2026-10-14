@@ -227,6 +227,15 @@
     return p.tasks;
   }
 
+  window.czaFirstIncompleteGenericTaskIndex = function(code, evidenceRows) {
+    var p = genericProfiles[code];
+    if (!p) return -1;
+    return routeFor(p).findIndex(function(task) {
+      var row = evidenceRows[code + ':' + task.id];
+      return !row || !row.verdict || !row.support;
+    });
+  };
+
   function profileStatus(p){
     var rows=routeFor(p).map(function(t){return state.specialGenericEvidence[state.specialGenericCode+':'+t.id];}).filter(Boolean).filter(function(e){return e.support!=='NOT_ASSESSED';});
     if(rows.length<4)return {status:'INSUFFICIENT',score:null,rows:rows};

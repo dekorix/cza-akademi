@@ -1,0 +1,51 @@
+
+Running 9 tests using 1 worker
+
+(node:3098) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:3098) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 tests/special-education-browser-acceptance.spec.cjs:33:3 › CZA Özel Eğitim Başlangıç Değerlendirmesi V1 kabul › masaüstü: 10/10 profil aktif ve bütün başlıklar dolu (8.8s)
+  ✘  2 tests/special-education-browser-acceptance.spec.cjs:52:3 › CZA Özel Eğitim Başlangıç Değerlendirmesi V1 kabul › masaüstü: dokuz genel profilin her biri 10/10 alt başlık açıyor (34.9s)
+(node:3354) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:3354) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  3 tests/special-education-browser-acceptance.spec.cjs:76:3 › CZA Özel Eğitim Başlangıç Değerlendirmesi V1 kabul › masaüstü: disleksi 12/12 harita, gelişmiş görev ve bütüncül profil (11.4s)
+  ✓  4 tests/special-education-browser-acceptance.spec.cjs:114:3 › CZA Özel Eğitim Başlangıç Değerlendirmesi V1 kabul › masaüstü: genel profil görev akışı sonuç ekranına kadar ilerliyor (15.4s)
+  ✓  5 tests/special-education-browser-acceptance.spec.cjs:153:3 › CZA Özel Eğitim Başlangıç Değerlendirmesi V1 kabul › mobil: ana ekran, disleksi haritası ve görev ekranı taşmıyor (5.0s)
+  ✓  6 tests/special-education-browser-acceptance.spec.cjs:180:3 › CZA Özel Eğitim Başlangıç Değerlendirmesi V1 kabul › oturumsuz eğitmen aynı değerlendirme formunda giriş yapıp kayıt öncesi başlayabilir (5.4s)
+  ✓  7 tests/special-education-browser-acceptance.spec.cjs:203:3 › CZA Özel Eğitim Başlangıç Değerlendirmesi V1 kabul › giriş hatasında gerçek katman anlaşılır ve parola temizlenir (6.0s)
+  ✓  8 tests/special-education-browser-acceptance.spec.cjs:222:3 › CZA Özel Eğitim Başlangıç Değerlendirmesi V1 kabul › merkezi bağlantı: öğrenci hesabı olmadan session oluşturma ve görev kanıtı APIye gider (10.8s)
+  ✓  9 tests/special-education-browser-acceptance.spec.cjs:320:3 › CZA Özel Eğitim Başlangıç Değerlendirmesi V1 kabul › merkezi başlangıç ekranı parametreleri öğrenciyi ve özel profili otomatik taşır (3.5s)
+
+
+  1) tests/special-education-browser-acceptance.spec.cjs:52:3 › CZA Özel Eğitim Başlangıç Değerlendirmesi V1 kabul › masaüstü: dokuz genel profilin her biri 10/10 alt başlık açıyor 
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - waiting for locator('.special-card[data-code="SP-DYSG"]')[22m
+    [2m    - locator resolved to <button data-code="SP-DYSG" class="special-card active">…</button>[22m
+    [2m  - attempting click action[22m
+    [2m    - waiting for element to be visible, enabled and stable[22m
+    [2m    - element is visible, enabled and stable[22m
+    [2m    - scrolling into view if needed[22m
+    [2m    - done scrolling[22m
+
+
+      59 |       await page.evaluate(() => localStorage.clear());
+      60 |       await page.reload({ waitUntil: 'networkidle' });
+    > 61 |       await page.locator('.special-card[data-code="' + code + '"]').click();
+         |                                                                     ^
+      62 |
+      63 |       await expect(page.locator('.profile-coverage')).toBeVisible();
+      64 |       await expect(page.locator('.coverage-grid > div')).toHaveCount(10);
+        at /workspace/cza-issue-82/tests/special-education-browser-acceptance.spec.cjs:61:69
+
+    Error Context: docs/evidence/issue-82-regression/browser-results/special-education-browser--e24e9-iri-10-10-alt-başlık-açıyor/error-context.md
+
+  1 failed
+    tests/special-education-browser-acceptance.spec.cjs:52:3 › CZA Özel Eğitim Başlangıç Değerlendirmesi V1 kabul › masaüstü: dokuz genel profilin her biri 10/10 alt başlık açıyor 
+  8 passed (1.8m)

@@ -1,5 +1,6 @@
 import {
   handleNeonEducatorAuth,
+  neonEducatorEnabled,
   neonIngressAllowed,
 } from '@/lib/educator-neon-ingress';
 import {
@@ -46,7 +47,7 @@ async function authFetch(url: string, init: RequestInit) {
 }
 
 export async function GET(request: Request) {
-  if (process.env.CZA_EDUCATOR_AUTH_MODE === 'neon') {
+  if (neonEducatorEnabled()) {
     return neonIngressAllowed(request)
       ? json({ ok: true, service: 'cza-educator-auth', mode: 'neon' })
       : json({ ok: false, error: 'request_origin_or_identity_rejected' }, 403);
@@ -68,7 +69,7 @@ export async function POST(request: Request) {
   let parsed;
   try {
     parsed = await readEducatorAuthRequest(
-      process.env.CZA_EDUCATOR_AUTH_MODE === 'neon'
+      neonEducatorEnabled()
         ? (request.clone() as Request)
         : request,
     );
@@ -84,7 +85,7 @@ export async function POST(request: Request) {
       400,
     );
   }
-  if (process.env.CZA_EDUCATOR_AUTH_MODE === 'neon') {
+  if (neonEducatorEnabled()) {
     return handleNeonEducatorAuth(
       request,
       parsed.input,

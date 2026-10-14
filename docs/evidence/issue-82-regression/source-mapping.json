@@ -1,0 +1,114 @@
+{
+  "originalCommit": "96790b27feb9d2f2e42e5ec65a2a2ecd11aa093e",
+  "originalTree": "d814e11eccf5def3d18195d37d02426255932cd7",
+  "preservedPrHead": "957fa1b8bdcc8d1a6da40c2b22ad90d0cdd98a01",
+  "originalIsPrDescendant": false,
+  "strategy": "PR descendant with narrow QA auth diff; original history preserved separately in archive ref. No reset/rebase/force push.",
+  "mappedFiles": [
+    {
+      "path": "app/api/assessment-special-linked/route.ts",
+      "sha256": "a2ffa4b3181bc39ecdec984853f9e038f221f655bd898a615d9f0d3144ac0525",
+      "checkpointMatches": true
+    },
+    {
+      "path": "app/api/educator-auth/route.ts",
+      "sha256": "4ed481f4854a242a24fc084e789807d9acc5d6232fa21c155ccec3478e5027f5",
+      "checkpointMatches": true
+    },
+    {
+      "path": "lib/educator-auth.ts",
+      "sha256": "9eba51209e842c04d56ec90287c10812257eee9d9d3ec63086836ef7c483089f",
+      "checkpointMatches": true
+    },
+    {
+      "path": "lib/educator-neon-ingress.ts",
+      "sha256": "cc8985bf30134f61dc3bc9af4f5d6fad7f48222ca7bfdc8f6cf1126c85651ed5",
+      "checkpointMatches": true
+    },
+    {
+      "path": "lib/isolated-qa-auth.ts",
+      "sha256": "3358c4f81debb007f5e540c4104d930624bc6ad156a62eaaf61bf58739470d71",
+      "checkpointMatches": true
+    },
+    {
+      "path": "cza-degerlendirme/central-special-sync.js",
+      "sha256": "5affe5919f34b00621ff2a34400a17fd10178315171864b190805601ab1d8c54",
+      "checkpointMatches": true
+    },
+    {
+      "path": "public/cza-degerlendirme/central-special-sync.js",
+      "sha256": "5affe5919f34b00621ff2a34400a17fd10178315171864b190805601ab1d8c54",
+      "checkpointMatches": true
+    },
+    {
+      "path": "cza-degerlendirme/dyslexia-advanced.js",
+      "sha256": "457f7fd5d92ad749b1a7bacbe29c09e6c16e52681fe6b284e52a3bd79024eecd",
+      "checkpointMatches": true
+    },
+    {
+      "path": "cza-degerlendirme/dyslexia-letter-sound.js",
+      "sha256": "84c4d8e055e033961b64c96558a87f75dc0279a4d7ed3e257d0966ee6229f4e4",
+      "checkpointMatches": true
+    },
+    {
+      "path": "cza-degerlendirme/special-profiles.js",
+      "sha256": "9ae01db90e6844ba3951d42c0fa211e2eeaa20425f0939910f5ec567220c4724",
+      "checkpointMatches": true
+    }
+  ],
+  "bytePreservedFiles": [
+    "cza-degerlendirme/app.js",
+    "cza-degerlendirme/central-special-sync.js",
+    "cza-degerlendirme/dyslexia-advanced.js",
+    "cza-degerlendirme/dyslexia-letter-sound.js",
+    "cza-degerlendirme/index.html",
+    "cza-degerlendirme/mobile-premium.css",
+    "cza-degerlendirme/netlify.toml",
+    "cza-degerlendirme/special-profiles.js",
+    "cza-degerlendirme/styles.css",
+    "db/migrations/20260907_central_identity.sql",
+    "db/migrations/20260908_assessment_engine_v1.sql",
+    "db/migrations/20260908_legacy_assessment_imports.sql",
+    "db/migrations/20260912_staging_core_prerequisites_v1.sql",
+    "db/migrations/20260913_canonical_learning_ledger_v1.sql",
+    "db/migrations/20260916_u1_student_panel_core_v1.sql",
+    "db/migrations/20260917_u2_client_reported_completion_remediation_v1.sql",
+    "db/migrations/20260917_u2_work_center_core_v1.sql",
+    "db/migrations/20260917_u3_educator_student_access_v1.sql",
+    "db/migrations/20260917_u5_assignment_management_v1.sql",
+    "db/migrations/20260917_u5_cancelled_assignment_write_barrier_v1.sql",
+    "db/migrations/20260918_u8_atomicity_guard_v3.sql",
+    "db/migrations/20260918_u8_coaching_core_hardening_v2.sql",
+    "db/migrations/20260918_u8_coaching_core_v1.sql",
+    "db/migrations/20260918_u9_guardian_panel_v1.sql",
+    "db/migrations/20260921_k3c_engine_provenance_v1.sql",
+    "db/migrations/20260927_f3a_educator_role_enum_v1.sql",
+    "db/migrations/20260927_f3c3_coaching_read_prerequisites_v1.sql",
+    "db/migrations/20260928_t1_assessment_observer_provenance_v1.sql",
+    "db/migrations/20260929_t2_p2_assessment_definition_contract_v1.sql",
+    "db/migrations/20260929_t3_p2_assessment_session_outbox_v1.sql",
+    "db/migrations/20260929_t4_p2_server_evaluator_v1.sql",
+    "db/migrations/20261005_canonical_learning_student_session_binding_v1.sql",
+    "db/migrations/20261005_special_education_program_sessions_v1.sql",
+    "db/migrations/20261005_special_education_programs_v1.sql",
+    "db/migrations/20261005_special_education_reassessments_v1.sql",
+    "db/migrations/20261005_student_package_entitlements_v1.sql",
+    "db/migrations/20261006_attention_focus_module_v1.sql",
+    "db/migrations/20261006_effective_notes_module_v1.sql",
+    "db/migrations/20261006_full_learning_37_module_v1.sql",
+    "db/migrations/20261006_intelligence_games_module_v1.sql",
+    "db/migrations/20261006_memory_module_v1.sql",
+    "db/migrations/20261006_mind_maps_module_v1.sql",
+    "db/migrations/20261006_speed_reading_module_v1.sql",
+    "db/migrations/20261008_t5_pre_enroll_active_identity_staging.sql",
+    "public/cza-degerlendirme/app.js",
+    "public/cza-degerlendirme/central-special-sync.js",
+    "public/cza-degerlendirme/dyslexia-advanced.js",
+    "public/cza-degerlendirme/dyslexia-letter-sound.js",
+    "public/cza-degerlendirme/index.html",
+    "public/cza-degerlendirme/mobile-premium.css",
+    "public/cza-degerlendirme/special-profiles.js",
+    "public/cza-degerlendirme/styles.css",
+    "tests/t5-pre-enroll-client-resume.test.mjs"
+  ]
+}

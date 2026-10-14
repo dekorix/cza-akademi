@@ -1,0 +1,94 @@
+{
+  "workflow_runs": [
+    {
+      "id": 38083628749,
+      "name": "CZA Governance Contract",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 79,
+      "jobs_url": "https://api.github.com/repos/dekorix/cza-akademi/actions/runs/38083628749/jobs",
+      "logs_url": "https://api.github.com/repos/dekorix/cza-akademi/actions/runs/38083628749/logs",
+      "workflow_id": 379010573
+    },
+    {
+      "id": 38083628736,
+      "name": "CZA Special Education Staging DB Readback",
+      "status": "completed",
+      "conclusion": "skipped",
+      "run_number": 174,
+      "jobs_url": "https://api.github.com/repos/dekorix/cza-akademi/actions/runs/38083628736/jobs",
+      "logs_url": "https://api.github.com/repos/dekorix/cza-akademi/actions/runs/38083628736/logs",
+      "workflow_id": 375692935
+    },
+    {
+      "id": 38083628743,
+      "name": "CZA Assignment Lifecycle V1",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 136,
+      "jobs_url": "https://api.github.com/repos/dekorix/cza-akademi/actions/runs/38083628743/jobs",
+      "logs_url": "https://api.github.com/repos/dekorix/cza-akademi/actions/runs/38083628743/logs",
+      "workflow_id": 376635682
+    },
+    {
+      "id": 38083628739,
+      "name": "CZA Assessment CI",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 410,
+      "jobs_url": "https://api.github.com/repos/dekorix/cza-akademi/actions/runs/38083628739/jobs",
+      "logs_url": "https://api.github.com/repos/dekorix/cza-akademi/actions/runs/38083628739/logs",
+      "workflow_id": 352847352
+    },
+    {
+      "id": 38083628715,
+      "name": "CZA Reports V1",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 150,
+      "jobs_url": "https://api.github.com/repos/dekorix/cza-akademi/actions/runs/38083628715/jobs",
+      "logs_url": "https://api.github.com/repos/dekorix/cza-akademi/actions/runs/38083628715/logs",
+      "workflow_id": 376681541
+    },
+    {
+      "id": 38083628730,
+      "name": "CZA P2 Restoration Browser Acceptance",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 90,
+      "jobs_url": "https://api.github.com/repos/dekorix/cza-akademi/actions/runs/38083628730/jobs",
+      "logs_url": "https://api.github.com/repos/dekorix/cza-akademi/actions/runs/38083628730/logs",
+      "workflow_id": 376697607
+    },
+    {
+      "id": 38083628753,
+      "name": "CZA V01 Integrated Platform Build (NO SECRETS)",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 19,
+      "jobs_url": "https://api.github.com/repos/dekorix/cza-akademi/actions/runs/38083628753/jobs",
+      "logs_url": "https://api.github.com/repos/dekorix/cza-akademi/actions/runs/38083628753/logs",
+      "workflow_id": 380460246
+    },
+    {
+      "id": 38083628726,
+      "name": "CZA Special Education Browser Acceptance",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 188,
+      "jobs_url": "https://api.github.com/repos/dekorix/cza-akademi/actions/runs/38083628726/jobs",
+      "logs_url": "https://api.github.com/repos/dekorix/cza-akademi/actions/runs/38083628726/logs",
+      "workflow_id": 375630037
+    },
+    {
+      "id": 38083628740,
+      "name": "CZA Canonical PostgreSQL Security",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 119,
+      "jobs_url": "https://api.github.com/repos/dekorix/cza-akademi/actions/runs/38083628740/jobs",
+      "logs_url": "https://api.github.com/repos/dekorix/cza-akademi/actions/runs/38083628740/logs",
+      "workflow_id": 357999950
+    }
+  ]
+}
