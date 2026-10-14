@@ -1,0 +1,417 @@
+<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; connect-src 'none'; form-action 'none'; base-uri 'none'"><title>CZA · MAT-01 V3.2 kapsamlı sentetik checkpoint</title><style>:root{font-family:system-ui,-apple-system,'Segoe UI',sans-serif;color:#18342f;background:#f5f4ee;font-size:18px;line-height:1.5}*{box-sizing:border-box}body{margin:0}header{background:#123e35;color:white;padding:18px max(20px,calc((100vw - 1200px)/2));display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}.brand{font-size:24px;font-weight:800;letter-spacing:1px}.brand small{display:block;font-size:12px;letter-spacing:2px;font-weight:500}header button{background:#fff;color:#18342f}button,input,select,textarea{font:inherit}button{cursor:pointer;border:1px solid #738d82;background:white;color:#18342f;min-height:48px;padding:10px 18px;border-radius:10px;font-weight:650}button:disabled{opacity:.48;cursor:not-allowed}button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:4px solid #2469bc;outline-offset:3px}.primary{background:#126551;color:white;border-color:#126551;margin-top:20px}.banner{background:#f5dfad;padding:10px 20px;text-align:center;font-size:14px;font-weight:650}main{max-width:1200px;margin:auto;padding:40px 24px 60px}.eyebrow{font-size:13px;letter-spacing:1.5px;font-weight:800;color:#49685f;margin-bottom:10px}h1{font-size:clamp(30px,4vw,48px);line-height:1.15;max-width:850px;margin:0 0 22px}h2{font-size:25px;margin-top:0}h3{font-size:20px}.lead{font-size:21px;max-width:870px;color:#446257}.setup-grid{display:grid;grid-template-columns:1.1fr 1fr;gap:24px;margin-top:32px}.panel,.question{background:#fff;border:1px solid #d5dfd8;border-radius:20px;padding:30px;margin-bottom:24px}.pale{background:#e8efe4}label{display:block;font-weight:600;margin:16px 0}select,textarea,input[type=text]{display:block;width:100%;padding:12px;border:1px solid #81978d;border-radius:8px;background:white;color:#18342f;margin-top:8px}textarea{resize:vertical;min-height:120px}input[type=radio],input[type=checkbox]{width:24px;height:24px;accent-color:#126551;flex-shrink:0}.steps{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:28px}.steps button{flex:1;font-size:15px;min-width:120px}.steps [aria-current=step]{background:#183e34;color:white}.prompt{font-size:26px;max-width:900px}.choices{display:grid;grid-template-columns:1fr 1fr;gap:16px}.choice{position:relative;display:flex;align-items:flex-start;gap:10px;padding:20px;border:2px solid #ccd7cd;border-radius:16px;margin:0;min-height:120px;cursor:pointer;background:#fbfcf8}.choice:has(input:checked){border-color:#126551;background:#edf5e9;box-shadow:0 0 0 2px #126551}.letter{border-radius:50%;background:#e4ece5;min-width:32px;text-align:center}.choice strong{font-size:22px}.blocks{display:flex;gap:24px;align-items:flex-end;flex-wrap:wrap;padding:18px 4px;max-width:100%}.rods{display:flex;gap:8px;flex-wrap:wrap}.rod{display:flex;flex-direction:column;width:16px;background:#c88c37;transform:skewY(-4deg);box-shadow:3px 2px 0 #9b6422;border:1px solid #a26d25}.rod i{display:block;height:8px;border-bottom:1px solid #e9c47c}.units{display:grid;grid-template-columns:repeat(5,15px);gap:7px}.cube{height:14px;width:14px;background:#c88c37;box-shadow:3px 2px 0 #9b6422;border:1px solid #a26d25}.choice .blocks{gap:16px}.choice .rods{gap:5px}.choice .rod{width:12px}.choice .rod i{height:6px}.number-pair{display:flex;gap:30px;margin:24px 0}.number-pair span{font-size:60px;padding:20px 40px;background:#edf2e8;border-radius:16px;font-weight:750}.small{font-size:14px;color:#4b6459}.check{display:flex;align-items:center;gap:10px;font-size:16px}.support{background:#f1f5eb;padding:16px;border-radius:12px}.counters,.evidence-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}fieldset{border:0;padding:0;margin:24px 0}legend{font-weight:650;margin-bottom:12px}.saved{border-left:5px solid #126551;padding:20px;background:#edf5e9;overflow-wrap:anywhere}.toolbar{display:flex;gap:12px;flex-wrap:wrap;margin:25px 0}.status-grid{display:flex;flex-wrap:wrap;gap:12px;margin:24px 0;font-size:14px}.status-grid span,.badge{background:#e9eee4;border-radius:6px;padding:6px 10px;display:inline-block;font-weight:650;overflow-wrap:anywhere}.evidence{padding:20px;background:#f7f8f3;border:1px solid #dce3d9;border-radius:14px;overflow-wrap:anywhere}.evidence p{font-size:15px}dt{font-size:13px;color:#50665c;font-weight:700;margin-top:14px}dd{margin:4px 0}dialog{border:1px solid #72877a;border-radius:18px;max-width:680px;width:calc(100% - 32px);max-height:90vh;padding:28px;color:#18342f}dialog::backdrop{background:#18342faa}#notice{color:#853c0d;padding:0 24px;max-width:1200px;margin:auto}footer{padding:24px;text-align:center;font-size:13px;color:#52685c;border-top:1px solid #d4ddd3}@media(max-width:650px){main{padding:26px 16px}.setup-grid,.evidence-grid,.choices{grid-template-columns:1fr}.panel,.question{padding:20px}.prompt{font-size:23px}.steps button{min-width:calc(50% - 8px)}header{padding:16px}header nav{display:flex;gap:6px;flex-wrap:wrap}header button{font-size:14px;padding:8px 10px}.choice{min-height:100px}.number-pair span{font-size:48px;padding:14px 24px}}@media print{@page{size:A4;margin:14mm}header,.banner,.steps,.toolbar,footer,button,.small,#notice{display:none!important}body{background:white;font-size:12pt}main{padding:0}.question,.panel{border:none;padding:0}.choices{grid-template-columns:1fr 1fr;gap:8mm}.choice{break-inside:avoid;border:1px solid #333}.choice:has(input:checked){background:white;box-shadow:none;border:1px solid #333}input[type=radio]{appearance:none;border:1px solid #333;border-radius:50%}.blocks{print-color-adjust:exact}.evidence-grid{grid-template-columns:1fr}.evidence{break-inside:avoid}}
+
+body[data-access=access]{font-size:21px}body[data-access=access] .choice{min-height:140px;border-width:3px}body[data-access=older] .prompt{font-size:23px}
+</style></head><body><header><div class="brand">CZA<small>MATEMATİĞİ ANLAMAK</small></div><nav aria-label="Görünüm"><button id="setup">Hazırlık</button> <button id="student" disabled>Öğrenci</button> <button id="teacher" aria-pressed="false">Eğitmen kanıtları</button></nav></header><div class="banner">SENTETİK ÖNİZLEME · Gerçek öğrenci kullanımı kapalı · CZA ürününe ve SLP’ye bağlı değil</div><div id="notice" role="alert"></div><main id="app"></main><dialog id="observation" aria-label="Sentetik eğitmen gözlemi"></dialog><footer>MAT-01 · B08-V32-CHECKPOINT-01 · SOURCE_NOT_AVAILABLE · Yalnız bu sekmenin belleğinde çalışır. Yenileme kayıtları kaybettirir; sentetik JSON’u önce indirebilirsin. <br>REAL_STUDENT_USE=BLOCKED · AUTO_ASSIGNMENT=BLOCKED · RUNTIME_NOT_WIRED=YES · USER_VISUAL_ACCEPTANCE=PENDING</footer><script>/**
+ * Pure, synthetic-only B08 review contract. No runtime imports, I/O, scores,
+ * authentication claims, student profile writes, or assignment side effects.
+ */
+const B08_VERSION = 'B08_MAT01_EVIDENCE_V1.0';
+const B08_SOURCES = Object.freeze({
+    baseCommit: '30de9c8641163c865d4863f3bcaf8e3e3c62faa2',
+    taskVersion: 'MAT01_SOURCE_30de9c8',
+    rubricVersion: 'B08_AI_REV1_OBSERVABLE_V1.0',
+    contractIssue: 'https://github.com/dekorix/cza-akademi/issues/106#issuecomment-6163243221',
+    designIssue: 'https://github.com/dekorix/cza-akademi/issues/106#issuecomment-6163081902',
+    protocol: 'https://github.com/dekorix/cza-akademi/issues/108',
+    curriculum: 'https://tymm.meb.gov.tr/ilkokul-matematik-dersi/unite/116',
+    prerequisite: 'https://tymm.meb.gov.tr/ilkokul-matematik-dersi/unite/45',
+    sourceAccessDate: '2026-10-13',
+    rights: 'SOURCE_UNVERIFIED',
+    runtimeNotWired: true,
+});
+const B08_TRANSFER_PROPOSAL = Object.freeze({
+    title: 'Aynı Sayı, Farklı Gösterimler',
+    instruction: '52 sayısını iki farklı şekilde göster. Gösterimlerinden en az birinde onluk ve birlik gruplarını belirt. İki gösterimin de 52 olduğunu anlat ya da göster.',
+    status: 'DESIGN_ONLY_NOT_PUBLISHED',
+});
+const present = (s) => typeof s === 'string' && s.trim().length > 0;
+const validDate = (s) => present(s) && Number.isFinite(Date.parse(s));
+const words = Object.freeze({
+    sıfır: 0, bir: 1, iki: 2, üç: 3, dört: 4, beş: 5, altı: 6,
+    yedi: 7, sekiz: 8, dokuz: 9, on: 10, kırk: 40,
+});
+const amount = (s) => /^\d{1,3}$/.test(s) ? Number(s) : words[s];
+const normalize = (s) => s.normalize('NFC').toLocaleLowerCase('tr-TR')
+    .trim().replace(/\s+/g, ' ').replace(/[.!?]+$/, '').trim();
+/** Bounded grammar: unrecognized explanations are reviewed, never guessed. */
+function classifyMat01A(raw) {
+    const text = normalize(raw);
+    if (!text)
+        return 'NOT_ASSESSED';
+    if (/^(?:4\s*,\s*7|4\s+7)$/.test(text))
+        return 'AMBIGUOUS_REVIEW';
+    if (/^47\s*=\s*(?:4\s*,\s*7|dört virgül yedi)$/.test(text))
+        return 'INCORRECT_RELATION';
+    if (/^(?:40\s*\+\s*7|47)$/.test(text))
+        return 'PARTIAL_EVIDENCE';
+    if (/^(?:onlar basamağının değeri 4|47'de onlar basamağının değeri 4(?:'tür)?)$/.test(text)) {
+        return 'INCORRECT_RELATION';
+    }
+    const token = '(\\d{1,3}|sıfır|bir|iki|üç|dört|beş|altı|yedi|sekiz|dokuz|on|kırk)';
+    const forward = text.match(new RegExp(`^${token} onluk(?: ve|,)? ${token} birlik$`));
+    const reverse = text.match(new RegExp(`^${token} birlik(?: ve|,)? ${token} onluk$`));
+    const labelled = text.match(new RegExp(`^onluk\\s*:\\s*${token}\\s*,?\\s*birlik\\s*:\\s*${token}$`));
+    const match = forward ?? reverse ?? labelled;
+    if (!match)
+        return 'AMBIGUOUS_REVIEW';
+    const tens = amount(match[reverse ? 2 : 1]);
+    const units = amount(match[reverse ? 1 : 2]);
+    return tens === 4 && units === 7 ? 'RELATION_OBSERVED' : 'INCORRECT_RELATION';
+}
+function observationReasons(e) {
+    const o = e.observation;
+    if (!o)
+        return ['OBSERVATION_MISSING'];
+    const reasons = [];
+    if (o.provenance !== 'educator_observed')
+        reasons.push('OBSERVATION_PROVENANCE_UNVERIFIED');
+    if (!present(o.ref) || !present(o.observerRef) || !present(o.rationale) || !validDate(o.observedAt)) {
+        reasons.push('OBSERVATION_CONTEXT_MISSING');
+    }
+    if (o.rawRef !== e.rawRef || o.taskVersion !== e.source.taskVersion ||
+        o.rubricVersion !== B08_SOURCES.rubricVersion)
+        reasons.push('OBSERVATION_SOURCE_MISMATCH');
+    const allowed = e.task === 'MAT-01B' ? ['B1', 'B2', 'B3', 'B4', 'B5'] :
+        e.task === 'MAT-01T' ? ['T1', 'T2', 'T3', 'T4', 'T5'] : [];
+    for (const [key, value] of Object.entries(o.criteria ?? {})) {
+        if (!allowed.includes(key) || !['OBSERVED', 'PARTIAL', 'INCORRECT', 'NOT_ASSESSED'].includes(value)) {
+            reasons.push('OBSERVATION_CRITERION_INVALID');
+        }
+    }
+    return reasons;
+}
+function gateReasons(e) {
+    const reasons = [];
+    if (!present(e.rawRef) || !present(e.assessmentRef) || !validDate(e.observedAt) ||
+        !Number.isInteger(e.sequence) || e.sequence < 0)
+        reasons.push('SOURCE_REFERENCE_MISSING');
+    if (e.source.taskVersion !== B08_SOURCES.taskVersion ||
+        e.source.rubricVersion !== B08_SOURCES.rubricVersion)
+        reasons.push('SOURCE_VERSION_UNVERIFIED');
+    if (e.previousEvaluation && (e.previousEvaluation.contractVersion !== B08_VERSION ||
+        e.previousEvaluation.rawRef !== e.rawRef))
+        reasons.push('SILENT_RESCORE_BLOCKED');
+    if (!['client_reported', 'server_evaluated', 'educator_observed'].includes(e.provenance)) {
+        reasons.push('RAW_PROVENANCE_UNVERIFIED');
+    }
+    if (e.access !== 'VALID' || e.responseChannelAvailable !== true)
+        reasons.push('ACCESS_NOT_ASSESSED');
+    if (!['TEXT', 'SPEAK', 'DRAW', 'SELECT'].includes(e.responseMode))
+        reasons.push('RESPONSE_MODE_UNVERIFIED');
+    if (e.accommodation !== 'PRESERVES_CONSTRUCT')
+        reasons.push('CONSTRUCT_NOT_ASSESSED');
+    if (!['NONE', 'PROMPT', 'MODEL', 'ANSWER_PROVIDED'].includes(e.teachingHint))
+        reasons.push('HELP_NOT_ASSESSED');
+    if (!['TAUGHT', 'PARTLY_TAUGHT', 'NOT_TAUGHT', 'UNKNOWN'].includes(e.opportunity)) {
+        reasons.push('TEACHING_OPPORTUNITY_INVALID');
+    }
+    const phase = { 'MAT-01A': 'firstIndependent', 'MAT-01S': 'supported',
+        'MAT-01B': 'probe', 'MAT-01T': 'newTransfer', finger_read: 'probe' }[e.task];
+    if (!phase || e.phase !== phase)
+        reasons.push('PHASE_MISMATCH');
+    if ((e.task === 'MAT-01A' || e.task === 'MAT-01T') && e.teachingHint !== 'NONE') {
+        reasons.push('INDEPENDENCE_NOT_ASSESSED');
+    }
+    if (e.task === 'MAT-01S') {
+        if (!['VERBAL_DESCRIPTION', 'MATERIAL'].includes(e.stimulusMode))
+            reasons.push('STIMULUS_UNVERIFIED');
+    }
+    if (e.stimulusMode === 'MATERIAL' && !present(e.source.stimulusVersion))
+        reasons.push('MATERIAL_VERSION_MISSING');
+    if (e.teachingHint === 'ANSWER_PROVIDED')
+        reasons.push('ANSWER_IMITATION');
+    if (e.task === 'MAT-01T') {
+        const n = e.novelty;
+        if (!n || n.status !== 'UNSEEN' || !present(n.variantRef) ||
+            !present(n.version) || !present(n.historyRef))
+            reasons.push('NOVELTY_NOT_ASSESSED');
+        if (e.observation?.criteria?.T5 !== 'OBSERVED')
+            reasons.push('TRANSFER_CONDITIONS_NOT_OBSERVED');
+    }
+    if (e.task === 'MAT-01B' && e.observation?.criteria?.B5 === 'INCORRECT') {
+        reasons.push('OBSERVATION_PROCESS_CONFLICT');
+    }
+    if (e.observation || e.task === 'MAT-01B' || e.task === 'MAT-01T' || e.responseMode !== 'TEXT') {
+        reasons.push(...observationReasons(e));
+    }
+    return reasons;
+}
+function rubricRelation(e) {
+    const c = e.observation?.criteria ?? {};
+    const values = Object.values(c);
+    if (values.every(v => v === 'NOT_ASSESSED'))
+        return 'NOT_ASSESSED';
+    if (values.includes('INCORRECT'))
+        return 'INCORRECT_RELATION';
+    if (e.task === 'MAT-01B') {
+        // A valid short explanation of one digit is sufficient for the why-question,
+        // without claiming that every digit or the entire curriculum was assessed.
+        if (c.B4 === 'OBSERVED' && (c.B2 === 'OBSERVED' || c.B2 === 'PARTIAL'))
+            return 'RELATION_OBSERVED';
+    }
+    else if (c.T1 === 'OBSERVED' && c.T2 === 'OBSERVED' && c.T3 === 'OBSERVED') {
+        return 'RELATION_OBSERVED';
+    }
+    return 'PARTIAL_EVIDENCE';
+}
+function evaluateMat01Evidence(e) {
+    const reasons = gateReasons(e);
+    let status = 'NOT_ASSESSED';
+    let answerStatus = null;
+    if (e.task === 'finger_read')
+        reasons.push('FINGER_READ_ACADEMIC_LINK_NO_GO');
+    if (!reasons.length) {
+        if (e.task === 'MAT-01A') {
+            status = e.responseMode === 'TEXT' ? classifyMat01A(e.raw) : 'NOT_ASSESSED';
+            // A teacher can supply a separate labelled explanation, never rewrite raw.
+            if (e.responseMode !== 'TEXT')
+                reasons.push('OPEN_RESPONSE_REQUIRES_SEPARATE_LABELLED_EVIDENCE');
+            if (!present(e.raw))
+                reasons.push('NO_RESPONSE_OBSERVED');
+        }
+        else if (e.task === 'MAT-01S') {
+            const text = normalize(e.raw);
+            answerStatus = ['47', 'kırk yedi'].includes(text) ? 'CORRECT_NUMBER' :
+                /^\d+$/.test(text) ? 'INCORRECT_NUMBER' : null;
+            if (answerStatus === 'INCORRECT_NUMBER')
+                status = 'INCORRECT_RELATION';
+            else if (answerStatus === 'CORRECT_NUMBER')
+                status = 'PARTIAL_EVIDENCE';
+            else
+                status = present(e.raw) ? 'AMBIGUOUS_REVIEW' : 'NOT_ASSESSED';
+            if (e.observation?.supportRelationObserved === true && !observationReasons(e).length &&
+                answerStatus === 'CORRECT_NUMBER')
+                status = 'RELATION_OBSERVED';
+        }
+        else
+            status = rubricRelation(e);
+    }
+    return Object.freeze({
+        rawRef: e.rawRef, raw: e.raw, assessmentRef: e.assessmentRef, task: e.task,
+        phase: e.phase, provenance: e.provenance, opportunity: e.opportunity,
+        contractVersion: B08_VERSION, source: Object.freeze({ ...e.source }), status,
+        answerStatus, score: null, mastery: 'INSUFFICIENT', assignment: 'BLOCKED',
+        delayedRetention: 'NOT_ASSESSED', reasons: Object.freeze([...new Set(reasons)]),
+        observationRef: e.observation?.ref ?? null,
+        criteria: Object.freeze({ ...e.observation?.criteria }),
+    });
+}
+/** Deduplicates raw source references across both maps; never replaces first A. */
+function evaluateMat01Collection(inputs) {
+    const seen = new Map();
+    const conflicts = [];
+    for (const e of inputs) {
+        const previous = seen.get(e.rawRef);
+        if (previous) {
+            if (JSON.stringify(previous) !== JSON.stringify(e))
+                conflicts.push('RAW_REFERENCE_CONFLICT');
+        }
+        else
+            seen.set(e.rawRef, e);
+    }
+    const unique = [...seen.values()].sort((a, b) => a.sequence - b.sequence);
+    if (new Set(unique.map(e => e.assessmentRef)).size > 1)
+        conflicts.push('ASSESSMENT_SCOPE_CONFLICT');
+    const first = unique.filter(e => e.task === 'MAT-01A' && e.phase === 'firstIndependent');
+    if (first.length > 1)
+        conflicts.push('FIRST_RESPONSE_ALREADY_PRESENT');
+    const results = unique.map(evaluateMat01Evidence);
+    const conflict = conflicts.length > 0;
+    return Object.freeze({
+        results: Object.freeze(results), uniqueRawCount: unique.length,
+        distinctGroupCount: unique.some(e => e.task !== 'finger_read') ? 1 : 0,
+        firstIndependent: conflicts.includes('ASSESSMENT_SCOPE_CONFLICT') ? null :
+            results.find(r => r.task === 'MAT-01A') ?? null,
+        supported: Object.freeze(results.filter(r => r.task === 'MAT-01S')),
+        probes: Object.freeze(results.filter(r => r.task === 'MAT-01B')),
+        newTransfer: Object.freeze(results.filter(r => r.task === 'MAT-01T')),
+        conflicts: Object.freeze([...new Set(conflicts)]), status: conflict ? 'REVIEW_REQUIRED' : 'INSUFFICIENT',
+        score: null, mastery: 'INSUFFICIENT', delayedRetention: 'NOT_ASSESSED',
+        assignment: 'BLOCKED', runtimeNotWired: true,
+    });
+}
+
+// Synthetic preview adapter v2. Does not replace or rescore PR109's contract.
+const TASKS = ['A', 'S', 'B', 'T'];
+const OPTIONS = {
+ A: [{id:'canonical',t:4,u:7,label:'4 onluk · 7 birlik'}, {id:'reverse',t:7,u:4,label:'7 onluk · 4 birlik'}, {id:'digit',t:0,u:11,label:'11 birlik'}, {id:'value',t:4,u:4,label:'4 onluk · 4 birlik'}],
+ S: [{id:'canonical',label:'47'}, {id:'reverse',label:'74'}, {id:'digit',label:'11'}, {id:'value',label:'407'}],
+ B: [{id:'canonical',label:'Aynı sayı değiller'}, {id:'same',label:'Aynı sayılar'}, {id:'unknown',label:'Karar veremedim'}, {id:'digits',label:'İkisinde de 4 ve 7 var; değerlerini bilmiyorum'}],
+ T: [{id:'canonical',t:5,u:2,label:'Bu grubu seç'}, {id:'reverse',t:2,u:5,label:'Bu grubu seç'}, {id:'digit',t:0,u:7,label:'Bu grubu seç'}, {id:'value',t:5,u:7,label:'Bu grubu seç'}]
+};
+// Each four-attempt block has one correct position per task. Teacher never sees an answer-position setting.
+function options(task, attempt, layout) {
+ const position = layout ? layout[task][(attempt-1)%4] : ((attempt - 1) + {A:2,S:0,B:3,T:1}[task]) % 4;
+ const list = OPTIONS[task].filter(o => o.id !== 'canonical');
+ list.splice(position, 0, OPTIONS[task][0]); return list;
+}
+const freeze = value => { if (value && typeof value === 'object') {Object.values(value).forEach(freeze);Object.freeze(value);}return value; };
+function newSession(){ return freeze({studentRef:'SYNTHETIC_SINGLE_SLP',attempts:[]}); }
+function start(session, config) {
+ const number = session.attempts.length + 1;
+ const attempt = {id:`SYNTHETIC-ATTEMPT-${number}`,number,config:{...config},responses:[],observations:[]};
+ return freeze({...session,attempts:[...session.attempts,attempt]});
+}
+function recordV2(session, id, task, data) {
+ const a=session.attempts.find(x=>x.id===id);
+ if(!a || !TASKS.includes(task)) throw Error('UNKNOWN_ATTEMPT');
+ if(a!==session.attempts.at(-1)) throw Error('ARCHIVED_ATTEMPT_LOCKED');
+ if(a.responses.some(r=>r.task===task)) throw Error('IMMUTABLE_RESPONSE');
+ if(task!=='A'&&!a.responses.some(r=>r.task==='A')) throw Error('FIRST_RESPONSE_REQUIRED');
+ const index=TASKS.indexOf(task);
+ if(index>0&&!a.responses.some(r=>r.task===TASKS[index-1]))throw Error('PREVIOUS_STAGE_REQUIRED');
+ if(!data.raw?.trim() && !data.unavailable) throw Error('EMPTY_RESPONSE');
+ if(data.kind==='recognition'&&!options(task,a.number).some(o=>o.id===data.option))throw Error('INVALID_OPTION');
+ const response={...data,task,ref:`${id}-${task}`,phase:{A:'firstIndependent',S:'supported',B:'probe',T:'newTransfer'}[task],version:'B08_UX_REV2_V2',source:{contract:'B08_MAT01_EVIDENCE_V1.0',task:'MAT01_SOURCE_30de9c8',stimulus:'B08_UX_REV2_VISUAL_V2',rubric:'B08_AI_REV1_OBSERVABLE_V1.0'},provenance:'synthetic_student_direct',score:null,mastery:'INSUFFICIENT',assignment:'BLOCKED'};
+ return freeze({...session,attempts:session.attempts.map(x=>x.id===id?{...x,responses:[...x.responses,response]}:x)});
+}
+function observe(session,id,task,observation){
+ const a=session.attempts.find(x=>x.id===id);
+ if(a!==session.attempts.at(-1))throw Error('ARCHIVED_ATTEMPT_LOCKED');
+ if(!a.responses.some(r=>r.task===task))throw Error('RESPONSE_REQUIRED');
+ if(a.observations.some(o=>o.task===task))throw Error('IMMUTABLE_OBSERVATION');
+ if(!observation.note?.trim())throw Error('OBSERVATION_NOTE_REQUIRED');
+ return freeze({...session,attempts:session.attempts.map(x=>x.id===id?{...x,observations:[...x.observations,{...observation,task,provenance:'synthetic_educator_declaration',authenticated:false}]}:x)});
+}
+function assessV2(response, observation, classifier){
+ if(!response || response.unavailable)return {status:'NOT_ASSESSED',reason:'Yanıt kanalı veya kanıt yok; sıfır puan değildir.'};
+ if(response.task==='T' && (!observation || observation.novelty!=='UNSEEN' || observation.help!=='NONE' || !observation.history?.trim())) return {status:'NOT_ASSESSED',reason:'Eğitmen yenilik/geçmiş kaynağı ve yardımsızlık kanıtı gerekli.'};
+ if(response.kind==='recognition')return {status:response.option==='canonical'?'RECOGNITION_CORRECT':'RECOGNITION_INCORRECT',reason:'Yalnız seçenek tanıma; bağımsız üretim, kavramsal ustalık veya transfer başarısı değildir.'};
+ if(response.task==='A'){
+  const m=response.raw.toLocaleLowerCase('tr-TR').trim().match(/^(\d{1,2}) onluk(?: ve)? (\d{1,2}) birlik$/);
+  if(m && +m[1]*10+(+m[2])===47 && (+m[1]!==4 || +m[2]!==7))return {status:'EQUIVALENT_NONCANONICAL',reason:'47 ile matematiksel eşdeğer; kanonik basamak çözümlemesi gözlenmedi. PR109 sonucu değiştirilmedi.'};
+  return {status:classifier(response.raw),reason:'Sınırlı PR109 metin sınıflayıcısı; ustalık kararı üretmez.'};
+ }
+ if(!observation)return {status:'NOT_ASSESSED',reason:'Öğrencinin yanıtı korundu; eğitmen gözlemi bekleniyor.'};
+ if(response.task==='B'||response.task==='T'){
+  const c=observation.criteria??{};
+  if(!Object.values(c).some(v=>v!=='NOT_ASSESSED'))return {status:'NOT_ASSESSED',reason:'Gözlenebilir rubrik ölçütleri henüz işaretlenmedi; genel yargı tek başına yeterli değil.'};
+  if(response.task==='T'&&c.T5!=='OBSERVED')return {status:'NOT_ASSESSED',reason:'T5 yeni uyaran kanıtı eksik.'};
+  if(observation.judgment==='RELATION_OBSERVED'){
+   const complete=response.task==='B'?c.B4==='OBSERVED'&&(c.B2==='OBSERVED'||c.B3==='OBSERVED'):['T1','T2','T3','T4','T5'].every(k=>c[k]==='OBSERVED');
+   if(!complete||Object.values(c).includes('INCORRECT'))return {status:'PARTIAL_EVIDENCE',reason:'İlişki yargısı için ölçütler eksik/çelişkili; eğitmen kararı bekleniyor.'};
+  }
+ }
+ return {status:observation.judgment,reason:'Sentetik eğitmen beyanı; otomatik metin puanlama veya doğrulanmış uzman kararı değildir.'};
+}
+
+const SOURCE_STATUS='SOURCE_NOT_AVAILABLE';
+const SYNTHETIC_HISTORY=Object.freeze({SYNTHETIC_HISTORY_REVIEW_01:Object.freeze({studentRef:'SYNTHETIC_SINGLE_SLP',reviewedPriorNumbers:Object.freeze([47,74]),kind:'REVIEWED_SYNTHETIC_FIXTURE'})});
+const closed=(reason)=>({status:'NOT_ASSESSED',effective:'NOT_ASSESSED',reason,mastery:'INSUFFICIENT',assignment:'BLOCKED',realTransfer:'NOT_VERIFIED'});
+function representations(raw){
+ const parts=raw.toLocaleLowerCase('tr-TR').split(/[;\n]/).map(s=>s.trim()).filter(Boolean);
+ if(parts.length!==2)return null;
+ const models=parts.map(p=>{let m=p.match(/^(\d{1,3})\s*onluk\s*(?:ve\s*)?(\d{1,3})\s*birlik[.!]?$/);if(m)return {value:+m[1]*10+(+m[2]),key:`groups:${+m[1]}:${+m[2]}`};m=p.match(/^(\d{1,3})\s*\+\s*(\d{1,3})[.!]?$/);return m?{value:+m[1]+(+m[2]),key:`sum:${Math.min(+m[1],+m[2])}:${Math.max(+m[1],+m[2])}`}:null;});
+ return models.every(Boolean)?models:null;
+}
+function transferGate(response, observation){
+ if(!response||response.unavailable||!observation)return closed('Öğrenci kanıtı ve ayrı eğitmen gözlemi gerekli.');
+ if(observation.judgment!=='RELATION_OBSERVED')return closed('Olumlu olmayan ham öğretmen hükmü olumlu kanıta yükseltilemez.');
+ if(response.kind!=='production'||response.channel==='objects')return closed('Tanıma veya menüyle kurma bağımsız farklı temsil üretimine eşitlenmez.');
+ const c=observation.criteria??{};
+ if(!['T1','T2','T3','T4','T5'].every(k=>c[k]==='OBSERVED'))return closed('T1–T5 (iki gösterim, onluk/birlik, gerekçe, bağımsızlık, yeni uyaran) birlikte gerekli.');
+ if(response.priorTransferSeen)return closed('52 bu oturumun önceki denemesinde kullanıldı; yeniden yeni transfer değildir.');
+ if(!SYNTHETIC_HISTORY[observation.history]?.reviewedPriorNumbers||SYNTHETIC_HISTORY[observation.history].reviewedPriorNumbers.includes(52))return closed('Geçmiş kaynak referansı incelenmiş sentetik günlükle eşleşmiyor.');
+ if(observation.novelty!=='UNSEEN'||observation.help!=='NONE'||!observation.history?.trim()||observation.historyKind!=='SYNTHETIC_REVIEWED_LOG')return closed('Yalnız UNSEEN seçimi yeterli değildir; incelenmiş sentetik geçmiş kaynağı ve yardım NONE gerekir.');
+ const models=representations(response.raw);
+ if(!models||models.some(m=>m.value!==52)||!models.some(m=>m.key.startsWith('groups:'))||models[0].key===models[1].key)return closed('İki matematiksel doğru ve farklı gösterim doğrulanamadı; sınırlı parser bilinmeyeni yanlış puanlamaz.');
+ return {status:'PROVISIONAL_EVIDENCE',effective:'PROVISIONAL_EVIDENCE',reason:'Yalnız sentetik, geçici kanıt. Gerçek geçmiş/eğitmen kimliği doğrulanmadı; ustalık veya gerçek transfer kabulü değildir.',mastery:'INSUFFICIENT',assignment:'BLOCKED',realTransfer:'NOT_VERIFIED'};
+}
+function record(session,id,task,data){
+ const priorExposure=session.attempts.filter(a=>a.id!==id).some(a=>a.responses.some(r=>['A','S','B'].includes(r.task)));
+ return recordV2(session,id,task,{...data,priorTransferSeen:task==='T'&&session.attempts.filter(a=>a.id!==id).some(a=>a.responses.some(r=>r.task==='T')),checkpointVersion:'B08_V32_CHECKPOINT_FALLBACK_V1',sourceStatus:SOURCE_STATUS,baseline:task==='A'?(priorExposure?'PREVIOUS_EXPOSURE_NOT_NEW_BASELINE':'FIRST_RECORDED_EXPOSURE'):'NOT_BASELINE',evidenceChannel:data.channel==='objects'?'MENU_CONSTRUCTION':data.channel==='physical'?'PHYSICAL_OBJECT_EDUCATOR_TRANSCRIPT':data.channel==='communication'?'STUDENT_COMMUNICATION':data.kind==='recognition'?'RECOGNITION':task==='S'?'SUPPORTED_TEXT':task==='B'?'STUDENT_REASONING_TEXT':task==='T'?'INDEPENDENT_REPRESENTATION_TEXT':'INDEPENDENT_TEXT'});
+}
+function assess(response,observation,classifier){
+ if(response?.task==='T')return transferGate(response,observation);
+ const r=assessV2(response,observation,classifier);
+ if(response?.task==='A'&&response.channel==='objects')return {...closed('Menüyle kurma ayrı kanıttır; bağımsız kavramsal üretim sayılmaz.'),status:'MENU_CONSTRUCTION_EVIDENCE'};
+ return {...r,mastery:'INSUFFICIENT',assignment:'BLOCKED',realTransfer:'NOT_VERIFIED'};
+}
+
+// Balanced session-specific positions, chosen with browser cryptographic randomness.
+const shuffled = () => { const p=[0,1,2,3]; for(let i=3;i>0;i--){const n=new Uint32Array(1);crypto.getRandomValues(n);const j=n[0]%(i+1);[p[i],p[j]]=[p[j],p[i]];}return p; };
+const positions=shuffled(), offsets=shuffled();
+if(positions[offsets[0]]===0)[positions[offsets[0]],positions[(offsets[0]+1)%4]]=[positions[(offsets[0]+1)%4],positions[offsets[0]]];
+const sessionLayout=Object.fromEntries(TASKS.map((t,i)=>[t,[0,1,2,3].map(r=>positions[(r+offsets[i])%4])]));
+let session=newSession(), view='setup', stage='A', active=null;
+const root=document.querySelector('#app');
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const titles={A:'İlk yanıtın',S:'Birlikte inceleyelim',B:'İki sayıyı karşılaştır',T:'Aynı Sayı, Farklı Gösterimler'};
+function blocks(t,u){return `<div class="blocks" role="img" aria-label="${t} onluk çubuğu ve ${u} birlik küpü"><div class="rods">${Array.from({length:t},()=>'<span class="rod">'+('<i></i>'.repeat(10))+'</span>').join('')}</div><div class="units">${'<span class="cube"></span>'.repeat(u)}</div></div>`;}
+function attempt(){return session.attempts.find(a=>a.id===active);}
+function field(id,label,type='text'){return `<label>${label}<input id="${id}" type="${type}" maxlength="500"></label>`;}
+function select(id,label,items){return `<label>${label}<select id="${id}">${items.map(([v,t])=>`<option value="${v}">${t}</option>`).join('')}</select></label>`;}
+function render(){
+ const a=attempt();
+ document.body.dataset.access=a?.config.age??'young';
+ document.querySelector('#teacher').setAttribute('aria-pressed',view==='teacher');
+ document.querySelector('#student').disabled=!a;
+ let content='';
+ if(view==='setup')content=`<div class="eyebrow">EĞİTMEN HAZIRLIĞI · SENTETİK</div><h1>Her yanıtın bir hikâyesi var.</h1><p class="lead">Onluk ve birlik ilişkisini nasıl gösterdiğine bakalım. Önce yanıt yolunu seçin; ilk yanıttan sonra bu seçim kilitlenir.</p><div class="setup-grid"><section class="panel"><h2>Yanıt yolu</h2>${select('method','MAT-01A başlangıç yöntemi',[['recognition','A1 · Dört seçenekten tanıma'],['production','A2 · Seçeneksiz bağımsız üretim'],['objects','A2 · Nesnelerle gruplama'],['communication','A2 · Sözlü / alternatif iletişim'],['physical','A2 · Fiziksel nesne / eğitmen kaydı (sentetik)']])}${select('presentation','A1 şık sunumu',[['visual','Nesne grupları'],['written','Büyük basılı yazılı şıklar']])}${select('age','Görsel sunum (düzey belirlemez)',[['young','5–8 yaş · büyük sunum'],['older','9–12 yaş · sade sunum'],['access','Erişim desteği · yüksek okunaklılık']])}${select('access','Yanıt kanalının erişilebilirliği',[['VALID','Uygun kanal hazır'],['UNAVAILABLE','Henüz uygun kanal yok']])}<button id="begin" class="primary">Sentetik denemeyi başlat</button></section><aside class="panel pale"><h2>Bu önizlemede</h2><ol><li>İlk yanıt korunur.</li><li>Destek ayrı kaydedilir.</li><li>Gerekçe gözlem bekler.</li><li>Yeni örnek ayrıca incelenir.</li></ol><p>Takvim yaşı öğrenme düzeyi değildir. Özel eğitimde iletişim ve motor uyarlamaları kavramsal yardımdan ayrılır.</p><p>Yalnız hayalî yanıt girin. İsim, ses kaydı veya gerçek öğrenci verisi kullanmayın.</p></aside></div>`;
+ if(view==='student'){
+  const saved=a.responses.find(r=>r.task===stage); const first=a.responses.some(r=>r.task==='A');
+  content=`<div class="eyebrow">ÖĞRENCİ · ${esc(a.id)}</div><nav class="steps" aria-label="Değerlendirme aşamaları">${TASKS.map((t,i)=>`<button data-stage="${t}" ${(!first&&t!=='A')||(i>0&&!a.responses.some(r=>r.task===TASKS[i-1]))?'disabled':''} aria-current="${stage===t?'step':'false'}">${i+1}. ${titles[t]}</button>`).join('')}</nav><section class="question"><div class="eyebrow">MAT-01${stage} · ${stage==='A'?esc(a.config.method==='recognition'?'Şıklardan tanıma':'Bağımsız üretim'):stage==='S'?'Destekli performans':'Ayrı kanıt'}</div><h1>${titles[stage]}</h1>`;
+  if(saved)content+=`<div class="saved" role="status"><h2>Yanıtın kaydedildi.</h2><p>${esc(saved.raw)}</p><p>Bu ilk kayıt değiştirilemez. Sonraki çalışmada yeni bir kayıt oluşur.</p></div>${stage!=='T'?'<button id="next" class="primary">Sonraki çalışmaya geç</button>':'<p>Çalışma tamamlandı. Eğitmenin yanıtlarını ayrıca inceleyecek.</p>'}`;
+  else {
+   content+=`<p class="prompt">${{A:'47 sayısında kaç onluk ve kaç birlik var? Kendi yanıtını ver.',S:'Bu onluk çubukları ve birlik küpleri hangi sayıyı gösteriyor?',B:'47 ve 74 aynı rakamları kullanıyor. Sence aynı sayı mı? Neden? Anlat ya da göster.',T:'52 sayısını iki farklı şekilde göster. En az birinde onluk ve birlik gruplarını belirt. İkisinin de aynı sayıyı gösterdiğini anlat ya da göster.'}[stage]}</p>`;
+   if(stage==='B')content+='<div class="number-pair"><span>47</span><span>74</span></div>';
+   if(stage==='S')content+=blocks(4,7)+`<div class="support">Materyal: onluk çubuğu ve birlik küpü. ${select('hint','Verilen kavramsal destek',[['MATERIAL','Yalnız görünen materyal'],['PROMPT','Sözel ipucu verildi'],['MODEL','Çözüm modellendi'],['ANSWER_PROVIDED','Cevap söylendi']])}</div>`;
+   const recognition=stage==='A'?a.config.method==='recognition':false;
+   if(stage!=='A')content+=select('responseMode','Yanıt yolu',[['production','Kendi yanıtım / gösterimim'],['recognition','Görsel / basılı seçenekten tanıma'],['objects','Nesne gruplama'],['communication','Sözlü / alternatif iletişim'],['physical','Fiziksel nesne / eğitmen kaydı (sentetik)']]);
+   content+=`<div id="responseArea">${responseArea(recognition?'recognition':stage==='A'?a.config.method:'production')}</div><label class="check"><input id="unavailable" type="checkbox">Bu yanıt kanalı kullanılamadı / yanıt gözlenemedi</label><button id="save" class="primary">Yanıtı kaydet ve kilitle</button><p class="small">Henüz bir doğru/yanlış geri bildirimi verilmez.</p>`;
+  }
+  content+='</section>';
+ }
+ if(view==='teacher'){
+  content=`<div class="eyebrow">EĞİTMEN · YALNIZ SENTETİK BEYAN</div><h1>Yanıttan kanıta.</h1><p class="lead">Aynı sentetik öğrenci referansı; farklı denemeler. Bu görünüm bir öğretmen oturumunu doğrulamaz ve SLP’ye veri yazmaz.</p><div class="toolbar"><button id="new">Yeni deneme hazırlığı</button><button id="export">Sentetik kayıtları indir</button><button id="print">Görünen seçenekleri A4 yazdır</button></div><div class="status-grid"><span>Ustalık: INSUFFICIENT</span><span>Otomatik atama: BLOCKED</span><span>Kalıcılık: NOT_ASSESSED</span></div>`;
+  content+=session.attempts.length?session.attempts.map(at=>`<section class="panel"><h2>${esc(at.id)} ${at.id!==active?'· Arşiv / salt okunur':''}</h2><p>${esc(at.config.method)} · ${esc(at.config.age)} · erişim ${esc(at.config.access)} · Student ref: SYNTHETIC_SINGLE_SLP</p><div class="evidence-grid">${TASKS.map(t=>{
+   const r=at.responses.find(x=>x.task===t),o=at.observations.find(x=>x.task===t), result=assess(r,o,classifyMat01A);
+   return `<article class="evidence"><h3>MAT-01${t} · ${titles[t]}</h3><span class="badge">${esc(result.status)}</span><p>${esc(result.reason)}</p><p>Gerçek transfer: NOT_VERIFIED · Öğretmen ham hükmü ayrı korunur.</p><dl><dt>Öğrenci doğrudan yanıtı</dt><dd>${r?esc(r.raw):'Henüz yok'}</dd><dt>Kanıt türü / yardım</dt><dd>${r?esc(r.evidenceChannel+' / '+r.help+' / '+r.baseline):'NOT_ASSESSED'}</dd><dt>Kaynak / faz</dt><dd>${r?esc(r.ref+' / '+r.phase):'—'}</dd><dt>Eğitmen gözlemi (ayrı)</dt><dd>${o?esc(o.note+' / '+o.judgment+' / '+JSON.stringify(o.criteria)):'Öğretmen kararı bekleniyor'}</dd></dl>${r&&!o&&at===session.attempts.at(-1)?`<button data-observe="${t}">Sentetik gözlem ekle</button>`:''}</article>`;
+  }).join('')}</div></section>`).join(''):'<p>Henüz deneme yok. Eğitmen hazırlığından başlayın.</p>';
+  content+='<section class="panel"><h2>Yorumlama sınırı</h2><p>MAT.2.1.2 aday ilişkisi · MAT.1.1.2 ön koşul. Akademik gelişim haritası ve CZA-S01 için tek görev grubu; diğer 13 beceri NOT_ASSESSED. 26 profil / P2 23 bölüm / özel eğitim / LGS–YKS mimarisi korunur. Yeni profil oluşturulmaz. finger_read bu önizlemede ölçülmez; başarısı basamak değeri kanıtına çevrilmez.</p></section>';
+ }
+ root.innerHTML=content;
+ bind();
+}
+function responseArea(mode){
+ if(stage==='T'&&mode==='production')return `<label>Birinci ve ikinci gösterimin (ayrı satırlar veya noktalı virgülle)<textarea id="raw" rows="4" maxlength="1000"></textarea></label><p>Kendi gerekçeni eğitmene anlat veya göster. Burada otomatik gerekçe puanı verilmez.</p>`;
+ if(mode==='recognition')return `<fieldset><legend>Bir seçenek belirle</legend><div class="choices">${options(stage,attempt().number,attempt().config.layout).map((o,i)=>`<label class="choice"><input type="radio" name="choice" value="${o.id}"><span class="letter">${'ABCD'[i]}</span><span>${o.t!==undefined&&(stage!=='A'||attempt().config.presentation!=='written')?blocks(o.t,o.u):''}<strong>${esc(stage==='A'&&attempt().config.presentation!=='written'?'Bu grubu seç':o.label)}</strong></span></label>`).join('')}</div></fieldset><button id="printStudent" type="button">A4 şıklı sayfayı yazdır</button>`;
+ if(mode==='objects')return `<p>Onluk çubuğu 10 birleşik birimden oluşur. İstediğin grupları oluştur.</p><div class="counters">${select('tens','Onluk sayısı',Array.from({length:11},(_,i)=>[i,i]))}${select('units','Birlik sayısı',Array.from({length:21},(_,i)=>[i,i]))}</div><div id="constructed">${blocks(0,0)}</div>${stage==='T'?'<label>İkinci gösterimin<textarea id="raw" rows="3" maxlength="1000"></textarea></label>':''}`;
+ return `<label>${mode==='communication'?'Gözlenen sözlü / alternatif iletişim yanıtının aynısını yazın (sentetik)':'Kendi yanıtın / gösterimin'}<textarea id="raw" rows="4" maxlength="1000"></textarea></label><p class="small">Yazı veya motor erişimi uygun değilse eğitmen alternatif kanalı hazırlayabilir. Burada ses kaydı ve çizim tanıma yoktur.</p>`;
+}
+function bind(){
+ const on=(id,fn,event='click')=>{const el=document.getElementById(id);if(el)el.addEventListener(event,fn);};
+ on('begin',()=>{session=start(session,{method:val('method'),age:val('age'),access:val('access'),presentation:val('presentation'),layout:sessionLayout});active=session.attempts.at(-1).id;stage='A';view='student';render();});
+ document.querySelectorAll('[data-stage]').forEach(b=>b.onclick=()=>{stage=b.dataset.stage;render();});
+ on('next',()=>{stage=TASKS[TASKS.indexOf(stage)+1];render();});
+ on('responseMode',()=>{document.querySelector('#responseArea').innerHTML=responseArea(val('responseMode'));bindCounters();document.querySelector('#printStudent')?.addEventListener('click',()=>window.print());},'change'); bindCounters();
+ on('printStudent',()=>window.print());
+ on('save',()=>{
+  const a=attempt(),mode=stage==='A'?a.config.method:val('responseMode'), selected=document.querySelector('[name=choice]:checked');
+  const unavailable=document.querySelector('#unavailable').checked||a.config.access!=='VALID';
+  const raw=mode==='recognition'?(selected?options(stage,a.number,a.config.layout).find(o=>o.id===selected.value).label:''):mode==='objects'?`${val('tens')} onluk ${val('units')} birlik${stage==='T'?' / '+val('raw'):''}`:val('raw');
+  try{session=record(session,active,stage,{observedAt:new Date().toISOString(),raw:unavailable?'Yanıt gözlenemedi':raw,kind:mode==='recognition'?'recognition':'production',channel:mode,recordedBy:['communication','physical'].includes(mode)?'educator_verbatim':'student_direct',option:selected?.value,unavailable,help:stage==='S'?val('hint'):'NONE'});render();}catch(e){message(e.message==='EMPTY_RESPONSE'?'Önce bir yanıt gir veya kanalın kullanılamadığını belirt.':e.message);}
+ });
+ on('new',()=>{view='setup';render();});
+ on('print',()=>window.print());
+ on('export',()=>{const blob=new Blob([JSON.stringify(session,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='CZA_SENTETIK_KANIT.json';a.click();URL.revokeObjectURL(url);});
+ document.querySelectorAll('[data-observe]').forEach(b=>b.onclick=()=>observationForm(b.dataset.observe));
+}
+function val(id){return document.getElementById(id)?.value??'';}
+function bindCounters(){for(const id of ['tens','units'])document.getElementById(id)?.addEventListener('change',()=>{document.querySelector('#constructed').innerHTML=blocks(+val('tens'),+val('units'));});}
+function message(text){document.querySelector('#notice').textContent=text;}
+function observationForm(task){
+ const rubric=task==='B'?'B1: rakamların yerini gösterme; B2: 4 için 40/4; B3: 7 için 7/70; B4: değişen değerden sayılar farklı sonucunu gerekçelendirme; B5: dil/nesneyle ilişkiyi açıklama. Yalnız “yerleri değişti” kısmi kanıttır.':task==='T'?'T1: iki eşdeğer gösterim; T2: en az bir onluk-birlik temsili; T3: ikisinin de 52 olduğunu gerekçelendirme; T4: bağımsızlık; T5: gerçekten yeni uyaran.': 'Tanıma bağımsız üretim değildir. Destekli cevap ilk yanıtı değiştirmez.';
+ const criteria=task==='B'?['B1','B2','B3','B4','B5']:task==='T'?['T1','T2','T3','T4','T5']:[];
+ const criterionFields=criteria.map(c=>select('criterion'+c,c+' gözlem durumu',[['NOT_ASSESSED','Gözlenemedi'],['OBSERVED','Gözlendi'],['PARTIAL','Kısmi'],['INCORRECT','Hatalı']])).join('');
+ const dialog=document.querySelector('#observation');
+ dialog.innerHTML=`<form method="dialog"><h2>MAT-01${task} · ayrı eğitmen gözlemi</h2><p>${rubric}</p><p>Yalnız sentetik beyan; kimlik doğrulaması yok.</p><label>Gözlenen davranış ve ölçüt gerekçesi<textarea id="obsNote" maxlength="1000" required></textarea></label>${select('judgment','Gözlenen kanıt (kalıcı seviye değil)',[['NOT_ASSESSED','Gözlenemedi'],['PARTIAL_EVIDENCE','Kısmi'],['RELATION_OBSERVED','İlişki gözlendi'],['INCORRECT_RELATION','Hatalı ilişki'],['AMBIGUOUS_REVIEW','Belirsiz / inceleme']])}${task==='T'?select('novelty','Uyaran geçmişi',[['UNKNOWN','Bilinmiyor'],['SEEN','Daha önce görüldü'],['UNSEEN','Eğitmen geçmiş kaynağıyla yeni olduğunu beyan ediyor']])+field('history','Önceki uyaran incelemesi / sentetik kaynak referansı')+select('historyKind','Geçmiş kaynağı durumu',[['UNKNOWN','Doğrulanamadı'],['SYNTHETIC_REVIEWED_LOG','İncelenmiş sentetik uyaran günlüğü (gerçek geçmiş değil)']])+select('transferHelp','Transfer yardımı',[['UNKNOWN','Bilinmiyor'],['NONE','Kavramsal yardım yok'],['PROMPT','İpucu verildi'],['MODEL','Çözüm modellendi']]):''}${task==='T'?'<p>Sentetik örnek günlük: SYNTHETIC_HISTORY_REVIEW_01 · önceki sayılar 47 ve 74. Gerçek SLP geçmişi değildir.</p>':''}${criterionFields}<button id="saveObservation" value="save" class="primary">Gözlemi ayrı kaydet</button><button value="cancel">Vazgeç</button></form>`;
+ dialog.querySelector('form').onsubmit=e=>{if(e.submitter.value!=='save')return;e.preventDefault();try{session=observe(session,active,task,{observedAt:new Date().toISOString(),note:val('obsNote'),judgment:val('judgment'),novelty:val('novelty'),history:val('history'),historyKind:val('historyKind'),help:val('transferHelp'),criteria:Object.fromEntries(criteria.map(c=>[c,val('criterion'+c)]))});dialog.close();render();}catch(err){message(err.message);}};
+ dialog.showModal();
+}
+document.querySelector('#teacher').onclick=()=>{view='teacher';render();};
+document.querySelector('#student').onclick=()=>{view='student';render();};
+document.querySelector('#setup').onclick=()=>{view='setup';render();};
+window.addEventListener('beforeunload',e=>{if(session.attempts.length){e.preventDefault();}});
+render();
+</script></body></html>

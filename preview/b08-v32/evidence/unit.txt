@@ -1,0 +1,33 @@
+✔ INCORRECT_RELATION (0.997703ms)
+✔ PARTIAL_EVIDENCE (0.108934ms)
+✔ NOT_ASSESSED (1.150934ms)
+✔ missing T1 (0.231349ms)
+✔ missing T2 (0.137537ms)
+✔ missing T3 (0.234954ms)
+✔ missing T4 (0.434755ms)
+✔ missing T5 (0.087862ms)
+✔ unknown history ref (0.201824ms)
+✔ missing history (0.101353ms)
+✔ unverified history (0.090096ms)
+✔ seen (0.067171ms)
+✔ PROMPT (0.057717ms)
+✔ MODEL (0.076165ms)
+✔ wrong number (0.691341ms)
+✔ same representations (0.286492ms)
+✔ no teacher (0.164978ms)
+✔ recognition (0.049965ms)
+✔ menu construction (0.063936ms)
+✔ no grouping representation (0.182645ms)
+✔ complete synthetic positive is only provisional (0.150747ms)
+✔ numeric equivalence and distinct forms (0.142945ms)
+✔ A gate, immutable support and repeated47 baseline (0.774496ms)
+✔ raw negative educator judgment stays frozen (0.448676ms)
+✔ repeated52 cannot be unseen again (0.087452ms)
+ℹ tests 25
+ℹ suites 0
+ℹ pass 25
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 19.258176
