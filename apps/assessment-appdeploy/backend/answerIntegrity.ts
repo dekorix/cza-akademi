@@ -1,13 +1,17 @@
-export const ANSWER_STORE_LIMIT = 100000;
+export const ANSWER_BYTE_LIMIT = 16 * 1024;
 export const TRUNCATED_MARK = 'TRUNCATED|';
-const MARK = TRUNCATED_MARK;
 
-export function prepareStoredAnswer(raw: string) {
-  const text = String(raw || '').trim();
-  if (text.length <= ANSWER_STORE_LIMIT) return { text, truncated: false };
-  return { text: MARK + text.slice(0, 2000), truncated: true };
+const encoder = new TextEncoder();
+
+export function rawAnswerByteLength(value: string) {
+  return encoder.encode(value).byteLength;
+}
+
+export function takeRawAnswer<T>(record: T, raw: string): { status: 413; record: T } | { status: 200; record: T; text: string } {
+  if (rawAnswerByteLength(raw) > ANSWER_BYTE_LIMIT) return { status: 413, record };
+  return { status: 200, record, text: raw.trim() };
 }
 
 export function isTruncatedAnswer(answer: string) {
-  return String(answer || '').startsWith(MARK);
+  return String(answer || '').startsWith(TRUNCATED_MARK);
 }

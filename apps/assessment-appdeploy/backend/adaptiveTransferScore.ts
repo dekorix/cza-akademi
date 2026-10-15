@@ -81,6 +81,11 @@ export function assessAdaptiveTransfer(answer: string): { status: AdaptiveIntegr
   const stats = parseAdaptiveTransfer(answer);
   const rows = rowsOf(answer);
   if (!stats || !rows) return { status: 'insufficient' };
+  const seen = new Set<string>();
+  for (const row of rows) {
+    if (seen.has(row.id)) return { status: 'insufficient' };
+    seen.add(row.id);
+  }
   if (DOMAINS.some((domain) => stats[`${domain}Max`] > 2)) return { status: 'insufficient' };
   if (rows.length !== stats.total || !countsMatch(stats, rows)) return { status: 'insufficient' };
   const perDomain = DOMAINS.map((domain) => rows.filter((row) => row.domain === domain).length);
