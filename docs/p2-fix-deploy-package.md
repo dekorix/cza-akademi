@@ -29,21 +29,21 @@ PR #101 ve PR #107 dosyalarına dokunulmadı.
 | `apps/assessment-appdeploy/src/CzaApp.tsx` | Değerlendirme rotası sınıra alındı. Matematik taramasında 15. maddeden sonra `coreCorrect<=5` ile erken bitiş kalktı. Bitiş `length-1`. İlerleme çubuğu metinleri: matematik “20 tarama görevi”, dil “20 kısa görev”, transfer “12 görev”. Eğitimci rozeti `educatorAttemptBadge` ile çizilir. | Tavan maddeleri X1–X5 her oturumda görünsün; beyaz ekran toparlanabilsin; 12 maddelik AV1 “Destek/inceleme” rozeti almasın. | Orta. Yeni oturumların M1A oranı ve kanıt sayısı değişir. Rozet eşlemesi aynıdır: `review` “Eğitmen incelemesi”. |
 | `apps/assessment-appdeploy/src/LanguageScan.tsx` | `idx===14` ve `coreCorrect<=4` erken bitişi kalktı. Bitiş bankanın son maddesi. 10. maddedeki mola duruyor. | 20 maddenin son beşi de gösterilsin. | Orta. L1A kayıt uzunluğu ve oran girdisi değişir. |
 | `apps/assessment-appdeploy/src/AdaptiveTransferLab.tsx` | `buildPlan` artık altı alanın 12 maddesini de döndürür. `focus` hâlâ en düşük üç alan olarak yazılır; madde seçmez. Mola, uzunluğun yarısından bir önceki indextedir (12 maddede 5, devam 6). | Altı maddelik kesit tüm bankayı gizlemesin. | Orta. Yeni oturumun beceri oranına altı alan da girer. Etiket kuralı ayrıca düzeltildi. |
-| `apps/assessment-appdeploy/backend/adaptiveTransferScore.ts` | AV1 ayrıştırıcı, tamamlama etiketi, altı beceri oranı ve eğitimci rozeti. | 12 maddelik tam kayıt `incorrect` sayılmasın; 6 maddelik eski kayıt aynı kalsın. | Orta. Sayısal oran formülü eskiyle aynıdır. Tam 12 madde artık `review` olur. |
-| `apps/assessment-appdeploy/backend/index.ts` | M1A, M2A, M3A, C1A için `next.default` ilgili destek sorusuna bağlandı. M1A ve L1A yönergesi 20 madde der. AV1 yönergesi 12 madde ve altı alan der. Puan ve kanıt `adaptiveTransferSkill` üzerinden gelir. | `review` dalı `default` boşsa oturumu kapatıyordu. AV1 yönergesi ve etiketi 12 maddeyle aynı kurala alındı. | Orta. Yönlendirme değişir. Şema değişmedi. AV1 etiket engeli kalktı. |
+| `apps/assessment-appdeploy/backend/adaptiveTransferScore.ts` | AV1 bütünlük sonucu, altı beceri oranı ve eğitimci rozeti. | Tam 6 veya 12 madde `review` kalsın. Eksik, tutarsız, ayrışmayan ve tümü atlanmış kayıt puan üretmesin. | Orta. Eski tutarlı 6 maddelik oran aynıdır. Eksik kayıt artık `insufficient` olur. |
+| `apps/assessment-appdeploy/backend/index.ts` | M1A, M2A, M3A, C1A için `next.default` ilgili destek sorusuna bağlandı. M1A ve L1A yönergesi 20 madde der. AV1 yönergesi 12 madde ve altı alan der. Puan ve kanıt `adaptiveTransferSkill` üzerinden gelir. | `review` dalı `default` boşsa oturumu kapatıyordu. AV1 yönergesi ve etiketi 12 maddeyle aynı kurala alındı. | Orta. Yönlendirme değişir. Şema değişmedi. 2000 karakterlik sessiz kesme kalktı. |
 | `docs/assessment-14-skill-questions.md` | 14 rapor alanının soru envanteri. | Sahibin “bütün soruları görmek” isteği. Çalışma zamanı yok. | Yok. |
 | `tests/p2-assessment-progress.test.mjs` | Graf yürüyüşü, A8 yedek yolu, erken bitişin kalkması, 12 maddelik plan, sınır kaynağı. | Regresyon. | Yok. |
 | `tests/p2-av1-score.test.mjs` | 6 ve 12 madde etiketi, rozet, altı beceri oranı ve kaynak bağları. | Eski 6 maddelik kayıt sapmasın; tam 12 madde `incorrect` olmasın. | Yok. |
 
-Canlı P2 doğru zinciri aynı uçta biter: W1’den MV1’e. MV1’in `next` alanı yoktur; bu meşru kapanıştır. M2, M3, C ve eski L1S sonrası dil blokları bu zincire eklenmedi. DA1S, DA1T ve M1S koşullu destek olarak duruyor.
+P2-14 sözleşmesi en az 6, en çok 12 görevdir. Eski 6 maddelik kayıt alt sınırın içinde kalır. Toplam tavan 239’dan 245’e çıkar. Alt sınır 226 durur. Canlı P2 doğru zinciri aynı uçta biter: W1’den MV1’e. MV1’in `next` alanı yoktur; bu meşru kapanıştır. M2, M3, C ve eski L1S sonrası dil blokları bu zincire eklenmedi. DA1S, DA1T ve M1S koşullu destek olarak duruyor.
 
 ### Sahibin bilinçli kabul edeceği puan ve rapor farkları
 
-M1A, L1A, A8 ve 2000 karakter kesmesi dağıtımdan önce açık karar ister. AV1 etiket engeli bu dalda kapatıldı.
+M1A ve L1A’nın 20 maddeye çıkması dağıtımdan önce açık karar ister. AV1 eksik kanıtı ayrı sonuçtır. A8 yedek yolu `FALLBACK` damgası taşır. 2000 karakterlik sessiz kesme yoktur.
 
 1. **M1A ve L1A artık her yeni oturumda 20 madde.** Oran formülü aynıdır: kayıt `MS|` / `LS|` diye açılmazsa veya `n<10` ise `review`; aksi halde `doğru/toplam >= 0.55` ise `correct`, değilse `incorrect`. Rapor, kayıtlı etiketi değil kayıt dizisindeki oranı yeniden okur (`scoreReport` içinde M1A `correct/total`, L1A için S03 okuma, S04 anlama, diğer kodlar genel oran). Eski `n=15` dizileri yerinde kalır ve aynı ayrıştırıcıyla okunur. Yeni diziler tavan maddelerini paydaya ve paydayı tutan doğrulara katar. Alan 2 kanıt sayısı `n(M1A)`; alan 6 kanıt sayısı `n(L1A)`. Yeni tamamlanmış taramada bu sayılar 20’ye çıkar.
 2. **M1A `review` artık oturumu kapatmaz.** Atlama, ayrışmayan kayıt veya `n<10` destek sorusu M1S’e gider. Doğru yanıt M1B’de, düşük oran M1S’te kalır. M2A, M3A ve C1A aynı deseni alır; bu üçü canlı P2 zincirinde değildir. `status` zaten `completed` olan oturum yeniden açılmaz. Yanıt ucu `409` “Oturum tamamlandı” döner.
-3. **AV1 tamamlama kuralı.** Ayrışan kayıtta `n=6` veya `n=12` ise etiket `review`, rozet “Eğitmen incelemesi”. Bunun dışı `incorrect`, rozet “Destek/inceleme”. Eski altı maddelik tam kayıt `review` kalır. Eksik 5 ve 11 madde `incorrect` kalır. AV1 hiç `correct` üretmez; performans oran etiketi değiştirmez.
+3. **AV1 bütünlük sonucu.** Tutarlı `n=6` veya `n=12` kayıt `review` ve rozet “Eğitmen incelemesi” olur. `n` 6/12 dışında ise, `r=` madde listesi özet pay/payda veya alan başına madde kuralıyla uyuşmuyorsa, payda 2’yi aşıyorsa, dizgi ayrışmıyorsa ya da 12 maddenin tümü `SKIP` ise sonuç `insufficient` olur. Rozet “Eksik kanıt · eğitmen incelemesi”dir. Bu sonuç beceri tabanına ve paydaya girmez. `incorrect` etiketi ve “Destek/inceleme” rozeti bu eksik kayıt için kullanılmaz; diğer görevlerdeki `incorrect` anlamı durur.
 4. **AV1 beceri oranı, etiketle aynı kapı değildir.** `scoreReport` ayrışan kayıtta şu pay/paydaları kullanır ve sonucu 0.2 ile 1 arasına sıkıştırır. Payda 0 ise o beceri bu denemeye girmez.
 
 | Beceri | Alan oranı | Sentetik eski 6 madde | Sentetik yeni 12 madde |
@@ -57,8 +57,8 @@ M1A, L1A, A8 ve 2000 karakter kesmesi dağıtımdan önce açık karar ister. AV
 
 Eski 6 maddelik dizinin etiket ve altı beceri çıktısı, eski `total===6` formülüyle birebir aynıdır. Yeni 12 maddelik dizinin etiketi `incorrect` / “Destek/inceleme” olmaktan çıkıp `review` / “Eğitmen incelemesi” olur. Sayısal tabanlar 0.32 yedek değere düşmez; yukarıdaki oranlardır. Altı alanın yeni kayda girmesi, sahibin 12 madde kararıyla kabul edilen rapor farkıdır. Alan 10’un kanıt sayısı AV1’i saymaz. Öğrenme tepkisi yalnız `correct` etiketine baktığı için AV1 bu indeksi değiştirmez.
 5. **AV1 eğitimci yönergesi 12 maddeyi söyler.** “On iki görev altı alanın her birinden ikişer madde olarak açılır.” `focus` madde seçmez.
-6. **A8 kısa yedek yolu.** A7 `short` / `middle` / `explore` ise madde aynıdır. A7 `SKIP` veya tanımsızsa gösterilen ve kayda geçen işlem `4 + 3`, doğru yanıt `7` olur. `challenge=` alanı A7 yanıtını (SKIP dahil) tutar. MA1 beceri ağırlığı boştur; alan 5 profili `pre`, `post`, `approach`, `persist` alanlarını okur, A8 doğru/yanlışını puanlamaz. Değişen yer, `math=` sayacı ve `r=` satırındaki A8 kaydıdır. Eski sürüm bu yolda çöküyor ve çoğu zaman kayıt yazmıyordu.
-7. **Yanıt gövdesi 2000 karakterde kesilir.** Özet `MS|`, `LS|` ve `AV|` baştadır; oran ayrıştırıcıları kesilen `r=` dökümü olmadan da çalışır. Dil taramasında en uzun şıklarla `r=` tek başına yaklaşık 2643 karakterdir. Yirmi maddenin tamamı artık her oturumda gittiği için madde dökümünün kesilmesi sıklaşır. Matematik taramasının aynı tahmini yaklaşık 608 karakterdir.
+6. **A8 kısa yedek yolu.** A7 `short`, `middle` veya `explore` ise madde aynıdır ve `a8` alanı seçilen yanıtı tutar. A7 `SKIP` veya tanımsızsa gösterilen işlem `4 + 3` olur ve kayıt `a8=FALLBACK` damgası taşır. Bu damgada A8, `math=` başarı sayacına girmez. `challenge=` A7 yanıtını tutmaya devam eder.
+7. **Yanıt gövdesi 2000 karakterde sessizce kesilmez.** 100000 karaktere kadar gövde olduğu gibi saklanır. Bu tavan aşılırsa kayıt `TRUNCATED|` ile işaretlenir ve `scoreReport` o kayıttan beceri kararı üretmez. Kaynak şıklarından ölçülen en uzun dil `r=` dökümü 897 karakter, matematik taramasında 289 karakterdir. Önceki 2643 sayısı bu kaynaktan doğrulanmamıştır ve kaldırılmıştır.
 
 ## 2. Canlı değerlendirmenin kurulumu (yalnız depo kanıtı)
 
@@ -80,7 +80,7 @@ Dağıtım komutu, AppDeploy kimlik bilgisi, yükleme adımı ve artefakt hash d
 
 Dağıtım bu turda yapılmaz. Liste, sonraki operatör içindir.
 
-1. Sahip, bölüm 1’deki M1A, L1A, A8 ve karakter kesmesi farklarını açıkça kabul eder. AV1 `total===6` etiket engeli kapanmıştır: tam 12 madde `review` ve “Eğitmen incelemesi” olur. Yeni kaydın altı alan oranını beceri puanına yazması bu kararın parçasıdır.
+1. Sahip, yeni M1A ve L1A taramalarının 20 madde olmasını kabul eder. Eşikler değişmedi. Tam ve tutarlı AV1 kaydı `review` olur. Eksik AV1 kanıtı `insufficient` olur ve puan yazmaz. A8 yedek yolu `FALLBACK` damgası olmadan başarı sayılmaz.
 2. Canlı sürüm kimliği AppDeploy konsolundan, uygulama `cza-degerlendirme-hl4a5d` için yazılır. Depodaki tek pin `1790749888495` (2026-10-06) olup bugünün canlı sürümü sayılmaz.
 3. Derleme komutu, `apps/assessment-appdeploy` içinde `npm run build` (`vite build`). Çıktı klasörü `dist` veya `APPDEPLOY_VITE_OUT_DIR`. Beklenen artefakt hash’i depoda tanımlı değildir. İleride alınan çıktı için operatör `dist` üzerinde kendi sha256 kaydını tutar. Bu ortamda değerlendirme uygulamasının `node_modules` klasörü yoktur ve `@appdeploy/client` platform paketidir; bu paket bir `dist` üretmedi ve hash uydurmadı.
 4. Hedef uygulama kimliği `cza-degerlendirme-hl4a5d`. Hedef adres `https://cza-degerlendirme-hl4a5d.v2.appdeploy.ai/`.
@@ -105,10 +105,10 @@ Yürüyüş:
 2. MA1’de her adımda “Bu soruyu geç”. A7 sonrası A8 başlığı “Seçtiğin yol”, işlem `4 + 3`, şıklar `6`, `7`, `8`. Sayfa beyaz kalmaz.
 3. M1A ilerleme `/ 20` olur ve son madde kimliği X5 görünür. Erken “Taramayı Tamamla” 15. maddede çıkmaz.
 4. L1A ilerleme `/ 20` olur ve son madde kimliği P5 görünür.
-5. AV1 ilerleme `/ 12` olur ve son madde kimliği FL2 görünür. Akış MC1’e geçer. Tamamlanan kaydın eğitimci rozeti “Eğitmen incelemesi” olur. “Destek/inceleme” yalnız eksik kayıtta beklenir.
+5. AV1 ilerleme `/ 12` olur ve son madde kimliği FL2 görünür. Akış MC1’e geçer. Tutarlı tam kaydın eğitimci rozeti “Eğitmen incelemesi” olur. Eksik kayıtta rozet “Eksik kanıt · eğitmen incelemesi” olur.
 6. Bir ekran hata verirse kart “Bu ekran açılamadı” ve düğme “Kaldığın yerden devam et” görünür. Beyaz gövde durma koşuludur.
 
-Durma koşulları: beyaz sayfa, gerçek öğrenci verisi, gizli değer, sentetik olmayan oturuma yazma, canlı sunucuya bu paketten yazma, tam 12 maddelik AV1 rozetinin “Destek/inceleme” görünmesi.
+Durma koşulları: beyaz sayfa, gerçek öğrenci verisi, gizli değer, sentetik olmayan oturuma yazma, canlı sunucuya bu paketten yazma, tutarlı 12 maddelik AV1 rozetinin “Destek/inceleme” görünmesi.
 
 ## 5. Geri alma
 
@@ -120,4 +120,4 @@ Git tarafında bu yamanın öncesi `main` `93fb899a` içindeki `apps/assessment-
 
 ## Durum satırı
 
-`GENEL PROJE İLERLEME %` ölçüm yok. `MEVCUT FAZ İLERLEME %` ölçüm yok. `TAMAMLANAN` bu inceleme paketi ve AV1 12 madde etiket düzeltmesi. `KALAN` M1A, L1A, A8 ve karakter kesmesi için sahip kararı; dağıtım ayrıca yapılır. `KAPSAM SAPMASI=YOK`. `SIRADAKİ TEK ADIM` dağıtım değil, kalan puan farklarının kabulüdür. Dağıtım bu belgede yapılmamıştır. Yerel ve sentetik sonuçlar canlı kabul değildir.
+`GENEL PROJE İLERLEME %` ölçüm yok. `MEVCUT FAZ İLERLEME %` ölçüm yok. `TAMAMLANAN` AV1 eksik kanıt sonucu, ham kayıt bütünlüğü ve A8 `FALLBACK` damgası. `KALAN` dağıtım yok; M1A ve L1A 20 madde kararı ayrıca durur. `KAPSAM SAPMASI=YOK`. `SIRADAKİ TEK ADIM` bu dalın DRAFT incelemesidir. Dağıtım bu belgede yapılmamıştır. Yerel ve sentetik sonuçlar canlı kabul değildir.
