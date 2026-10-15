@@ -91,6 +91,8 @@ function setup(
     'app/api/core/route.ts',
     {
       '@neondatabase/serverless': { neon },
+      '@/lib/qa-student-read': { isolatedQaStudentLogin: async () => null },
+      '@/lib/qa-assigned-work': { isolatedQaAssignedAction: async () => null },
       '@/lib/request-guard': guard,
       '@/lib/k3e-staging-diagnostics': helper,
       '@/lib/student-session': {

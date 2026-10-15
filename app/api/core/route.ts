@@ -412,7 +412,17 @@ export async function POST(request: Request) {
           assessmentSessionCookie(token, 60 * 60 * 8, secureCookie),
         ]);
       }
-    } catch { return respond({ ok: false, error: 'qa_login_unavailable' }, 503); }
+    } catch (error) {
+      const stage =
+        !!error &&
+        typeof error === 'object' &&
+        'message' in error &&
+        error.message === 'v03_qa_target_rejected'
+          ? 'target'
+          : 'sql';
+      console.error(`qa_login_unavailable stage=${stage}`);
+      return respond({ ok: false, error: 'qa_login_unavailable' }, 503);
+    }
   }
 
   let coreUrl: string;

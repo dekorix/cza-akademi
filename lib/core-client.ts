@@ -7,19 +7,44 @@ export type CoreStudent = {
   username?: string;
 };
 
+export class CoreClientError extends Error {
+  readonly status: number;
+  constructor(code: string, status: number) {
+    super(code);
+    this.name = 'CoreClientError';
+    this.status = status;
+  }
+}
+
 export async function core(
   action: string,
   values: Record<string, unknown> = {},
 ) {
-  const response = await fetch('/api/core', {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ action, ...values }),
-  });
-  const data = (await response.json()) as Record<string, unknown>;
-  const error =
+  let response: Response;
+  try {
+    response = await fetch('/api/core', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ action, ...values }),
+    });
+  } catch (error) {
+    if (error instanceof TypeError) throw new CoreClientError('network_unavailable', 0);
+    throw error;
+  }
+  let data: Record<string, unknown>;
+  try {
+    const parsed = JSON.parse(await response.text()) as unknown;
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+      throw new CoreClientError('invalid_response', response.status);
+    }
+    data = parsed as Record<string, unknown>;
+  } catch (error) {
+    if (error instanceof CoreClientError) throw error;
+    throw new CoreClientError('invalid_response', response.status);
+  }
+  const errorCode =
     typeof data.error === 'string' ? data.error : 'core_unavailable';
-  if (!response.ok || data.ok === false) throw new Error(error);
+  if (!response.ok || data.ok === false) throw new CoreClientError(errorCode, response.status);
   return data;
 }
 
@@ -40,6 +65,18 @@ export function studentName(student: CoreStudent) {
 export function friendlyCoreError(error: unknown) {
   const code = error instanceof Error ? error.message : 'unknown';
   if (code === 'invalid_credentials') return 'Kullanıcı adı veya PIN hatalı.';
+  if (code === 'invalid_request')
+    return 'Giriş isteği okunamadı. Sayfayı yenileyip yeniden dene.';
+  if (code === 'invalid_request_schema')
+    return 'Giriş bilgileri eksik veya biçimi uygun değil. Yeniden dene.';
+  if (code === 'qa_login_unavailable')
+    return 'Öğrenci girişi şu anda tamamlanamıyor. Biraz sonra yeniden dene.';
+  if (code === 'core_configuration_unavailable')
+    return 'Öğrenci kayıt servisi bu ortamda hazır değil. Biraz sonra yeniden dene.';
+  if (code === 'network_unavailable')
+    return 'Bağlantı kurulamadı. Ağını kontrol edip yeniden dene.';
+  if (code === 'invalid_response')
+    return 'Sunucu geçerli bir yanıt vermedi. Biraz sonra yeniden dene.';
   if (code === 'session_required' || code === 'invalid_session')
     return 'Oturumun sona erdi. Yeniden giriş yap.';
   if (code === 'request_origin_rejected')
