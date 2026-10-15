@@ -13,7 +13,6 @@ function json(body: unknown, status = 200) {
 
 export async function GET(request: Request) {
   try {
-    const verifiedAt = Date.now();
     const educator = await authenticatedEducator(request);
     if (!educator) return json({ ok: false, error: 'educator_session_required' }, 401);
     const gate = await allowRequest(request, 'educator-learning-timeline', 60, 60_000, educator.id);
@@ -22,7 +21,7 @@ export async function GET(request: Request) {
     const studentId = url.searchParams.get('studentId')?.trim() || '';
     if (!UUID_PATTERN.test(studentId)) return json({ ok: false, error: 'invalid_student_id' }, 400);
     if (isolatedQaEnabled()) {
-      const timeline = await readQaEducatorTimeline(request, { subject: educator.id, studentId, verifiedAt });
+      const timeline = await readQaEducatorTimeline(request, { subject: educator.id, studentId });
       return json({ ok: true, timeline });
     }
     if (!process.env.DATABASE_URL) return json({ ok: false, error: 'database_unavailable' }, 503);

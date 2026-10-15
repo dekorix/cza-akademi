@@ -41,10 +41,14 @@ export class BrokerNonceLedger implements DurableObject {
     }
     const expireAtMs = body.expireAtMs;
     const key = `n:${body.nonce}`;
-    // A Durable Object runs one request at a time, so get-then-put is the consume-once critical section.
-    const existing = await this.state.storage.get<number>(key);
-    if (typeof existing === 'number' && existing > now) return Response.json({ ok: false });
-    await this.state.storage.put(key, expireAtMs);
+    // blockConcurrencyWhile covers the gap between get and put, including overlapping requests.
+    const accepted = await this.state.blockConcurrencyWhile(async () => {
+      const existing = await this.state.storage.get<number>(key);
+      if (typeof existing === 'number' && existing > now) return false;
+      await this.state.storage.put(key, expireAtMs);
+      return true;
+    });
+    if (!accepted) return Response.json({ ok: false });
     const alarm = await this.state.storage.getAlarm();
     if (alarm === null || expireAtMs < alarm) await this.state.storage.setAlarm(expireAtMs);
     return Response.json({ ok: true });

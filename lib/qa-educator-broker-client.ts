@@ -14,7 +14,7 @@ async function workerBindings(): Promise<Bindings> {
 }
 // subject comes from authenticatedEducator. The signed student and academy are the
 // ingress bindings; a query string cannot select a different student or educator.
-export async function readQaEducatorTimeline(request: Request, identity: { subject: string; studentId: string; verifiedAt: number }) {
+export async function readQaEducatorTimeline(request: Request, identity: { subject: string; studentId: string }) {
   if (!isolatedQaEnabled() || new URL(request.url).origin !== QA_EDUCATOR_ORIGIN || request.method !== 'GET') throw new BrokerError(403);
   const url = new URL(request.url);
   for (const name of ['educatorId','authUserId','academyId']) if (url.searchParams.has(name)) throw new BrokerError(403);
@@ -31,7 +31,7 @@ export async function readQaEducatorTimeline(request: Request, identity: { subje
     academyId, studentId, ...parsed,
     readRows: async ({filters,cursor,limit}) => {
       const body = await sealBrokerRequest(secret, {
-        subject: identity.subject, studentId, academyId, ts: identity.verifiedAt, filters, cursor, limit,
+        subject: identity.subject, studentId, academyId, ts: Date.now(), filters, cursor, limit,
       });
       const response = await broker.fetch(new Request(BROKER_INTERNAL_URL, {
         method: 'POST', headers: { 'content-type': 'application/json' },
