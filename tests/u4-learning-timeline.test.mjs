@@ -1,5 +1,6 @@
 /* oxlint-disable typescript/no-floating-promises -- node:test registrations are intentionally top-level. */
 import test from 'node:test';
+import './u4-learning-timeline-precision.test.mjs';
 import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
@@ -34,6 +35,8 @@ function loadRoute(source, { student = null, educator = null, authorized = [], t
   // oxlint-disable-next-line typescript/no-implied-eval -- isolated route harness
   new Function('require', 'module', 'exports', 'process', transpile(source))(
     (id) => {
+      if (id.includes('isolated-qa-auth')) return { isolatedQaEnabled: () => false };
+      if (id.includes('qa-demo-read')) return { demoReadDenied: () => false };
       if (id.includes('student-session')) return { authenticatedStudent: async () => student };
       if (id.includes('educator-auth')) return { authenticatedEducator: async () => educator };
       if (id.includes('request-guard')) return { allowRequest: async () => ({ allowed: true }) };
@@ -70,7 +73,7 @@ test('cursor is scope-bound, tamper-evident, and page size is bounded', () => {
   process.env.CZA_TIMELINE_CURSOR_SECRET = 'u4-test-cursor-secret-at-least-32-bytes';
   try {
     const filters = { from: null, to: null, moduleCode: null, eventType: null, verificationStatus: null };
-    const event = { eventId: 'record:10000000-0000-4000-8000-000000000001', occurredAt: '2026-09-17T12:00:00.000Z' };
+    const event = { eventId: 'record:10000000-0000-4000-8000-000000000001', occurredAt: '2026-09-17T12:00:00.000000Z' };
     const cursor = timeline.encodeTimelineCursor(event, 'student-a', filters);
     assert.deepEqual(timeline.decodeTimelineCursor(cursor, 'student-a', filters), {
       eventId: event.eventId, occurredAt: event.occurredAt,

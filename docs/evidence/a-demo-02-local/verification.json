@@ -1,0 +1,19 @@
+{
+  "mode": "LOCAL_ONLY_NO_LIVE_SQL_OR_DEPLOY",
+  "protectedHead": "8ef388f9c7fbcb2392805150a32273707d547f7a",
+  "localRegressions": {
+    "tests": 110,
+    "pass": 110,
+    "fail": 0
+  },
+  "browserChecks": 42,
+  "browserPassed": true,
+  "typescript": "PASS",
+  "lint": "PASS",
+  "fullBuild": "PASS",
+  "sqlSha256": {
+    "a-demo-02-read.rollback.review.sql": "3980aa9b98a80d675531f2971edfdb9b0b2bfbcfe5f93d1cbd90b1c50054c646",
+    "a-demo-02-read.review.sql": "2bd959a7951273f134ade02c50e9b45885d71ebcdb65308e38726e756fb542c7"
+  },
+  "liveAcceptance": "PENDING_SEPARATE_ARCHITECT_APPROVAL"
+}

@@ -94,7 +94,7 @@ export function LearningTimeline({ endpoint, title = 'Öğrenme Geçmişi' }: { 
       <div><p className="text-sm font-bold uppercase tracking-[.1em] text-[#a2602c]">Canonical zaman çizelgesi</p><h3 id="learning-timeline-heading" className="mt-2 text-2xl font-black">{title}</h3></div>
       <span className="inline-flex items-center gap-2 text-sm font-semibold text-[#697983]"><Clock3 size={17} /> En yeni olay önce</span>
     </div>
-    {error ? <p role="alert" className="mt-5 rounded-xl bg-amber-50 p-4 text-sm text-amber-900">{error}</p> : null}
+    {error ? <div role="alert" className="mt-5 rounded-xl bg-amber-50 p-4 text-sm text-amber-900"><p>{error}</p><Button variant="outline" className="mt-3 min-h-11" onClick={() => void load(null, true)}>Tekrar dene</Button></div> : null}
     <div className="mt-5 space-y-6">
       {dayGroups.map((group) => <section key={group.day} aria-label={group.day}>
         <h4 className="mb-3 text-base font-black text-[#3f5d58]">{group.day}</h4>

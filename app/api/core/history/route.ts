@@ -1,3 +1,5 @@
+import { isolatedQaEnabled } from '@/lib/isolated-qa-auth';
+import { qaDemoRead, demoReadDenied } from '@/lib/qa-demo-read';
 import { neon } from '@neondatabase/serverless';
 import { allowRequest, rateLimited } from '@/lib/request-guard';
 import { authenticatedStudent } from '@/lib/student-session';
@@ -18,9 +20,11 @@ export async function GET(request: Request) {
     const timeline = await readLearningTimeline({
       sql: neon(process.env.DATABASE_URL), academyId: student.academy_id,
       studentId: student.student_id, ...input,
+      readRows: isolatedQaEnabled() ? (query) => qaDemoRead(request, 'timeline', query) : undefined,
     });
     return json({ ok: true, timeline });
   } catch (error) {
+    if (demoReadDenied(error)) return json({ ok: false, error: 'student_read_forbidden' }, 403);
     if (error instanceof TimelineInputError) return json({ ok: false, error: error.code }, 400);
     return json({ ok: false, error: 'timeline_unavailable' }, 503);
   }

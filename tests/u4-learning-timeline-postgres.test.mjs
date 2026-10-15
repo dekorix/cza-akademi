@@ -69,18 +69,18 @@ async function verifyTimeline(statusType) {
         ('${id.studentA}','${id.academy}','${id.userA}','Demo A',true),
         ('${id.studentB}','${id.academy}','${id.userB}','Demo B',true);
       INSERT INTO public.training_recipes (id,academy_id,student_id,module_code,source,name,created_at) VALUES
-        ('${id.recipeA}','${id.academy}','${id.studentA}','finger_read','teacher_assignment','A Timeline','2026-09-17T12:00:00Z'),
-        ('${id.recipeB}','${id.academy}','${id.studentB}','flash_anzan','teacher_assignment','B Private','2026-09-17T12:00:00Z');
+        ('${id.recipeA}','${id.academy}','${id.studentA}','finger_read','teacher_assignment','A Timeline','2026-09-17T12:00:00.616239Z'),
+        ('${id.recipeB}','${id.academy}','${id.studentB}','flash_anzan','teacher_assignment','B Private','2026-09-17T12:00:00.616239Z');
       INSERT INTO public.training_sessions (id,academy_id,student_id,module_code,recipe_id,status,started_at,last_activity_at,completed_at) VALUES
-        ('${id.sessionA}','${id.academy}','${id.studentA}','finger_read','${id.recipeA}','completed','2026-09-17T12:00:00Z','2026-09-17T12:00:00Z','2026-09-17T12:00:00Z'),
-        ('${id.sessionB}','${id.academy}','${id.studentB}','flash_anzan','${id.recipeB}','completed','2026-09-17T12:00:00Z','2026-09-17T12:00:00Z','2026-09-17T12:00:00Z');
+        ('${id.sessionA}','${id.academy}','${id.studentA}','finger_read','${id.recipeA}','completed','2026-09-17T12:00:00.616239Z','2026-09-17T12:00:00.616239Z','2026-09-17T12:00:00.616239Z'),
+        ('${id.sessionB}','${id.academy}','${id.studentB}','flash_anzan','${id.recipeB}','completed','2026-09-17T12:00:00.616239Z','2026-09-17T12:00:00.616239Z','2026-09-17T12:00:00.616239Z');
       INSERT INTO public.question_attempts (id,academy_id,student_id,training_session_id,module_code,client_attempt_id,question_index,question_id,is_correct,error_type,error_detail,created_at) VALUES
-        ('${id.attemptA}','${id.academy}','${id.studentA}','${id.sessionA}','finger_read','44000000-0000-4000-8000-000000000013',1,'q1',false,'DEMO_ERROR','Demo only','2026-09-17T12:00:00Z'),
-        ('${id.attemptA2}','${id.academy}','${id.studentA}','${id.sessionA}','finger_read','44000000-0000-4000-8000-000000000016',2,'q2',true,'NONE',NULL,'2026-09-17T12:00:00Z');
+        ('${id.attemptA}','${id.academy}','${id.studentA}','${id.sessionA}','finger_read','44000000-0000-4000-8000-000000000013',1,'q1',false,'DEMO_ERROR','Demo only','2026-09-17T12:00:00.616239Z'),
+        ('${id.attemptA2}','${id.academy}','${id.studentA}','${id.sessionA}','finger_read','44000000-0000-4000-8000-000000000016',2,'q2',true,'NONE',NULL,'2026-09-17T12:00:00.616239Z');
       INSERT INTO public.learning_records (id,academy_id,student_id,module_code,training_session_id,client_record_id,payload_hash,record_origin,verification_status,contract_version,schema_version,module_version,activity_type,started_at,completed_at,support_level,performance,skills) VALUES
-        ('${id.recordA}','${id.academy}','${id.studentA}','finger_read','${id.sessionA}','44000000-0000-4000-8000-000000000014',repeat('a',64),'legacy_client_reported','client_reported','1.1.0','CZA_MODULE_RECORD_V1','u4','practice','2026-09-17T11:59:00Z','2026-09-17T12:00:00Z','guided','{"accuracy":0}','["number-recognition"]');
+        ('${id.recordA}','${id.academy}','${id.studentA}','finger_read','${id.sessionA}','44000000-0000-4000-8000-000000000014',repeat('a',64),'legacy_client_reported','client_reported','1.1.0','CZA_MODULE_RECORD_V1','u4','practice','2026-09-17T11:59:00Z','2026-09-17T12:00:00.616239Z','guided','{"accuracy":0}','["number-recognition"]');
       INSERT INTO public.learning_evidence (id,learning_record_id,academy_id,student_id,evidence_type,verification_status,verification_authority,skill_code,support_level,observed_at,payload) VALUES
-        ('${id.evidenceA}','${id.recordA}','${id.academy}','${id.studentA}','skill_observation','server_verified','u4-test-verifier','number-recognition','guided','2026-09-17T12:00:00Z','{"observed":true}');
+        ('${id.evidenceA}','${id.recordA}','${id.academy}','${id.studentA}','skill_observation','server_verified','u4-test-verifier','number-recognition','guided','2026-09-17T12:00:00.616239Z','{"observed":true}');
     `);
     const before = (await db.query(`SELECT
       (SELECT count(*) FROM public.training_sessions) AS sessions,
@@ -91,6 +91,7 @@ async function verifyTimeline(statusType) {
     const filters = { from: null, to: null, moduleCode: null, eventType: null, verificationStatus: null };
     const all = await timeline.readLearningTimeline({ sql, academyId: id.academy, studentId: id.studentA, limit: 50, cursor: null, filters });
     assert.equal(all.events.length, 5);
+    assert.ok(all.events.every((event) => event.occurredAt === '2026-09-17T12:00:00.616239Z'));
     assert.deepEqual(new Set(all.events.map((event) => event.eventType)), new Set([
       'ASSIGNMENT_AVAILABLE', 'WORK_COMPLETED', 'LEARNING_RESULT', 'ERROR_OBSERVED', 'SKILL_EVIDENCE',
     ]));
