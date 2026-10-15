@@ -37,6 +37,8 @@ jobs:
       - name: Narrow lint
         run: npx oxlint components/completed-work-results.tsx app/work/result/page.tsx app/api/core/work-results/route.ts lib/qa-demo-read.ts lib/student-work-result.ts
       - name: Local desktop/mobile browser (mock transport only)
-        run: node tests/a-demo-02-browser.mjs
+        run: |
+          node tests/a-demo-02-browser.mjs > "$RUNNER_TEMP/a-demo-browser.log" 2>&1
+          echo "LOCAL_MOCK_BROWSER=PASS (raw fixture log kept private; no artifact upload)"
       - name: Full platform build without secrets
         run: npm run build
