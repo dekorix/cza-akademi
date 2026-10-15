@@ -46,6 +46,82 @@ export function sessionRecordBytes(record: unknown) {
   return Buffer.byteLength(JSON.stringify(record), 'utf8');
 }
 
+/**
+ * Every /api/session/:id route requires the session capability unless it is listed here.
+ * Voice routes stay open for SEC-C. They store audio outside the session document.
+ */
+export const SESSION_ROUTE_ALLOWLIST: Record<string, string> = {
+  'POST /api/session/:id/voice-sample':
+    'SEC-C: stroop ses kaydı depolamaya yazılır, oturum belgesine yazılmaz. Belirteç kapısı bu uçta bilinçli olarak yoktur.',
+  'POST /api/session/:id/early-voice-sample':
+    'SEC-C: erken gelişim ses örneği depolamaya yazılır, oturum belgesine yazılmaz. Belirteç kapısı bu uçta bilinçli olarak yoktur.',
+};
+
+/** Top-level keys a child or parent bearer may receive. Educator notes are not in this list. */
+export const CHILD_SESSION_RESPONSE_KEYS = [
+  'id',
+  'studentLabel',
+  'status',
+  'startStation',
+  'currentTask',
+  'attempts',
+  'createdAt',
+  'profileCode',
+  'ageMonths',
+  'assessmentPurpose',
+  'earlyDevelopment',
+  'assessmentStartedAt',
+  'assessmentPausedAt',
+  'assessmentPausedTotalMs',
+  'assessmentCompletedAt',
+  'assessmentActiveDurationMs',
+] as const;
+
+/** A completed sitting must not keep accepting the child bearer. The educator cookie is unchanged. */
+export function revokeCompletedSession<T extends { status?: string; childAccessTokenHash?: string; childAccessExpiresAt?: string }>(record: T): T {
+  if (record.status !== 'completed') return record;
+  const next = { ...record };
+  delete next.childAccessTokenHash;
+  delete next.childAccessExpiresAt;
+  return next;
+}
+
+/**
+ * Shared parent-intake ceiling. All callers share one window and one UTC day.
+ * A desk opening sessions one by one stays inside 30 per 10 minutes.
+ * 200 per day covers one campus intake day. This is not lib/request-guard.ts.
+ */
+export const PARENT_SESSION_WINDOW_MS = 10 * 60 * 1000;
+export const PARENT_SESSION_WINDOW_MAX = 30;
+export const PARENT_SESSION_DAILY_MAX = 200;
+
+export type ParentQuotaState = {
+  windowStartedAt: number;
+  windowCount: number;
+  day: string;
+  dayCount: number;
+};
+
+export function decideParentSessionQuota(state: ParentQuotaState | undefined, now: number) {
+  const day = new Date(now).toISOString().slice(0, 10);
+  const freshWindow = !state?.windowStartedAt || now - state.windowStartedAt >= PARENT_SESSION_WINDOW_MS;
+  const windowStartedAt = freshWindow ? now : state!.windowStartedAt;
+  const windowCount = freshWindow ? 0 : state!.windowCount;
+  const dayCount = state?.day === day ? state.dayCount : 0;
+  if (windowCount >= PARENT_SESSION_WINDOW_MAX || dayCount >= PARENT_SESSION_DAILY_MAX) {
+    return { ok: false as const };
+  }
+  return {
+    ok: true as const,
+    next: {
+      windowStartedAt,
+      windowCount: windowCount + 1,
+      day,
+      dayCount: dayCount + 1,
+    },
+  };
+}
+
 /** 256-bit secret. Only the SHA-256 hex digest is persisted. The secret is returned once to the caller. */
 export function issueChildAccess(now = Date.now()) {
   const secret = randomBytes(32).toString('base64url');

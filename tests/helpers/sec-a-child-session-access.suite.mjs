@@ -1,11 +1,16 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
 import { register } from 'node:module';
 import {
   CHILD_ACCESS_DAYS,
+  CHILD_SESSION_RESPONSE_KEYS,
+  PARENT_SESSION_DAILY_MAX,
+  PARENT_SESSION_WINDOW_MAX,
   SESSION_ATTEMPT_MAX,
   SESSION_RECORD_MAX_BYTES,
   SESSION_RESTART_MAX,
+  SESSION_ROUTE_ALLOWLIST,
   childAccessStatus,
   issueChildAccess,
   presentedBearer,
@@ -99,7 +104,18 @@ register(new URL('./appdeploy-sdk-loader.mjs', import.meta.url), { parentURL: im
 let handler;
 
 function parsed(response) {
-  return { status: response.statusCode, body: JSON.parse(response.body) };
+  return { status: response.statusCode, body: JSON.parse(response.body), headers: response.headers || {} };
+}
+
+async function educatorCookie() {
+  const secret = 'educator-fixture-secret-not-a-child-token';
+  await db.add('cza_educator_sessions', [{
+    tokenHash: sha256Hex(secret),
+    expiresAt: '2099-01-01T00:00:00.000Z',
+    createdAt: '2026-10-15T00:00:00.000Z',
+  }]);
+  const educatorId = [...db.bucket('cza_educator_sessions').keys()].at(-1);
+  return 'cza_session=' + educatorId + '.' + secret;
 }
 
 async function call(method, path, { token, headers, body } = {}) {
@@ -110,11 +126,23 @@ async function call(method, path, { token, headers, body } = {}) {
 }
 
 async function openParent(profile = {}) {
+  const cookie = await educatorCookie();
   const result = await call('POST', '/api/parent/sessions', {
+    headers: { cookie },
     body: { studentLabel: 'Sentetik', profileCode: 'P2', assessmentPurpose: 'GENERAL', startStation: 'FULL', ...profile },
   });
   assert.equal(result.status, 200);
   return result.body;
+}
+
+function sessionRoutes() {
+  const src = fs.readFileSync(new URL('../../apps/assessment-appdeploy/backend/index.ts', import.meta.url), 'utf8');
+  return [...src.matchAll(/'((GET|POST|PUT|DELETE) (\/api\/session\/:id[^']*))':\[/g)].map((match) => ({
+    key: match[1],
+    method: match[2],
+    path: match[3],
+    head: src.slice(match.index + match[0].length, match.index + match[0].length + 64),
+  }));
 }
 
 test.before(async () => {
@@ -209,9 +237,8 @@ test('a capability from another session cannot read or write this session', asyn
 });
 
 test('the matching capability can read and write, and the child payload omits birthDate', async () => {
-  const created = await call('POST', '/api/parent/sessions', {
-    body: { studentLabel: 'Sentetik', profileCode: 'E2', assessmentPurpose: 'GENERAL', birthDate: '2024-06-01' },
-  });
+  const createdBody = await openParent({ profileCode: 'E2', assessmentPurpose: 'GENERAL', birthDate: '2024-06-01' });
+  const created = { status: 200, body: createdBody };
   assert.equal(created.status, 200);
   assert.equal(created.body.accessToken === created.body.id, false);
   assert.equal(Object.hasOwn(created.body, 'birthDate'), false);
@@ -223,14 +250,14 @@ test('the matching capability can read and write, and the child payload omits bi
   assert.equal(read.body.ageMonths >= 24 && read.body.ageMonths <= 35, true);
   assert.equal(Object.hasOwn(read.body, 'childAccessTokenHash'), false);
   assert.equal(JSON.stringify(read.body).includes(created.body.accessToken), false);
-  const write = await call('POST', '/api/session/' + created.body.id + '/answer', { token: created.body.accessToken, body: { answer: 'merhaba' } });
-  assert.equal(write.status, 200);
-  assert.equal(Object.hasOwn(write.body, 'birthDate'), false);
-  assert.equal(write.body.attempts.length, 1);
   const restart = await call('POST', '/api/session/' + created.body.id + '/restart-warmup', { token: created.body.accessToken, body: {} });
   assert.equal(restart.status, 200);
   assert.equal(restart.body.currentTask.id, 'W1');
   assert.equal(Object.hasOwn(restart.body, 'birthDate'), false);
+  const write = await call('POST', '/api/session/' + created.body.id + '/answer', { token: created.body.accessToken, body: { answer: 'merhaba' } });
+  assert.equal(write.status, 200);
+  assert.equal(Object.hasOwn(write.body, 'birthDate'), false);
+  assert.equal(write.body.attempts.length, 1);
 });
 
 test('an expired capability is rejected and an educator cookie remains a separate authenticator', async () => {
@@ -356,4 +383,143 @@ test('a normal answer still fits under the session byte cap', async () => {
   const stored = db.bucket('assessment_sessions').get(created.id);
   assert.equal(sessionRecordBytes(stored) < SESSION_RECORD_MAX_BYTES, true);
   assert.equal(stored.attempts.length, 1);
+});
+
+test('every session route is capability-protected or named in the allowlist', () => {
+  const routes = sessionRoutes();
+  assert.equal(routes.length >= 30, true);
+  for (const route of routes) {
+    const allowed = Object.hasOwn(SESSION_ROUTE_ALLOWLIST, route.key);
+    const protectedRoute = route.head.startsWith('requireChildAccess,') || route.head.startsWith('requireCzaAuth,');
+    assert.equal(protectedRoute || allowed, true, route.key);
+    if (allowed) {
+      assert.equal(protectedRoute, false, route.key);
+      assert.equal(SESSION_ROUTE_ALLOWLIST[route.key].includes('SEC-C'), true);
+    }
+  }
+  assert.deepEqual(Object.keys(SESSION_ROUTE_ALLOWLIST).sort(), [
+    'POST /api/session/:id/early-voice-sample',
+    'POST /api/session/:id/voice-sample',
+  ]);
+  for (const name of ['start-assessment', 'pause-assessment', 'resume-assessment', 'early-adaptive-profile', 'early-caregiver-response', 'early-development-response', 'early-adaptive-section-complete']) {
+    const route = routes.find((item) => item.path.endsWith('/' + name));
+    assert.equal(route.head.startsWith('requireChildAccess,'), true, name);
+  }
+});
+
+test('every protected session route rejects a missing capability with 401 and a foreign capability with 403', async () => {
+  const routes = sessionRoutes().filter((route) => !Object.hasOwn(SESSION_ROUTE_ALLOWLIST, route.key));
+  const created = await openParent();
+  const other = await openParent();
+  for (const route of routes) {
+    const path = route.path.replace(':id', created.id);
+    const missing = await call(route.method, path, { body: {} });
+    const foreign = await call(route.method, path, { token: other.accessToken, body: {} });
+    assert.equal(missing.status, 401, route.key);
+    assert.equal(foreign.status, 403, route.key);
+    assert.equal(JSON.stringify(missing.body).includes('Sentetik'), false, route.key);
+    assert.equal(JSON.stringify(foreign.body).includes('Sentetik'), false, route.key);
+    assert.equal(Object.hasOwn(missing.body, 'attempts'), false, route.key);
+    assert.equal(Object.hasOwn(foreign.body, 'attempts'), false, route.key);
+    assert.equal(Object.hasOwn(missing.body, 'observations'), false, route.key);
+    assert.equal(Object.hasOwn(foreign.body, 'earlyDevelopment'), false, route.key);
+    assert.equal(missing.headers['referrer-policy'], 'no-referrer', route.key);
+  }
+});
+
+test('a missing session and an unauthorized session return the same response', async () => {
+  const created = await openParent();
+  const other = await openParent();
+  const missingToken = await call('GET', '/api/session/missing-session-id', { token: other.accessToken });
+  const foreign = await call('GET', '/api/session/' + created.id, { token: other.accessToken });
+  assert.equal(missingToken.status, foreign.status);
+  assert.deepEqual(missingToken.body, foreign.body);
+  assert.equal(foreign.status, 403);
+  const missingNone = await call('GET', '/api/session/missing-session-id');
+  const none = await call('GET', '/api/session/' + created.id);
+  assert.equal(missingNone.status, none.status);
+  assert.deepEqual(missingNone.body, none.body);
+  assert.equal(none.status, 401);
+});
+
+test('the child payload is an allowlist and educator notes stay on the educator path', async () => {
+  const created = await openParent();
+  const stored = db.bucket('assessment_sessions').get(created.id);
+  stored.observations = [{ taskId: 'W1', codes: ['x'], note: 'EGITMEN-NOTU-GIZLI', createdAt: '2026-10-15T00:00:00.000Z' }];
+  stored.areaObservations = [{ areaId: 1, note: 'ALAN-NOTU-GIZLI', updatedAt: '2026-10-15T00:00:00.000Z' }];
+  stored.attempts = [{ taskId: 'W1', title: 't', answer: 'merhaba', correctness: 'review', responseLatencyMs: null, totalResponseMs: null, supportLevel: 0, rubric: { a: 1 } }];
+  stored.earlyDevelopment = {
+    version: 'E2-v7',
+    responses: [{ itemId: 'E7_VIS_01', rating: 'independent', note: 'GOZLEM-NOTU-GIZLI', recordedAt: '2026-10-15T00:00:00.000Z' }],
+    startedAt: '2026-10-15T00:00:00.000Z',
+    adaptiveProfile: { languageLevel: 'single_word', interests: ['animals'], attentionSpan: 'short', developmentalNote: 'GELISIM-NOTU-GIZLI', configuredAt: '2026-10-15T00:00:00.000Z' },
+    caregiver: { responses: [{ questionId: 'Q1', answer: 'VELI-SERBEST-METIN', note: 'VELI-NOTU-GIZLI', recordedAt: '2026-10-15T00:00:00.000Z' }], startedAt: '2026-10-15T00:00:00.000Z' },
+  };
+  const child = await call('GET', '/api/session/' + created.id, { token: created.accessToken });
+  assert.equal(child.status, 200);
+  for (const key of Object.keys(child.body)) assert.equal(CHILD_SESSION_RESPONSE_KEYS.includes(key), true, key);
+  const hidden = ['EGITMEN-NOTU-GIZLI', 'ALAN-NOTU-GIZLI', 'GOZLEM-NOTU-GIZLI', 'GELISIM-NOTU-GIZLI', 'VELI-SERBEST-METIN', 'VELI-NOTU-GIZLI'];
+  const childJson = JSON.stringify(child.body);
+  for (const secret of hidden) assert.equal(childJson.includes(secret), false, secret);
+  assert.equal(Object.hasOwn(child.body, 'observations'), false);
+  assert.equal(Object.hasOwn(child.body, 'areaObservations'), false);
+  assert.equal(Object.hasOwn(child.body.attempts[0], 'rubric'), false);
+  assert.equal(child.body.earlyDevelopment.caregiver.responses[0].questionId, 'Q1');
+  assert.equal(Object.hasOwn(child.body.earlyDevelopment.caregiver.responses[0], 'answer'), false);
+  const educator = await call('GET', '/api/session/' + created.id, { headers: { cookie: await educatorCookie() } });
+  assert.equal(educator.status, 200);
+  const educatorJson = JSON.stringify(educator.body);
+  for (const secret of hidden) assert.equal(educatorJson.includes(secret), true, secret);
+});
+
+test('a completed session revokes the child capability and responses send no-referrer', async () => {
+  const created = await openParent();
+  let status = '';
+  let lastHeaders = {};
+  for (let step = 0; step < 40 && status !== 'completed'; step += 1) {
+    const write = await call('POST', '/api/session/' + created.id + '/answer', { token: created.accessToken, body: { answer: 'x', shownAt: 1, completedAt: 2 } });
+    assert.equal(write.status, 200);
+    lastHeaders = write.headers;
+    status = write.body.status;
+  }
+  assert.equal(status, 'completed');
+  assert.equal(lastHeaders['referrer-policy'], 'no-referrer');
+  const stored = db.bucket('assessment_sessions').get(created.id);
+  assert.equal(stored.childAccessTokenHash, undefined);
+  const before = structuredClone(stored);
+  const read = await call('GET', '/api/session/' + created.id, { token: created.accessToken });
+  assert.equal(read.status, 403);
+  assert.deepEqual(db.bucket('assessment_sessions').get(created.id), before);
+});
+
+test('POST /api/parent/sessions without an educator cookie returns 401 and creates nothing', async () => {
+  const result = await call('POST', '/api/parent/sessions', {
+    body: { studentLabel: 'Sentetik', profileCode: 'P2', assessmentPurpose: 'GENERAL', startStation: 'FULL' },
+  });
+  assert.equal(result.status, 401);
+  assert.equal(db.bucket('assessment_sessions').size, 0);
+  assert.equal(result.headers['referrer-policy'], 'no-referrer');
+});
+
+test('parent session creation stops at the shared window and daily ceilings without writing', async () => {
+  assert.equal(PARENT_SESSION_WINDOW_MAX, 30);
+  assert.equal(PARENT_SESSION_DAILY_MAX, 200);
+  const cookie = await educatorCookie();
+  const body = { studentLabel: 'Sentetik', profileCode: 'P2', assessmentPurpose: 'GENERAL', startStation: 'FULL' };
+  for (let index = 0; index < PARENT_SESSION_WINDOW_MAX; index += 1) {
+    const result = await call('POST', '/api/parent/sessions', { headers: { cookie }, body });
+    assert.equal(result.status, 200);
+  }
+  const blocked = await call('POST', '/api/parent/sessions', { headers: { cookie }, body });
+  assert.equal(blocked.status, 429);
+  assert.equal(db.bucket('assessment_sessions').size, PARENT_SESSION_WINDOW_MAX);
+  const quota = [...db.bucket('cza_parent_session_quota').values()][0];
+  quota.windowStartedAt = Date.now();
+  quota.windowCount = 0;
+  quota.day = new Date().toISOString().slice(0, 10);
+  quota.dayCount = PARENT_SESSION_DAILY_MAX;
+  db.bucket('assessment_sessions').clear();
+  const daily = await call('POST', '/api/parent/sessions', { headers: { cookie }, body });
+  assert.equal(daily.status, 429);
+  assert.equal(db.bucket('assessment_sessions').size, 0);
 });
