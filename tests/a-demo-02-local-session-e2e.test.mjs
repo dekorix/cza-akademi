@@ -7,6 +7,8 @@
 // This test persists the same student_sessions row a successful login writes,
 // completes the assigned session through the existing QA work function, then
 // reads the real panel/history/profile/result routes with that cookie.
+// Group 1 is the owner's own readback. Group 3 is fail-closed access.
+// Group 2, linked educator read, is the PR #107 broker harness and is not copied here.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
@@ -217,36 +219,32 @@ async function bodyOf(response) {
   return { status: response.status, body };
 }
 
-void test('synthetic login session, study completion, and cookie-bound history agree', async () => {
+async function completedSession() {
   process.env.NODE_ENV = 'test';
   process.env.DATABASE_URL = 'postgresql://local-synthetic-only/pglite';
   process.env.CZA_TIMELINE_CURSOR_SECRET = 'local-only-long-cursor-secret-32-bytes';
   delete process.env.CZA_EDUCATOR_AUTH_MODE;
   const db = await setup();
+  const started = await call(db, 'start', {
+    clientSessionId: crypto.randomUUID(),
+    moduleCode: 'finger_read',
+    source: 'teacher_assignment',
+  });
+  assert.equal(started.questions.length, 10);
+  for (let index = 0; index < 10; index += 1) {
+    await call(db, 'attempt', answer(started.questions[index], index + 1, index > 1), started.sessionId);
+  }
+  const done = await call(db, 'finish', {}, started.sessionId);
+  assert.equal(done.status, 'completed');
+  assert.equal(done.attemptCount, 10);
+  assert.equal(done.correctCount, 8);
+  await db.exec('RESET ROLE');
+  return { db, routes: loadRoutes(db), sessionId: started.sessionId, recordId: done.learningRecordId };
+}
+
+void test('group 1 student own history is consistent across panel, results, history and profile', async () => {
+  const { db, routes, sessionId, recordId } = await completedSession();
   try {
-    const started = await call(db, 'start', {
-      clientSessionId: crypto.randomUUID(),
-      moduleCode: 'finger_read',
-      source: 'teacher_assignment',
-    });
-    assert.equal(started.questions.length, 10);
-    for (let index = 0; index < 10; index += 1) {
-      await call(db, 'attempt', answer(started.questions[index], index + 1, index > 1), started.sessionId);
-    }
-    const done = await call(db, 'finish', {}, started.sessionId);
-    assert.equal(done.status, 'completed');
-    assert.equal(done.attemptCount, 10);
-    assert.equal(done.correctCount, 8);
-    const sessionId = started.sessionId;
-    const recordId = done.learningRecordId;
-
-    await db.exec('RESET ROLE');
-    const routes = loadRoutes(db);
-    const anonymous = await bodyOf(await routes.dashboard.GET(request('/api/core/dashboard')));
-    assert.equal(anonymous.status, 401);
-    assert.equal((await bodyOf(await routes.history.GET(request('/api/core/history')))).status, 401);
-    assert.equal((await bodyOf(await routes.results.GET(request('/api/core/work-results')))).status, 401);
-
     const dashboard = await bodyOf(await routes.dashboard.GET(request('/api/core/dashboard', TOKEN)));
     assert.equal(dashboard.status, 200, JSON.stringify(dashboard.body));
     assert.equal(dashboard.body.dashboard.profile.id, STUDENT);
@@ -296,25 +294,6 @@ void test('synthetic login session, study completion, and cookie-bound history a
     assert.equal(profile.body.profile.recentRecords[0].recordId, recordId);
     assert.equal(profile.body.profile.studyPattern.sessions.completed, 1);
 
-    const override = await bodyOf(await routes.results.GET(request(`/api/core/work-results?studentId=${OTHER_STUDENT}`, TOKEN)));
-    assert.equal(override.status, 403);
-    const foreign = await bodyOf(await routes.results.GET(request(`/api/core/work-results?sessionId=${sessionId}`, OTHER_TOKEN)));
-    assert.equal(foreign.status, 404);
-    const otherHistory = await bodyOf(await routes.history.GET(request('/api/core/history?limit=50', OTHER_TOKEN)));
-    assert.equal(otherHistory.status, 200, JSON.stringify(otherHistory.body));
-    assert.equal(otherHistory.body.timeline.events.length, 0);
-    const otherDashboard = await bodyOf(await routes.dashboard.GET(request('/api/core/dashboard', OTHER_TOKEN)));
-    assert.equal(otherDashboard.status, 200, JSON.stringify(otherDashboard.body));
-    assert.equal(otherDashboard.body.dashboard.profile.id, OTHER_STUDENT);
-    assert.equal(otherDashboard.body.dashboard.summary.totalAttempts, 0);
-    assert.equal(otherDashboard.body.dashboard.recentActivity.length, 0);
-
-    const educatorRoute = read('app/api/educator-student-history/route.ts');
-    assert.match(educatorRoute, /teacher_student_links/);
-    assert.match(educatorRoute, /link\.can_view=true/);
-    assert.match(educatorRoute, /student\.academy_id=educator\.academy_id/);
-    assert.doesNotMatch(educatorRoute, /SECURITY DEFINER|cza_a_demo_02_read/);
-
     await db.exec('SET ROLE cza_t5_test_owner');
     await db.exec(read('db/qa/a-demo-02-read.review.sql').replaceAll("'cza_t5_synthetic'", "'postgres'"));
     await db.exec('SET ROLE cza_v01_app_runtime_min');
@@ -332,6 +311,53 @@ void test('synthetic login session, study completion, and cookie-bound history a
       })],
     )).rows[0].rows;
     assert.ok(qaTimeline.some((event) => event.training_session_id === sessionId));
+  } finally {
+    await db.close();
+  }
+});
+
+void test('group 3 unauthorized reads fail closed with no foreign data', async () => {
+  const { db, routes, sessionId } = await completedSession();
+  try {
+    for (const [name, call] of [
+      ['dashboard', () => routes.dashboard.GET(request('/api/core/dashboard'))],
+      ['assignments', () => routes.assignments.GET(request('/api/core/assignments'))],
+      ['history', () => routes.history.GET(request('/api/core/history'))],
+      ['profile', () => routes.profile.GET(request('/api/core/learning-profile'))],
+      ['results', () => routes.results.GET(request('/api/core/work-results'))],
+    ]) {
+      const anonymous = await bodyOf(await call());
+      assert.equal(anonymous.status, 401, name);
+      assert.equal(anonymous.body.ok, false);
+      assert.equal(JSON.stringify(anonymous.body).includes(sessionId), false);
+    }
+    const studentOverride = await bodyOf(await routes.results.GET(request(`/api/core/work-results?studentId=${OTHER_STUDENT}`, TOKEN)));
+    assert.equal(studentOverride.status, 403);
+    assert.equal(JSON.stringify(studentOverride.body).includes(sessionId), false);
+    const academyOverride = await bodyOf(await routes.results.GET(request(`/api/core/work-results?academyId=${OTHER_ACADEMY}`, TOKEN)));
+    assert.equal(academyOverride.status, 403);
+    const foreignResult = await bodyOf(await routes.results.GET(request(`/api/core/work-results?sessionId=${sessionId}`, OTHER_TOKEN)));
+    assert.equal(foreignResult.status, 404);
+    assert.deepEqual(foreignResult.body.results, undefined);
+    const otherHistory = await bodyOf(await routes.history.GET(request('/api/core/history?limit=50', OTHER_TOKEN)));
+    assert.equal(otherHistory.status, 200, JSON.stringify(otherHistory.body));
+    assert.deepEqual(otherHistory.body.timeline.events, []);
+    const forgedHistory = await bodyOf(await routes.history.GET(request(`/api/core/history?limit=50&studentId=${OTHER_STUDENT}`, TOKEN)));
+    assert.equal(forgedHistory.status, 200, JSON.stringify(forgedHistory.body));
+    assert.ok(forgedHistory.body.timeline.events.every((event) => event.studentId === STUDENT));
+    assert.equal(forgedHistory.body.timeline.events.some((event) => event.studentId === OTHER_STUDENT), false);
+    const otherDashboard = await bodyOf(await routes.dashboard.GET(request('/api/core/dashboard', OTHER_TOKEN)));
+    assert.equal(otherDashboard.status, 200, JSON.stringify(otherDashboard.body));
+    assert.equal(otherDashboard.body.dashboard.profile.id, OTHER_STUDENT);
+    assert.equal(otherDashboard.body.dashboard.summary.totalAttempts, 0);
+    assert.equal(otherDashboard.body.dashboard.summary.completedSessions, 0);
+    assert.deepEqual(otherDashboard.body.dashboard.recentActivity, []);
+    const otherProfile = await bodyOf(await routes.profile.GET(request('/api/core/learning-profile', OTHER_TOKEN)));
+    assert.equal(otherProfile.status, 200, JSON.stringify(otherProfile.body));
+    assert.equal(otherProfile.body.profile.student.id, OTHER_STUDENT);
+    assert.equal(otherProfile.body.profile.coverage.attempts, 0);
+    assert.equal(otherProfile.body.profile.coverage.records, 0);
+    assert.deepEqual(otherProfile.body.profile.recentRecords, []);
   } finally {
     await db.close();
   }
