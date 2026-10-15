@@ -13,16 +13,24 @@ import { db, error, json, storage } from '@appdeploy/sdk';
  * The sample counter lives in the existing document store (`cza_voice_sample_quota`),
  * addressed by the id `db.add` returns and linked with `voiceSampleQuotaId`.
  * No SQL column and no migration.
+ *
+ * `count` and `bytes` are a read-modify-write of one whole record. `db.update`
+ * has no condition, increment, or compare-and-set in this codebase. Two
+ * overlapping requests can both pass the ceiling and both write. The global
+ * daily 2 GiB ceiling is not enforced until an atomic counter exists.
  */
 
-/** 60s Stroop at 384 kbit/s is about 3.84 MiB of base64, plus a small JSON envelope. */
-export const VOICE_REQUEST_MAX_BYTES = 4 * 1024 * 1024;
+/** P2 `voice-sample` request ceiling. Overflow is 413 and writes nothing. */
+export const VOICE_SAMPLE_MAX_BYTES = 4 * 1024 * 1024;
 
-/**
- * Five E2-v7 sound-imitation items times six takes, plus eight Stroop retries, plus spare.
- * Shared by both voice routes so one session cannot fill both ceilings.
- */
-export const VOICE_SAMPLE_MAX_PER_SESSION = 48;
+/** E2 `early-voice-sample` request ceiling. Overflow is 413 and writes nothing. */
+export const EARLY_SAMPLE_MAX_BYTES = 1 * 1024 * 1024;
+
+/** Shared by both voice routes. Overflow is 429 and writes nothing. */
+export const VOICE_SAMPLE_MAX_PER_SESSION = 16;
+
+/** Shared stored-byte total for one session. Overflow is 429 and writes nothing. */
+export const VOICE_SESSION_MAX_BYTES = 24 * 1024 * 1024;
 
 export const VOICE_QUOTA_COLLECTION = 'cza_voice_sample_quota';
 
@@ -33,6 +41,7 @@ const AUTH_INVALID = 'Oturum erişim belirteci geçersiz';
 const AUTH_EXPIRED = 'Oturum erişim belirtecinin süresi doldu';
 const TOO_LARGE = 'Ses kaydı boyut sınırını aşıyor';
 const TOO_MANY = 'Bu oturum için ses örneği sınırına ulaşıldı';
+const TOO_MUCH = 'Bu oturum için toplam ses boyutu sınırına ulaşıldı';
 const INVALID_AUDIO = 'Ses kaydı geçersiz';
 const AUDIO_ONLY = 'Yalnız ses kaydı kabul edilir';
 const QUOTA_FAILED = 'Ses örneği sınırı kaydedilemedi';
@@ -206,34 +215,82 @@ async function authorize(headers: HeaderMap, sessionId: string): Promise<
   return { ok: true, session };
 }
 
-async function voiceSampleCount(sessionId: string, session: VoiceSession) {
-  const quotaId = session.voiceSampleQuotaId;
-  if (!quotaId) return 0;
-  const [row] = await db.get<{ sessionId?: string; count?: number }>(VOICE_QUOTA_COLLECTION, [quotaId]);
-  if (!row || row.sessionId !== sessionId) return 0;
-  if (!Number.isInteger(row.count) || (row.count ?? 0) < 0) return VOICE_SAMPLE_MAX_PER_SESSION;
-  return row.count as number;
+export function requestMaxBytes(kind: VoiceKind) {
+  return kind === 'early' ? EARLY_SAMPLE_MAX_BYTES : VOICE_SAMPLE_MAX_BYTES;
 }
 
-async function reserveVoiceSample(sessionId: string, session: VoiceSession): Promise<
+type QuotaRow = { sessionId?: string; count?: number; bytes?: number };
+
+type QuotaSnapshot = {
+  quotaId: string;
+  count: number;
+  bytes: number;
+  blocked: { status: 429; message: string } | null;
+};
+
+async function readQuota(sessionId: string, session: VoiceSession): Promise<QuotaSnapshot> {
+  const quotaId = session.voiceSampleQuotaId || '';
+  if (!quotaId) return { quotaId: '', count: 0, bytes: 0, blocked: null };
+  const [row] = await db.get<QuotaRow>(VOICE_QUOTA_COLLECTION, [quotaId]);
+  if (!row || row.sessionId !== sessionId) return { quotaId, count: 0, bytes: 0, blocked: null };
+  if (!Number.isInteger(row.count) || (row.count ?? 0) < 0) {
+    return {
+      quotaId,
+      count: VOICE_SAMPLE_MAX_PER_SESSION,
+      bytes: VOICE_SESSION_MAX_BYTES,
+      blocked: { status: 429, message: TOO_MANY },
+    };
+  }
+  const bytes = row.bytes === undefined ? 0 : row.bytes;
+  if (!Number.isInteger(bytes) || bytes < 0) {
+    return {
+      quotaId,
+      count: row.count,
+      bytes: VOICE_SESSION_MAX_BYTES,
+      blocked: { status: 429, message: TOO_MUCH },
+    };
+  }
+  return { quotaId, count: row.count as number, bytes, blocked: null };
+}
+
+/**
+ * `extraBytes` is 0 before the body is read. A session already at 24 MiB then
+ * refuses without reading. Once the sample size is known, equality with 24 MiB
+ * is still allowed and only a larger sum is refused.
+ */
+function quotaRefusal(quota: QuotaSnapshot, extraBytes: number): { status: 429; message: string } | null {
+  if (quota.blocked) return quota.blocked;
+  if (quota.count >= VOICE_SAMPLE_MAX_PER_SESSION) return { status: 429, message: TOO_MANY };
+  if (extraBytes === 0) {
+    if (quota.bytes >= VOICE_SESSION_MAX_BYTES) return { status: 429, message: TOO_MUCH };
+    return null;
+  }
+  if (quota.bytes + extraBytes > VOICE_SESSION_MAX_BYTES) return { status: 429, message: TOO_MUCH };
+  return null;
+}
+
+async function reserveVoiceSample(sessionId: string, session: VoiceSession, contentBytes: number): Promise<
   | { ok: true; rollback: () => Promise<void> }
   | { ok: false; status: number; message: string }
 > {
-  const current = await voiceSampleCount(sessionId, session);
-  if (current >= VOICE_SAMPLE_MAX_PER_SESSION) return { ok: false, status: 429, message: TOO_MANY };
-  const next = current + 1;
-  const quotaId = session.voiceSampleQuotaId || '';
-  if (quotaId) {
-    const [updated] = await db.update(VOICE_QUOTA_COLLECTION, [{ id: quotaId, record: { sessionId, count: next } }]);
+  const current = await readQuota(sessionId, session);
+  const refusal = quotaRefusal(current, contentBytes);
+  if (refusal) return { ok: false, status: refusal.status, message: refusal.message };
+  const nextCount = current.count + 1;
+  const nextBytes = current.bytes + contentBytes;
+  const record = { sessionId, count: nextCount, bytes: nextBytes };
+  const previous = { sessionId, count: current.count, bytes: current.bytes };
+  if (current.quotaId) {
+    const [updated] = await db.update(VOICE_QUOTA_COLLECTION, [{ id: current.quotaId, record }]);
     if (!updated) return { ok: false, status: 500, message: QUOTA_FAILED };
     return {
       ok: true,
       rollback: async () => {
-        await db.update(VOICE_QUOTA_COLLECTION, [{ id: quotaId, record: { sessionId, count: current } }]);
+        await db.update(VOICE_QUOTA_COLLECTION, [{ id: current.quotaId, record: previous }]);
       },
     };
   }
-  const [created] = await db.add(VOICE_QUOTA_COLLECTION, [{ sessionId, count: next }]);
+  const [created] = await db.add(VOICE_QUOTA_COLLECTION, [record]);
   if (!created) return { ok: false, status: 500, message: QUOTA_FAILED };
   const fresh = (await loadSession(sessionId)) || session;
   const [saved] = await db.update('assessment_sessions', [{ id: sessionId, record: { ...fresh, voiceSampleQuotaId: created } }]);
@@ -241,22 +298,23 @@ async function reserveVoiceSample(sessionId: string, session: VoiceSession): Pro
   return {
     ok: true,
     rollback: async () => {
-      await db.update(VOICE_QUOTA_COLLECTION, [{ id: created, record: { sessionId, count: current } }]);
+      await db.update(VOICE_QUOTA_COLLECTION, [{ id: created, record: previous }]);
     },
   };
 }
 
-function inspectVoiceContent(body: unknown):
-  | { ok: true; content: string; contentType: string; durationMs: number; itemId: string }
+function inspectVoiceContent(body: unknown, kind: VoiceKind):
+  | { ok: true; content: string; contentType: string; durationMs: number; itemId: string; bytes: number }
   | { ok: false; status: number; message: string } {
   const record = (body ?? {}) as { content?: unknown; contentType?: unknown; durationMs?: unknown; itemId?: unknown };
   const content = typeof record.content === 'string' ? record.content : '';
   if (!content) return { ok: false, status: 400, message: INVALID_AUDIO };
-  if (Buffer.byteLength(content) > VOICE_REQUEST_MAX_BYTES) return { ok: false, status: 413, message: TOO_LARGE };
+  const bytes = Buffer.byteLength(content);
+  if (bytes > requestMaxBytes(kind)) return { ok: false, status: 413, message: TOO_LARGE };
   const contentType = String(record.contentType || 'audio/webm').slice(0, 80);
   if (!contentType.startsWith('audio/')) return { ok: false, status: 400, message: AUDIO_ONLY };
   const itemId = String(record.itemId || 'sample').replace(/[^A-Za-z0-9_-]/g, '').slice(0, 50) || 'sample';
-  return { ok: true, content, contentType, durationMs: Math.max(0, Number(record.durationMs) || 0), itemId };
+  return { ok: true, content, contentType, durationMs: Math.max(0, Number(record.durationMs) || 0), itemId, bytes };
 }
 
 export async function writeVoiceSample(ctx: VoiceCtx, kind: VoiceKind) {
@@ -265,12 +323,13 @@ export async function writeVoiceSample(ctx: VoiceCtx, kind: VoiceKind) {
   const gate = await authorize(headers, sessionId);
   if (!gate.ok) return error(gate.message, gate.status);
   const declared = declaredContentLength(headers);
-  if (declared !== null && declared > VOICE_REQUEST_MAX_BYTES) return error(TOO_LARGE, 413);
+  if (declared !== null && declared > requestMaxBytes(kind)) return error(TOO_LARGE, 413);
   if (kind === 'early' && gate.session.earlyDevelopment?.version !== 'E2-v7') return error(EARLY_VERSION, 409);
-  if ((await voiceSampleCount(sessionId, gate.session)) >= VOICE_SAMPLE_MAX_PER_SESSION) return error(TOO_MANY, 429);
-  const inspected = inspectVoiceContent(ctx.body);
+  const held = quotaRefusal(await readQuota(sessionId, gate.session), 0);
+  if (held) return error(held.message, held.status);
+  const inspected = inspectVoiceContent(ctx.body, kind);
   if (!inspected.ok) return error(inspected.message, inspected.status);
-  const reserved = await reserveVoiceSample(sessionId, gate.session);
+  const reserved = await reserveVoiceSample(sessionId, gate.session, inspected.bytes);
   if (!reserved.ok) return error(reserved.message, reserved.status);
   const path = kind === 'early'
     ? 'early/' + sessionId + '/' + inspected.itemId + '-' + Date.now() + '.webm'
@@ -293,12 +352,13 @@ export function guardVoiceSamples(inner: (request: VoiceRequest) => Promise<unkn
     const gate = await authorize(headers, route.sessionId);
     if (!gate.ok) return error(gate.message, gate.status);
     const declared = declaredContentLength(headers);
-    if (declared !== null && declared > VOICE_REQUEST_MAX_BYTES) return error(TOO_LARGE, 413);
+    if (declared !== null && declared > requestMaxBytes(route.kind)) return error(TOO_LARGE, 413);
     if (route.kind === 'early' && gate.session.earlyDevelopment?.version !== 'E2-v7') return error(EARLY_VERSION, 409);
-    if ((await voiceSampleCount(route.sessionId, gate.session)) >= VOICE_SAMPLE_MAX_PER_SESSION) return error(TOO_MANY, 429);
+    const held = quotaRefusal(await readQuota(route.sessionId, gate.session), 0);
+    if (held) return error(held.message, held.status);
     const rawBody = Object.getOwnPropertyDescriptor(request, 'body');
     const rawBytes = rawBody && 'value' in rawBody ? rawBodyBytes(rawBody.value) : null;
-    if (rawBytes !== null && rawBytes > VOICE_REQUEST_MAX_BYTES) return error(TOO_LARGE, 413);
+    if (rawBytes !== null && rawBytes > requestMaxBytes(route.kind)) return error(TOO_LARGE, 413);
     return inner(request);
   };
 }

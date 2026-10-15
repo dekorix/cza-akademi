@@ -101,7 +101,13 @@ globalThis.__CZA_ASSESSMENT_SDK = createSdk();
 register(new URL('./sec-c-appdeploy-sdk-loader.mjs', import.meta.url));
 
 const { handler } = await import('../../apps/assessment-appdeploy/backend/index.ts');
-const { VOICE_QUOTA_COLLECTION, VOICE_REQUEST_MAX_BYTES, VOICE_SAMPLE_MAX_PER_SESSION } = await import('../../apps/assessment-appdeploy/backend/voiceSampleGuard.ts');
+const {
+  VOICE_QUOTA_COLLECTION,
+  VOICE_SAMPLE_MAX_BYTES,
+  EARLY_SAMPLE_MAX_BYTES,
+  VOICE_SAMPLE_MAX_PER_SESSION,
+  VOICE_SESSION_MAX_BYTES,
+} = await import('../../apps/assessment-appdeploy/backend/voiceSampleGuard.ts');
 
 function token() {
   return randomBytes(32).toString('base64url');
@@ -232,7 +238,7 @@ test('a bearer from another session returns 403 and writes nothing', async () =>
   assert.equal(writes.length, 0);
 });
 
-test('declared oversize returns 413 before the body is read and writes nothing', async () => {
+test('declared P2 oversize returns 413 before the body is read and writes nothing', async () => {
   const secret = token();
   const id = await addSession({
     childAccessTokenHash: sha256Hex(secret),
@@ -244,7 +250,7 @@ test('declared oversize returns 413 before the body is read and writes nothing',
     path: '/api/session/' + id + '/voice-sample',
     headers: {
       authorization: 'Bearer ' + secret,
-      'content-length': String(VOICE_REQUEST_MAX_BYTES + 1),
+      'content-length': String(VOICE_SAMPLE_MAX_BYTES + 1),
     },
     get body() {
       reads += 1;
@@ -257,7 +263,41 @@ test('declared oversize returns 413 before the body is read and writes nothing',
   assert.equal(writes.length, 0);
 });
 
-test('content over the byte cap returns 413 and writes nothing', async () => {
+test('declared E2 oversize returns 413 before the body is read and writes nothing', async () => {
+  const cookie = await educatorCookie();
+  const id = await addSession({ profileCode: 'E2', earlyDevelopment: { version: 'E2-v7', responses: [] } });
+  let reads = 0;
+  const response = await call({
+    method: 'POST',
+    path: '/api/session/' + id + '/early-voice-sample',
+    headers: { cookie, 'content-length': String(EARLY_SAMPLE_MAX_BYTES + 1) },
+    get body() {
+      reads += 1;
+      return { content: 'YQ==', contentType: 'audio/webm', itemId: 'E7_AUD_03' };
+    },
+  });
+  assert.equal(response.statusCode, 413);
+  assert.equal(JSON.parse(response.body).error, 'Ses kaydı boyut sınırını aşıyor');
+  assert.equal(reads, 0);
+  assert.equal(writes.length, 0);
+  assert.equal(db.bucket(VOICE_QUOTA_COLLECTION).size, 0);
+});
+
+test('P2 content over 4 MiB returns 413 and writes nothing', async () => {
+  const cookie = await educatorCookie();
+  const id = await addSession();
+  const response = await call({
+    method: 'POST',
+    path: '/api/session/' + id + '/voice-sample',
+    headers: { cookie },
+    body: { content: 'A'.repeat(VOICE_SAMPLE_MAX_BYTES + 1), contentType: 'audio/webm' },
+  });
+  assert.equal(response.statusCode, 413);
+  assert.equal(writes.length, 0);
+  assert.equal(db.bucket(VOICE_QUOTA_COLLECTION).size, 0);
+});
+
+test('E2 content over 1 MiB returns 413 and writes nothing', async () => {
   const cookie = await educatorCookie();
   const id = await addSession({ profileCode: 'E2', earlyDevelopment: { version: 'E2-v7', responses: [] } });
   const response = await call({
@@ -265,7 +305,7 @@ test('content over the byte cap returns 413 and writes nothing', async () => {
     path: '/api/session/' + id + '/early-voice-sample',
     headers: { cookie },
     body: {
-      content: 'A'.repeat(VOICE_REQUEST_MAX_BYTES + 1),
+      content: 'A'.repeat(EARLY_SAMPLE_MAX_BYTES + 1),
       contentType: 'audio/webm',
       itemId: 'E7_AUD_03',
     },
@@ -303,6 +343,54 @@ test('the per-session sample ceiling returns 429 and writes nothing', async () =
   assert.equal(db.bucket(VOICE_QUOTA_COLLECTION).get(quotaId).count, VOICE_SAMPLE_MAX_PER_SESSION);
 });
 
+test('the per-session byte ceiling returns 429 and writes nothing', async () => {
+  const cookie = await educatorCookie();
+  const id = await addSession({ profileCode: 'E2', earlyDevelopment: { version: 'E2-v7', responses: [] } });
+  const [quotaId] = await db.add(VOICE_QUOTA_COLLECTION, [{
+    sessionId: id,
+    count: 1,
+    bytes: VOICE_SESSION_MAX_BYTES,
+  }]);
+  const stored = db.bucket('assessment_sessions').get(id);
+  stored.voiceSampleQuotaId = quotaId;
+  const probe = unreadBody();
+  const response = await call({
+    method: 'POST',
+    path: '/api/session/' + id + '/voice-sample',
+    headers: { cookie },
+    get body() { return probe.body; },
+  });
+  assert.equal(response.statusCode, 429);
+  assert.equal(JSON.parse(response.body).error, 'Bu oturum için toplam ses boyutu sınırına ulaşıldı');
+  assert.equal(probe.reads(), 0);
+  assert.equal(writes.length, 0);
+  assert.equal(db.bucket(VOICE_QUOTA_COLLECTION).get(quotaId).bytes, VOICE_SESSION_MAX_BYTES);
+  assert.equal(db.bucket(VOICE_QUOTA_COLLECTION).get(quotaId).count, 1);
+});
+
+test('a sample that would cross the session byte ceiling returns 429 and writes nothing', async () => {
+  const cookie = await educatorCookie();
+  const id = await addSession({ profileCode: 'E2', earlyDevelopment: { version: 'E2-v7', responses: [] } });
+  const [quotaId] = await db.add(VOICE_QUOTA_COLLECTION, [{
+    sessionId: id,
+    count: 2,
+    bytes: VOICE_SESSION_MAX_BYTES - 4,
+  }]);
+  const stored = db.bucket('assessment_sessions').get(id);
+  stored.voiceSampleQuotaId = quotaId;
+  const response = await call({
+    method: 'POST',
+    path: '/api/session/' + id + '/early-voice-sample',
+    headers: { cookie },
+    body: { content: 'AAAAA', contentType: 'audio/webm', itemId: 'E7_AUD_03' },
+  });
+  assert.equal(response.statusCode, 429);
+  assert.equal(JSON.parse(response.body).error, 'Bu oturum için toplam ses boyutu sınırına ulaşıldı');
+  assert.equal(writes.length, 0);
+  assert.equal(db.bucket(VOICE_QUOTA_COLLECTION).get(quotaId).bytes, VOICE_SESSION_MAX_BYTES - 4);
+  assert.equal(db.bucket(VOICE_QUOTA_COLLECTION).get(quotaId).count, 2);
+});
+
 test('educator cookie and matching bearer can store one sample each', async () => {
   const cookie = await educatorCookie();
   const secret = token();
@@ -334,7 +422,9 @@ test('educator cookie and matching bearer can store one sample each', async () =
   assert.equal(JSON.parse(byEducator.body).path.includes(secret), false);
   const linked = db.bucket('assessment_sessions').get(childSession);
   assert.equal(typeof linked.voiceSampleQuotaId, 'string');
-  assert.equal(db.bucket(VOICE_QUOTA_COLLECTION).get(linked.voiceSampleQuotaId).count, 1);
+  const childQuota = db.bucket(VOICE_QUOTA_COLLECTION).get(linked.voiceSampleQuotaId);
+  assert.equal(childQuota.count, 1);
+  assert.equal(childQuota.bytes, Buffer.byteLength('YQ=='));
 });
 
 test('an expired bearer is rejected and an invalid educator cookie does not open the route', async () => {
