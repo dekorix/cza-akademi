@@ -37,6 +37,8 @@ jobs:
       - run: npm ci --ignore-scripts
       - name: Sanitized new publication delta
         run: node scripts/qa/scan-private-broker-publish.mjs "${{ github.event.pull_request.base.sha }}"
+      - name: Broker request contract
+        run: node --test tests/broker/request-contract.test.mjs
       - name: Actual disposable PostgreSQL and Miniflare binding
         env:
           BROKER_TEST_POSTGRES: local

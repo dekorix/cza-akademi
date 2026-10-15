@@ -15,5 +15,7 @@
     "QA_BROKER_DATABASE": "REVIEW_PLACEHOLDER",
     "QA_BROKER_ROLE": "REVIEW_PLACEHOLDER"
   }
-  // BROKER_DATABASE_URL must be broker-only secret storage, never this file.
+  // BROKER_DATABASE_URL and QA_BROKER_REQUEST_HMAC_SECRET are Worker secrets, never this file.
+  // BROKER_NONCE_LEDGER (Durable Object class BrokerNonceLedger) is intentionally absent.
+  // A deploy without that binding and the matching ingress secret fails closed.
 }

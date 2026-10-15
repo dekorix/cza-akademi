@@ -14,7 +14,7 @@ export async function bundle(entry,{mock=false}={}) {
  };
  const neonMock=`import{env}from'cloudflare:workers';export function neon(value){if(value!=='LOCAL_TEST_ONLY')throw Error('test_transport_only');return{query:(text,params)=>({text,params}),transaction:async(queries,options)=>{const r=await env.TEST_DATABASE.fetch('https://db.local.invalid',{method:'POST',body:JSON.stringify({queries,options})});const data=await r.json();if(!r.ok){const e=new Error('database_unavailable');e.code=data.code;throw e}return data.results}}}`;
  const plugins=mock?[{name:'local-only-transports',setup(b){b.onResolve({filter:/^@neondatabase\/serverless$/},()=>({path:'neon-mock',namespace:'local-test'}));b.onLoad({filter:/.*/,namespace:'local-test'},()=>({contents:neonMock,loader:'js'}));b.onLoad({filter:/(isolated-qa-auth|educator-auth|request-guard)\.ts$/},args=>({contents:replacements[path.basename(args.path)],loader:'js'}));}}]:[];
- const result=await build({entryPoints:[entry],bundle:true,write:false,platform:'browser',format:'esm',external:['cloudflare:workers','node:crypto'],plugins,logLevel:'silent'});
+ const result=await build({entryPoints:[entry],bundle:true,write:false,platform:'browser',format:'esm',keepNames:true,external:['cloudflare:workers','node:crypto'],plugins,logLevel:'silent'});
  let text=result.outputFiles[0].text;
  if(entry.startsWith('app/')) text+='\nexport default {fetch(request){return GET(request)}};';
  return text;
