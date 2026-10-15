@@ -75,6 +75,8 @@ test('skipping the math-attitude choice still has a follow-up question', () => {
   }
   assert.equal(mathAttitudeFollowUp('explore').display, '16 + 7');
   assert.equal(mathAttitudeFollowUp('middle').correct, '14');
+  assert.equal(mathAttitudeFollowUp('SKIP').fallback, true);
+  assert.equal(mathAttitudeFollowUp('short').fallback, false);
   const lab = read('apps/assessment-appdeploy/src/MathAttitudeLab.tsx');
   assert.match(lab, /mathAttitudeFollowUp\(/);
   assert.equal(lab.includes('challenge[picked]'), false);

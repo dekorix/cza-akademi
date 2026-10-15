@@ -63,7 +63,7 @@ import './parent-report-v2.css';
 import './cza-magic-world-overrides.css';
 
 type Task={id:string;groupId:string;role:string;station:string;title:string;childInstruction:string;educatorInstruction:string;responseType:'text'|'number'|'choice';choices?:string[];skills:Array<{code:string;label:string}>};
-type Attempt={taskId:string;title:string;answer:string;correctness:'correct'|'incorrect'|'review';responseLatencyMs:number|null;totalResponseMs:number|null;supportLevel:number;rubric?:Record<string,number>};
+type Attempt={taskId:string;title:string;answer:string;correctness:'correct'|'incorrect'|'review'|'insufficient';responseLatencyMs:number|null;totalResponseMs:number|null;supportLevel:number;rubric?:Record<string,number>};
 type Observation={taskId:string;codes:string[];note:string;createdAt:string};
 type Session={id:string;studentLabel:string;status:string;startStation:string;currentTask:Task|null;attempts:Attempt[];observations:Observation[];createdAt:string;profileCode?:string;birthDate?:string;ageMonths?:number;assessmentPurpose?:string;earlyDevelopment?:EarlyDevelopmentState;assessmentStartedAt?:string;assessmentPausedAt?:string;assessmentPausedTotalMs?:number;assessmentCompletedAt?:string;assessmentActiveDurationMs?:number};
 type Skill={code:string;label:string;cluster:string;score:number|null;evidenceCount:number;status:string};
