@@ -16,7 +16,10 @@ test('P2 full assessment contract preserves all 23 original sections',()=>{
 
 test('P2 full assessment preserves original micro-task scale',()=>{
   assert.equal(P2_FULL_MIN_TASKS,226);
-  assert.equal(P2_FULL_MAX_TASKS,239);
+  assert.equal(P2_FULL_MAX_TASKS,245);
+  const transfer = P2_FULL_SECTIONS.find((item) => item.id === 'P2-14');
+  assert.equal(transfer.minTasks, 6);
+  assert.equal(transfer.maxTasks, 12);
 });
 
 test('P2 full assessment preserves 14 main reporting areas',()=>{

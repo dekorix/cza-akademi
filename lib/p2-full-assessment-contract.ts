@@ -20,7 +20,7 @@ export const P2_FULL_SECTIONS: P2FullSection[] = [
   { id:'P2-11', title:'Potansiyel ve Esnek Düşünme', source:'PotentialLab', minTasks:16, maxTasks:16 },
   { id:'P2-12', title:'Organizasyon', source:'OrganizerLab', minTasks:10, maxTasks:10 },
   { id:'P2-13', title:'Karar Verme', source:'DecisionLab', minTasks:12, maxTasks:12 },
-  { id:'P2-14', title:'Transfer ve Doğrulama', source:'AdaptiveTransferLab', minTasks:6, maxTasks:6 },
+  { id:'P2-14', title:'Transfer ve Doğrulama', source:'AdaptiveTransferLab', minTasks:6, maxTasks:12 },
   { id:'P2-15', title:'Üstbiliş', source:'MetacognitionLab', minTasks:12, maxTasks:12 },
   { id:'P2-16', title:'Sesli Okuma ve Akıcılık', source:'ReadingFluencyLab', minTasks:8, maxTasks:8 },
   { id:'P2-17', title:'Sesli Dikkat', source:'VoiceStroopLab', minTasks:1, maxTasks:1 },
