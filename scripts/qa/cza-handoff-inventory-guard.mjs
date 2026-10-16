@@ -31,7 +31,8 @@ export function auditCzaSourceInventory({bridge,p2,skills,protocol,decisionLedge
   exactSet(p2sections.map(x=>x[1]),REQUIRED_P2_SECTIONS,'P2 sections',errors);
   let min=0,max=0;
   for(const section of p2sections){ min+=Number(section[2]);max+=Number(section[3]);if(Number(section[2])<1||Number(section[2])>Number(section[3]))errors.push('Invalid P2 bounds '+section[1]); }
-  if(min!==226||max!==239)errors.push('P2 task-bound checksum changed: '+min+'/'+max+'; review old/new evidence before acceptance');
+  // K-20261015-01: P2-14 max rises from 6 to 12. Min stays 6, so stored 6-item records remain inside 226/245.
+  if(min!==226||max!==245)errors.push('P2 task-bound checksum changed: '+min+'/'+max+'; review old/new evidence before acceptance');
   const skillsFound=[...skills.matchAll(/\*\*(CZA-S\d{2})\s+—/g)].map(x=>x[1]);
   exactSet(skillsFound,REQUIRED_SKILLS,'skills',errors);
   for(const code of REQUIRED_INTAKE){

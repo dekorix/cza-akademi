@@ -12,7 +12,7 @@ const files=()=>({
 });
 test('canonical source contract has 16+10 profile IDs, P2 23 sections and 14 skills',()=>{
   const r=auditCzaSourceInventory(files());assert.deepEqual(r.errors,[]);assert.equal(r.pass,true);
-  assert.deepEqual(r.stats,{intake:16,special:10,p2Sections:23,p2Min:226,p2Max:239,skills:14});
+  assert.deepEqual(r.stats,{intake:16,special:10,p2Sections:23,p2Min:226,p2Max:245,skills:14});
   assert.equal(r.kind,'SOURCE_INVENTORY_ONLY_NOT_STAGING_ACCEPTANCE');
 });
 test('missing intake code fails',()=>{
