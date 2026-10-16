@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash, randomBytes } from 'node:crypto';
 import { register } from 'node:module';
+// K-20261016-10: CI tetik yorumu.
 
 const AUTH_REQUIRED = '{"error":"Oturum erişim belirteci gerekli"}';
 const AUTH_INVALID = '{"error":"Oturum erişim belirteci geçersiz"}';
