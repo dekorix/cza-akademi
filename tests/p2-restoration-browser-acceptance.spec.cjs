@@ -17,7 +17,7 @@ async function verifyHub(page){
   await expect(page).toHaveURL(/\/assessment\/p2$/);
   await expect(page.getByRole('heading',{name:'1. sınıf sonu → 2. sınıf başlangıcı'})).toBeVisible();
   await expect(page.getByText('23 bölüm',{exact:true})).toBeVisible();
-  await expect(page.getByText('226–239 görev',{exact:true})).toBeVisible();
+  await expect(page.getByText('226–245 görev',{exact:true})).toBeVisible();
   await expect(page.getByText('14 raporlama alanı',{exact:true})).toBeVisible();
   await expect(page.getByRole('heading',{name:'Tam P2 bölüm haritası'})).toBeVisible();
   await expect(page.getByText('Tanışma ve İlgi',{exact:true})).toBeVisible();
