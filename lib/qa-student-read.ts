@@ -53,5 +53,14 @@ export async function isolatedQaStudentLogin(request: Request, username: string,
   await assertQaStudentTarget(request);
   const sql = neon(process.env.DATABASE_URL!);
   const rows = await sql`SELECT public.cza_v03_qa_student_login(${username}::text,${pin}::text,${request.headers.get('user-agent')}::text) AS result`;
-  return rows[0]?.result as Record<string, unknown>;
+  // Only disabled QA may return null and select the canonical upstream path.
+  // An empty/malformed QA result is an infrastructure failure, never a login fallback.
+  const result: unknown = rows[0]?.result;
+  if (!result || typeof result !== 'object' || Array.isArray(result))
+    throw new Error('v03_qa_login_result_invalid');
+  const payload = result as Record<string, unknown>;
+  if (typeof payload.ok !== 'boolean'
+    || (payload.ok === false && (typeof payload.error !== 'string' || !payload.error.trim())))
+    throw new Error('v03_qa_login_result_invalid');
+  return payload;
 }

@@ -17,6 +17,9 @@ on:
       - 'lib/work-center.ts'
       - 'lib/persistence/student-learning-profile.ts'
       - 'tests/v03-*'
+      - 'tests/qa-login-fail-closed.test.mjs'
+      - 'tests/login-error-codes.test.mjs'
+      - 'tests/k3e-staging-diagnostics.test.mjs'
       - '.github/workflows/cza-v03-student-panel.yml'
 permissions:
   contents: read
@@ -33,6 +36,8 @@ jobs:
       - run: npm ci --ignore-scripts
       - name: Panel, canonical profile and assignment regressions
         run: node --test tests/v03-qa-target.test.mjs tests/v03-qa-read-postgres.test.mjs tests/v03-student-panel.test.mjs tests/u1-student-panel.test.mjs tests/u2-work-center.test.mjs tests/u7-student-learning-profile.test.mjs tests/u1-student-panel-postgres.test.mjs tests/u2-work-center-postgres.test.mjs
+      - name: QA login fail-closed and diagnostic regressions
+        run: node --test tests/qa-login-fail-closed.test.mjs tests/login-error-codes.test.mjs tests/k3e-staging-diagnostics.test.mjs
       - name: TypeScript
         run: npx tsc --noEmit
       - name: Local desktop/mobile browser rendering (mock UI only)
