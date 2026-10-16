@@ -166,11 +166,22 @@ test('health check still reaches the inner router', async () => {
 
 test('other session routes stay outside the voice gate', async () => {
   const id = await addSession();
-  const before = db.gets.length;
-  const response = await call({
+  const blocked = await call({
     method: 'POST',
     path: '/api/session/' + id + '/answer',
     headers: {},
+    body: { answer: 'merhaba' },
+  });
+  assert.equal(blocked.statusCode, 401);
+  assert.equal(blocked.body, AUTH_REQUIRED);
+  assert.equal(writes.length, 0);
+
+  const before = db.gets.length;
+  const cookie = await educatorCookie();
+  const response = await call({
+    method: 'POST',
+    path: '/api/session/' + id + '/answer',
+    headers: { cookie },
     body: { answer: 'merhaba' },
   });
   assert.equal(response.statusCode, 200);
@@ -198,6 +209,30 @@ for (const route of ['voice-sample', 'early-voice-sample']) {
     assert.equal(db.gets.includes('assessment_sessions'), false);
   });
 }
+
+test('an existing session and a missing session return the same status and body format', async () => {
+  const existing = await addSession({ profileCode: 'E2', earlyDevelopment: { version: 'E2-v7', responses: [] } });
+  const seen = [];
+  for (const route of ['voice-sample', 'early-voice-sample']) {
+    const present = await call({ method: 'POST', path: '/api/session/' + existing + '/' + route, headers: {}, body: {} });
+    const missing = await call({ method: 'POST', path: '/api/session/missing-session/' + route, headers: {}, body: {} });
+    assert.equal(present.statusCode, missing.statusCode);
+    assert.equal(present.statusCode, 401);
+    const presentBody = JSON.parse(present.body);
+    const missingBody = JSON.parse(missing.body);
+    assert.deepEqual(Object.keys(presentBody).sort(), ['error']);
+    assert.deepEqual(Object.keys(missingBody).sort(), Object.keys(presentBody).sort());
+    assert.equal(typeof presentBody.error, 'string');
+    assert.deepEqual(presentBody, missingBody);
+    assert.deepEqual(present.headers, missing.headers);
+    assert.equal(present.body.includes(existing), false);
+    assert.equal(missing.body.includes('missing-session'), false);
+    seen.push(present.body);
+  }
+  assert.equal(seen[0], seen[1]);
+  assert.equal(writes.length, 0);
+  assert.equal(db.gets.includes('assessment_sessions'), false);
+});
 
 test('early voice without a credential does not reveal E2 version or existence', async () => {
   const legacy = await addSession({ profileCode: 'E2', earlyDevelopment: { version: 'E2-v2', responses: [] } });
