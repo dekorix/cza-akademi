@@ -322,8 +322,13 @@ test('voice sample routes stay outside the session capability', async () => {
   const created = await openParent();
   const voice = await call('POST', '/api/session/' + created.id + '/voice-sample', { body: {} });
   const early = await call('POST', '/api/session/' + created.id + '/early-voice-sample', { body: {} });
-  assert.equal(voice.status, 400);
-  assert.equal(early.status, 409);
+  assert.equal(voice.status, 401);
+  assert.equal(early.status, 401);
+  assert.deepEqual(voice.body, early.body);
+  const ownedVoice = await call('POST', '/api/session/' + created.id + '/voice-sample', { token: created.accessToken, body: {} });
+  const ownedEarly = await call('POST', '/api/session/' + created.id + '/early-voice-sample', { token: created.accessToken, body: {} });
+  assert.equal(ownedVoice.status, 400);
+  assert.equal(ownedEarly.status, 409);
 });
 
 test('POST /api/session/:id/answer returns 413 and leaves the stored session unchanged', async () => {
