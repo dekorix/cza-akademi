@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { api } from '@appdeploy/client';
+import { childAssessmentHash, rememberChildAccess } from './childAccessMemory';
 import { History, PlayCircle, RefreshCw, TrendingUp, UserRound } from 'lucide-react';
 import { ASSESSMENT_PURPOSE_LABELS, CZA_PROFILE_LABELS } from './ProfileIntake';
 import './report-workflow.css';
@@ -36,7 +37,9 @@ export default function StudentDirectoryPanel() {
     setMessage('');
     try {
       const response = await api.post('/api/student/' + id + '/followup');
-      location.hash = '#/assessment?session=' + (response.data as {id:string}).id;
+      const created = response.data as {id:string; accessToken?:string};
+      if (created.accessToken) rememberChildAccess(created.id, created.accessToken);
+      location.hash = childAssessmentHash(created.id, created.accessToken || '');
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'Yeni ölçüm açılamadı.');
     } finally {

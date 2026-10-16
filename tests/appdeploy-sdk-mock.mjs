@@ -19,7 +19,29 @@ export const db = {
 };
 
 export function router(routes) {
-  return routes;
+  return async function handle(request) {
+    const method = request.method || 'GET';
+    const path = request.path;
+    for (const [key, handlers] of Object.entries(routes)) {
+      const space = key.indexOf(' ');
+      if (key.slice(0, space) !== method) continue;
+      const names = [];
+      const regex = new RegExp('^' + key.slice(space + 1).replace(/:([^/]+)/g, (_, name) => {
+        names.push(name);
+        return '([^/]+)';
+      }) + '$');
+      const found = path.match(regex);
+      if (!found) continue;
+      const params = Object.fromEntries(names.map((name, index) => [name, decodeURIComponent(found[index + 1])]));
+      const ctx = { params, body: request.body, event: { headers: request.headers || {} }, user: undefined };
+      for (const fn of handlers) {
+        const result = await fn(ctx);
+        if (result) return result;
+      }
+      return { statusCode: 500, headers: {}, body: JSON.stringify({ error: 'empty' }) };
+    }
+    return { statusCode: 404, headers: {}, body: JSON.stringify({ error: 'no route' }) };
+  };
 }
 
 export function json(data, status = 200) {

@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { api } from '@appdeploy/client';
+import { childAssessmentHash, rememberChildAccess } from './childAccessMemory';
 import { Baby, Brain, CalendarDays, GraduationCap, ShieldCheck, Sparkles } from 'lucide-react';
 
 type ProfileOption = {
@@ -119,9 +120,12 @@ export default function ProfileIntake() {
         birthDate: birthDate || undefined,
         assessmentPurpose: purpose,
       });
-      const id = String((result.data as { id?: string }).id || '');
-      if (!id) throw new Error('missing session');
-      window.location.hash = '#/assessment?session=' + id;
+      const created = result.data as { id?: string; accessToken?: string };
+      const id = String(created.id || '');
+      const accessToken = String(created.accessToken || '');
+      if (!id || !accessToken) throw new Error('missing session');
+      rememberChildAccess(id, accessToken);
+      window.location.hash = childAssessmentHash(id, accessToken);
     } catch {
       setMessage('Değerlendirme profili oluşturulamadı. Bilgileri kontrol edip yeniden deneyin.');
     } finally {
