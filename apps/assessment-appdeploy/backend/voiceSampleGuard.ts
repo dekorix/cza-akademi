@@ -1,14 +1,11 @@
-import { createHash, timingSafeEqual } from 'node:crypto';
 import { db, error, json, storage } from '@appdeploy/sdk';
+import { childAccessStatus, presentedBearer } from './childAccess';
 
 /**
  * SEC-C gate for the two voice routes left open by SEC-A.
  *
- * Bearer rules and document fields match PR #115 (`childAccess.ts`):
- * `Authorization: Bearer`, SHA-256 hex in `childAccessTokenHash`, expiry in
- * `childAccessExpiresAt`. This file stays separate so the later merge does not
- * collide with that new module. After the merge, import `presentedBearer` and
- * `childAccessStatus` from `childAccess.ts` and delete the copies below.
+ * Bearer parsing is imported from `childAccess.ts`, the SEC-A source.
+ * Document fields stay `childAccessTokenHash` and `childAccessExpiresAt`.
  *
  * The sample counter lives in the existing document store (`cza_voice_sample_quota`),
  * addressed by the id `db.add` returns and linked with `voiceSampleQuotaId`.
@@ -33,8 +30,6 @@ export const VOICE_SAMPLE_MAX_PER_SESSION = 16;
 export const VOICE_SESSION_MAX_BYTES = 24 * 1024 * 1024;
 
 export const VOICE_QUOTA_COLLECTION = 'cza_voice_sample_quota';
-
-const ABSENT_TOKEN_HASH = createHash('sha256').update('cza-child-access-absent').digest('hex');
 
 const AUTH_REQUIRED = 'Oturum erişim belirteci gerekli';
 const AUTH_INVALID = 'Oturum erişim belirteci geçersiz';
@@ -76,50 +71,7 @@ type VoiceCtx = {
 
 type EducatorCheck = (headers: HeaderMap) => Promise<boolean>;
 
-type PresentedBearer =
-  | { state: 'absent'; token: '' }
-  | { state: 'malformed'; token: '' }
-  | { state: 'ok'; token: string };
-
 let educatorAuthorized: EducatorCheck = async () => false;
-
-function sha256Hex(value: string) {
-  return createHash('sha256').update(value).digest('hex');
-}
-
-function equalHex(a: string, b: string) {
-  try {
-    const left = Buffer.from(a, 'hex');
-    const right = Buffer.from(b, 'hex');
-    return left.length === right.length && timingSafeEqual(left, right);
-  } catch {
-    return false;
-  }
-}
-
-export function presentedBearer(headers: HeaderMap): PresentedBearer {
-  const raw = headers.authorization || headers.Authorization;
-  if (!raw || !String(raw).trim()) return { state: 'absent', token: '' };
-  const match = /^Bearer\s+([A-Za-z0-9_-]{43,128})$/.exec(String(raw).trim());
-  if (!match) return { state: 'malformed', token: '' };
-  return { state: 'ok', token: match[1] };
-}
-
-/** 403 when the digest is missing or different. 401 when the matching digest is expired. */
-export function childAccessStatus(input: {
-  presentedToken: string;
-  storedHash?: string;
-  expiresAt?: string;
-  now?: number;
-}): 200 | 401 | 403 {
-  const now = input.now ?? Date.now();
-  const stored = input.storedHash || ABSENT_TOKEN_HASH;
-  const matches = equalHex(stored, sha256Hex(input.presentedToken));
-  if (!matches || !input.storedHash) return 403;
-  const expires = Date.parse(input.expiresAt || '');
-  if (!input.expiresAt || !Number.isFinite(expires) || expires <= now) return 401;
-  return 200;
-}
 
 function plainHeaders(request: VoiceRequest): HeaderMap {
   const headers = request?.headers;
