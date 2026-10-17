@@ -1,0 +1,52 @@
+name: QA Private Broker Local Proof
+on:
+  pull_request:
+    paths:
+      - 'lib/qa-educator-broker*'
+      - 'workers/qa-educator-broker/**'
+      - 'app/api/educator-student-history/**'
+      - 'db/qa/educator-broker*'
+      - 'tests/broker/**'
+      - 'scripts/qa/scan-private-broker-publish.mjs'
+      - '.github/workflows/cza-private-broker-local.yml'
+permissions:
+  contents: read
+jobs:
+  local-broker:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_HOST_AUTH_METHOD: trust
+          POSTGRES_DB: broker_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres -d broker_test"
+          --health-interval 5s --health-timeout 5s --health-retries 12
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: '22.13.0'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Sanitized new publication delta
+        run: node scripts/qa/scan-private-broker-publish.mjs "${{ github.event.pull_request.base.sha }}"
+      - name: Broker request contract
+        run: node --test tests/broker/request-contract.test.mjs
+      - name: Actual disposable PostgreSQL and Miniflare binding
+        env:
+          BROKER_TEST_POSTGRES: local
+          BROKER_TEST_PG_PORT: '5432'
+        run: node tests/broker/private-broker-postgres.integration.mjs
+      - name: TypeScript and narrow lint
+        run: |
+          npx tsc --noEmit
+          npx oxlint lib/qa-educator-broker*.ts workers/qa-educator-broker/index.ts app/api/educator-student-history/route.ts tests/broker/*.mjs
+      - name: Secrets-free platform build
+        run: npm run build
