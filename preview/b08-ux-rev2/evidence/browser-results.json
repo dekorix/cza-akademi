@@ -1,0 +1,10 @@
+{
+  "checks": 36,
+  "errors": [],
+  "network": [],
+  "desktop": "1440x900",
+  "mobile": "390x844",
+  "touch": "PASS",
+  "keyboard": "PASS",
+  "accessibility": "labels/focus/dialog/mobile overflow checked; screen-reader NOT_RUN"
+}
