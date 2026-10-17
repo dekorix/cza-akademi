@@ -363,7 +363,7 @@ try {
 
   async function openEducatorUiReport() {
     const uiLoaded = await evalJson(educatorPage, `(() => {
-      const button = Array.from(document.querySelectorAll('button')).find(el => el.textContent?.includes('Seans raporları'));
+      const button = Array.from(document.querySelectorAll('nav[aria-label="Eğitimci bölümleri"] button')).find(el => el.textContent?.includes('Çalışma raporu'));
       if (!button) return false;
       button.click();
       return true;

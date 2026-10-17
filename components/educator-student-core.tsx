@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import {
   Activity, AlertTriangle, CheckCircle2,
   RefreshCw, Search, ShieldCheck, UserRound,
@@ -84,6 +84,10 @@ function Provenance({ status }: { status: string }) {
 }
 
 function WorkList({ title, items, empty }: { title: string; items: Work[]; empty: string }) {
+  const moduleNames: Record<string, string> = {
+    finger_read: 'Parmak okuma', soroban_read: 'Soroban okuma', soroban_write: 'Soroban yazma',
+    flash_anzan: 'Flash Anzan', audio_anzan: 'Sesli Anzan',
+  };
   return (
     <section className="rounded-2xl border bg-white p-5 shadow-sm">
       <h3 className="font-bold text-[#18372f]">{title}</h3>
@@ -93,7 +97,7 @@ function WorkList({ title, items, empty }: { title: string; items: Work[]; empty
             <div className="flex flex-wrap items-start justify-between gap-2">
               <div>
                 <p className="font-semibold">{work.name}</p>
-                <p className="mt-1 text-xs text-muted-foreground">{work.moduleCode} · {work.source}</p>
+                <p className="mt-1 text-xs text-muted-foreground">{moduleNames[work.moduleCode] || 'Çalışma'}</p>
               </div>
               <span className="rounded-full bg-[#edf7f2] px-2.5 py-1 text-[11px] font-bold text-[#276151]">
                 {work.session?.status === 'completed' ? 'Tamamlandı' : work.session ? 'Devam ediyor' : 'Başlanmadı'}
@@ -107,6 +111,18 @@ function WorkList({ title, items, empty }: { title: string; items: Work[]; empty
       </div>
     </section>
   );
+}
+
+function OptionalSection({ title, description, children }: { title: string; description: string; children: ReactNode }) {
+  const [open, setOpen] = useState(false);
+  return <section className="rounded-2xl border bg-white p-5 shadow-sm">
+    <button type="button" aria-expanded={open} onClick={() => setOpen(value => !value)}
+      className="flex w-full items-center justify-between gap-4 text-left focus-visible:rounded-lg focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#276151]">
+      <span><strong className="block text-lg text-[#18372f]">{title}</strong><span className="mt-1 block text-sm text-muted-foreground">{description}</span></span>
+      <span aria-hidden="true" className="shrink-0 font-semibold text-[#276151]">{open ? 'Kapat −' : 'Aç +'}</span>
+    </button>
+    {open && <div className="mt-5 space-y-5 border-t pt-5">{children}</div>}
+  </section>;
 }
 
 export function EducatorStudentCore({ onReport }: { onReport?: (studentId: string) => void }) {
@@ -231,11 +247,11 @@ export function EducatorStudentCore({ onReport }: { onReport?: (studentId: strin
       <div className="min-w-0 space-y-6">
         {message && <p role="alert" className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">{message}</p>}
         {loadingDetail ? <div className="grid min-h-72 place-items-center rounded-2xl border bg-white"><output className="flex items-center gap-2"><RefreshCw className="animate-spin" size={18} /> Öğrenci dosyası hazırlanıyor…</output></div> :
-        detail ? <>
+        detail ? <div key={detail.student.id} className="space-y-6">
           <header data-student-file={detail.student.id} className="rounded-3xl bg-[#18372f] p-6 text-white sm:p-8">
             <p className="text-xs font-bold uppercase tracking-[.16em] text-[#b9d7ca]">Merkezî öğrenci dosyası</p>
             <h2 className="mt-2 text-2xl font-bold sm:text-3xl">{detail.student.name}</h2>
-            <p className="mt-2 text-sm text-[#d5e8e0]">{detail.student.campusCode || detail.student.username || 'Tek Student ID'} · {detail.student.id}</p>
+            <p className="mt-2 text-sm text-[#d5e8e0]">{detail.student.campusCode || detail.student.username || 'Öğrenci kaydı'}</p>
             <Button type="button" className="mt-4" disabled={assessmentBusy} onClick={() => void startAssessment()}>
               {assessmentBusy ? 'Değerlendirme açılıyor…' : 'Başlangıç değerlendirmesini aç'}
             </Button>
@@ -250,16 +266,25 @@ export function EducatorStudentCore({ onReport }: { onReport?: (studentId: strin
             </div>
           </header>
 
-          <EducatorAnalytics studentId={detail.student.id} />
-
-          <CoachingCenter studentId={detail.student.id} audience="educator" />
-
-          <div className="grid gap-6 lg:grid-cols-2">
-            <WorkList title="Aktif ve devam eden çalışmalar" items={detail.work.active} empty="Aktif çalışma bulunmuyor." />
-            <WorkList title="Tamamlanan çalışmalar" items={detail.work.completed} empty="Tamamlanmış çalışma bulunmuyor." />
-          </div>
+          <WorkList title="Aktif ve devam eden çalışmalar" items={detail.work.active} empty="Aktif çalışma bulunmuyor." />
 
           <EducatorAssignmentManager studentId={detail.student.id} onChanged={() => setDetailVersion((value) => value + 1)} />
+
+          <OptionalSection title="Rapor ve gelişim" description="Ayrıntılı analitik ve çalışma eğilimlerini incele.">
+            <EducatorAnalytics studentId={detail.student.id} />
+          </OptionalSection>
+          <OptionalSection title="Koçluk" description="LGS ve YKS planlarını gerektiğinde aç.">
+            <CoachingCenter studentId={detail.student.id} audience="educator" />
+          </OptionalSection>
+          <OptionalSection title="Öğrenme profili" description="Beceri ve öğrenme kayıtlarını incele.">
+            <StudentLearningProfile endpoint={`/api/educator-learning-profile?studentId=${encodeURIComponent(detail.student.id)}`} audience="educator" />
+          </OptionalSection>
+          <OptionalSection title="Geçmiş çalışmalar" description="Tamamlanan çalışmalar ve kronolojik geçmiş.">
+            <WorkList title="Tamamlanan çalışmalar" items={detail.work.completed} empty="Tamamlanmış çalışma bulunmuyor." />
+            <LearningTimeline endpoint={`/api/educator-student-history?studentId=${encodeURIComponent(detail.student.id)}`} title="Kronolojik öğrenci geçmişi" />
+          </OptionalSection>
+
+          <OptionalSection title="Ayrıntılı kayıtlar" description="Soru, hata ve doğrulama kayıtlarını incele.">
 
           <section className="rounded-2xl border bg-white p-5 shadow-sm">
             <div className="flex items-center gap-2"><Activity className="text-[#276151]" /><h3 className="font-bold text-[#18372f]">Son attempt ve sonuçlar</h3></div>
@@ -297,13 +322,8 @@ export function EducatorStudentCore({ onReport }: { onReport?: (studentId: strin
             </section>
           </div>
 
-          <LearningTimeline
-            endpoint={`/api/educator-student-history?studentId=${encodeURIComponent(detail.student.id)}`}
-            title="Kronolojik öğrenci geçmişi"
-          />
-
-          <div aria-label="Student Learning Profile özeti"><StudentLearningProfile endpoint={`/api/educator-learning-profile?studentId=${encodeURIComponent(detail.student.id)}`} audience="educator" /></div>
-        </> : <div className="grid min-h-72 place-items-center rounded-2xl border bg-white text-center"><div><CheckCircle2 className="mx-auto text-[#7aa28f]" /><p className="mt-3 font-semibold">Detayını görmek için yetkili bir öğrenci seç.</p></div></div>}
+          </OptionalSection>
+        </div> : <div className="grid min-h-72 place-items-center rounded-2xl border bg-white text-center"><div><CheckCircle2 className="mx-auto text-[#7aa28f]" /><p className="mt-3 font-semibold">Detayını görmek için yetkili bir öğrenci seç.</p></div></div>}
       </div>
     </section>
   );

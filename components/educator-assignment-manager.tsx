@@ -36,6 +36,7 @@ export function EducatorAssignmentManager({ studentId, onChanged }: { studentId:
   const [expiresAt, setExpiresAt] = useState('');
   const [rounds, setRounds] = useState('10');
   const [editingId, setEditingId] = useState('');
+  const [formOpen, setFormOpen] = useState(false);
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
   const requestId = useRef('');
@@ -77,7 +78,7 @@ export function EducatorAssignmentManager({ studentId, onChanged }: { studentId:
       const data = await response.json();
       if (!response.ok || data.ok !== true) throw new Error(data.error === 'active_assignment_exists' ? 'Bu modülde zaten etkin bir ödev var.' : 'Ödev kaydedilemedi.');
       setMessage(editingId ? 'Ödev güncellendi.' : 'Ödev oluşturuldu.');
-      reset(); await load(); onChanged?.();
+      reset(); setFormOpen(false); await load(); onChanged?.();
     } catch (error) { setMessage(error instanceof Error ? error.message : 'Ödev kaydedilemedi.'); }
     finally { setBusy(false); }
   }
@@ -97,19 +98,19 @@ export function EducatorAssignmentManager({ studentId, onChanged }: { studentId:
 
   return <section className="rounded-3xl border border-[#dce5e0] bg-white p-5 shadow-sm sm:p-6" aria-labelledby="assignment-manager-title">
     <div className="flex flex-wrap items-start justify-between gap-3">
-      <div><p className="text-sm font-bold uppercase tracking-[.1em] text-[#276151]">U5 · Güvenli ödevlendirme</p><h3 id="assignment-manager-title" className="mt-2 text-2xl font-black">Ödev yönetimi</h3></div>
-      <span className="rounded-full bg-[#edf7f2] px-3 py-1.5 text-sm font-bold text-[#276151]">{items.length} kayıt</span>
+      <div><h3 id="assignment-manager-title" className="text-2xl font-black">Ödev yönetimi</h3><p className="mt-1 text-sm text-muted-foreground">{items.length} kayıt</p></div>
+      <Button type="button" aria-expanded={formOpen} aria-controls="assignment-editor" onClick={() => { if (formOpen) { reset(); setFormOpen(false); } else { setFormOpen(true); } }}><ClipboardPlus size={17} /> {formOpen ? 'Formu kapat' : 'Yeni ödev oluştur'}</Button>
     </div>
     {message ? <output className="mt-4 block rounded-xl bg-[#f5f8f6] p-3 text-sm">{message}</output> : null}
-    <form onSubmit={submit} className="mt-5 grid gap-4 rounded-2xl border bg-[#fbfdfc] p-4 md:grid-cols-2">
+    {formOpen && <form id="assignment-editor" onSubmit={submit} className="mt-5 grid gap-4 rounded-2xl border bg-[#fbfdfc] p-4 md:grid-cols-2">
       <label htmlFor="u5-module" className="text-sm font-bold">Modül<select id="u5-module" disabled={Boolean(editingId)} value={moduleCode} onChange={(e) => setModuleCode(e.target.value)} className="mt-2 min-h-11 w-full rounded-lg border bg-white px-3">{MODULES.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
       <label htmlFor="u5-title" className="text-sm font-bold">Çalışma adı<Input id="u5-title" className="mt-2" value={title} onChange={(e) => setTitle(e.target.value)} maxLength={180} placeholder="Örn. Haftalık soroban çalışması" /></label>
       <label htmlFor="u5-start" className="text-sm font-bold">Başlangıç<Input id="u5-start" className="mt-2" type="datetime-local" value={startsAt} onChange={(e) => setStartsAt(e.target.value)} /></label>
       <label htmlFor="u5-due" className="text-sm font-bold">Son tarih<Input id="u5-due" className="mt-2" type="datetime-local" value={expiresAt} onChange={(e) => setExpiresAt(e.target.value)} /></label>
       {!editingId ? <label htmlFor="u5-rounds" className="text-sm font-bold">Çalışma adedi<Input id="u5-rounds" className="mt-2" type="number" min="1" max="100" value={rounds} onChange={(e) => setRounds(e.target.value)} /></label> : null}
       <label htmlFor="u5-instructions" className="text-sm font-bold md:col-span-2">Eğitmen talimatı<textarea id="u5-instructions" value={instructions} onChange={(e) => setInstructions(e.target.value)} maxLength={1000} rows={3} className="mt-2 w-full rounded-lg border bg-white p-3 font-normal" placeholder="Öğrenciye kısa ve açık yönerge" /></label>
-      <div className="flex flex-wrap gap-2 md:col-span-2"><Button disabled={busy} type="submit"><ClipboardPlus size={17} /> {editingId ? 'Değişiklikleri kaydet' : 'Ödev oluştur'}</Button>{editingId ? <Button type="button" variant="outline" onClick={reset}>Vazgeç</Button> : null}</div>
-    </form>
+      <div className="flex flex-wrap gap-2 md:col-span-2"><Button disabled={busy} type="submit"><ClipboardPlus size={17} /> {editingId ? 'Değişiklikleri kaydet' : 'Ödev oluştur'}</Button>{editingId ? <Button type="button" variant="outline" onClick={() => { reset(); setFormOpen(false); }}>Vazgeç</Button> : null}</div>
+    </form>}
     <div className="mt-6 flex flex-wrap gap-3">
       <label htmlFor="u5-status" className="text-sm font-bold">Durum<select id="u5-status" value={status} onChange={(e) => setStatus(e.target.value)} className="ml-2 min-h-10 rounded-lg border bg-white px-3"><option value="">Tümü</option>{Object.entries(STATUS_LABELS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
       <Button type="button" variant="outline" size="sm" onClick={() => void load()}><RefreshCw size={15} /> Yenile</Button>
@@ -119,7 +120,7 @@ export function EducatorAssignmentManager({ studentId, onChanged }: { studentId:
       {item.instructions ? <p className="mt-3 text-sm">{item.instructions}</p> : null}
       <p className="mt-3 flex items-center gap-2 text-xs text-muted-foreground"><CalendarClock size={15} /> {localDate(item.starts_at)} → {localDate(item.expires_at)}</p>
       <p className="mt-2 text-xs text-muted-foreground">Oturum: {item.session_count} · Tamamlanan: {item.completed_count}</p>
-      {item.status !== 'cancelled' && item.status !== 'completed' ? <div className="mt-4 flex gap-2"><Button type="button" size="sm" variant="outline" onClick={() => { setEditingId(item.id); setModuleCode(item.module_code); setTitle(item.name); setInstructions(item.instructions || ''); setStartsAt(item.starts_at?.slice(0, 16) || ''); setExpiresAt(item.expires_at?.slice(0, 16) || ''); }}><Pencil size={15} /> Düzenle</Button><Button type="button" size="sm" variant="outline" onClick={() => void cancel(item.id)}><Ban size={15} /> İptal</Button></div> : null}
+      {item.status !== 'cancelled' && item.status !== 'completed' ? <div className="mt-4 flex gap-2"><Button type="button" size="sm" variant="outline" onClick={() => { setFormOpen(true); setEditingId(item.id); setModuleCode(item.module_code); setTitle(item.name); setInstructions(item.instructions || ''); setStartsAt(item.starts_at?.slice(0, 16) || ''); setExpiresAt(item.expires_at?.slice(0, 16) || ''); }}><Pencil size={15} /> Düzenle</Button><Button type="button" size="sm" variant="outline" onClick={() => void cancel(item.id)}><Ban size={15} /> İptal</Button></div> : null}
     </article>)}{!items.length ? <p className="text-sm text-muted-foreground">Filtreyle eşleşen ödev yok.</p> : null}</div>
   </section>;
 }
