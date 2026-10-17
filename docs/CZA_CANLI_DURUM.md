@@ -110,3 +110,21 @@ Gerçek Chrome login HTTP 200, fakat dashboard HTTP 403: minimum runtime role es
 ## Güncel ek onay sonrası
 
 Baş Mimar b42b1a9 ek paketi için “Dar ek oturum paketini onaylıyorum” dedi. İki ek fonksiyon kilitli QA transaction'ında kuruldu; genel eski fonksiyon/RLS/rol yetkileri aynı. Gerçek Chrome masaüstü/mobil tam40/40 test geçti; minimum Neon rolü12/12 ve statik5 byte eşitliği geçti. Eski56 oturum ve40/45 tablo fingerprint'i aynı; beklenen5 değişiklik onaylı hazırlık/login/rate-limit kayıtlarıdır. Ana staging değişmedi. QA source62bc61f4e24f3d11f8c1ff514e61f105cb0a62c1/tree0e99b02f559aaff5365c26281ad37f49699b265a; CI38132583947 SUCCESS; Worker versiond439fee2-9bd9-495a-9d8a-b8338feae25f. Ayrıntı `docs/CZA_V03_QA_RUNTIME_20261011.md`. Worker module bağımsız byte readback Windows indirme hatası ve eksik güvenli runner bağlantısı nedeniyle DOĞRULANAMADI. V03_ACCEPTED=NO; Baş Mimar nihai kabulü açık.
+
+
+## 2026-10-17 — active integration checkpoint (supersedes earlier next-step snapshots)
+
+Issue #98 command https://github.com/dekorix/cza-akademi/issues/98#issuecomment-6231159318 authorizes one isolated integration branch, commit/push, DRAFT PR and disposable CI. Technical owner: Codex A in the current supervised execution. Branch: the dedicated integration branch recorded on the DRAFT PR; PR base: the unchanged #117 source branch. No other source PR is modified.
+
+Immutable inputs: #101 `1896a522fa2bde04e528824485f6994e30a9a6d3`, #107 `4818ef2f53aa25c390405d5f5499b36f5d1573c6`, #117 `8de9f56e9e123b6f56e0bff947c15d02c71c39c8` including diagnostic ancestor `849ef9d27a3ffbb45a928ceb601f433acc083a11`. The three-way source merge is conflict-free. CI checks out the exact integration HEAD for PostgreSQL17/Miniflare and student history/login tests. PGlite session coverage and private raw browser fixture logs are retained.
+
+Inherited Windows failures require classification against Linux CI: generated projection drift, session_status/text fixture type mismatch, private-key file permissions and security workflow shell exit status. They are not silently skipped. Successful prior mock browser proof is not live acceptance. The login hardening is not the proven cause of the historical live failure.
+
+CI status: PENDING; exact run and source identifiers belong to the DRAFT PR. HIGH1=OPEN; HIGH2=OPEN; LIVE_QA=NO_GO; A_DEMO_FULL_PASS=NO; PRODUCTION=BLOCKED. No live SQL, credentials/IAM, Worker deployment, real login or main merge is authorized here.
+
+GENEL PROJE ILERLEME %=OLCULMEDI
+MEVCUT FAZ ILERLEME %=4/7 (57.1%) prior isolated scoped acceptance only
+TAMAMLANAN=Conflict-free integration source checkpoint
+KALAN=Exact-HEAD disposable CI, failure classification, independent review, later narrowly authorized live acceptance
+KAPSAM SAPMASI=YOK
+SIRADAKI TEK ADIM=Complete integrated source CI and deliver the DRAFT PR with evidence

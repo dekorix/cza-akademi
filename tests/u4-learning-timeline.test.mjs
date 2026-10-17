@@ -35,6 +35,8 @@ function loadRoute(source, { student = null, educator = null, authorized = [], t
   // oxlint-disable-next-line typescript/no-implied-eval -- isolated route harness
   new Function('require', 'module', 'exports', 'process', transpile(source))(
     (id) => {
+      if (id.includes('qa-educator-broker-client')) return {};
+      if (id.includes('qa-educator-broker-protocol')) return { BrokerError: class extends Error {} };
       if (id.includes('isolated-qa-auth')) return { isolatedQaEnabled: () => false };
       if (id.includes('qa-demo-read')) return { demoReadDenied: () => false };
       if (id.includes('student-session')) return { authenticatedStudent: async () => student };
