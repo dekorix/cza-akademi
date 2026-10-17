@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import { resolveAssessmentBridge } from '../lib/assessment-bridge.ts';
 
 test('educator assessment page uses the central ProfileIntake experience',()=>{
   const source=fs.readFileSync(new URL('../app/educator/assessment/page.tsx',import.meta.url),'utf8');
@@ -26,7 +27,15 @@ test('all ten special profiles are exposed from the same central intake',()=>{
     assert.match(source,new RegExp(code));
   }
   assert.match(source,/ÖZEL EĞİTİM VE ÖĞRENME PROFİLİ/);
-  assert.match(source,/TAM PROFİL AKTİF/);
+  assert.match(source,/const status=resolveAssessmentBridge\(code,'GENERAL'\)\?\.status/);
+  assert.match(source,/status==='CENTRAL_READY'\?'MERKEZİ BAĞLANTI HAZIR'/);
+  assert.match(source,/status==='SOURCE_REFERENCE_ONLY'\?'KAYNAK HAZIR':'HAZIRLANIYOR'/);
+  assert.doesNotMatch(source,/TAM PROFİL AKTİF/);
+  for(const code of ['SP-DYS','SP-SLD','SP-DYSC','SP-DYSG','SP-ASD','SP-LANG','SP-ATTN','SP-DELAY','SP-COG','SP-MIX']){
+    const target=resolveAssessmentBridge(code,'GENERAL');
+    assert.equal(target?.status,'CENTRAL_READY',code);
+    assert.equal(target?.centralRoute,'/api/assessment-special-linked',code);
+  }
 });
 
 test('special assessment runtime is published under the main CZA public tree',()=>{

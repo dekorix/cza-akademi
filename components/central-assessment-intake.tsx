@@ -220,9 +220,9 @@ export function CentralAssessmentIntake({onP2Created}:{onP2Created:(payload:P2Cr
         <div className="mt-5 rounded-3xl border border-[#d8d8ec] bg-[#faf9ff] p-5 md:p-6">
           <div className="flex items-start gap-3"><Brain className="mt-1 text-[#6c61a6]"/><div><p className="text-[10px] font-black uppercase tracking-[.16em] text-[#786daf]">ÖZEL EĞİTİM VE ÖĞRENME PROFİLİ</p><h3 className="mt-1 text-xl font-semibold">Belirtiyi etikete değil, öğrenme mekanizmasına ayır</h3><p className="mt-2 text-xs leading-5 text-muted-foreground">Bu alan klinik tanı koymaz. Eğitimsel tarama, hata örüntüsü, destek ihtiyacı ve öğrenme tepkisi üretir.</p></div></div>
           <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-            {SPECIAL.map(([code,title,description,icon])=><button key={code} type="button" onClick={()=>{chooseProfile(code);setPurpose('GENERAL');}} className={'rounded-2xl border p-4 text-left transition '+(profileCode===code?'border-[#7569b0] bg-white shadow-sm':'border-[#e3e0f1] bg-white/80 hover:border-[#aaa1d2]')}>
-              <div className="flex items-start gap-3"><span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#efedf8] font-black text-[#66599f]">{icon}</span><div><b className="text-sm">{title}</b><p className="mt-1 text-xs leading-5 text-muted-foreground">{description}</p><span className="mt-2 inline-flex rounded-full bg-[#e8f5ee] px-2 py-1 text-[9px] font-black text-[#276151]">TAM PROFİL AKTİF</span></div></div>
-            </button>)}
+            {SPECIAL.map(([code,title,description,icon])=>{const status=resolveAssessmentBridge(code,'GENERAL')?.status;return <button key={code} type="button" onClick={()=>{chooseProfile(code);setPurpose('GENERAL');}} className={'rounded-2xl border p-4 text-left transition '+(profileCode===code?'border-[#7569b0] bg-white shadow-sm':'border-[#e3e0f1] bg-white/80 hover:border-[#aaa1d2]')}>
+              <div className="flex items-start gap-3"><span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#efedf8] font-black text-[#66599f]">{icon}</span><div><b className="text-sm">{title}</b><p className="mt-1 text-xs leading-5 text-muted-foreground">{description}</p><span className={'mt-2 inline-flex rounded-full px-2 py-1 text-[9px] font-black '+(status==='CENTRAL_READY'?'bg-[#e8f5ee] text-[#276151]':'bg-[#fff4dd] text-[#84651f]')}>{status==='CENTRAL_READY'?'MERKEZİ BAĞLANTI HAZIR':status==='SOURCE_REFERENCE_ONLY'?'KAYNAK HAZIR':'HAZIRLANIYOR'}</span></div></div>
+            </button>})}
           </div>
         </div>
 
