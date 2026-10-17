@@ -24,6 +24,7 @@ jobs:
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
         with:
+          ref: ${{ github.event.pull_request.head.sha }}
           persist-credentials: false
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
         with:
@@ -32,6 +33,8 @@ jobs:
       - run: npm ci --ignore-scripts
       - name: V03-V04 protected regressions and readonly security
         run: node --test tests/v04-assigned-work.test.mjs tests/v04-assigned-work-postgres.test.mjs tests/v04-final-fixture-review.test.mjs tests/v03-qa-target.test.mjs tests/v03-qa-read-postgres.test.mjs tests/v03-student-panel.test.mjs tests/u1-student-panel.test.mjs tests/u2-work-center.test.mjs tests/u7-student-learning-profile.test.mjs tests/u1-student-panel-postgres.test.mjs tests/u2-work-center-postgres.test.mjs tests/k3e-assigned-lifecycle.test.mjs tests/canonical-learning-persistence.test.mjs tests/canonical-security-hardening.test.mjs tests/canonical-postgres-behavior.test.mjs tests/security-ci-hardening.test.mjs tests/u4-learning-timeline.test.mjs tests/u4-learning-timeline-postgres.test.mjs tests/a-demo-02-api.test.mjs tests/a-demo-02-read-postgres.test.mjs tests/a-demo-02-local-session-e2e.test.mjs
+      - name: Integrated QA login and diagnostic regressions
+        run: node --test tests/qa-login-fail-closed.test.mjs tests/login-error-codes.test.mjs tests/k3e-staging-diagnostics.test.mjs
       - name: TypeScript
         run: npx tsc --noEmit
       - name: Narrow lint
